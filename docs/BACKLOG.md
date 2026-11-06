@@ -12,3 +12,10 @@ Pistes :
 4. **« Une autre façon de faire »** après réussite : une ou deux solutions alternatives, avec avantages et limites.
 
 Limites : règles sans compréhension de l'intention (fausses alertes possibles, donc conseils seulement) ; variantes et alternatives écrites leçon par leçon ; pas d'IA hors ligne.
+
+## Laissé de côté à l'étape 3
+
+- Variables locales des fonctions, paramètres des fonctions d'interface, fonctions d'interface avec sortie (aujourd'hui : événements sans paramètre).
+- Remplacer un Custom Event par l'événement d'interface du même nom en un geste (UE le propose quand on implémente l'interface).
+- Pendant Play : modifier une variable d'instance dans Details, choisir l'objet débogué depuis le niveau.
+- Flèches entre les acteurs du niveau qui se référencent (Details › variables Instance Editable).

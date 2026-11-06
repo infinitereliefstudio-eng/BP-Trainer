@@ -1,0 +1,102 @@
+/**
+ * The node palette (UE's right-click menu): searchable, grouped by category,
+ * and context-sensitive when opened from a dragged wire.
+ */
+import { useMemo, useState } from 'preact/hooks';
+import { compatiblePin, paletteEntries, searchEntries, type PaletteEntry } from '@core/nodes/palette';
+import { getDefinition } from '@core/nodes/registry';
+import { addNode, connect } from '@core/operations/graphOps';
+import type { PaletteRequest } from '@editor/GraphCanvas';
+import { useStore } from '../hooks';
+import { useOwnTap } from '../widgets/useOwnTap';
+
+interface Props {
+  req: PaletteRequest;
+  onClose: () => void;
+  onFocusNode: (nodeId: string) => void;
+}
+
+export function Palette({ req, onClose, onFocusNode }: Props) {
+  const store = useStore();
+  const [query, setQuery] = useState('');
+  const [contextual, setContextual] = useState(true);
+  const ctx = store.ctx;
+  const tap = useOwnTap();
+
+  const all = useMemo(() => paletteEntries(ctx, store.graph.kind), [store.cls, store.graph]);
+  const usable = useMemo(
+    () => (req.from && contextual ? all.filter((e) => compatiblePin(e, ctx, req.from!)) : all),
+    [all, req.from, contextual],
+  );
+  const results = useMemo(() => searchEntries(usable, query), [usable, query]);
+
+  const place = (e: PaletteEntry) => {
+    const def = getDefinition(e.def);
+    if (def?.unique) {
+      const existing = Object.values(store.graph.nodes).find((n) => n.def === e.def);
+      if (existing) {
+        onClose();
+        onFocusNode(existing.id);
+        store.info(`${e.title} existe déjà : il est affiché à l’écran.`);
+        return;
+      }
+    }
+    const from = req.from;
+    // Place the node so the wire lands on its side: to the right of an output, to the left of an input.
+    const x = from && from.dir === 'in' ? req.world.x - 220 : req.world.x;
+    const y = req.world.y - 18;
+    const res = store.apply(`Ajouter ${e.title}`, (_c, g) => {
+      const added = addNode(g, e.def, x, y, e.config);
+      if (added.ok && from) {
+        const pin = compatiblePin(e, ctx, from);
+        if (pin) connect(g, from.ref, { node: added.value.id, pin: pin.id }, store.ctx);
+      }
+      return added;
+    });
+    onClose();
+    if (!res.ok) store.warn(res.reason);
+    else store.selectNodes([res.value.id]);
+  };
+
+  let lastCat = '';
+  return (
+    <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
+      <div class="sheet palette" onClick={(ev) => ev.stopPropagation()}>
+        <div class="palette-head">
+          <input
+            class="field search"
+            type="search"
+            placeholder="Rechercher un nœud…"
+            value={query}
+            onInput={(ev) => setQuery((ev.target as HTMLInputElement).value)}
+          />
+          {req.from && (
+            <label class="check small">
+              <input type="checkbox" checked={contextual} onChange={(ev) => setContextual((ev.target as HTMLInputElement).checked)} />
+              Context Sensitive
+            </label>
+          )}
+          <button class="btn" onClick={tap.guard(onClose)}>
+            Fermer
+          </button>
+        </div>
+        <div class="palette-list">
+          {results.length === 0 && <p class="hint">Aucun nœud ne correspond.</p>}
+          {results.map((e) => {
+            const header = !query && e.category !== lastCat ? e.category : null;
+            lastCat = e.category;
+            return (
+              <div key={e.key}>
+                {header && <div class="palette-cat">{header.replace(/\|/g, ' › ')}</div>}
+                <button class="palette-item" onClick={tap.guard(() => place(e))}>
+                  <span class="pi-title">{e.title}</span>
+                  <span class="pi-desc">{e.description}</span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

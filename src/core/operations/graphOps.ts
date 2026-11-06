@@ -32,6 +32,10 @@ export function addNode(
     const existing = Object.values(graph.nodes).find((n) => n.def === defId);
     if (existing) return fail('Cet événement existe déjà dans le graphe.');
   }
+  if (defId === 'event.interface') {
+    const dup = Object.values(graph.nodes).some((n) => n.def === defId && n.config.interface === config.interface && n.config.fn === config.fn);
+    if (dup) return fail('Cette fonction d’interface est déjà implémentée dans le graphe.');
+  }
   if (defId === 'event.componentBeginOverlap' || defId === 'event.componentEndOverlap') {
     const dup = Object.values(graph.nodes).some((n) => n.def === defId && n.config.component === config.component);
     if (dup) return fail('Cet événement existe déjà pour ce composant.');

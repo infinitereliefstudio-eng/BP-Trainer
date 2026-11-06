@@ -1,4 +1,5 @@
-import { findComponent } from '../../model/project';
+import { findComponent, signatureKey } from '../../model/project';
+import { customEventParams } from './communication';
 import { T } from '../../types/pins';
 import { dataOut, execOut, type NodeDefinition } from '../definition';
 
@@ -117,6 +118,14 @@ export const eventNodes: NodeDefinition[] = [
     keywords: ['custom', 'event', 'evenement', 'personnalise'],
     config: [{ key: 'name', label: 'Nom', kind: 'string' }],
     defaultConfig: { name: 'CustomEvent' },
-    pins: [execOut()],
+    // The red square is the event itself, to plug into a Bind Event node.
+    pins: (n, ctx) => {
+      const params = customEventParams(ctx, n);
+      return [
+        execOut(),
+        dataOut('delegate', '', { category: 'delegate', subtype: signatureKey(params) }, { hideName: true }),
+        ...params.map((p) => dataOut(p.id, p.name, p.type)),
+      ];
+    },
   },
 ];

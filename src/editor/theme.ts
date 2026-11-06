@@ -13,6 +13,7 @@ export const PIN_COLOR: Record<PinCategory, string> = {
   object: '#1aa6f2', // blue
   class: '#7a2ad4', // purple
   enum: '#0b6e5e', // dark teal
+  delegate: '#ff3b3b', // event / dispatcher (red square)
   wildcard: '#808080',
 };
 

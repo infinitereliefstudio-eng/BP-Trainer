@@ -4,7 +4,8 @@
  * output pins to follow, in order; pure nodes implement `pure` and return
  * their output values.
  */
-import type { NodeInstance } from '../../model/project';
+import type { BlueprintClass, NodeInstance, Project } from '../../model/project';
+import type { NodeContext } from '../../nodes/definition';
 import type { ActorRT, ComponentRT, RValue } from '../world';
 
 /** Entry pin used when a node asked to be resumed (loops). */
@@ -24,15 +25,23 @@ export interface WorldApi {
   /** Resolve a reference; logs "Accessed None" and returns null when empty. */
   component(ref: RValue, pinName: string): ComponentRT | null;
   actor(ref: RValue, pinName: string): ActorRT | null;
+  /** Resolve without logging: interface messages and Is Valid accept None. */
+  tryActor(ref: RValue): ActorRT | null;
+  isValid(ref: RValue): boolean;
+  readonly project: Project;
+  classOf(actor: ActorRT): BlueprintClass | undefined;
   ownerOf(c: ComponentRT): ActorRT | undefined;
   destroy(actor: ActorRT): void;
   displayName(ref: RValue): string;
+  /** Log a Blueprint Runtime Error at the current node. */
+  runtimeError(message: string): void;
 }
 
 export interface ValueCx {
   readonly actor: ActorRT;
   readonly node: NodeInstance;
   readonly world: WorldApi;
+  readonly ctx: NodeContext;
   in(pin: string): RValue;
   num(pin: string): number;
   bool(pin: string): boolean;
@@ -50,6 +59,13 @@ export interface ExecCx extends ValueCx {
   latentActive(): boolean;
   /** Start (or restart) this node's latent action. */
   startLatent(seconds: number, outPin: string): void;
+  /** Values of every data input except Target: the parameters of a call. */
+  params(): Record<string, RValue>;
+  /**
+   * Run event nodes of `target` that match, right after this node and
+   * before its outputs continue (a synchronous call). Returns how many ran.
+   */
+  callEvents(target: ActorRT, match: (n: NodeInstance) => boolean, outputs: Record<string, RValue>): number;
 }
 
 export interface Behavior {

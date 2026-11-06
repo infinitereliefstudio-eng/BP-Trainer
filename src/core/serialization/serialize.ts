@@ -50,6 +50,15 @@ function migrate(p: Project, from: number): Project {
     }
     cur = 2;
   }
+  if (cur === 2) {
+    // v3: dispatchers, interfaces, player class.
+    p.interfaces ??= [];
+    for (const c of p.classes ?? []) {
+      c.dispatchers ??= [];
+      c.interfaces ??= [];
+    }
+    cur = 3;
+  }
   p.format = cur;
   return p;
 }

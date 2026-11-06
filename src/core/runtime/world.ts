@@ -6,10 +6,16 @@
 import type { ComponentKind, ComponentProps } from '../model/project';
 import type { Value } from '../types/values';
 
-/** A reference to an actor or one of its components. `null` is None. */
-export type ObjRef = { ref: 'actor'; id: string } | { ref: 'component'; actor: string; id: string };
+/**
+ * A reference to an actor, one of its components, or one of its events
+ * (the red "delegate" pin of a Custom Event). `null` is None.
+ */
+export type ObjRef =
+  | { ref: 'actor'; id: string }
+  | { ref: 'component'; actor: string; id: string }
+  | { ref: 'delegate'; actor: string; node: string };
 
-export type RValue = Value | ObjRef;
+export type RValue = Exclude<Value, Value[]> | ObjRef | RValue[];
 
 export function isRef(v: unknown): v is ObjRef {
   return typeof v === 'object' && v !== null && 'ref' in (v as object);
@@ -22,6 +28,12 @@ export interface ComponentRT {
   parent?: string;
   /** Live properties; start as a copy of the class defaults. */
   props: ComponentProps;
+}
+
+/** An event bound to an Event Dispatcher: which actor, which event node. */
+export interface Binding {
+  actor: string;
+  node: string;
 }
 
 export interface LatentAction {
@@ -52,6 +64,8 @@ export interface ActorRT {
   /** Other actors currently overlapping, and component-level pairs. */
   overlaps: Set<string>;
   compOverlaps: Set<string>;
+  /** Event Dispatcher id → events bound to it, in binding order. */
+  bindings: Record<string, Binding[]>;
   receivesInput: boolean;
   destroyed: boolean;
 }

@@ -10,6 +10,7 @@ import {
   variableUsage,
 } from '@core/operations/classOps';
 import { removeNodes, setNodeConfig, setPinDefault } from '@core/operations/graphOps';
+import { renameCustomEvent } from '@core/operations/projectOps';
 import { renameClass, removeClass } from '@core/operations/projectOps';
 import { CATEGORY_LABEL, VARIABLE_CATEGORIES, type PinCategory, type PinType } from '@core/types/pins';
 import { hasInlineValue } from '@editor/layout';
@@ -104,6 +105,11 @@ function NodeDetails() {
                     let value = v;
                     if (c.kind === 'int') value = Math.max(c.min ?? -1e9, Math.min(c.max ?? 1e9, Number(v)));
                     if (c.kind === 'string' && !String(v).trim()) return;
+                    if (node.def === 'event.custom' && c.key === 'name') {
+                      const res = store.applyProject('Renommer l’événement', (p) => renameCustomEvent(p, store.cls.id, node.id, String(value)));
+                      if (!res.ok) store.warn(res.reason);
+                      return;
+                    }
                     store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, value, ctx));
                   }}
                 />

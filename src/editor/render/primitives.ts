@@ -43,6 +43,11 @@ export function drawPin(
     c.closePath();
     if (filled) c.fill();
     else c.stroke();
+  } else if (t.category === 'delegate') {
+    c.beginPath();
+    c.rect(x - 5, y - 5, 10, 10);
+    if (filled) c.fill();
+    else c.stroke();
   } else if (t.container === 'array') {
     const s = 3;
     for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) c.fillRect(x + i * 4 - s / 2, y + j * 4 - s / 2, s, s);

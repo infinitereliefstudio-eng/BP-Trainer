@@ -3,7 +3,17 @@
  * returns messages for the Compiler Results panel. Step 2 will turn a
  * validated class into an executable form; the checks stay here.
  */
-import { findComponent, findVariable, type BlueprintClass, type Graph } from '../model/project';
+import {
+  findComponent,
+  findDispatcher,
+  findInterface,
+  findVariable,
+  type BlueprintClass,
+  type Graph,
+  type NodeInstance,
+  type Project,
+} from '../model/project';
+import { classById, findCustomEvent } from '../nodes/library/communication';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor, getDefinition, nodeTitle, resolvePins } from '../nodes/registry';
 import { isAssignable } from '../types/pins';
@@ -24,8 +34,8 @@ export interface CompileResult {
   messages: CompileMessage[];
 }
 
-export function compileClass(cls: BlueprintClass): CompileResult {
-  const ctx = contextFor(cls);
+export function compileClass(cls: BlueprintClass, project?: Project): CompileResult {
+  const ctx = contextFor(cls, project);
   const messages: CompileMessage[] = [];
   for (const g of cls.graphs) checkGraph(g, cls, ctx, messages);
   checkCustomEventNames(cls, messages);
@@ -62,6 +72,8 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     if (n.def === 'var.component' && !findComponent(cls, String(n.config.component))) {
       out.push({ severity: 'error', text: `${title} : le composant n'existe plus.`, ...at });
     }
+    const broken = brokenReference(n, cls, ctx);
+    if (broken) out.push({ severity: 'error', text: `${title} : ${broken}`, ...at });
     if (def.unique) {
       if (seenUnique.has(n.def)) out.push({ severity: 'error', text: `${title} est présent deux fois.`, ...at });
       seenUnique.set(n.def, n.id);
@@ -108,6 +120,46 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       nodeId: n.id,
     });
   }
+}
+
+/** Why a node pointing at another Blueprint, dispatcher or interface is broken. */
+function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext): string | undefined {
+  const c = n.config;
+  const owner = () => classById(ctx, c.owner);
+  switch (n.def) {
+    case 'cast.to':
+      return classById(ctx, c.class) ? undefined : "le Blueprint ciblé n'existe plus.";
+    case 'var.getExternal':
+    case 'var.setExternal': {
+      const o = owner();
+      if (!o) return "le Blueprint propriétaire n'existe plus.";
+      return findVariable(o, String(c.variable)) ? undefined : `la variable n'existe plus dans ${o.name}.`;
+    }
+    case 'dispatcher.call':
+    case 'dispatcher.bind':
+    case 'dispatcher.unbind':
+    case 'dispatcher.unbindAll': {
+      const o = owner();
+      if (!o) return "le Blueprint propriétaire n'existe plus.";
+      return findDispatcher(o, String(c.dispatcher)) ? undefined : `l'Event Dispatcher n'existe plus dans ${o.name}.`;
+    }
+    case 'call.custom': {
+      const o = owner() ?? cls;
+      return findCustomEvent(o, String(c.event)) ? undefined : `aucun Custom Event « ${c.event} » dans ${o.name}.`;
+    }
+    case 'event.interface':
+    case 'iface.message':
+    case 'iface.doesImplement': {
+      const iface = ctx.project && findInterface(ctx.project, String(c.interface));
+      if (!iface) return "l'interface n'existe plus.";
+      if (n.def !== 'iface.doesImplement' && !iface.functions.some((f) => f.id === c.fn)) return `la fonction n'existe plus dans ${iface.name}.`;
+      if (n.def === 'event.interface' && !cls.interfaces.includes(iface.id)) {
+        return `${cls.name} n'implémente pas ${iface.name} (Class Settings › Implemented Interfaces).`;
+      }
+      return undefined;
+    }
+  }
+  return undefined;
 }
 
 function checkCustomEventNames(cls: BlueprintClass, out: CompileMessage[]): void {

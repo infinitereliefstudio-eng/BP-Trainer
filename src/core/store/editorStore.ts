@@ -96,7 +96,7 @@ export class EditorStore {
   }
 
   get ctx(): NodeContext {
-    return contextFor(this.cls);
+    return contextFor(this.cls, this.project);
   }
 
   // ---------------------------------------------------------- transactions
@@ -248,7 +248,7 @@ export class EditorStore {
   /** Compile the open class; `quiet` skips the summary toast (Play does its own). */
   compile(quiet = false): void {
     this.commit();
-    const res = compileClass(this.cls);
+    const res = compileClass(this.cls, this.project);
     this.compileStatus = res.status;
     this.compileMessages = res.messages;
     const summary = res.messages[res.messages.length - 1]?.text ?? '';

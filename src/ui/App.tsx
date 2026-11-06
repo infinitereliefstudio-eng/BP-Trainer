@@ -114,7 +114,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
   const play = () => {
     store.commit();
     for (const cls of store.project.classes) {
-      if (compileClass(cls).status === 'error') {
+      if (compileClass(cls, store.project).status === 'error') {
         store.openClass(cls.id);
         store.compile();
         setView('graph');

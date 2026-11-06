@@ -4,11 +4,12 @@
  * To add a node: write its definition in the matching file of `library/`
  * (or a new file) and list that array below. Nothing else needs to change.
  */
-import { findVariable, type BlueprintClass, type NodeInstance } from '../model/project';
+import { findVariable, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import { makeHierarchy } from '../types/pins';
 import { defaultValueFor, type Value } from '../types/values';
 import type { NodeContext, NodeDefinition, PinSpec } from './definition';
 import { actorNodes } from './library/actor';
+import { communicationNodes } from './library/communication';
 import { componentNodes } from './library/components';
 import { conversionNodes } from './library/conversions';
 import { debugNodes } from './library/debug';
@@ -25,6 +26,7 @@ const ALL: NodeDefinition[] = [
   ...variableNodes,
   ...actorNodes,
   ...componentNodes,
+  ...communicationNodes,
   ...mathNodes,
   ...conversionNodes,
   ...debugNodes,
@@ -45,8 +47,10 @@ export function allDefinitions(): readonly NodeDefinition[] {
 }
 
 /** Context needed to resolve dynamic pins and titles for nodes of a class. */
-export function contextFor(cls: BlueprintClass): NodeContext {
-  return { cls, hierarchy: makeHierarchy({ [cls.name]: cls.parent }) };
+export function contextFor(cls: BlueprintClass, project?: Project): NodeContext {
+  const parents: Record<string, string> = { [cls.name]: cls.parent };
+  for (const c of project?.classes ?? []) parents[c.name] = c.parent;
+  return { cls, hierarchy: makeHierarchy(parents), project };
 }
 
 export function resolvePins(node: NodeInstance, ctx: NodeContext): PinSpec[] {

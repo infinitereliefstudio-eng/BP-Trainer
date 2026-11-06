@@ -3,11 +3,11 @@
  * plus entries generated from the class (Get/Set per variable, one getter per
  * component), like UE's context menu.
  */
-import type { GraphKind, NodeInstance } from '../model/project';
+import type { BlueprintClass, GraphKind, NodeInstance } from '../model/project';
 import { isAssignable, type PinType } from '../types/pins';
 import type { Value } from '../types/values';
 import type { NodeContext, PinSpec } from './definition';
-import { allDefinitions, resolvePins } from './registry';
+import { allDefinitions, getDefinition, resolvePins } from './registry';
 
 export interface PaletteEntry {
   key: string;
@@ -17,6 +17,11 @@ export interface PaletteEntry {
   def: string;
   config: Record<string, Value>;
   keywords: string[];
+  /**
+   * Member of another Blueprint: listed when searching or when dragging a
+   * wire, not when browsing (UE's "Context Sensitive" behaviour).
+   */
+  contextOnly?: boolean;
 }
 
 export function paletteEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEntry[] {
@@ -88,6 +93,105 @@ export function paletteEntries(ctx: NodeContext, graphKind: GraphKind): PaletteE
       config: { component: c.id },
       keywords: ['component', 'composant', c.name.toLowerCase()],
     });
+  }
+  if (ctx.project) out.push(...communicationEntries(ctx, graphKind));
+  return out;
+}
+
+function entry(ctx: NodeContext, key: string, def: string, config: Record<string, Value>, extra: Partial<PaletteEntry> = {}): PaletteEntry {
+  const d = getDefinition(def)!;
+  const title = typeof d.title === 'function' ? d.title(probe(def, config), ctx) : d.title;
+  return { key, title, category: d.category, description: d.description, def, config, keywords: [], ...extra };
+}
+
+/** Casts, other Blueprints' members, dispatchers, custom events, interfaces. */
+function communicationEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEntry[] {
+  const out: PaletteEntry[] = [];
+  const project = ctx.project!;
+  const self = ctx.cls;
+  const eventGraph = graphKind === 'event';
+  const others = project.classes.filter((c) => c.id !== self.id);
+
+  for (const c of project.classes) {
+    out.push(entry(ctx, `cast:${c.id}`, 'cast.to', { class: c.id }, { keywords: ['cast', 'convertir', c.name.toLowerCase()] }));
+  }
+
+  // Variables of other Blueprints, read or written through a reference.
+  for (const c of others) {
+    for (const v of c.variables) {
+      const kw = ['get', 'set', 'variable', v.name.toLowerCase(), c.name.toLowerCase()];
+      const category = `Class|${c.name}`;
+      out.push(entry(ctx, `xget:${c.id}:${v.id}`, 'var.getExternal', { owner: c.id, variable: v.id }, { category, keywords: kw, contextOnly: true }));
+      out.push(entry(ctx, `xset:${c.id}:${v.id}`, 'var.setExternal', { owner: c.id, variable: v.id }, { category, keywords: kw, contextOnly: true }));
+    }
+  }
+
+  // Event Dispatchers: this Blueprint's are always listed, others' on demand.
+  const dispatcherOwners: BlueprintClass[] = [self, ...others];
+  for (const c of dispatcherOwners) {
+    const own = c.id === self.id;
+    for (const d of c.dispatchers) {
+      const cfg = { owner: c.id, dispatcher: d.id };
+      const kw = ['dispatcher', 'event', d.name.toLowerCase(), c.name.toLowerCase()];
+      const category = own ? `Event Dispatchers|${d.name}` : `Class|${c.name}`;
+      const flags = { category, keywords: kw, contextOnly: !own };
+      out.push(entry(ctx, `dcall:${c.id}:${d.id}`, 'dispatcher.call', cfg, { ...flags, keywords: [...kw, 'call', 'appeler'] }));
+      if (eventGraph) {
+        out.push(entry(ctx, `dbind:${c.id}:${d.id}`, 'dispatcher.bind', cfg, { ...flags, keywords: [...kw, 'bind', 'abonner'] }));
+        out.push(entry(ctx, `dunbind:${c.id}:${d.id}`, 'dispatcher.unbind', cfg, { ...flags, keywords: [...kw, 'unbind'] }));
+        out.push(entry(ctx, `dunbindall:${c.id}:${d.id}`, 'dispatcher.unbindAll', cfg, { ...flags, keywords: [...kw, 'unbind'] }));
+        // Dragging from Bind Event's red pin offers a matching Custom Event.
+        out.push(
+          entry(
+            ctx,
+            `dev:${c.id}:${d.id}`,
+            'event.custom',
+            { name: `${d.name}_Event`, signature: d.id, signatureOwner: c.id },
+            {
+              title: `Add Custom Event for ${d.name}`,
+              category: 'Add Event',
+              description: `Crée un Custom Event avec les paramètres de ${d.name}, prêt à être relié à Bind Event.`,
+              keywords: ['custom', 'event', 'bind', d.name.toLowerCase()],
+              contextOnly: true,
+            },
+          ),
+        );
+      }
+    }
+  }
+
+  // Custom Events, callable here or through a reference.
+  for (const c of [self, ...others]) {
+    const own = c.id === self.id;
+    const names = new Set<string>();
+    for (const g of c.graphs) {
+      for (const n of Object.values(g.nodes)) if (n.def === 'event.custom') names.add(String(n.config.name));
+    }
+    for (const name of names) {
+      out.push(
+        entry(ctx, `call:${c.id}:${name}`, 'call.custom', { owner: c.id, event: name }, {
+          category: own ? 'Call Function' : `Class|${c.name}`,
+          description: `Appelle le Custom Event ${name}${own ? '' : ` de ${c.name}`}. Il s'exécute immédiatement.`,
+          keywords: ['call', 'appeler', 'event', name.toLowerCase(), c.name.toLowerCase()],
+          contextOnly: !own,
+        }),
+      );
+    }
+  }
+
+  // Blueprint Interfaces: messages to anyone, events where implemented.
+  for (const iface of project.interfaces) {
+    out.push(
+      entry(ctx, `idoes:${iface.id}`, 'iface.doesImplement', { interface: iface.id }, { keywords: ['interface', 'implement', iface.name.toLowerCase()] }),
+    );
+    for (const fn of iface.functions) {
+      const cfg = { interface: iface.id, fn: fn.id };
+      const kw = ['interface', 'message', fn.name.toLowerCase(), iface.name.toLowerCase()];
+      out.push(entry(ctx, `imsg:${iface.id}:${fn.id}`, 'iface.message', cfg, { category: `Interface Messages|${iface.name}`, keywords: kw }));
+      if (eventGraph && self.interfaces.includes(iface.id)) {
+        out.push(entry(ctx, `iev:${iface.id}:${fn.id}`, 'event.interface', cfg, { category: `Add Event|${iface.name}`, keywords: kw }));
+      }
+    }
   }
   return out;
 }

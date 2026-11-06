@@ -18,6 +18,7 @@ export type PinCategory =
   | 'object'
   | 'class'
   | 'enum'
+  | 'delegate'
   | 'wildcard';
 
 export type PinDirection = 'in' | 'out';
@@ -55,6 +56,7 @@ export const CATEGORY_LABEL: Record<PinCategory, string> = {
   object: 'Object Reference',
   class: 'Class Reference',
   enum: 'Enum',
+  delegate: 'Event',
   wildcard: 'Wildcard',
 };
 
@@ -128,12 +130,16 @@ export function isAssignable(from: PinType, to: PinType, h: ClassHierarchy): boo
   if (from.category === 'exec' || to.category === 'exec') {
     return from.category === 'exec' && to.category === 'exec';
   }
-  if (from.category === 'wildcard' || to.category === 'wildcard') return true;
+  if (from.category === 'delegate' || to.category === 'delegate') {
+    if (from.category !== to.category) return false;
+  } else if (from.category === 'wildcard' || to.category === 'wildcard') return true;
   if ((from.container ?? '') !== (to.container ?? '')) return false;
   if (from.category !== to.category) return false;
   if (from.category === 'object' || from.category === 'class') {
     return h.isA(from.subtype ?? 'Object', to.subtype ?? 'Object');
   }
   if (from.category === 'enum') return (from.subtype ?? '') === (to.subtype ?? '');
+  // An event fits a dispatcher when their parameter types match.
+  if (from.category === 'delegate') return (from.subtype ?? '') === (to.subtype ?? '');
   return true;
 }

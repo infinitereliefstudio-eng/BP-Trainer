@@ -13,7 +13,10 @@ import type { Value } from '../types/values';
 
 export class ClassBuilder {
   private x = 64;
-  constructor(readonly cls: BlueprintClass) {}
+  constructor(
+    readonly cls: BlueprintClass,
+    readonly project?: Project,
+  ) {}
 
   get graph() {
     return this.cls.graphs[0];
@@ -49,7 +52,7 @@ export class ClassBuilder {
   }
 
   link(a: string, pa: string, b: string, pb: string): this {
-    const r = connect(this.graph, { node: a, pin: pa }, { node: b, pin: pb }, contextFor(this.cls));
+    const r = connect(this.graph, { node: a, pin: pa }, { node: b, pin: pb }, contextFor(this.cls, this.project));
     if (!r.ok) throw new Error(r.reason);
     return this;
   }
@@ -71,7 +74,7 @@ export class ProjectBuilder {
   blueprint(name: string, parent: ParentClass = 'Actor'): ClassBuilder {
     const r = addClass(this.project, name, parent);
     if (!r.ok) throw new Error(r.reason);
-    return new ClassBuilder(r.value);
+    return new ClassBuilder(r.value, this.project);
   }
 
   place(cls: ClassBuilder, x: number, y: number, yaw = 0): string {
@@ -91,5 +94,5 @@ export class ProjectBuilder {
 export function edit(p: Project, className: string): ClassBuilder {
   const cls = p.classes.find((c) => c.name === className);
   if (!cls) throw new Error(`No class ${className}`);
-  return new ClassBuilder(cls);
+  return new ClassBuilder(cls, p);
 }

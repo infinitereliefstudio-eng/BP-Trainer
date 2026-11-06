@@ -4,6 +4,9 @@ import {
   COMPONENT_LABEL,
   componentDefaults,
   type ComponentProps,
+  type Dispatcher,
+  type Param,
+  type Project,
   uniqueName,
   type BlueprintClass,
   type Component,
@@ -162,4 +165,77 @@ export function removeComponent(cls: BlueprintClass, id: string): OpResult {
 
 export function setVariableDefault(cls: BlueprintClass, id: string, value: Value): void {
   updateVariable(cls, id, { defaultValue: value });
+}
+
+// -------------------------------------------------------------- dispatchers
+
+/** Nodes that point to a dispatcher of a class (in any class of the project). */
+const DISPATCHER_NODES = ['dispatcher.call', 'dispatcher.bind', 'dispatcher.unbind', 'dispatcher.unbindAll'];
+
+export function addDispatcher(cls: BlueprintClass, name = 'NewEventDispatcher'): Dispatcher {
+  const d: Dispatcher = {
+    id: newId('d'),
+    name: uniqueName(name, [...namesInUse(cls), ...cls.dispatchers.map((x) => x.name)]),
+    params: [],
+  };
+  cls.dispatchers.push(d);
+  return d;
+}
+
+export function renameDispatcher(cls: BlueprintClass, id: string, name: string): OpResult {
+  const d = cls.dispatchers.find((x) => x.id === id);
+  if (!d) return { ok: false, reason: 'Event Dispatcher introuvable.' };
+  const err = validateName(name, [...namesInUse(cls), ...cls.dispatchers.filter((x) => x.id !== id).map((x) => x.name)]);
+  if (err) return { ok: false, reason: err };
+  d.name = name.trim();
+  return { ok: true, value: undefined };
+}
+
+export function addDispatcherParam(cls: BlueprintClass, id: string, type: PinType = { category: 'bool' }): void {
+  const d = cls.dispatchers.find((x) => x.id === id);
+  if (!d) return;
+  d.params.push({ id: newId('pa'), name: uniqueName('NewParam', d.params.map((p) => p.name)), type });
+}
+
+export function updateDispatcherParam(cls: BlueprintClass, id: string, paramId: string, patch: Partial<Pick<Param, 'name' | 'type'>>): void {
+  const p = cls.dispatchers.find((x) => x.id === id)?.params.find((x) => x.id === paramId);
+  if (p) Object.assign(p, patch);
+}
+
+export function removeDispatcherParam(cls: BlueprintClass, id: string, paramId: string): void {
+  const d = cls.dispatchers.find((x) => x.id === id);
+  if (d) d.params = d.params.filter((p) => p.id !== paramId);
+}
+
+/** Removes the dispatcher and every node that refers to it, in all classes. */
+export function removeDispatcher(p: Project, cls: BlueprintClass, id: string): void {
+  cls.dispatchers = cls.dispatchers.filter((d) => d.id !== id);
+  for (const c of p.classes) {
+    for (const g of c.graphs) {
+      const ids = Object.values(g.nodes)
+        .filter((n) => DISPATCHER_NODES.includes(n.def) && n.config.dispatcher === id)
+        .map((n) => n.id);
+      removeNodes(g, ids);
+      for (const n of Object.values(g.nodes)) if (n.def === 'event.custom' && n.config.signature === id) delete n.config.signature;
+    }
+  }
+}
+
+// --------------------------------------------------------------- interfaces
+
+export function implementInterface(cls: BlueprintClass, interfaceId: string): void {
+  if (!cls.interfaces.includes(interfaceId)) cls.interfaces.push(interfaceId);
+}
+
+/** Removing an interface from Class Settings also removes its event nodes, like UE. */
+export function removeImplementedInterface(cls: BlueprintClass, interfaceId: string): void {
+  cls.interfaces = cls.interfaces.filter((i) => i !== interfaceId);
+  for (const g of cls.graphs) {
+    removeNodes(
+      g,
+      Object.values(g.nodes)
+        .filter((n) => n.def === 'event.interface' && n.config.interface === interfaceId)
+        .map((n) => n.id),
+    );
+  }
 }

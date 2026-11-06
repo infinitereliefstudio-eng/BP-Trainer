@@ -98,6 +98,31 @@ export interface ComponentProps {
 
 export type ParentClass = 'Actor' | 'Pawn';
 
+/** A parameter of an Event Dispatcher (and of the events bound to it). */
+export interface Param {
+  id: string;
+  name: string;
+  type: PinType;
+}
+
+export interface Dispatcher {
+  id: string;
+  name: string;
+  params: Param[];
+}
+
+export interface InterfaceFunction {
+  id: string;
+  name: string;
+}
+
+/** A Blueprint Interface asset: function names only, no implementation. */
+export interface BlueprintInterface {
+  id: string;
+  name: string;
+  functions: InterfaceFunction[];
+}
+
 export interface BlueprintClass {
   id: string;
   name: string;
@@ -107,6 +132,9 @@ export interface BlueprintClass {
   components: Component[];
   variables: Variable[];
   graphs: Graph[];
+  dispatchers: Dispatcher[];
+  /** Ids of the Blueprint Interfaces this class implements (Class Settings). */
+  interfaces: string[];
 }
 
 /** An instance of a Blueprint class placed in the level. */
@@ -132,12 +160,15 @@ export interface Project {
   id: string;
   name: string;
   classes: BlueprintClass[];
+  interfaces: BlueprintInterface[];
+  /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
+  playerClassId?: string;
   level: Level;
   createdAt: number;
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 2;
+export const PROJECT_FORMAT = 3;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -201,6 +232,8 @@ export function createClass(name: string, parent: ParentClass = 'Actor'): Bluepr
     components: [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
     variables: [],
     graphs: [createGraph('EventGraph', 'event')],
+    dispatchers: [],
+    interfaces: [],
   };
 }
 
@@ -211,6 +244,7 @@ export function createProject(name = 'Mon projet'): Project {
     id: newId('p'),
     name,
     classes: [],
+    interfaces: [],
     level: createLevel(),
     createdAt: now,
     updatedAt: now,
@@ -229,6 +263,14 @@ export function findGraph(c: BlueprintClass, id: string): Graph | undefined {
 
 export function findVariable(c: BlueprintClass, id: string): Variable | undefined {
   return c.variables.find((v) => v.id === id);
+}
+
+export function findDispatcher(c: BlueprintClass, id: string): Dispatcher | undefined {
+  return c.dispatchers.find((d) => d.id === id);
+}
+
+export function findInterface(p: Project, id: string): BlueprintInterface | undefined {
+  return p.interfaces.find((i) => i.id === id);
 }
 
 export function findComponent(c: BlueprintClass, id: string): Component | undefined {
@@ -255,4 +297,9 @@ export function uniqueName(base: string, taken: Iterable<string>): string {
     const candidate = `${base}_${i}`;
     if (!set.has(candidate)) return candidate;
   }
+}
+
+/** Key identifying a parameter list by its types: events bind to dispatchers with the same key. */
+export function signatureKey(params: { type: PinType }[]): string {
+  return params.map((p) => `${p.type.category}${p.type.subtype ? `:${p.type.subtype}` : ''}${p.type.container ? '[]' : ''}`).join(',');
 }

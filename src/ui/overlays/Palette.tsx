@@ -4,6 +4,7 @@
  */
 import { useMemo, useState } from 'preact/hooks';
 import { compatiblePin, paletteEntries, searchEntries, type PaletteEntry } from '@core/nodes/palette';
+import { uniqueName } from '@core/model/project';
 import { getDefinition } from '@core/nodes/registry';
 import { addNode, connect } from '@core/operations/graphOps';
 import type { PaletteRequest } from '@editor/GraphCanvas';
@@ -28,7 +29,11 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
     () => (req.from && contextual ? all.filter((e) => compatiblePin(e, ctx, req.from!)) : all),
     [all, req.from, contextual],
   );
-  const results = useMemo(() => searchEntries(usable, query), [usable, query]);
+  // Other Blueprints' members only show up when searched for or dragged from a pin.
+  const results = useMemo(
+    () => searchEntries(req.from || query.trim() ? usable : usable.filter((e) => !e.contextOnly), query),
+    [usable, query],
+  );
 
   const place = (e: PaletteEntry) => {
     const def = getDefinition(e.def);
@@ -45,8 +50,13 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
     // Place the node so the wire lands on its side: to the right of an output, to the left of an input.
     const x = from && from.dir === 'in' ? req.world.x - 220 : req.world.x;
     const y = req.world.y - 18;
-    const res = store.apply(`Ajouter ${e.title}`, (_c, g) => {
-      const added = addNode(g, e.def, x, y, e.config);
+    const res = store.apply(`Ajouter ${e.title}`, (c, g) => {
+      const config = { ...e.config };
+      if (e.def === 'event.custom') {
+        const taken = c.graphs.flatMap((gr) => Object.values(gr.nodes).filter((n) => n.def === 'event.custom').map((n) => String(n.config.name)));
+        config.name = uniqueName(String(config.name || 'CustomEvent'), taken);
+      }
+      const added = addNode(g, e.def, x, y, config);
       if (added.ok && from) {
         const pin = compatiblePin(e, ctx, from);
         if (pin) connect(g, from.ref, { node: added.value.id, pin: pin.id }, store.ctx);

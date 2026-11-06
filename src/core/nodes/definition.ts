@@ -4,7 +4,7 @@
  * interpreter (step 2), keyed by the same id, so the editor never depends
  * on execution code.
  */
-import type { BlueprintClass, GraphKind, NodeInstance } from '../model/project';
+import type { BlueprintClass, GraphKind, NodeInstance, Project } from '../model/project';
 import type { ClassHierarchy, PinDirection, PinType } from '../types/pins';
 import type { Value } from '../types/values';
 
@@ -40,6 +40,8 @@ export interface PinSpec {
 export interface NodeContext {
   cls: BlueprintClass;
   hierarchy: ClassHierarchy;
+  /** The whole project, needed for nodes that refer to other Blueprints. */
+  project?: Project;
 }
 
 export interface ConfigField {

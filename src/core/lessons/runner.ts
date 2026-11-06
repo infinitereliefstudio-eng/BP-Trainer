@@ -25,7 +25,7 @@ export interface LessonRun {
 export function runLesson(lesson: Lesson, project: Project): LessonRun {
   const compileErrors: CompileMessage[] = [];
   for (const cls of project.classes) {
-    for (const m of compileClass(cls).messages) {
+    for (const m of compileClass(cls, project).messages) {
       if (m.severity === 'error') compileErrors.push({ ...m, text: `${cls.name} : ${m.text}` });
     }
   }

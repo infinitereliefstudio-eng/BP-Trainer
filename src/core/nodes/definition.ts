@@ -14,6 +14,7 @@ export type NodeKind =
   | 'pure' // green header, no exec pins (Random Integer…)
   | 'latent' // blue header with a clock (Delay…)
   | 'flow' // grey header, flow control macros (Branch, Sequence…)
+  | 'entry' // purple header, a function's entry and return nodes
   | 'variable'; // variable / component getters and setters
 
 /** How the node is drawn. */

@@ -53,7 +53,8 @@ export function addNode(
 }
 
 export function removeNodes(graph: Graph, ids: Iterable<string>): void {
-  const set = new Set(ids);
+  // A function always keeps its entry node, like in UE.
+  const set = new Set([...ids].filter((id) => graph.nodes[id]?.def !== 'fn.entry'));
   for (const id of set) delete graph.nodes[id];
   for (const l of Object.values(graph.links)) {
     if (set.has(l.from.node) || set.has(l.to.node)) delete graph.links[l.id];

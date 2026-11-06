@@ -10,6 +10,7 @@ import { defaultValueFor, type Value } from '../types/values';
 import type { NodeContext, NodeDefinition, PinSpec } from './definition';
 import { actorNodes } from './library/actor';
 import { communicationNodes } from './library/communication';
+import { functionNodes } from './library/functions';
 import { componentNodes } from './library/components';
 import { conversionNodes } from './library/conversions';
 import { debugNodes } from './library/debug';
@@ -27,6 +28,7 @@ const ALL: NodeDefinition[] = [
   ...actorNodes,
   ...componentNodes,
   ...communicationNodes,
+  ...functionNodes,
   ...mathNodes,
   ...conversionNodes,
   ...debugNodes,

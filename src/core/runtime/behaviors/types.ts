@@ -66,6 +66,8 @@ export interface ExecCx extends ValueCx {
    * before its outputs continue (a synchronous call). Returns how many ran.
    */
   callEvents(target: ActorRT, match: (n: NodeInstance) => boolean, outputs: Record<string, RValue>): number;
+  /** Run a function graph of `target` to its end; its outputs become this node's. */
+  callFunction(target: ActorRT, graphId: string, params: Record<string, RValue>): void;
 }
 
 export interface Behavior {

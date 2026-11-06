@@ -23,6 +23,7 @@ export const HEADER_COLOR: Record<NodeKind, [string, string]> = {
   latent: ['#3a6ec2', '#1e3b6b'],
   pure: ['#4f8f2c', '#284a16'],
   flow: ['#6a6a6a', '#3a3a3a'],
+  entry: ['#7b3fb0', '#3f1f5c'],
   variable: ['#4a4a4a', '#2a2a2a'],
 };
 

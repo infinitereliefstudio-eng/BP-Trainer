@@ -16,10 +16,16 @@ export class ClassBuilder {
   constructor(
     readonly cls: BlueprintClass,
     readonly project?: Project,
+    private readonly graphId?: string,
   ) {}
 
   get graph() {
-    return this.cls.graphs[0];
+    return this.cls.graphs.find((g) => g.id === this.graphId) ?? this.cls.graphs[0];
+  }
+
+  /** The same class, building in another of its graphs (a function). */
+  inGraph(graphId: string): ClassBuilder {
+    return new ClassBuilder(this.cls, this.project, graphId);
   }
 
   component(kind: ComponentKind, name: string, props: Partial<ComponentProps> = {}): string {

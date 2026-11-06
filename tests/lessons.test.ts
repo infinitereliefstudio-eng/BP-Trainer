@@ -1,3 +1,4 @@
+import { INTERPRETER_NODES } from '../src/core/runtime/interpreter';
 import { describe, expect, it } from 'vitest';
 import { LESSONS } from '../src/core/lessons';
 import { runLesson } from '../src/core/lessons/runner';
@@ -36,7 +37,7 @@ describe('lessons', () => {
 describe('every executable node has a behaviour', () => {
   it('impure nodes are runnable', () => {
     const missing = allDefinitions()
-      .filter((d) => d.kind !== 'event' && d.style !== 'getter' && d.id !== 'var.get')
+      .filter((d) => d.kind !== 'event' && d.style !== 'getter' && !INTERPRETER_NODES.has(d.id))
       .filter((d) => !hasBehavior(d.id))
       .map((d) => d.id);
     expect(missing).toEqual([]);

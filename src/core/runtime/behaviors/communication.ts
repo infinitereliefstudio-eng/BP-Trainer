@@ -152,6 +152,14 @@ export const communicationBehaviors: Record<string, Behavior> = {
     },
   },
 
+  'call.function': {
+    exec: (cx) => {
+      const target = cx.world.actor(cx.in('target'), 'Target');
+      if (target) cx.callFunction(target, String(cx.node.config.graph), cx.params());
+      return ['then'];
+    },
+  },
+
   // -------------------------------------------------------- interfaces
 
   'iface.message': {

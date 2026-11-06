@@ -41,6 +41,16 @@ export interface Graph {
   kind: GraphKind;
   nodes: Record<string, NodeInstance>;
   links: Record<string, Link>;
+  /** Signature of a function graph. */
+  fn?: FunctionSignature;
+}
+
+export interface FunctionSignature {
+  inputs: Param[];
+  outputs: Param[];
+  /** Pure functions have no exec pins and run each time a value is read. */
+  pure: boolean;
+  description: string;
 }
 
 export interface Variable {
@@ -220,7 +230,9 @@ export const COMPONENT_LABEL: Record<ComponentKind, string> = {
 // ---------------------------------------------------------------- factories
 
 export function createGraph(name: string, kind: GraphKind = 'event'): Graph {
-  return { id: newId('g'), name, kind, nodes: {}, links: {} };
+  const g: Graph = { id: newId('g'), name, kind, nodes: {}, links: {} };
+  if (kind === 'function') g.fn = { inputs: [], outputs: [], pure: false, description: '' };
+  return g;
 }
 
 export function createClass(name: string, parent: ParentClass = 'Actor'): BlueprintClass {

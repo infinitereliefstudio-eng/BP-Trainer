@@ -55,12 +55,13 @@ interface GraphIndex {
  * 'in': run the node, entered through exec input `pin`.
  * 'out': continue from the node's exec output `pin` (an event firing, a
  * finished Delay), after storing `outputs` as the node's output values.
+ * 'ret': marks where a function call returns; `node` is the call node.
  */
 interface Frame {
   actor: ActorRT;
   gi: GraphIndex;
   node: string;
-  mode: 'in' | 'out';
+  mode: 'in' | 'out' | 'ret';
   pin: string;
   via?: string;
   outputs?: Record<string, RValue>;
@@ -87,6 +88,15 @@ export interface PinWatch {
 /** Steps allowed for one event before UE-style "Infinite loop detected". */
 export const MAX_STEPS = 100_000;
 const MAX_PURE_DEPTH = 64;
+
+/** Nodes run by the interpreter itself rather than by a behaviour. */
+export const INTERPRETER_NODES = new Set(['var.get', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction']);
+
+/** Events and function entries: where a chain starts. */
+function isEntry(node: NodeInstance | undefined): boolean {
+  const kind = node && getDefinition(node.def)?.kind;
+  return kind === 'event' || (kind === 'entry' && node!.def === 'fn.entry');
+}
 
 export class Interpreter {
   /** Node ids where execution stops. Not saved with the project, like UE. */
@@ -250,8 +260,8 @@ export class Interpreter {
   /** Breakpoints stop on nodes being entered and on events firing. */
   private breakable(f: Frame): boolean {
     if (f.mode === 'in') return f.pin !== RESUME;
-    const node = f.gi.graph.nodes[f.node];
-    return !!node && getDefinition(node.def)?.kind === 'event';
+    if (f.mode === 'ret') return false;
+    return isEntry(f.gi.graph.nodes[f.node]);
   }
 
   private enter(f: Frame): void {
@@ -291,13 +301,22 @@ export class Interpreter {
     const { actor, gi } = f;
     const node = gi.graph.nodes[f.node];
     if (!node) return;
+    if (f.mode === 'ret') {
+      // The function ended without reaching a Return Node: default outputs.
+      actor.outputs[node.id] = this.defaultOutputs(f);
+      return;
+    }
     if (f.mode === 'out') {
-      if (getDefinition(node.def)?.kind === 'event') this.enter(f);
+      if (isEntry(node)) this.enter(f);
       if (f.outputs) actor.outputs[node.id] = { ...f.outputs };
       this.pushTargets(actor, gi, node.id, f.pin);
       return;
     }
     this.enter(f);
+    if (node.def === 'fn.return') {
+      this.returnFrom(actor, gi, node);
+      return;
+    }
     const behavior = getBehavior(node.def);
     if (!behavior?.exec) {
       this.host.runtimeError(`Le nœud ${nodeTitle(node, gi.ctx)} ne s'exécute pas encore dans cette version.`);
@@ -338,12 +357,84 @@ export class Interpreter {
         calls.push(...frames);
         return frames.length;
       },
+      callFunction: (target, graphId, params) => {
+        const entry = this.functionEntry(target, graphId);
+        if (!entry) return;
+        calls.push(entry, { actor, gi, node: node.id, mode: 'ret', pin: '' });
+        entry.outputs = params;
+      },
     };
     const outs = behavior.exec(cx);
     if (resume) this.stack.push({ actor, gi, node: node.id, mode: 'in', pin: RESUME });
     for (let i = outs.length - 1; i >= 0; i--) this.pushTargets(actor, gi, node.id, outs[i]);
     // Called events go on top: they run before this node's outputs continue.
     for (let i = calls.length - 1; i >= 0; i--) this.stack.push(calls[i]);
+  }
+
+  // ------------------------------------------------------------ functions
+
+  /** The frame that starts a function graph of `target`, or undefined (logged). */
+  private functionEntry(target: ActorRT, graphId: string): Frame | undefined {
+    const gi = this.graphs.get(graphId);
+    const entry = gi && Object.values(gi.graph.nodes).find((n) => n.def === 'fn.entry');
+    if (!gi || !entry || gi.cls.id !== target.classId) {
+      this.host.runtimeError(`${target.label} n'a pas cette fonction.`);
+      return undefined;
+    }
+    return { actor: target, gi, node: entry.id, mode: 'out', pin: 'then' };
+  }
+
+  /** Return Node: hand the outputs to the caller and drop the rest of the function. */
+  private returnFrom(actor: ActorRT, gi: GraphIndex, node: NodeInstance): void {
+    const values: Record<string, RValue> = {};
+    for (const p of gi.graph.fn?.outputs ?? []) values[p.id] = this.readInput(actor, gi, node, p.id, 0);
+    while (this.stack.length) {
+      const f = this.stack.pop()!;
+      if (f.mode === 'ret') {
+        f.actor.outputs[f.node] = values;
+        return;
+      }
+    }
+  }
+
+  private defaultOutputs(ret: Frame): Record<string, RValue> {
+    const call = ret.gi.graph.nodes[ret.node];
+    const values: Record<string, RValue> = {};
+    if (!call) return values;
+    for (const spec of resolvePins(call, ret.gi.ctx)) {
+      if (spec.dir === 'out' && spec.type.category !== 'exec') values[spec.id] = defaultValueFor(spec.type) as RValue;
+    }
+    return values;
+  }
+
+  /**
+   * A pure function runs to its end on the spot, each time a value is read.
+   * Breakpoints are not checked inside it.
+   */
+  private runPure(actor: ActorRT, gi: GraphIndex, call: NodeInstance, depth: number): Record<string, RValue> {
+    const cx = this.valueCx(actor, gi, call, depth);
+    const target = this.host.actor(cx.in('target'), 'Target');
+    if (!target) return {};
+    const entry = this.functionEntry(target, String(call.config.graph));
+    if (!entry) return {};
+    const params: Record<string, RValue> = {};
+    for (const spec of resolvePins(call, gi.ctx)) {
+      if (spec.dir === 'in' && spec.id !== 'target') params[spec.id] = cx.in(spec.id);
+    }
+    entry.outputs = params;
+    const base = this.stack.length;
+    this.stack.push({ actor, gi, node: call.id, mode: 'ret', pin: '' }, entry);
+    let steps = 0;
+    while (this.stack.length > base) {
+      const f = this.stack.pop()!;
+      if (++steps > MAX_STEPS) {
+        this.host.runtimeError(`Infinite loop detected dans la fonction pure ${nodeTitle(call, gi.ctx)}.`);
+        this.stack.length = base;
+        return {};
+      }
+      if (!f.actor.destroyed) this.execute(f);
+    }
+    return actor.outputs[call.id] ?? {};
   }
 
   // ---------------------------------------------------------------- data
@@ -396,6 +487,7 @@ export class Interpreter {
         this.host.runtimeError('Boucle de nœuds purs : un nœud pur dépend de lui-même.');
         return null;
       }
+      if (src.def === 'call.pureFunction') return this.runPure(actor, gi, src, depth)[pin] ?? null;
       const behavior = getBehavior(src.def);
       if (!behavior?.pure) return null;
       return behavior.pure(this.valueCx(actor, gi, src, depth))[pin] ?? null;

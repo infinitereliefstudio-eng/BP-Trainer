@@ -14,6 +14,7 @@ import {
   type Project,
 } from '../model/project';
 import { classById, findCustomEvent } from '../nodes/library/communication';
+import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor, getDefinition, nodeTitle, resolvePins } from '../nodes/registry';
 import { isAssignable } from '../types/pins';
@@ -108,7 +109,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
 
   const unreachable = Object.values(g.nodes).filter((n) => {
     const def = getDefinition(n.def);
-    if (!def || def.kind === 'event' || def.kind === 'pure' || def.style === 'getter') return false;
+    if (!def || def.kind === 'event' || def.kind === 'pure' || def.style === 'getter' || n.def === 'fn.entry') return false;
     const execIns = resolvePins(n, ctx).filter((p) => p.dir === 'in' && p.type.category === 'exec');
     return execIns.length > 0 && !execIns.some((p) => linkedInputs.has(`${n.id}:${p.id}`));
   });
@@ -142,6 +143,11 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
       const o = owner();
       if (!o) return "le Blueprint propriétaire n'existe plus.";
       return findDispatcher(o, String(c.dispatcher)) ? undefined : `l'Event Dispatcher n'existe plus dans ${o.name}.`;
+    }
+    case 'call.function':
+    case 'call.pureFunction': {
+      if (c.owner && !owner()) return "le Blueprint propriétaire n'existe plus.";
+      return functionGraph(ctx, n) ? undefined : "la fonction n'existe plus.";
     }
     case 'call.custom': {
       const o = owner() ?? cls;

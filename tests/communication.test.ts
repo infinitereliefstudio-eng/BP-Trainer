@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { compileClass } from '../src/core/compiler/validate';
 import { ProjectBuilder, type ClassBuilder } from '../src/core/lessons/builder';
 import { addDispatcher, addDispatcherParam, implementInterface } from '../src/core/operations/classOps';
+import { addFunction, addFunctionParam, removeFunction, setFunctionPure } from '../src/core/operations/functionOps';
 import { addInterface, addInterfaceFunction, renameCustomEvent, setPlayerClass } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
@@ -339,5 +340,59 @@ describe('debugger', () => {
     expect(s.trace.map((t) => t.nodeId)).toEqual([ev, p1, p2, p3]);
     expect(s.trace[0].via).toBeUndefined();
     expect(s.trace[1].via).toBeTruthy();
+  });
+});
+
+describe('user functions', () => {
+  function withFunction(pure: boolean) {
+    const pb = new ProjectBuilder('t');
+    const a = pb.blueprint('BP_A');
+    pb.place(a, 0, 0);
+    const g = addFunction(a.cls, 'Doubler');
+    const x = addFunctionParam(pb.project, a.cls, g.id, 'inputs', T.int)!;
+    const r = addFunctionParam(pb.project, a.cls, g.id, 'outputs', T.int)!;
+    const f = a.inGraph(g.id);
+    const entry = Object.values(g.nodes).find((n) => n.def === 'fn.entry')!.id;
+    const ret = Object.values(g.nodes).find((n) => n.def === 'fn.return')!.id;
+    const add = f.node('math.addInt');
+    const say = f.node('debug.printString', {}, { text: 'dans la fonction' });
+    // Return is linked to Entry by addFunctionParam: insert Print between them.
+    f.link(entry, 'then', say, 'exec').link(say, 'then', ret, 'exec');
+    f.link(entry, x.id, add, 'a').link(entry, x.id, add, 'b').link(add, 'result', ret, r.id);
+    if (pure) setFunctionPure(pb.project, a.cls, g.id, true);
+    return { pb, a, g, x, r };
+  }
+
+  it('an impure function runs to its Return Node, then the caller continues with its outputs', () => {
+    const { pb, a, g, x, r } = withFunction(false);
+    const ev = a.node('event.beginPlay');
+    const call = a.node('call.function', { graph: g.id }, { [x.id]: 21 });
+    const pr = a.node('debug.printString');
+    a.link(ev, 'then', call, 'exec').link(call, 'then', pr, 'exec').link(call, r.id, pr, 'text');
+    compileAll(pb);
+    const s = new Simulation(pb.project);
+    s.step();
+    expect(prints(s)).toEqual(['dans la fonction', '42']);
+  });
+
+  it('a pure function runs again at every read', () => {
+    const { pb, a, g, x, r } = withFunction(true);
+    const ev = a.node('event.beginPlay');
+    const call = a.node('call.pureFunction', { graph: g.id }, { [x.id]: 5 });
+    const p1 = a.node('debug.printString');
+    const p2 = a.node('debug.printString');
+    a.link(ev, 'then', p1, 'exec').link(p1, 'then', p2, 'exec').link(call, r.id, p1, 'text').link(call, r.id, p2, 'text');
+    compileAll(pb);
+    const s = new Simulation(pb.project);
+    s.step();
+    expect(prints(s)).toEqual(['dans la fonction', '10', 'dans la fonction', '10']);
+  });
+
+  it('a Delay inside a function is a compile error, and removing the function removes its calls', () => {
+    const { pb, a, g } = withFunction(false);
+    const call = a.node('call.function', { graph: g.id });
+    expect(() => a.inGraph(g.id).node('time.delay')).toThrow();
+    removeFunction(pb.project, a.cls, g.id);
+    expect(a.graph.nodes[call]).toBeUndefined();
   });
 });

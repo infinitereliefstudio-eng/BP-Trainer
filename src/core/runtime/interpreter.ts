@@ -99,9 +99,9 @@ function isEntry(node: NodeInstance | undefined): boolean {
 }
 
 export class Interpreter {
-  /** Node ids where execution stops. Not saved with the project, like UE. */
-  readonly breakpoints = new Set<string>();
   paused: PauseInfo | null = null;
+  /** Last values seen on each node's pins, per actor ("actor:node" → pin → value). */
+  readonly lastValues = new Map<string, Record<string, RValue>>();
 
   private graphs = new Map<string, GraphIndex>();
   private byClass = new Map<string, GraphIndex[]>();
@@ -114,6 +114,8 @@ export class Interpreter {
   constructor(
     project: Project,
     private readonly host: InterpreterHost,
+    /** Node ids where execution stops. Not saved with the project, like UE. */
+    readonly breakpoints: Set<string> = new Set(),
   ) {
     for (const cls of project.classes) {
       const ctx = contextFor(cls, project);
@@ -207,6 +209,24 @@ export class Interpreter {
       this.host.mute(false);
     }
     return result;
+  }
+
+  /**
+   * Values on a node's pins the last time it ran for this actor, like UE's
+   * watched pins. A pin that never ran has no value (undefined).
+   */
+  watchNode(actor: ActorRT, graphId: string, nodeId: string): (PinWatch & { known: boolean })[] {
+    const gi = this.graphs.get(graphId);
+    const node = gi?.graph.nodes[nodeId];
+    if (!gi || !node) return [];
+    const rec = this.lastValues.get(`${actor.id}:${nodeId}`) ?? {};
+    const stored = actor.outputs[nodeId] ?? {};
+    return resolvePins(node, gi.ctx)
+      .filter((spec) => spec.type.category !== 'exec')
+      .map((spec) => {
+        const v = spec.id in rec ? rec[spec.id] : spec.dir === 'out' ? stored[spec.id] : undefined;
+        return { pin: spec.id, label: spec.name || spec.id, direction: spec.dir, value: v ?? null, type: spec.type, known: v !== undefined };
+      });
   }
 
   // ---------------------------------------------------------------- exec
@@ -308,7 +328,10 @@ export class Interpreter {
     }
     if (f.mode === 'out') {
       if (isEntry(node)) this.enter(f);
-      if (f.outputs) actor.outputs[node.id] = { ...f.outputs };
+      if (f.outputs) {
+        actor.outputs[node.id] = { ...f.outputs };
+        for (const [pin, v] of Object.entries(f.outputs)) this.remember(actor, node.id, pin, v);
+      }
       this.pushTargets(actor, gi, node.id, f.pin);
       return;
     }
@@ -324,11 +347,13 @@ export class Interpreter {
     }
     let resume = false;
     const calls: Frame[] = [];
+    const base = this.valueCx(actor, gi, node, 0);
     const cx: ExecCx = {
-      ...this.valueCx(actor, gi, node, 0),
+      ...base,
       entry: f.pin,
       out: (pin, value) => {
         (actor.outputs[node.id] ??= {})[pin] = value;
+        this.remember(actor, node.id, pin, value);
       },
       state: <T extends object>(init: () => T): T => {
         const st = actor.nodeState[node.id] as T | undefined;
@@ -439,8 +464,19 @@ export class Interpreter {
 
   // ---------------------------------------------------------------- data
 
+  private remember(actor: ActorRT, nodeId: string, pin: string, value: RValue): void {
+    const key = `${actor.id}:${nodeId}`;
+    let rec = this.lastValues.get(key);
+    if (!rec) this.lastValues.set(key, (rec = {}));
+    rec[pin] = value;
+  }
+
   private valueCx(actor: ActorRT, gi: GraphIndex, node: NodeInstance, depth: number): ValueCx {
-    const read = (pin: string) => this.readInput(actor, gi, node, pin, depth);
+    const read = (pin: string) => {
+      const v = this.readInput(actor, gi, node, pin, depth);
+      this.remember(actor, node.id, pin, v);
+      return v;
+    };
     return {
       actor,
       node,
@@ -490,7 +526,9 @@ export class Interpreter {
       if (src.def === 'call.pureFunction') return this.runPure(actor, gi, src, depth)[pin] ?? null;
       const behavior = getBehavior(src.def);
       if (!behavior?.pure) return null;
-      return behavior.pure(this.valueCx(actor, gi, src, depth))[pin] ?? null;
+      const value = behavior.pure(this.valueCx(actor, gi, src, depth))[pin] ?? null;
+      this.remember(actor, src.id, pin, value);
+      return value;
     }
     const stored = actor.outputs[nodeId]?.[pin];
     if (stored !== undefined) return stored;

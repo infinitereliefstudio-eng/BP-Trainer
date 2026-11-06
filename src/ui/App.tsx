@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { compileClass } from '@core/compiler/validate';
 import { LESSONS } from '@core/lessons';
-import type { Lesson } from '@core/lessons/types';
+import { lessonLabel, type Lesson } from '@core/lessons/types';
 import { addNode } from '@core/operations/graphOps';
 import type { SimLogEntry } from '@core/runtime/simulation';
 import type { Value } from '@core/types/values';
@@ -20,9 +20,11 @@ import { ContentBrowser } from './overlays/ContentBrowser';
 import { ContextMenu } from './overlays/ContextMenu';
 import { AboutDialog, ConfirmDialog, PromptDialog, ValueDialog } from './overlays/Dialogs';
 import { Palette } from './overlays/Palette';
-import { BottomPanel } from './panels/BottomPanel';
+import { BottomPanel, type BottomTab } from './panels/BottomPanel';
+import { DebugPanel } from './panels/DebugPanel';
 import { Details } from './panels/Details';
 import { MyBlueprint } from './panels/MyBlueprint';
+import { DebugBar } from './play/DebugBar';
 import { PlayOverlay } from './play/PlayOverlay';
 import { Toolbar, type MainView } from './Toolbar';
 import { Toasts } from './widgets/Toasts';
@@ -51,7 +53,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
   const [view, setView] = useState<MainView>(lesson ? 'level' : 'graph');
   const [left, setLeft] = useState(false);
   const [details, setDetails] = useState(false);
-  const [bottom, setBottom] = useState<false | 'compiler' | 'log'>(false);
+  const [bottom, setBottom] = useState<false | BottomTab>(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [overlay, setOverlay] = useState<Overlay | null>(null);
   const [session, setSession] = useState<PlaySession | null>(null);
@@ -103,11 +105,25 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
     setLeft(false);
   };
 
-  const focusNode = (graphId: string, nodeId: string) => {
+  const focusNode = (graphId: string, nodeId: string, classId?: string, inset?: { top?: number; right?: number }) => {
     setView('graph');
+    if (classId && classId !== store.classId) store.openClass(classId);
     store.openGraph(graphId);
-    requestAnimationFrame(() => canvas.current?.focusNode(nodeId));
+    requestAnimationFrame(() => canvas.current?.focusNode(nodeId, inset));
   };
+
+  // A breakpoint shows the node where execution stopped, like UE does,
+  // with the Debug drawer open beside it.
+  const [debugOpen, setDebugOpen] = useState(false);
+  const showPaused = () => {
+    const p = session?.sim.paused;
+    if (!p) return;
+    setBottom(false);
+    setDebugOpen(true);
+    focusNode(p.graphId, p.nodeId, p.classId, { top: 60, right: Math.min(300, window.innerWidth * 0.8) });
+  };
+  useEffect(() => session?.onBreak(showPaused), [session]);
+  const debugDrawer = !!session && view === 'graph' && debugOpen;
 
   // ------------------------------------------------------------------ play
 
@@ -124,7 +140,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
       }
     }
     store.compile(true);
-    const s = new PlaySession(store.project);
+    const s = new PlaySession(store.project, store.breakpoints);
     for (const a of s.sim.deafActors()) {
       store.warn(`${a.label} a un événement de touche, mais Auto Receive Input est sur Disabled : il ne recevra pas les touches.`);
     }
@@ -157,7 +173,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
         view={view}
         playing={playing}
         saveKey={workspace.key}
-        lessonLabel={lesson ? `Leçon ${lesson.number}` : undefined}
+        lessonLabel={lesson ? lessonLabel(lesson) : undefined}
         onView={setView}
         onHome={() => {
           stop();
@@ -185,13 +201,35 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
         }
       />
       <main class="workspace">
-        {view === 'graph' && !playing ? (
-          <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} />
+        {view === 'graph' ? (
+          <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
         ) : (
           <WorldCanvas store={store} session={session ?? undefined} requests={worldRequests} />
         )}
 
-        {playing && session && <PlayOverlay session={session} onStop={stop} onShowLog={() => setBottom('log')} />}
+        {playing && session && view === 'level' && <PlayOverlay session={session} onStop={stop} onShowLog={() => setBottom('log')} />}
+        {playing && session && view === 'graph' && (
+          <DebugBar
+            session={session}
+            drawerOpen={debugDrawer}
+            onToggleDrawer={() => setDebugOpen((v) => !v)}
+            onLevel={() => setView('level')}
+            onShowPaused={showPaused}
+          />
+        )}
+        {playing && session && (
+          <aside class={`drawer right debug-drawer${debugDrawer ? ' open' : ''}`} aria-hidden={!debugDrawer}>
+            <div class="drawer-head">
+              <strong>Debug</strong>
+              <button class="btn" onClick={() => setDebugOpen(false)}>
+                ✕
+              </button>
+            </div>
+            <div class="panel-scroll">
+              <DebugPanel session={session} onFocusNode={focusNode} compact />
+            </div>
+          </aside>
+        )}
 
         {!playing && view === 'graph' && (
           <div class="fabs">
@@ -265,7 +303,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
 
         <div class={`bottom-wrap${bottom ? ' open' : ''}${playing ? ' playing' : ''}`}>
           <button class="bottom-handle" onClick={() => setBottom((v) => (v ? false : 'compiler'))}>
-            {bottom ? '▾' : '▴'} Compiler Results · Output Log
+            {bottom ? '▾' : '▴'} Compiler Results · Output Log · Debug
             {store.compileStatus === 'error' && <span class="pill error">erreurs</span>}
           </button>
           {bottom && (
@@ -291,7 +329,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
       {overlay?.kind === 'confirm' && (
         <ConfirmDialog title={overlay.title} text={overlay.text} confirmLabel={overlay.confirmLabel} onConfirm={overlay.onConfirm} onClose={close} />
       )}
-      {overlay?.kind === 'content' && <ContentBrowser onClose={close} openOverlay={setOverlay} />}
+      {overlay?.kind === 'content' && <ContentBrowser onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} />}
       {overlay?.kind === 'about' && <AboutDialog onClose={close} />}
       {overlay?.kind === 'lesson' && lesson && (
         <LessonSheet

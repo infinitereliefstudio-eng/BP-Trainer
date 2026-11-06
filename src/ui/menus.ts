@@ -28,13 +28,39 @@ export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => 
       label: 'Rompre tous les liens',
       action: () => store.apply('Rompre les liens', (_c, g) => ids.forEach((id) => disconnectNode(g, id))),
     },
-    { label: 'Ajouter un breakpoint', hint: 'étape 3', disabled: true },
+    ...breakpointItems(store, ids),
+    ...gotoItems(store, ids),
     {
       label: many ? `Supprimer (${ids.length})` : 'Supprimer',
       danger: true,
       action: () => store.apply(many ? 'Supprimer des nœuds' : 'Supprimer un nœud', (_c, g) => removeNodes(g, ids)),
     },
   ];
+}
+
+/** Breakpoints go on nodes that execute (events and impure nodes), like UE. */
+function breakpointItems(store: EditorStore, ids: string[]): MenuItem[] {
+  if (ids.length !== 1) return [];
+  const node = store.graph.nodes[ids[0]];
+  const kind = node && getDefinition(node.def)?.kind;
+  if (!node || kind === 'pure' || getDefinition(node.def)?.style === 'getter') return [];
+  const on = store.breakpoints.has(node.id);
+  return [
+    {
+      label: on ? 'Retirer le breakpoint' : 'Ajouter un breakpoint',
+      hint: on ? undefined : 'pause avant ce nœud',
+      action: () => store.toggleBreakpoint(node.id),
+    },
+  ];
+}
+
+/** "Go to definition" for calls to a function of this Blueprint. */
+function gotoItems(store: EditorStore, ids: string[]): MenuItem[] {
+  const node = ids.length === 1 ? store.graph.nodes[ids[0]] : undefined;
+  if (!node || (node.def !== 'call.function' && node.def !== 'call.pureFunction')) return [];
+  const own = !node.config.owner || node.config.owner === store.cls.id;
+  if (!own) return [];
+  return [{ label: 'Ouvrir la fonction', action: () => store.openGraph(String(node.config.graph)) }];
 }
 
 export function pinMenu(store: EditorStore, ref: PinRef, spec: PinSpec): MenuItem[] {

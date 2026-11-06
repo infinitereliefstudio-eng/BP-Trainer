@@ -55,8 +55,15 @@ export function setActorOverride(p: Project, id: string, variableId: string, val
   else a.overrides[variableId] = value;
 }
 
+/** Value stored in an instance's Details for a reference to a placed actor. */
+export const actorRefValue = (id: string) => `actor:${id}`;
+
 export function removeActor(p: Project, id: string): void {
   p.level.actors = p.level.actors.filter((a) => a.id !== id);
+  // References to it, set in other instances' Details, become None.
+  for (const a of p.level.actors) {
+    for (const [k, v] of Object.entries(a.overrides)) if (v === actorRefValue(id)) a.overrides[k] = null;
+  }
 }
 
 export function duplicateActor(p: Project, id: string): OpResult<LevelActor> {

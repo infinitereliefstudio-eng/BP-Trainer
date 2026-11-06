@@ -1,6 +1,7 @@
 /** Details of what is selected in the level: an actor instance or the Player Start. */
 import { findClass } from '@core/model/project';
-import { removeActor, setActorOverride, updateActor } from '@core/operations/levelOps';
+import { actorRefValue, removeActor, setActorOverride, updateActor } from '@core/operations/levelOps';
+import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
 import { Field, Group, NumberField, TextCommit } from './fields';
@@ -39,15 +40,35 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
         {editable.length === 0 ? (
           <p class="muted small">Aucune. Coche « Instance Editable » sur une variable du Blueprint pour la régler ici, acteur par acteur.</p>
         ) : (
-          editable.map((v) => (
-            <Field key={v.id} label={v.name}>
-              <ValueInput
-                type={v.type}
-                value={v.id in a.overrides ? a.overrides[v.id] : v.defaultValue}
-                onChange={(val) => patch('Régler une variable', () => setActorOverride(store.project, a.id, v.id, val))}
-              />
-            </Field>
-          ))
+          editable.map((v) => {
+            const value = v.id in a.overrides ? a.overrides[v.id] : v.defaultValue;
+            const set = (val: Value) => patch('Régler une variable', () => setActorOverride(store.project, a.id, v.id, val));
+            if (v.type.category === 'object' && v.type.container !== 'array') {
+              // UE's actor picker: any placed actor of the right class, or None.
+              const wanted = v.type.subtype ?? 'Actor';
+              const choices = store.project.level.actors.filter((o) => {
+                const oc = findClass(store.project, o.classId);
+                return o.id !== a.id && (wanted === 'Actor' || oc?.name === wanted || (wanted === 'Pawn' && oc?.parent === 'Pawn'));
+              });
+              return (
+                <Field key={v.id} label={v.name}>
+                  <select class="field" value={String(value ?? '')} onChange={(e) => set((e.target as HTMLSelectElement).value || null)}>
+                    <option value="">None</option>
+                    {choices.map((o) => (
+                      <option key={o.id} value={actorRefValue(o.id)}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              );
+            }
+            return (
+              <Field key={v.id} label={v.name}>
+                <ValueInput type={v.type} value={value} onChange={set} />
+              </Field>
+            );
+          })
         )}
       </Group>
       <div class="d-group">

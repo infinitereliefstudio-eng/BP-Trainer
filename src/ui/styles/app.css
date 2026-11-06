@@ -116,6 +116,13 @@ select.field { padding-right: 4px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); }
 .btn.danger { border-color: #6b2a2a; color: #ff8a8a; }
 .details .btn { margin-top: 8px; }
+.chip.danger { border-color: #6b2a2a; color: #ff8a8a; }
+.param-block { padding: 6px 0; border-bottom: 1px dashed var(--line); display: flex; flex-direction: column; gap: 4px; }
+.param-row { display: flex; align-items: center; gap: 8px; min-height: var(--tap); }
+.param-row .field, .param-row .mb-label { flex: 1; min-width: 0; }
+.type-select { display: flex; align-items: center; gap: 8px; }
+.type-select select { flex: 1; min-width: 0; }
+.row-buttons { display: flex; gap: 8px; padding: 0 12px; flex-wrap: wrap; }
 
 /* ----------------------------------------------------------- bottom panel */
 .bottom-wrap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--panel); border-top: 1px solid var(--line); }
@@ -273,3 +280,38 @@ select.field { padding-right: 4px; }
 .lesson-body > * { flex-shrink: 0; }
 .lesson-body > .btn { align-self: flex-start; }
 .app.playing .toasts { top: 60px; }
+
+/* -------------------------------------------------------------- debugger */
+.debug-bar {
+  position: absolute; top: 8px; left: 8px; right: 8px; z-index: 5; display: flex; align-items: center; gap: 6px;
+  padding: 5px 6px 5px 10px; border-radius: 10px; background: rgba(20, 20, 20, 0.92); border: 1px solid var(--line-2);
+}
+.debug-bar.paused { border-color: #8a7400; background: rgba(40, 33, 0, 0.94); }
+.db-where { flex: 1; min-width: 0; text-align: left; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.debug-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 100%; }
+.debug-panel section { border-right: 1px solid var(--line); min-width: 0; padding-bottom: 8px; }
+.debug-panel section:last-child { border-right: 0; }
+.dbg-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.dbg-head strong { color: var(--text); text-transform: none; letter-spacing: 0; }
+.dbg-sub { padding: 6px 12px 2px; font-size: 12px; color: #d8c060; }
+.dbg-row { display: flex; gap: 8px; padding: 3px 12px; font-size: 13px; }
+.dbg-pin { flex: 0 0 45%; color: #cfcfcf; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbg-val { flex: 1; min-width: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+.dbg-trace { display: flex; gap: 8px; width: 100%; text-align: left; padding: 5px 12px; font-size: 13px; align-items: baseline; }
+.dbg-trace .dbg-node { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.field.small-field { height: 28px; width: auto; min-width: 120px; text-transform: none; }
+@media (max-width: 560px) { .debug-panel { grid-template-columns: 1fr; } }
+.debug-panel.compact { grid-template-columns: 1fr; }
+.debug-panel.compact section { border-right: 0; border-bottom: 1px solid var(--line); }
+.debug-bar.beside-drawer { right: calc(min(300px, 80vw) + 8px); }
+
+/* ------------------------------------------------------------- exercises */
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option { text-align: left; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line-2); font-size: 14px; }
+.option.ko { border-color: #8a2b2b; background: #2a1414; }
+.option.ok, .option.answer { border-color: #2f6b3a; background: #14261a; }
+.lesson-item.exercise .li-num { background: transparent; border: 1px dashed var(--line-2); }
+.lesson-item.exercise .eyebrow { display: block; margin-bottom: 2px; }
+.row-buttons.flush { padding: 0; margin-top: 8px; }
+.lesson-item.exercise.done .li-num { background: var(--ok); border: 0; }
+.debug-bar.beside-drawer .hide-narrow { display: none; }

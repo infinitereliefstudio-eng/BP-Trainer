@@ -24,7 +24,7 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
   const ctx = store.ctx;
   const tap = useOwnTap();
 
-  const all = useMemo(() => paletteEntries(ctx, store.graph.kind), [store.cls, store.graph]);
+  const all = useMemo(() => paletteEntries(ctx, store.graph), [store.cls, store.graph]);
   const usable = useMemo(
     () => (req.from && contextual ? all.filter((e) => compatiblePin(e, ctx, req.from!)) : all),
     [all, req.from, contextual],

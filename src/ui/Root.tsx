@@ -16,6 +16,8 @@ export function Root() {
 
   useEffect(() => {
     if (!ws) return;
+    // Automated UI tests (?e2e) drive the editor through its store.
+    if (location.search.includes('e2e')) (window as unknown as { bpStore: unknown }).bpStore = ws.store;
     return startAutosave(ws.store, ws.key);
   }, [ws]);
 

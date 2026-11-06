@@ -11,16 +11,17 @@ import {
 } from '@core/operations/classOps';
 import { removeNodes, setNodeConfig, setPinDefault } from '@core/operations/graphOps';
 import { renameCustomEvent } from '@core/operations/projectOps';
-import { renameClass, removeClass } from '@core/operations/projectOps';
-import { CATEGORY_LABEL, VARIABLE_CATEGORIES, type PinCategory, type PinType } from '@core/types/pins';
 import { hasInlineValue } from '@editor/layout';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
+import { TypeSelect } from '../widgets/TypeSelect';
 import { ValueInput } from '../widgets/ValueInput';
 import { NameField } from '../widgets/NameField';
 import { ComponentDetails } from './ComponentDetails';
 import { Field, Group, TextCommit } from './fields';
+import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
+import { DispatcherDetails, FunctionDetails, InterfaceDetails } from './SignatureDetails';
 
 export function Details({ openOverlay, onOpenClass }: { openOverlay: OpenOverlay; onOpenClass: (classId: string) => void }) {
   const store = useStore();
@@ -32,6 +33,9 @@ export function Details({ openOverlay, onOpenClass }: { openOverlay: OpenOverlay
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;
   else if (f.kind === 'playerStart') body = <PlayerStartDetails />;
+  else if (f.kind === 'function') body = <FunctionDetails id={f.id} openOverlay={openOverlay} />;
+  else if (f.kind === 'dispatcher') body = <DispatcherDetails id={f.id} openOverlay={openOverlay} />;
+  else if (f.kind === 'interface') body = <InterfaceDetails id={f.id} openOverlay={openOverlay} />;
   else
     body = (
       <p class="hint">
@@ -143,22 +147,11 @@ function NodeDetails() {
 
 // ---------------------------------------------------------------- variables
 
-function typeKey(t: PinType): string {
-  return t.category === 'object' ? `object:${t.subtype ?? 'Actor'}` : t.category;
-}
-
 function VariableDetails({ id, openOverlay }: { id: string; openOverlay: OpenOverlay }) {
   const store = useStore();
   const v = findVariable(store.cls, id);
   if (!v) return null;
-  const objectChoices = ['Actor', ...store.project.classes.map((c) => c.name)];
   const usage = variableUsage(store.cls, v.id);
-
-  const changeType = (key: string, array: boolean) => {
-    const [cat, sub] = key.split(':') as [PinCategory, string?];
-    const t: PinType = { category: cat, ...(sub ? { subtype: sub } : {}), ...(array ? { container: 'array' as const } : {}) };
-    store.apply('Changer le type', (c) => setVariableType(c, v.id, t));
-  };
 
   return (
     <>
@@ -167,21 +160,7 @@ function VariableDetails({ id, openOverlay }: { id: string; openOverlay: OpenOve
           <NameField value={v.name} onCommit={(name) => store.apply('Renommer la variable', (c) => renameVariable(c, v.id, name))} />
         </Field>
         <Field label="Variable Type">
-          <select class="field" value={typeKey(v.type)} onChange={(e) => changeType((e.target as HTMLSelectElement).value, v.type.container === 'array')}>
-            {VARIABLE_CATEGORIES.filter((c) => c !== 'object').map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABEL[c]}
-              </option>
-            ))}
-            {objectChoices.map((name) => (
-              <option key={name} value={`object:${name}`}>
-                {name} (Object Reference)
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Tableau (Array)">
-          <input type="checkbox" checked={v.type.container === 'array'} onChange={(e) => changeType(typeKey(v.type), (e.target as HTMLInputElement).checked)} />
+          <TypeSelect type={v.type} onChange={(t) => store.apply('Changer le type', (c) => setVariableType(c, v.id, t))} />
         </Field>
         <Field label="Instance Editable">
           <input
@@ -222,66 +201,5 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
     confirmLabel: 'Supprimer',
     onConfirm: run,
   });
-}
-
-// ------------------------------------------------------------------- class
-
-function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
-  const store = useStore();
-  const cls = store.cls;
-  return (
-    <>
-      <Group title="Class Settings">
-        <Field label="Nom du Blueprint">
-          <NameField value={cls.name} onCommit={(name) => store.applyProject('Renommer le Blueprint', (p) => renameClass(p, cls.id, name))} />
-        </Field>
-        <Field label="Parent Class">
-          <select
-            class="field"
-            value={cls.parent}
-            onChange={(e) => store.apply('Changer la classe parente', (c) => void (c.parent = (e.target as HTMLSelectElement).value as 'Actor' | 'Pawn'))}
-          >
-            <option value="Actor">Actor</option>
-            <option value="Pawn">Pawn</option>
-          </select>
-        </Field>
-        <Field label="Auto Receive Input">
-          <select
-            class="field"
-            value={cls.autoReceiveInput ? 'p0' : 'off'}
-            onChange={(e) => store.apply('Auto Receive Input', (c) => void (c.autoReceiveInput = (e.target as HTMLSelectElement).value === 'p0'))}
-          >
-            <option value="off">Disabled</option>
-            <option value="p0">Player 0</option>
-          </select>
-        </Field>
-        <p class="muted small">Sans Player 0, les événements de touche (E, F, Espace) de ce Blueprint ne se déclenchent pas.</p>
-        <p class="muted small">
-          {cls.components.length} composant(s), {cls.variables.length} variable(s),{' '}
-          {cls.graphs.reduce((n, g) => n + Object.keys(g.nodes).length, 0)} nœud(s).
-        </p>
-      </Group>
-      <Group title="Interfaces">
-        <p class="muted small">Les Blueprint Interfaces arrivent à l’étape 3.</p>
-      </Group>
-      <button
-        class="btn danger"
-        onClick={() =>
-          openOverlay({
-            kind: 'confirm',
-            title: `Supprimer ${cls.name} ?`,
-            text: 'Le Blueprint et tous ses graphes seront supprimés. Tu peux annuler avec le bouton ↶.',
-            confirmLabel: 'Supprimer',
-            onConfirm: () => {
-              const res = store.applyProject('Supprimer le Blueprint', (p) => removeClass(p, cls.id));
-              if (!res.ok) store.warn(res.reason);
-            },
-          })
-        }
-      >
-        Supprimer ce Blueprint
-      </button>
-    </>
-  );
 }
 

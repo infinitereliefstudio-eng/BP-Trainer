@@ -36,6 +36,8 @@ export const GRAPH = {
   selected: '#f2a516',
   error: '#ff3b30',
   pending: '#4fc3ff',
+  paused: '#ffd600',
+  breakpoint: '#e01515',
   text: '#ececec',
   textDim: '#9a9a9a',
   valueBg: '#0e0e0e',

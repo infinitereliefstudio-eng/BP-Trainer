@@ -20,6 +20,8 @@ export interface LessonRun {
   passed: boolean;
   runtimeErrors: string[];
   notes: string[];
+  /** Everything printed during the scenario. */
+  prints: string[];
 }
 
 export function runLesson(lesson: Lesson, project: Project): LessonRun {
@@ -29,7 +31,7 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
       if (m.severity === 'error') compileErrors.push({ ...m, text: `${cls.name} : ${m.text}` });
     }
   }
-  if (compileErrors.length) return { compileErrors, results: [], passed: false, runtimeErrors: [], notes: [] };
+  if (compileErrors.length) return { compileErrors, results: [], passed: false, runtimeErrors: [], notes: [], prints: [] };
 
   const sim = new Simulation(project);
   const cx: CheckContext = {
@@ -38,6 +40,12 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
     actor: (label) => sim.actors.find((a) => a.label === label),
     component: (label, name) => sim.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),
     prints: () => sim.log.filter((l) => l.message !== undefined).map((l) => l.message!),
+    variable: (label, name) => {
+      const a = label === 'Joueur' ? sim.player : sim.actors.find((x) => x.label === label);
+      const cls = a?.classId ? project.classes.find((c) => c.id === a.classId) : undefined;
+      const v = cls?.variables.find((x) => x.name === name);
+      return a && v ? a.vars[v.id] : undefined;
+    },
     nodes: (className) => Object.values(project.classes.find((c) => c.name === className)?.graphs.flatMap((g) => Object.values(g.nodes)) ?? []),
   };
 
@@ -89,5 +97,6 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
     passed: ordered.every((r) => r.ok),
     runtimeErrors,
     notes,
+    prints: cx.prints(),
   };
 }

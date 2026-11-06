@@ -9,7 +9,7 @@ import { Camera, type Point } from '../camera';
 import { pinWorld, type NodeGeom } from '../layout';
 import { GRAPH, METRICS } from '../theme';
 import { drawNode } from './drawNode';
-import { pinColor, wirePath } from './primitives';
+import { bezierPoint, pinColor, wirePath } from './primitives';
 
 export interface WireDrag {
   from: PinRef;
@@ -31,6 +31,17 @@ export interface Scene {
   pendingPin?: PinRef;
   rect?: { x0: number; y0: number; x1: number; y1: number };
   errorNodes: Set<string>;
+  debug?: DebugOverlay;
+}
+
+/** What the debugger adds on top of a graph: breakpoints, paused node, exec glow. */
+export interface DebugOverlay {
+  breakpoints: Set<string>;
+  /** Node where execution is stopped, if it is in this graph. */
+  paused?: string;
+  /** 1 when the wire / node just ran, fading to 0. */
+  linkHeat(linkId: string): number;
+  nodeHeat(nodeId: string): number;
 }
 
 export function renderScene(c: CanvasRenderingContext2D, s: Scene, dpr: number): void {
@@ -67,6 +78,9 @@ function drawWorld(c: CanvasRenderingContext2D, s: Scene, cam: Camera, dpr: numb
       error: s.errorNodes.has(g.node.id),
       pendingPin: s.pendingPin?.node === g.node.id ? s.pendingPin.pin : undefined,
       pinEnabled: pinEnabled && ((p) => pinEnabled(g.node.id, p)),
+      breakpoint: s.debug?.breakpoints.has(g.node.id),
+      paused: s.debug?.paused === g.node.id,
+      heat: s.debug?.nodeHeat(g.node.id) ?? 0,
     });
   }
 
@@ -118,10 +132,25 @@ function drawLinks(c: CanvasRenderingContext2D, s: Scene): void {
     const b = pinWorld(gb, l.to.pin);
     const spec = ga.pins.find((p) => p.spec.id === l.from.pin)?.spec;
     if (!a || !b || !spec) continue;
+    const heat = spec.type.category === 'exec' ? (s.debug?.linkHeat(l.id) ?? 0) : 0;
+    if (heat > 0) {
+      // The wire that just carried execution glows, like in Play In Editor.
+      c.strokeStyle = `rgba(255, 214, 90, ${0.8 * heat})`;
+      c.lineWidth = 9;
+      wirePath(c, a.x, a.y, b.x, b.y);
+      c.stroke();
+    }
     c.strokeStyle = pinColor(spec.type);
     c.lineWidth = spec.type.category === 'exec' ? 3 : 2;
     wirePath(c, a.x, a.y, b.x, b.y);
     c.stroke();
+    if (heat > 0) {
+      const p = bezierPoint(a.x, a.y, b.x, b.y, Math.min(1, (1 - heat) * 2.2));
+      c.fillStyle = `rgba(255, 240, 180, ${heat})`;
+      c.beginPath();
+      c.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      c.fill();
+    }
   }
 }
 

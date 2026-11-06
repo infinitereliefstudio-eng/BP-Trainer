@@ -1,22 +1,25 @@
-/** Bottom panel: Compiler Results and Output Log, like UE's tabs. */
+/** Bottom panel: Compiler Results, Output Log and Debug, like UE's tabs. */
 import { useEffect, useReducer, useState } from 'preact/hooks';
 import type { SimLogEntry } from '@core/runtime/simulation';
 import type { PlaySession } from '@editor/world/playSession';
 import { useStore } from '../hooks';
+import { DebugPanel } from './DebugPanel';
+
+export type BottomTab = 'compiler' | 'log' | 'debug';
 
 interface Props {
-  onFocusNode: (graphId: string, nodeId: string) => void;
+  onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
   /** The running session, or the log of the last one. */
   session?: PlaySession;
   simLog?: SimLogEntry[];
-  initialTab?: 'compiler' | 'log';
+  initialTab?: BottomTab;
 }
 
 const ICON = { error: '✕', warning: '!', info: 'i' } as const;
 
 export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compiler' }: Props) {
   const store = useStore();
-  const [tab, setTab] = useState<'compiler' | 'log'>(initialTab);
+  const [tab, setTab] = useState<BottomTab>(initialTab);
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session?.onUi(() => force(0)), [session]);
   const playLog = session?.sim.log ?? simLog;
@@ -29,9 +32,14 @@ export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compil
         <button class={tab === 'log' ? 'active' : ''} onClick={() => setTab('log')}>
           Output Log
         </button>
+        <button class={tab === 'debug' ? 'active' : ''} onClick={() => setTab('debug')}>
+          Debug
+        </button>
       </div>
       <div class="bottom-body">
-        {tab === 'compiler' ? (
+        {tab === 'debug' ? (
+          <DebugPanel session={session} onFocusNode={onFocusNode} />
+        ) : tab === 'compiler' ? (
           store.compileMessages.length === 0 ? (
             <p class="hint">Touche « Compile » pour vérifier ton Blueprint.</p>
           ) : (

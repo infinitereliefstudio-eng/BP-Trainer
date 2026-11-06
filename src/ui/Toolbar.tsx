@@ -73,11 +73,11 @@ export function Toolbar(p: Props) {
       )}
       <span class="tb-spacer" />
       <div class="tabs" role="tablist">
-        <button role="tab" class={`tab${p.view === 'level' || p.playing ? ' active' : ''}`} onClick={() => p.onView('level')}>
+        <button role="tab" class={`tab${p.view === 'level' ? ' active' : ''}`} onClick={() => p.onView('level')}>
           Niveau
         </button>
-        <button role="tab" class={`tab${p.view === 'graph' && !p.playing ? ' active' : ''}`} disabled={p.playing} onClick={() => p.onView('graph')}>
-          Event Graph
+        <button role="tab" class={`tab${p.view === 'graph' ? ' active' : ''}`} onClick={() => p.onView('graph')}>
+          {store.graph.kind === 'event' ? 'Event Graph' : store.graph.name}
         </button>
       </div>
       <button class="tb icon" onClick={p.onToggleDetails} disabled={p.playing} aria-label="Ouvrir Details">

@@ -82,10 +82,10 @@ export class Simulation implements InterpreterHost {
 
   constructor(
     readonly project: Project,
-    opts: { seed?: number } = {},
+    opts: { seed?: number; breakpoints?: Set<string> } = {},
   ) {
     this.rng = opts.seed ?? 12345;
-    this.interp = new Interpreter(project, this);
+    this.interp = new Interpreter(project, this, opts.breakpoints);
     const ps = project.level.playerStart;
     const playerCls = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
     this.player = playerCls
@@ -244,6 +244,12 @@ export class Simulation implements InterpreterHost {
 
   watch(): PinWatch[] {
     return this.interp.watchPaused();
+  }
+
+  /** Last values of a node's pins for one actor. */
+  watchNode(actorId: string, graphId: string, nodeId: string) {
+    const a = this.findActor(actorId);
+    return a ? this.interp.watchNode(a, graphId, nodeId) : [];
   }
 
   // ---------------------------------------------------------------- input

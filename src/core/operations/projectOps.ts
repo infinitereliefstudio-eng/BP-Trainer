@@ -5,6 +5,11 @@ import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
 
+/** Drop links that no longer fit after a signature or type change, everywhere. */
+export function pruneProject(p: Project): void {
+  for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
+}
+
 const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Self'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
@@ -30,7 +35,7 @@ export function renameClass(p: Project, id: string, name: string): OpResult {
   for (const c of p.classes) {
     for (const v of c.variables) if (v.type.subtype === oldName) v.type = { ...v.type, subtype: cls.name };
   }
-  for (const c of p.classes) pruneAllGraphs(c, contextFor(c));
+  pruneProject(p);
   return { ok: true, value: undefined };
 }
 

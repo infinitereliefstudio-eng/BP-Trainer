@@ -3,7 +3,7 @@
  * and three levels of help.
  */
 import { useState } from 'preact/hooks';
-import type { Lesson } from '@core/lessons/types';
+import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
 import { runLesson, type LessonRun } from '@core/lessons/runner';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
@@ -43,7 +43,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
         <div class="palette-head">
           <div class="lesson-title">
             <span class="eyebrow">
-              Leçon {lesson.number} · {lesson.module}
+              {lessonLabel(lesson)} · {lesson.module}
             </span>
             <strong>{lesson.title}</strong>
           </div>
@@ -58,7 +58,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
             Comprendre
           </button>
           <button class={tab === 'goals' ? 'active' : ''} onClick={() => setTab('goals')}>
-            Objectifs
+            {lesson.kind === 'predict' ? 'Prédis' : 'Objectifs'}
           </button>
           <button class={tab === 'help' ? 'active' : ''} onClick={() => setTab('help')}>
             Aide
@@ -76,12 +76,14 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
               ))}
               <p class="muted small">Notions : {lesson.notions.join(' · ')}</p>
               <button class="btn primary" onClick={() => setTab('goals')}>
-                Voir les objectifs
+                {lesson.kind === 'predict' ? 'Répondre' : 'Voir les objectifs'}
               </button>
             </>
           )}
 
-          {tab === 'goals' && (
+          {tab === 'goals' && lesson.predict && <PredictPanel p={lesson.predict} next={next} onPassed={onPassed} onNext={onNext} onClose={onClose} />}
+
+          {tab === 'goals' && !lesson.predict && (
             <>
               <p class="situation">{lesson.situation}</p>
               <ol class="objectives">
@@ -95,7 +97,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
               {run && <RunResult run={run} />}
               {run?.passed && (
                 <div class="success">
-                  <strong>Leçon réussie.</strong>
+                  <strong>{lesson.kind === 'debug' ? 'Réparé !' : 'Leçon réussie.'}</strong>
                   {lesson.challenge && (
                     <p>
                       <span class="eyebrow">Défi</span> {lesson.challenge}
@@ -103,7 +105,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
                   )}
                   {next && (
                     <button class="btn primary" onClick={onNext}>
-                      Leçon suivante : {next.title}
+                      Suivant : {lessonLabel(next)} · {next.title}
                     </button>
                   )}
                 </div>
@@ -145,6 +147,50 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
         </div>
       </div>
     </div>
+  );
+}
+
+/** "Prédis" exercises: choose an answer, then see the explanation. */
+function PredictPanel({ p, next, onPassed, onNext, onClose }: { p: Prediction; next?: Lesson; onPassed: () => void; onNext: () => void; onClose: () => void }) {
+  const [choice, setChoice] = useState<number | null>(null);
+  const right = choice === p.answer;
+  return (
+    <>
+      <p class="situation">{p.question}</p>
+      <div class="options">
+        {p.options.map((o, i) => (
+          <button
+            key={o}
+            class={`option${choice === i ? (right ? ' ok' : ' ko') : ''}${choice !== null && i === p.answer ? ' answer' : ''}`}
+            disabled={right}
+            onClick={() => {
+              setChoice(i);
+              if (i === p.answer) onPassed();
+            }}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+      {choice !== null && !right && <p class="error-text">Pas tout à fait. Relis le graphe, ou ouvre l’onglet Aide, et réessaie.</p>}
+      {right && (
+        <div class="success">
+          <strong>Bien vu.</strong>
+          <p>{p.explanation}</p>
+          <p class="muted small">Ferme ce panneau et lance ▶ Play : l’Output Log montre l’ordre réel.</p>
+          <div class="row-buttons flush">
+            <button class="btn" onClick={onClose}>
+              Fermer et lancer Play
+            </button>
+            {next && (
+              <button class="btn primary" onClick={onNext}>
+                Suivant : {lessonLabel(next)} · {next.title}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

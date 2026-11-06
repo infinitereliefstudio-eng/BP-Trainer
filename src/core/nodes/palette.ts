@@ -3,7 +3,7 @@
  * plus entries generated from the class (Get/Set per variable, one getter per
  * component), like UE's context menu.
  */
-import type { BlueprintClass, GraphKind, NodeInstance } from '../model/project';
+import type { BlueprintClass, Graph, GraphKind, NodeInstance } from '../model/project';
 import { isAssignable, type PinType } from '../types/pins';
 import type { Value } from '../types/values';
 import type { NodeContext, PinSpec } from './definition';
@@ -24,12 +24,14 @@ export interface PaletteEntry {
   contextOnly?: boolean;
 }
 
-export function paletteEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEntry[] {
+export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind'>): PaletteEntry[] {
+  const graphKind = graph.kind;
   const out: PaletteEntry[] = [];
   for (const d of allDefinitions()) {
     if (d.hiddenFromPalette) continue;
     if (d.allowedIn && !d.allowedIn.includes(graphKind)) continue;
     const config = { ...(d.defaultConfig ?? {}) };
+    if (d.id === 'fn.return') config.graph = graph.id;
     const title =
       typeof d.title === 'function' ? d.title(probe(d.id, config), ctx) : d.title;
     out.push({
@@ -157,6 +159,22 @@ function communicationEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEn
           ),
         );
       }
+    }
+  }
+
+  // Functions, callable here or through a reference.
+  for (const c of [self, ...others]) {
+    const own = c.id === self.id;
+    for (const g of c.graphs) {
+      if (g.kind !== 'function' || !g.fn) continue;
+      out.push(
+        entry(ctx, `fn:${c.id}:${g.id}`, g.fn.pure ? 'call.pureFunction' : 'call.function', { owner: c.id, graph: g.id }, {
+          category: own ? 'Functions' : `Class|${c.name}`,
+          description: g.fn.description || `Appelle la fonction ${g.name}${own ? '' : ` de ${c.name}`}.`,
+          keywords: ['function', 'fonction', 'call', g.name.toLowerCase(), c.name.toLowerCase()],
+          contextOnly: !own,
+        }),
+      );
     }
   }
 

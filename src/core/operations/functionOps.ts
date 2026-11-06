@@ -4,7 +4,8 @@ import { createGraph, findGraph, uniqueName, type BlueprintClass, type Graph, ty
 import { contextFor } from '../nodes/registry';
 import type { PinType } from '../types/pins';
 import { validateName } from './classOps';
-import { addNode, connect, pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
+import { addNode, connect, removeNodes, type OpResult } from './graphOps';
+import { pruneProject } from './projectOps';
 
 const CALLS = ['call.function', 'call.pureFunction'];
 
@@ -25,10 +26,6 @@ function callers(p: Project, cls: BlueprintClass, graphId: string): { graph: Gra
     }
   }
   return out;
-}
-
-function pruneProject(p: Project): void {
-  for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
 }
 
 export function addFunction(cls: BlueprintClass, name = 'NewFunction'): Graph {

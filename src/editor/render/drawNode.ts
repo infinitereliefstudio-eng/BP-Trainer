@@ -10,6 +10,11 @@ export interface NodePaintState {
   pendingPin?: string;
   /** Returns false for pins a wire being dragged cannot plug into. */
   pinEnabled?: (p: PinSpec) => boolean;
+  breakpoint?: boolean;
+  /** Execution is stopped just before this node. */
+  paused?: boolean;
+  /** 1 when the node just ran, fading to 0. */
+  heat?: number;
 }
 
 export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintState): void {
@@ -61,10 +66,26 @@ export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintS
   }
 
   // Outline
+  if (s.heat && s.heat > 0) {
+    roundRect(c, x - 3, y - 3, g.w + 6, g.h + 6, r + 3);
+    c.lineWidth = 4;
+    c.strokeStyle = `rgba(255, 214, 90, ${0.75 * s.heat})`;
+    c.stroke();
+  }
   roundRect(c, x, y, g.w, g.h, r);
-  c.lineWidth = s.selected || s.error ? 2.5 : 1;
-  c.strokeStyle = s.error ? GRAPH.error : s.selected ? GRAPH.selected : GRAPH.nodeBorder;
+  c.lineWidth = s.paused ? 4 : s.selected || s.error ? 2.5 : 1;
+  c.strokeStyle = s.paused ? GRAPH.paused : s.error ? GRAPH.error : s.selected ? GRAPH.selected : GRAPH.nodeBorder;
   c.stroke();
+  if (s.paused) drawPausedArrow(c, x + g.w / 2, y - 6);
+  if (s.breakpoint) {
+    c.beginPath();
+    c.arc(x + 1, y + 1, 7, 0, Math.PI * 2);
+    c.fillStyle = GRAPH.breakpoint;
+    c.fill();
+    c.lineWidth = 1.5;
+    c.strokeStyle = '#2a0000';
+    c.stroke();
+  }
 
   // Pins
   c.font = METRICS.labelFont;
@@ -104,6 +125,24 @@ export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintS
     }
     c.globalAlpha = 1;
   }
+}
+
+/** The big arrow UE shows above the node where execution stopped. */
+function drawPausedArrow(c: CanvasRenderingContext2D, cx: number, bottom: number): void {
+  c.beginPath();
+  c.moveTo(cx, bottom);
+  c.lineTo(cx - 13, bottom - 16);
+  c.lineTo(cx - 5, bottom - 16);
+  c.lineTo(cx - 5, bottom - 30);
+  c.lineTo(cx + 5, bottom - 30);
+  c.lineTo(cx + 5, bottom - 16);
+  c.lineTo(cx + 13, bottom - 16);
+  c.closePath();
+  c.fillStyle = GRAPH.paused;
+  c.fill();
+  c.lineWidth = 1.5;
+  c.strokeStyle = '#3a2c00';
+  c.stroke();
 }
 
 function drawValueBox(c: CanvasRenderingContext2D, nx: number, ny: number, p: NodeGeom['pins'][number]): void {

@@ -1,10 +1,16 @@
-/** List of the project's Blueprints, to switch or create one. */
-import { addClass } from '@core/operations/projectOps';
+/** The project's assets: Blueprints and Blueprint Interfaces. */
+import { addClass, addInterface, addInterfaceFunction } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
 
-export function ContentBrowser({ onClose, openOverlay }: { onClose: () => void; openOverlay: OpenOverlay }) {
+interface Props {
+  onClose: () => void;
+  openOverlay: OpenOverlay;
+  onOpenDetails: () => void;
+}
+
+export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
   const store = useStore();
   const tap = useOwnTap();
   const create = () =>
@@ -21,6 +27,25 @@ export function ContentBrowser({ onClose, openOverlay }: { onClose: () => void; 
         return null;
       },
     });
+  const createInterface = () =>
+    openOverlay({
+      kind: 'prompt',
+      title: 'Nouvelle Blueprint Interface',
+      initial: 'BPI_Interactif',
+      confirmLabel: 'Créer',
+      onSubmit: (name) => {
+        if (/\s/.test(name.trim())) return "Un nom d'interface ne peut pas contenir d'espace.";
+        const res = store.applyProject('Créer une interface', (p) => {
+          const r = addInterface(p, name);
+          if (r.ok) addInterfaceFunction(p, r.value.id, 'Interagir');
+          return r;
+        });
+        if (!res.ok) return res.reason;
+        store.setFocus({ kind: 'interface', id: res.value.id });
+        onOpenDetails();
+        return null;
+      },
+    });
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
       <div class="sheet content" onClick={(e) => e.stopPropagation()}>
@@ -29,6 +54,9 @@ export function ContentBrowser({ onClose, openOverlay }: { onClose: () => void; 
           <span class="tb-spacer" />
           <button class="btn primary" onClick={create}>
             + Blueprint
+          </button>
+          <button class="btn" onClick={createInterface}>
+            + Interface
           </button>
           <button class="btn" onClick={onClose}>
             Fermer
@@ -47,6 +75,24 @@ export function ContentBrowser({ onClose, openOverlay }: { onClose: () => void; 
               <span class="pi-title">{c.name}</span>
               <span class="pi-desc">
                 Parent : {c.parent} · {c.variables.length} variable(s) · {c.components.length} composant(s)
+              </span>
+            </button>
+          ))}
+          {store.project.interfaces.length > 0 && <div class="palette-cat">Blueprint Interfaces</div>}
+          {store.project.interfaces.map((i) => (
+            <button
+              key={i.id}
+              class="palette-item"
+              onClick={() => {
+                store.setFocus({ kind: 'interface', id: i.id });
+                onClose();
+                onOpenDetails();
+              }}
+            >
+              <span class="pi-title">{i.name}</span>
+              <span class="pi-desc">
+                {i.functions.map((f) => f.name).join(', ') || 'aucune fonction'} · implémentée par{' '}
+                {store.project.classes.filter((c) => c.interfaces.includes(i.id)).length} Blueprint(s)
               </span>
             </button>
           ))}

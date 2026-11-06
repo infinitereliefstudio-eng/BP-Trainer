@@ -15,7 +15,8 @@ import { Camera, type Point } from './camera';
 import { GestureController, type GestureHost } from './gestures';
 import { hitTest, nodesInRect, type Hit } from './hit';
 import { graphBounds, layoutGraph, type NodeGeom } from './layout';
-import { renderScene, type WireDrag } from './render/renderer';
+import { renderScene, type DebugOverlay, type WireDrag } from './render/renderer';
+import type { PlaySession } from './world/playSession';
 
 export interface WireSource {
   ref: PinRef;
@@ -43,13 +44,16 @@ export interface GraphCanvasHandle {
   fitView(): void;
   /** World point at the centre of the visible area. */
   viewCenter(): Point;
-  focusNode(nodeId: string): void;
+  /** Centre a node in the area not covered by panels (`inset`, in pixels). */
+  focusNode(nodeId: string, inset?: { top?: number; right?: number }): void;
 }
 
 interface Props {
   store: EditorStore;
   requests: CanvasRequests;
   selectionMode: boolean;
+  /** The running Play session: glowing wires and the paused node. */
+  session?: PlaySession;
 }
 
 /** Height kept clear at the bottom for the floating buttons and the log handle. */
@@ -73,7 +77,7 @@ function measure(text: string, font: string): number {
 }
 
 export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCanvas(
-  { store, requests, selectionMode },
+  { store, requests, selectionMode, session },
   ref,
 ) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -88,9 +92,13 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
     frame: 0,
     selectionMode,
     requests,
+    session,
+    /** A focus asked for before the canvas had a size (just mounted). */
+    pendingFocus: undefined as { nodeId: string; inset?: { top?: number; right?: number } } | undefined,
   });
   live.current.selectionMode = selectionMode;
   live.current.requests = requests;
+  live.current.session = session;
 
   const camera = (): Camera => {
     const l = live.current;
@@ -142,10 +150,36 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
         pendingPin: l.pending?.ref,
         rect: l.rect,
         errorNodes,
+        debug: debugOverlay(),
       },
       l.size.dpr,
     );
   };
+
+  const debugOverlay = (): DebugOverlay => {
+    const sess = live.current.session;
+    const paused = sess?.sim.paused;
+    return {
+      breakpoints: store.breakpoints,
+      paused: paused && paused.graphId === store.graphId ? paused.nodeId : undefined,
+      linkHeat: (id) => sess?.heat.linkHeat(id) ?? 0,
+      nodeHeat: (id) => sess?.heat.nodeHeat(id) ?? 0,
+    };
+  };
+
+  // While playing, keep redrawing as long as something glows.
+  useEffect(() => {
+    if (!session) {
+      invalidate();
+      return;
+    }
+    let glowing = true;
+    return session.onFrame(() => {
+      const now = session.heat.active;
+      if (now || glowing) invalidate();
+      glowing = now;
+    });
+  }, [session]);
 
   /** Connect two pins in one undo step, reporting refusals. */
   const tryConnect = (a: PinRef, b: PinRef): boolean => {
@@ -167,7 +201,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
     return p?.spec.id;
   };
 
-  useImperativeHandle(ref, () => ({
+  const handleRef = useRef<GraphCanvasHandle | null>(null);
+  useImperativeHandle(ref, () => (handleRef.current = {
     fitView() {
       const b = graphBounds(geoms());
       const { w, h } = live.current.size;
@@ -178,13 +213,20 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
       const { w, h } = live.current.size;
       return camera().toWorld(w / 2, h / 2);
     },
-    focusNode(nodeId) {
+    focusNode(nodeId, inset = {}) {
       const g = geoms().get(nodeId);
       if (!g) return;
-      const cam = camera();
       const { w, h } = live.current.size;
-      cam.x = g.node.x + g.w / 2 - w / 2 / cam.zoom;
-      cam.y = g.node.y + g.h / 2 - h / 2 / cam.zoom;
+      if (w === 0) {
+        live.current.pendingFocus = { nodeId, inset };
+        return;
+      }
+      const cam = camera();
+      const top = inset.top ?? 0;
+      const cx = (w - (inset.right ?? 0)) / 2;
+      const cy = top + (h - top) / 2;
+      cam.x = g.node.x + g.w / 2 - cx / cam.zoom;
+      cam.y = g.node.y + g.h / 2 - cy / cam.zoom;
       store.selectNodes([nodeId]);
       invalidate();
     },
@@ -201,6 +243,9 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
       canvas.height = Math.round(r.height * dpr);
       canvas.style.width = `${r.width}px`;
       canvas.style.height = `${r.height}px`;
+      const pending = live.current.pendingFocus;
+      live.current.pendingFocus = undefined;
+      if (pending && r.width > 0) handleRef.current?.focusNode(pending.nodeId, pending.inset);
       invalidate();
     });
     ro.observe(wrap);

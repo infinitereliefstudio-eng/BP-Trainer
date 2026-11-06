@@ -24,6 +24,9 @@ export type Focus =
   | { kind: 'variable'; id: string }
   | { kind: 'component'; id: string }
   | { kind: 'class' }
+  | { kind: 'function'; id: string }
+  | { kind: 'dispatcher'; id: string }
+  | { kind: 'interface'; id: string }
   | { kind: 'actor'; id: string }
   | { kind: 'playerStart' };
 
@@ -57,6 +60,8 @@ export class EditorStore {
   graphId: string;
   selection = new Set<string>();
   focus: Focus = { kind: 'none' };
+  /** Breakpoints (node ids). Shared with the running Play session, never saved. */
+  readonly breakpoints = new Set<string>();
   compileStatus: CompileStatus = 'dirty';
   compileMessages: CompileMessage[] = [];
   log: LogEntry[] = [];
@@ -191,6 +196,9 @@ export class EditorStore {
     if (f.kind === 'component' && !this.cls.components.some((c) => c.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'nodes' && this.selection.size === 0) this.focus = { kind: 'none' };
     if (f.kind === 'actor' && !this.project.level.actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'function' && !this.cls.graphs.some((g) => g.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'dispatcher' && !this.cls.dispatchers.some((d) => d.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'interface' && !this.project.interfaces.some((i) => i.id === f.id)) this.focus = { kind: 'none' };
   }
 
   // ------------------------------------------------------------ navigation
@@ -234,6 +242,12 @@ export class EditorStore {
     if (!this.selection.size && this.focus.kind === 'none') return;
     this.selection.clear();
     this.focus = { kind: 'none' };
+    this.notify('view');
+  }
+
+  toggleBreakpoint(nodeId: string): void {
+    if (this.breakpoints.has(nodeId)) this.breakpoints.delete(nodeId);
+    else this.breakpoints.add(nodeId);
     this.notify('view');
   }
 

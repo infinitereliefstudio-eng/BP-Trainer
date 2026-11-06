@@ -37,9 +37,15 @@ export function Home({ progress, onOpen }: Props) {
             </h2>
             <div class="lesson-list">
               {LESSONS.filter((l) => l.module === m).map((l) => (
-                <button key={l.id} class={`lesson-item${done.has(l.id) ? ' done' : ''}`} onClick={() => onOpen({ kind: 'lesson', lessonId: l.id })}>
-                  <span class="li-num">{done.has(l.id) ? '✓' : l.number}</span>
+                <button
+                  key={l.id}
+                  class={`lesson-item${done.has(l.id) ? ' done' : ''}${l.kind && l.kind !== 'build' ? ` exercise ${l.kind}` : ''}`}
+                  onClick={() => onOpen({ kind: 'lesson', lessonId: l.id })}
+                >
+                  <span class="li-num">{done.has(l.id) ? '✓' : (l.code ?? l.number)}</span>
                   <span class="li-text">
+                    {l.kind === 'predict' && <span class="eyebrow">Prédis le résultat</span>}
+                    {l.kind === 'debug' && <span class="eyebrow">Débogue</span>}
                     <strong>{l.title}</strong>
                     <span>{l.situation}</span>
                   </span>
@@ -49,8 +55,8 @@ export function Home({ progress, onOpen }: Props) {
           </section>
         ))}
         <p class="muted small">
-          {done.size} leçon{done.size > 1 ? 's' : ''} réussie{done.size > 1 ? 's' : ''} sur {LESSONS.length}. La suite du parcours arrive aux
-          prochaines étapes.
+          {done.size} étape{done.size > 1 ? 's' : ''} réussie{done.size > 1 ? 's' : ''} sur {LESSONS.length}. La leçon de synthèse arrive à la
+          prochaine étape.
         </p>
       </main>
     </div>

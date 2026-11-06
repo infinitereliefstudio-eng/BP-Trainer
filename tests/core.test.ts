@@ -184,7 +184,7 @@ describe('palette', () => {
   it('finds nodes with French keywords and accents ignored', () => {
     const { cls } = setup();
     addComponent(cls, 'PointLight');
-    const entries = paletteEntries(contextFor(cls), 'event');
+    const entries = paletteEntries(contextFor(cls), cls.graphs[0]);
     expect(searchEntries(entries, 'branch')[0].def).toBe('flow.branch');
     expect(searchEntries(entries, 'eteindre').some((e) => e.def === 'component.toggleVisibility')).toBe(true);
     expect(entries.some((e) => e.title === 'Get PointLight')).toBe(true);
@@ -192,7 +192,7 @@ describe('palette', () => {
   it('finds a compatible pin for context-sensitive placement', () => {
     const { cls } = setup();
     const ctx = contextFor(cls);
-    const entries = paletteEntries(ctx, 'event');
+    const entries = paletteEntries(ctx, { id: 'g', kind: 'event' });
     const branch = entries.find((e) => e.def === 'flow.branch')!;
     expect(compatiblePin(branch, ctx, { dir: 'out', type: T.bool })?.id).toBe('condition');
     expect(compatiblePin(branch, ctx, { dir: 'out', type: T.int })).toBeUndefined();

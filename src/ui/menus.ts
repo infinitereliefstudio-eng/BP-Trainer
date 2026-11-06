@@ -6,6 +6,7 @@ import type { PinRef } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import type { EditorStore } from '@core/store/editorStore';
 import { createStarterProject } from '@core/templates/starterProject';
+import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
 import { exportProject, pickProjectFile } from '@storage/persistence';
 import type { MenuItem, OpenOverlay } from './overlayTypes';
 
@@ -105,8 +106,14 @@ export function linkMenu(store: EditorStore, linkId: string): MenuItem[] {
   ];
 }
 
-export function moreMenu(store: EditorStore, openOverlay: OpenOverlay): MenuItem[] {
-  return [
+export interface MoreMenuOptions {
+  sandbox: boolean;
+  onClassSettings: () => void;
+}
+
+export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: MoreMenuOptions): MenuItem[] {
+  const items: MenuItem[] = [
+    { label: 'Class Settings', action: opts.onClassSettings },
     { label: 'Exporter le projet', hint: 'fichier .json', action: () => exportProject(store.project) },
     {
       label: 'Importer un projet',
@@ -119,7 +126,9 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay): MenuItem
           })
           .catch((e: Error) => store.error(e.message)),
     },
-    {
+  ];
+  if (opts.sandbox) {
+    items.push({
       label: 'Nouveau projet',
       danger: true,
       action: () =>
@@ -130,10 +139,38 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay): MenuItem
           confirmLabel: 'Remplacer',
           onConfirm: () => store.replaceProject(createStarterProject()),
         }),
+    });
+  }
+  items.push({ label: 'Plein écran', action: () => enterFullscreen() }, { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) });
+  return items;
+}
+
+/** Long press on an actor in the level. */
+export function actorMenu(store: EditorStore, actorId: string, openClass: (classId: string) => void): MenuItem[] {
+  const a = store.project.level.actors.find((x) => x.id === actorId);
+  if (!a) return [];
+  return [
+    { label: 'Ouvrir le Blueprint', action: () => openClass(a.classId) },
+    {
+      label: 'Dupliquer',
+      action: () => {
+        const res = store.applyProject('Dupliquer l’acteur', (p) => duplicateActor(p, actorId));
+        if (res.ok) store.setFocus({ kind: 'actor', id: res.value.id });
+      },
     },
-    { label: 'Plein écran', action: () => enterFullscreen() },
-    { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) },
+    { label: 'Retirer du niveau', danger: true, action: () => store.applyProject('Retirer l’acteur', (p) => removeActor(p, actorId)) },
   ];
+}
+
+/** Long press on empty floor: place an instance of a Blueprint. */
+export function placeMenu(store: EditorStore, world: { x: number; y: number }): MenuItem[] {
+  return store.project.classes.map((c) => ({
+    label: `Placer ${c.name}`,
+    action: () => {
+      const res = store.applyProject(`Placer ${c.name}`, (p) => placeActor(p, c.id, Math.round(world.x / 10) * 10, Math.round(world.y / 10) * 10));
+      if (res.ok) store.setFocus({ kind: 'actor', id: res.value.id });
+    },
+  }));
 }
 
 export function enterFullscreen(): void {

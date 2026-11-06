@@ -1,3 +1,4 @@
+import { findComponent } from '../../model/project';
 import { T } from '../../types/pins';
 import { dataOut, execOut, type NodeDefinition } from '../definition';
 
@@ -47,6 +48,27 @@ export const eventNodes: NodeDefinition[] = [
     allowedIn: ['event'],
     description: 'Se déclenche quand un autre acteur cesse de chevaucher cet acteur.',
     keywords: ['overlap', 'collision', 'sortir'],
+    pins: [execOut(), dataOut('other', 'Other Actor', T.object('Actor'))],
+  },
+  {
+    id: 'event.componentBeginOverlap',
+    title: (n, ctx) => `On Component Begin Overlap (${findComponent(ctx.cls, String(n.config.component))?.name ?? '?'})`,
+    category: 'Collision',
+    kind: 'event',
+    allowedIn: ['event'],
+    hiddenFromPalette: true,
+    description:
+      "Se déclenche quand un acteur entre dans cette zone de collision précise. Pratique quand un Blueprint a plusieurs zones.",
+    pins: [execOut(), dataOut('other', 'Other Actor', T.object('Actor'))],
+  },
+  {
+    id: 'event.componentEndOverlap',
+    title: (n, ctx) => `On Component End Overlap (${findComponent(ctx.cls, String(n.config.component))?.name ?? '?'})`,
+    category: 'Collision',
+    kind: 'event',
+    allowedIn: ['event'],
+    hiddenFromPalette: true,
+    description: 'Se déclenche quand un acteur sort de cette zone de collision précise.',
     pins: [execOut(), dataOut('other', 'Other Actor', T.object('Actor'))],
   },
   {

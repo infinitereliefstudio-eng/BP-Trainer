@@ -1,11 +1,9 @@
 /** Right drawer: properties of whatever is selected. */
 import type { ComponentChildren } from 'preact';
-import { COMPONENT_LABEL, findComponent, findVariable, type Variable } from '@core/model/project';
+import { findVariable, type Variable } from '@core/model/project';
 import { getDefinition, nodeTitle, pinValue, resolvePins } from '@core/nodes/registry';
 import {
-  removeComponent,
   removeVariable,
-  renameComponent,
   renameVariable,
   setVariableType,
   updateVariable,
@@ -19,8 +17,11 @@ import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { ValueInput } from '../widgets/ValueInput';
 import { NameField } from '../widgets/NameField';
+import { ComponentDetails } from './ComponentDetails';
+import { Field, Group, TextCommit } from './fields';
+import { ActorDetails, PlayerStartDetails } from './LevelDetails';
 
-export function Details({ openOverlay }: { openOverlay: OpenOverlay }) {
+export function Details({ openOverlay, onOpenClass }: { openOverlay: OpenOverlay; onOpenClass: (classId: string) => void }) {
   const store = useStore();
   const f = store.focus;
   let body: ComponentChildren;
@@ -28,6 +29,8 @@ export function Details({ openOverlay }: { openOverlay: OpenOverlay }) {
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
+  else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;
+  else if (f.kind === 'playerStart') body = <PlayerStartDetails />;
   else
     body = (
       <p class="hint">
@@ -38,23 +41,6 @@ export function Details({ openOverlay }: { openOverlay: OpenOverlay }) {
   return <div class="panel-scroll details">{body}</div>;
 }
 
-function Group({ title, children }: { title: string; children: ComponentChildren }) {
-  return (
-    <section class="d-group">
-      <h3>{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-function Field({ label, children }: { label: string; children: ComponentChildren }) {
-  return (
-    <div class="d-field">
-      <span class="d-label">{label}</span>
-      <div class="d-value">{children}</div>
-    </div>
-  );
-}
 
 // -------------------------------------------------------------------- nodes
 
@@ -75,7 +61,9 @@ function NodeDetails() {
   const def = getDefinition(node.def);
   const ctx = store.ctx;
   const linked = new Set(Object.values(store.graph.links).map((l) => `${l.to.node}:${l.to.pin}`));
-  const inputs = resolvePins(node, ctx).filter((p) => hasInlineValue(p) || p.type.category === 'vector');
+  const inputs = resolvePins(node, ctx).filter(
+    (p) => p.dir === 'in' && (hasInlineValue(p) || ((p.type.category === 'vector' || p.type.category === 'rotator') && !p.type.container)),
+  );
 
   return (
     <>
@@ -230,39 +218,6 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
   });
 }
 
-// --------------------------------------------------------------- components
-
-function ComponentDetails({ id }: { id: string }) {
-  const store = useStore();
-  const c = findComponent(store.cls, id);
-  if (!c) return null;
-  const parent = c.parent ? findComponent(store.cls, c.parent) : undefined;
-  return (
-    <Group title="Composant">
-      <Field label="Nom">
-        <NameField value={c.name} onCommit={(name) => store.apply('Renommer le composant', (cl) => renameComponent(cl, c.id, name))} />
-      </Field>
-      <Field label="Type">
-        <span>{COMPONENT_LABEL[c.kind]}</span>
-      </Field>
-      <Field label="Parent">
-        <span>{parent ? parent.name : '— (racine)'}</span>
-      </Field>
-      {c.parent && (
-        <button
-          class="btn danger"
-          onClick={() => {
-            const res = store.apply('Supprimer le composant', (cl) => removeComponent(cl, c.id));
-            if (!res.ok) store.warn(res.reason);
-          }}
-        >
-          Supprimer le composant
-        </button>
-      )}
-    </Group>
-  );
-}
-
 // ------------------------------------------------------------------- class
 
 function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
@@ -284,6 +239,17 @@ function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             <option value="Pawn">Pawn</option>
           </select>
         </Field>
+        <Field label="Auto Receive Input">
+          <select
+            class="field"
+            value={cls.autoReceiveInput ? 'p0' : 'off'}
+            onChange={(e) => store.apply('Auto Receive Input', (c) => void (c.autoReceiveInput = (e.target as HTMLSelectElement).value === 'p0'))}
+          >
+            <option value="off">Disabled</option>
+            <option value="p0">Player 0</option>
+          </select>
+        </Field>
+        <p class="muted small">Sans Player 0, les événements de touche (E, F, Espace) de ce Blueprint ne se déclenchent pas.</p>
         <p class="muted small">
           {cls.components.length} composant(s), {cls.variables.length} variable(s),{' '}
           {cls.graphs.reduce((n, g) => n + Object.keys(g.nodes).length, 0)} nœud(s).
@@ -313,19 +279,3 @@ function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
   );
 }
 
-function TextCommit({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
-  return (
-    <input
-      class="field"
-      type="text"
-      value={value}
-      onBlur={(e) => {
-        const v = (e.target as HTMLInputElement).value;
-        if (v !== value) onCommit(v);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-      }}
-    />
-  );
-}

@@ -54,6 +54,8 @@ interface Props {
 
 /** Height kept clear at the bottom for the floating buttons and the log handle. */
 const FAB_BAND = 80;
+/** Framing never zooms out below this, so node text stays readable on a phone. */
+const READABLE_ZOOM = 0.6;
 
 const textCache = new Map<string, number>();
 let measureCtx: CanvasRenderingContext2D | null = null;
@@ -98,7 +100,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
       l.cameras.set(store.graphId, cam);
       const b = graphBounds(geoms());
       const { w, h } = l.size;
-      if (b && w > 0) cam.fit(b, w, h - FAB_BAND, 56);
+      if (b && w > 0) cam.fit(b, w, h - FAB_BAND, 56, READABLE_ZOOM);
       else {
         cam.x = -40;
         cam.y = -40;
@@ -169,7 +171,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
     fitView() {
       const b = graphBounds(geoms());
       const { w, h } = live.current.size;
-      if (b) camera().fit(b, w, h - FAB_BAND, 56);
+      if (b) camera().fit(b, w, h - FAB_BAND, 56, READABLE_ZOOM);
       invalidate();
     },
     viewCenter() {

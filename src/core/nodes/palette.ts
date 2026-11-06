@@ -59,6 +59,26 @@ export function paletteEntries(ctx: NodeContext, graphKind: GraphKind): PaletteE
     });
   }
   for (const c of ctx.cls.components) {
+    if (c.kind === 'BoxCollision' && graphKind === 'event') {
+      out.push({
+        key: `cbo:${c.id}`,
+        title: `On Component Begin Overlap (${c.name})`,
+        category: 'Events|Collision',
+        description: `Se déclenche quand un acteur entre dans ${c.name}.`,
+        def: 'event.componentBeginOverlap',
+        config: { component: c.id },
+        keywords: ['overlap', 'collision', 'entrer', 'begin', c.name.toLowerCase()],
+      });
+      out.push({
+        key: `ceo:${c.id}`,
+        title: `On Component End Overlap (${c.name})`,
+        category: 'Events|Collision',
+        description: `Se déclenche quand un acteur sort de ${c.name}.`,
+        def: 'event.componentEndOverlap',
+        config: { component: c.id },
+        keywords: ['overlap', 'collision', 'sortir', 'end', c.name.toLowerCase()],
+      });
+    }
     out.push({
       key: `cmp:${c.id}`,
       title: `Get ${c.name}`,

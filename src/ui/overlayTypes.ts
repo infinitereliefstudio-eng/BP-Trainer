@@ -24,6 +24,7 @@ export type Overlay =
     }
   | { kind: 'confirm'; title: string; text: string; confirmLabel: string; onConfirm: () => void }
   | { kind: 'content' }
-  | { kind: 'about' };
+  | { kind: 'about' }
+  | { kind: 'lesson' };
 
 export type OpenOverlay = (o: Overlay | null) => void;

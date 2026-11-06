@@ -2,7 +2,7 @@
  * Saved-file format. `format` is bumped whenever the model changes shape;
  * `migrate` upgrades older files so projects survive app updates.
  */
-import { PROJECT_FORMAT, type Project } from '../model/project';
+import { PROJECT_FORMAT, componentDefaults, createLevel, type Project } from '../model/project';
 
 export const FILE_KIND = 'bp-trainer-project';
 
@@ -41,13 +41,22 @@ export function parseProject(json: string): Project {
 /** Upgrade a project from an older format. Add one step per format bump. */
 function migrate(p: Project, from: number): Project {
   let cur = from;
-  // Example for later: if (cur === 1) { …transform…; cur = 2; }
-  p.format = Math.max(cur, PROJECT_FORMAT);
+  if (cur === 1) {
+    // v2: level, component properties, Auto Receive Input.
+    p.level ??= createLevel();
+    for (const c of p.classes ?? []) {
+      c.autoReceiveInput ??= false;
+      for (const k of c.components ?? []) k.props = { ...componentDefaults(k.kind), ...(k.props ?? {}) };
+    }
+    cur = 2;
+  }
+  p.format = cur;
   return p;
 }
 
 function assertShape(p: Project): void {
   if (!Array.isArray(p.classes)) throw new ProjectFileError('Projet incomplet : aucune classe.');
+  if (!p.level || !Array.isArray(p.level.actors)) throw new ProjectFileError('Projet incomplet : niveau manquant.');
   for (const c of p.classes) {
     if (!c.id || !c.name || !Array.isArray(c.graphs) || !Array.isArray(c.variables) || !Array.isArray(c.components)) {
       throw new ProjectFileError(`Blueprint « ${c?.name ?? '?'} » incomplet.`);

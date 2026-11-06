@@ -7,40 +7,68 @@ import { parseProject, serializeProject } from '@core/serialization/serialize';
 import type { EditorStore } from '@core/store/editorStore';
 import { kv } from './idb';
 
-const KEY = 'current-project';
+/** Key of the free-play project; step 1 saved it under 'current-project'. */
+export const SANDBOX_KEY = 'project:sandbox';
+const LEGACY_KEY = 'current-project';
 
-export async function loadSavedProject(): Promise<Project | null> {
+async function readText(key: string): Promise<string | undefined> {
   try {
-    const json = await kv.get<string>(KEY);
-    if (json) return parseProject(json);
+    const json = await kv.get<string>(key);
+    if (json) return json;
   } catch {
     /* fall through to localStorage */
   }
   try {
-    const json = localStorage.getItem(KEY);
-    if (json) return parseProject(json);
+    return localStorage.getItem(key) ?? undefined;
   } catch {
-    /* nothing saved, or unreadable */
+    return undefined;
   }
-  return null;
 }
 
-export async function saveProject(p: Project): Promise<void> {
-  const json = serializeProject(p);
+async function writeText(key: string, json: string): Promise<void> {
   try {
-    await kv.set(KEY, json);
+    await kv.set(key, json);
   } catch {
-    localStorage.setItem(KEY, json);
+    localStorage.setItem(key, json);
   }
+}
+
+export async function loadSavedProject(key = SANDBOX_KEY): Promise<Project | null> {
+  let json = await readText(key);
+  if (!json && key === SANDBOX_KEY) json = await readText(LEGACY_KEY);
+  if (!json) return null;
+  try {
+    return parseProject(json);
+  } catch {
+    return null;
+  }
+}
+
+export async function saveProject(p: Project, key = SANDBOX_KEY): Promise<void> {
+  await writeText(key, serializeProject(p));
+}
+
+export async function loadJson<T>(key: string): Promise<T | undefined> {
+  const text = await readText(key);
+  if (!text) return undefined;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function saveJson(key: string, value: unknown): Promise<void> {
+  await writeText(key, JSON.stringify(value));
 }
 
 /** Save shortly after each model change. Returns an unsubscribe function. */
-export function startAutosave(store: EditorStore, delayMs = 700): () => void {
+export function startAutosave(store: EditorStore, key = SANDBOX_KEY, delayMs = 700): () => void {
   let timer: number | undefined;
   let warned = false;
   const flush = () => {
     timer = undefined;
-    saveProject(store.project).catch(() => {
+    saveProject(store.project, key).catch(() => {
       if (warned) return;
       warned = true;
       store.warn('Sauvegarde automatique indisponible ici : pense à exporter ton projet (menu ⋮).');

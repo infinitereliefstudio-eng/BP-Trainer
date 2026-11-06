@@ -4,7 +4,8 @@
  */
 import { newId } from '../model/ids';
 import type { BlueprintClass, Graph, Link, NodeInstance, PinRef } from '../model/project';
-import { checkConnection } from '../graph/rules';
+import { checkConnection, pinSpec } from '../graph/rules';
+import { conversionFor } from '../nodes/library/conversions';
 import type { NodeContext } from '../nodes/definition';
 import { getDefinition, resolvePins } from '../nodes/registry';
 import { isAssignable } from '../types/pins';
@@ -30,6 +31,10 @@ export function addNode(
   if (def.unique) {
     const existing = Object.values(graph.nodes).find((n) => n.def === defId);
     if (existing) return fail('Cet événement existe déjà dans le graphe.');
+  }
+  if (defId === 'event.componentBeginOverlap' || defId === 'event.componentEndOverlap') {
+    const dup = Object.values(graph.nodes).some((n) => n.def === defId && n.config.component === config.component);
+    if (dup) return fail('Cet événement existe déjà pour ce composant.');
   }
   const node: NodeInstance = {
     id: newId('n'),
@@ -74,11 +79,38 @@ export function snapNodes(graph: Graph, ids: Iterable<string>, grid = 8): void {
 
 export function connect(graph: Graph, a: PinRef, b: PinRef, ctx: NodeContext): OpResult<Link> {
   const check = checkConnection(graph, a, b, ctx);
-  if (!check.ok) return check;
+  if (!check.ok) {
+    const converted = connectWithConversion(graph, a, b, ctx);
+    return converted ?? check;
+  }
   for (const id of check.replaces) delete graph.links[id];
   const link: Link = { id: newId('l'), from: { ...check.from }, to: { ...check.to } };
   graph.links[link.id] = link;
   return ok(link);
+}
+
+/**
+ * UE inserts a conversion node when two convertible types are joined
+ * (Integer → String…). Returns undefined when no conversion applies.
+ */
+function connectWithConversion(graph: Graph, a: PinRef, b: PinRef, ctx: NodeContext): OpResult<Link> | undefined {
+  const pa = pinSpec(graph, a, ctx);
+  const pb = pinSpec(graph, b, ctx);
+  if (!pa || !pb || pa.dir === pb.dir || a.node === b.node) return undefined;
+  const [from, to, fromSpec, toSpec] = pa.dir === 'out' ? [a, b, pa, pb] : [b, a, pb, pa];
+  const convId = conversionFor(fromSpec.type, toSpec.type);
+  if (!convId) return undefined;
+  const fromNode = graph.nodes[from.node];
+  const toNode = graph.nodes[to.node];
+  const conv = addNode(graph, convId, (fromNode.x + toNode.x) / 2, (fromNode.y + toNode.y) / 2 + 40);
+  if (!conv.ok) return undefined;
+  const first = connect(graph, from, { node: conv.value.id, pin: 'in' }, ctx);
+  const second = connect(graph, { node: conv.value.id, pin: 'result' }, to, ctx);
+  if (!first.ok || !second.ok) {
+    removeNodes(graph, [conv.value.id]);
+    return undefined;
+  }
+  return second;
 }
 
 export function disconnectPin(graph: Graph, ref: PinRef): number {

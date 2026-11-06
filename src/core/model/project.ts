@@ -66,6 +66,34 @@ export interface Component {
   kind: ComponentKind;
   /** Parent component id; the root has none. */
   parent?: string;
+  /** Initial values of the component's properties (Details panel). */
+  props: ComponentProps;
+}
+
+export type MeshShape = 'cube' | 'cylinder' | 'door';
+
+/**
+ * Component properties, in UE units: centimetres and degrees. Each kind
+ * uses a subset (a light ignores `shape`, a box ignores `color`…).
+ */
+export interface ComponentProps {
+  /** Relative location and yaw, from the parent component. */
+  x: number;
+  y: number;
+  yaw: number;
+  /** Mesh size or box extent (full size). */
+  sizeX: number;
+  sizeY: number;
+  shape: MeshShape;
+  /** UE's "Visible" property: the state when the game starts. */
+  visible: boolean;
+  /** Static meshes block the player when true. */
+  blocks: boolean;
+  color: string;
+  intensity: number;
+  /** Point light attenuation radius. */
+  radius: number;
+  text: string;
 }
 
 export type ParentClass = 'Actor' | 'Pawn';
@@ -74,9 +102,28 @@ export interface BlueprintClass {
   id: string;
   name: string;
   parent: ParentClass;
+  /** UE's "Auto Receive Input": input events fire only when true. */
+  autoReceiveInput: boolean;
   components: Component[];
   variables: Variable[];
   graphs: Graph[];
+}
+
+/** An instance of a Blueprint class placed in the level. */
+export interface LevelActor {
+  id: string;
+  classId: string;
+  name: string;
+  x: number;
+  y: number;
+  yaw: number;
+  /** Values of Instance Editable variables, keyed by variable id. */
+  overrides: Record<string, Value>;
+}
+
+export interface Level {
+  actors: LevelActor[];
+  playerStart: { x: number; y: number; yaw: number };
 }
 
 export interface Project {
@@ -85,11 +132,42 @@ export interface Project {
   id: string;
   name: string;
   classes: BlueprintClass[];
+  level: Level;
   createdAt: number;
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 1;
+export const PROJECT_FORMAT = 2;
+
+const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
+  Scene: {},
+  StaticMesh: { sizeX: 100, sizeY: 100, shape: 'cube', blocks: true, color: '#8a8f99' },
+  PointLight: { sizeX: 0, sizeY: 0, intensity: 5000, radius: 600, color: '#ffd27a' },
+  BoxCollision: { sizeX: 200, sizeY: 200, blocks: false },
+  TextRender: { text: 'Text', color: '#ffffff' },
+};
+
+export function componentDefaults(kind: ComponentKind): ComponentProps {
+  return {
+    x: 0,
+    y: 0,
+    yaw: 0,
+    sizeX: 0,
+    sizeY: 0,
+    shape: 'cube',
+    visible: true,
+    blocks: false,
+    color: '#ffffff',
+    intensity: 0,
+    radius: 0,
+    text: '',
+    ...DEFAULT_PROPS[kind],
+  };
+}
+
+export function createLevel(): Level {
+  return { actors: [], playerStart: { x: 0, y: 0, yaw: 0 } };
+}
 
 /** Engine class each component kind maps to (used for reference pins). */
 export const COMPONENT_CLASS: Record<ComponentKind, string> = {
@@ -119,7 +197,8 @@ export function createClass(name: string, parent: ParentClass = 'Actor'): Bluepr
     id: newId('c'),
     name,
     parent,
-    components: [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene' }],
+    autoReceiveInput: false,
+    components: [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
     variables: [],
     graphs: [createGraph('EventGraph', 'event')],
   };
@@ -132,6 +211,7 @@ export function createProject(name = 'Mon projet'): Project {
     id: newId('p'),
     name,
     classes: [],
+    level: createLevel(),
     createdAt: now,
     updatedAt: now,
   };

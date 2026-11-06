@@ -3,13 +3,13 @@
 Quatre couches, chacune ne dépend que de celles du dessous :
 
 ```
-ui/        panneaux Preact (toolbar, My Blueprint, Details, palette, menus)
-editor/    canvas du graphe : rendu, caméra, gestes, hit-test
+ui/        écrans et panneaux Preact (accueil, toolbar, My Blueprint, Details, Play, leçons)
+editor/    canvas du graphe et du niveau : rendu, caméra, gestes, hit-test, session Play
 storage/   sauvegarde IndexedDB, export / import de fichier
-core/      modèle, nœuds, règles, opérations, historique, compilation
+core/      modèle, nœuds, règles, opérations, historique, compilation, interpréteur, leçons
 ```
 
-`core/` ne connaît ni le DOM ni le canvas : il est testé seul (`tests/`) et sera réutilisé tel quel par l'interpréteur de l'étape 2.
+`core/` ne connaît ni le DOM ni le canvas : il est testé seul (`tests/`), y compris l'exécution des Blueprints et la réussite de chaque leçon.
 
 ## core/
 
@@ -24,14 +24,21 @@ core/      modèle, nœuds, règles, opérations, historique, compilation
 | `compiler/` | Le bouton Compile : vérifications façon UE et messages pour Compiler Results |
 | `store/` | `EditorStore`, la source de vérité de la session : projet, historique, Blueprint et graphe ouverts, sélection, messages |
 | `serialization/` | Format de fichier versionné et migrations |
-| `templates/` | Le projet de départ |
+| `templates/` | Le projet de départ du mode Simulation |
+| `runtime/` | L'exécution : `interpreter.ts` (fil exec, nœuds purs recalculés à chaque lecture, actions latentes, erreurs façon UE), `behaviors/` (ce que fait chaque nœud), `physics.ts` (boîtes orientées, overlaps, collisions du joueur), `simulation.ts` (le niveau en jeu : apparition des acteurs, BeginPlay, Tick, touches, temps en pas fixes de 1/60 s) |
+| `lessons/` | Le parcours : chaque leçon décrit ses explications, son projet de départ, un scénario joué automatiquement et des vérifications. `runner.ts` exécute le scénario sans affichage ; chaque leçon fournit aussi sa solution de référence, testée |
 
 ### Ajouter un nœud
 
 1. Écrire sa définition dans le fichier de `core/nodes/library/` de sa catégorie (ou un nouveau fichier).
 2. Si c'est un nouveau fichier, l'ajouter à la liste de `core/nodes/registry.ts`.
+3. Écrire son comportement dans `core/runtime/behaviors/` sous le même identifiant : `exec` pour un nœud impur (il renvoie les sorties exec à suivre), `pure` pour un nœud pur (il renvoie ses valeurs).
 
-L'éditeur, la palette, Details et la compilation le prennent en compte sans autre changement. À l'étape 2, son comportement sera enregistré séparément dans l'interpréteur, sous le même identifiant.
+L'éditeur, la palette, Details, la compilation et l'interpréteur le prennent en compte sans autre changement. Un test vérifie que chaque nœud exécutable a un comportement.
+
+### Ajouter une leçon
+
+Créer un objet `Lesson` dans `core/lessons/library/` (explications, `setup`, `scenario`, `checks`, `solve`) et l'ajouter à la liste de `core/lessons/index.ts`. Les tests vérifient automatiquement que le projet de départ échoue et que la solution réussit.
 
 ### Modifier le modèle
 
@@ -49,6 +56,15 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - `render/` dessine la grille, les fils (courbes de Bézier) et les nœuds, aux couleurs d'UE (`theme.ts`), plus la loupe pendant qu'on tire un fil.
 - `gestures.ts` reconnaît les gestes (toucher, double toucher, appui long, glisser, pincer) ; `GraphCanvas.tsx` leur donne un sens et appelle le store.
 
+## Exécution, en bref
+
+- Une chaîne exec s'exécute jusqu'au bout (ou jusqu'à un nœud latent) avant que quoi que ce soit d'autre se passe.
+- Sequence empile ses sorties : Then 0 et toute sa chaîne passent avant Then 1.
+- Les boucles se rappellent elles-mêmes après leur corps (`resume`) : une boucle entière tient dans une frame.
+- Delay ignore un nouvel appel pendant son attente ; Retriggerable Delay repart de zéro.
+- Une référence vide produit « Accessed None trying to read property… » dans l'Output Log, le nœud est sauté et la suite continue.
+- Au-delà de 100 000 nœuds pour un seul événement : « Infinite loop detected ».
+
 ## Format de sauvegarde
 
-Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
+Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 2 (ajout du niveau, des propriétés de composants et d'Auto Receive Input). Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.

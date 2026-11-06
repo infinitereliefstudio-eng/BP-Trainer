@@ -35,9 +35,9 @@ export class Camera {
   }
 
   /** Frame a world rectangle inside a viewport, with a margin. */
-  fit(bounds: { x: number; y: number; w: number; h: number }, vw: number, vh: number, margin = 48): void {
+  fit(bounds: { x: number; y: number; w: number; h: number }, vw: number, vh: number, margin = 48, minZoom = MIN_ZOOM): void {
     const z = Math.min((vw - margin * 2) / Math.max(bounds.w, 1), (vh - margin * 2) / Math.max(bounds.h, 1));
-    this.zoom = Math.min(1, Math.max(MIN_ZOOM, z));
+    this.zoom = Math.min(1, Math.max(minZoom, z));
     this.x = bounds.x + bounds.w / 2 - vw / 2 / this.zoom;
     this.y = bounds.y + bounds.h / 2 - vh / 2 / this.zoom;
   }

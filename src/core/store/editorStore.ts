@@ -23,7 +23,9 @@ export type Focus =
   | { kind: 'nodes' }
   | { kind: 'variable'; id: string }
   | { kind: 'component'; id: string }
-  | { kind: 'class' };
+  | { kind: 'class' }
+  | { kind: 'actor'; id: string }
+  | { kind: 'playerStart' };
 
 export type LogLevel = 'info' | 'warning' | 'error';
 
@@ -188,6 +190,7 @@ export class EditorStore {
     if (f.kind === 'variable' && !this.cls.variables.some((v) => v.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'component' && !this.cls.components.some((c) => c.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'nodes' && this.selection.size === 0) this.focus = { kind: 'none' };
+    if (f.kind === 'actor' && !this.project.level.actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };
   }
 
   // ------------------------------------------------------------ navigation
@@ -242,12 +245,17 @@ export class EditorStore {
 
   // --------------------------------------------------------------- compile
 
-  compile(): void {
+  /** Compile the open class; `quiet` skips the summary toast (Play does its own). */
+  compile(quiet = false): void {
     this.commit();
     const res = compileClass(this.cls);
     this.compileStatus = res.status;
     this.compileMessages = res.messages;
     const summary = res.messages[res.messages.length - 1]?.text ?? '';
+    if (quiet && res.status !== 'error') {
+      this.notify('view');
+      return;
+    }
     if (res.status === 'error') this.error(summary);
     else if (res.status === 'warning') this.warn(summary);
     else this.info(summary);

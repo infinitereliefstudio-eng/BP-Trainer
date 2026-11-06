@@ -1,16 +1,25 @@
 /** Bottom panel: Compiler Results and Output Log, like UE's tabs. */
-import { useState } from 'preact/hooks';
+import { useEffect, useReducer, useState } from 'preact/hooks';
+import type { SimLogEntry } from '@core/runtime/simulation';
+import type { PlaySession } from '@editor/world/playSession';
 import { useStore } from '../hooks';
 
 interface Props {
   onFocusNode: (graphId: string, nodeId: string) => void;
+  /** The running session, or the log of the last one. */
+  session?: PlaySession;
+  simLog?: SimLogEntry[];
+  initialTab?: 'compiler' | 'log';
 }
 
 const ICON = { error: '✕', warning: '!', info: 'i' } as const;
 
-export function BottomPanel({ onFocusNode }: Props) {
+export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compiler' }: Props) {
   const store = useStore();
-  const [tab, setTab] = useState<'compiler' | 'log'>('compiler');
+  const [tab, setTab] = useState<'compiler' | 'log'>(initialTab);
+  const [, force] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => session?.onUi(() => force(0)), [session]);
+  const playLog = session?.sim.log ?? simLog;
   return (
     <div class="bottom">
       <div class="bottom-tabs">
@@ -36,6 +45,17 @@ export function BottomPanel({ onFocusNode }: Props) {
                 <span class="msg-icon">{ICON[m.severity]}</span>
                 {m.text}
               </button>
+            ))
+          )
+        ) : playLog ? (
+          playLog.length === 0 ? (
+            <p class="hint">Rien pour l’instant : les Print String et les erreurs d’exécution s’affichent ici.</p>
+          ) : (
+            [...playLog].reverse().map((e) => (
+              <div key={e.id} class={`msg ${e.level === 'log' ? 'info' : e.level}`}>
+                <span class="msg-time">{e.time.toFixed(2)} s</span>
+                {e.text}
+              </div>
             ))
           )
         ) : (

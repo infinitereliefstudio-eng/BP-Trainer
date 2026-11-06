@@ -2,6 +2,8 @@
 import { newId } from '../model/ids';
 import {
   COMPONENT_LABEL,
+  componentDefaults,
+  type ComponentProps,
   uniqueName,
   type BlueprintClass,
   type Component,
@@ -14,6 +16,9 @@ import { defaultValueFor, type Value } from '../types/values';
 import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
 
 const MAX_NAME = 64;
+
+/** Nodes that point to a component of the class. */
+const COMPONENT_NODES = ['var.component', 'event.componentBeginOverlap', 'event.componentEndOverlap'];
 
 export function validateName(name: string, taken: string[]): string | null {
   const n = name.trim();
@@ -119,9 +124,15 @@ export function addComponent(cls: BlueprintClass, kind: ComponentKind): Componen
     name: uniqueName(DEFAULT_COMPONENT_NAME[kind], namesInUse(cls)),
     kind,
     parent: root?.id,
+    props: componentDefaults(kind),
   };
   cls.components.push(c);
   return c;
+}
+
+export function updateComponentProps(cls: BlueprintClass, id: string, patch: Partial<ComponentProps>): void {
+  const c = cls.components.find((x) => x.id === id);
+  if (c) Object.assign(c.props, patch);
 }
 
 export function renameComponent(cls: BlueprintClass, id: string, name: string): OpResult {
@@ -142,7 +153,7 @@ export function removeComponent(cls: BlueprintClass, id: string): OpResult {
   cls.components = cls.components.filter((x) => x.id !== id);
   for (const g of cls.graphs) {
     const ids = Object.values(g.nodes)
-      .filter((n) => n.def === 'var.component' && n.config.component === id)
+      .filter((n) => COMPONENT_NODES.includes(n.def) && n.config.component === id)
       .map((n) => n.id);
     removeNodes(g, ids);
   }

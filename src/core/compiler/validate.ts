@@ -56,6 +56,9 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     if ((n.def === 'var.get' || n.def === 'var.set') && !findVariable(cls, String(n.config.variable))) {
       out.push({ severity: 'error', text: `${title} : la variable n'existe plus.`, ...at });
     }
+    if (n.def.startsWith('event.component') && !findComponent(cls, String(n.config.component))) {
+      out.push({ severity: 'error', text: `${title} : le composant n'existe plus.`, ...at });
+    }
     if (n.def === 'var.component' && !findComponent(cls, String(n.config.component))) {
       out.push({ severity: 'error', text: `${title} : le composant n'existe plus.`, ...at });
     }

@@ -59,6 +59,20 @@ export const mathNodes: NodeDefinition[] = [
     ],
   },
   {
+    id: 'math.makeRotator',
+    title: 'Make Rotator',
+    category: 'Math|Rotator',
+    kind: 'pure',
+    description: 'Construit une rotation à partir de Roll (X), Pitch (Y) et Yaw (Z), en degrés. Vue de dessus, seul Yaw se voit.',
+    keywords: ['rotator', 'rotation', 'yaw', 'make'],
+    pins: [
+      dataIn('roll', 'X (Roll)', T.float, { default: 0 }),
+      dataIn('pitch', 'Y (Pitch)', T.float, { default: 0 }),
+      dataIn('yaw', 'Z (Yaw)', T.float, { default: 0 }),
+      dataOut('result', 'Return Value', T.rotator),
+    ],
+  },
+  {
     id: 'math.randomIntInRange',
     title: 'Random Integer in Range',
     category: 'Math|Random',

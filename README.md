@@ -2,7 +2,7 @@
 
 Apprendre les Blueprints d'Unreal Engine 5 sur téléphone : un éditeur de nœuds tactile fidèle à UE, une simulation de la logique et un parcours d'exercices.
 
-**État : étape 1 sur 4 — socle de l'éditeur.** On crée des Blueprints, des nœuds, des fils et des variables au doigt ; l'exécution (Play) arrive à l'étape 2.
+**État : étape 2 sur 4.** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps) et les leçons 1 à 5 avec vérification automatique.
 
 ## Utiliser l'appli
 

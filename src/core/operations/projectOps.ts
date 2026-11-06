@@ -36,5 +36,6 @@ export function renameClass(p: Project, id: string, name: string): OpResult {
 export function removeClass(p: Project, id: string): OpResult {
   if (p.classes.length <= 1) return { ok: false, reason: 'Le projet doit garder au moins un Blueprint.' };
   p.classes = p.classes.filter((c) => c.id !== id);
+  p.level.actors = p.level.actors.filter((a) => a.classId !== id);
   return { ok: true, value: undefined };
 }

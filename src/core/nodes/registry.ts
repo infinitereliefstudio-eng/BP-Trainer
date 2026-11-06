@@ -10,6 +10,7 @@ import { defaultValueFor, type Value } from '../types/values';
 import type { NodeContext, NodeDefinition, PinSpec } from './definition';
 import { actorNodes } from './library/actor';
 import { componentNodes } from './library/components';
+import { conversionNodes } from './library/conversions';
 import { debugNodes } from './library/debug';
 import { eventNodes } from './library/events';
 import { flowNodes } from './library/flow';
@@ -25,6 +26,7 @@ const ALL: NodeDefinition[] = [
   ...actorNodes,
   ...componentNodes,
   ...mathNodes,
+  ...conversionNodes,
   ...debugNodes,
 ];
 

@@ -74,6 +74,7 @@ function VectorValue({ value, onChange, labels }: { value: Vec3; onChange: (v: V
   return (
     <div class="vector">
       {keys.map((k, i) => (
+        // biome-ignore lint/a11y/noLabelWithoutControl: TextValue renders the <input> this label wraps.
         <label key={k}>
           <span>{labels[i]}</span>
           <TextValue

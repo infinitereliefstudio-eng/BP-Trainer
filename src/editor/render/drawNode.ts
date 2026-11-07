@@ -18,8 +18,14 @@ export interface NodePaintState {
 }
 
 export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintState): void {
-  if (g.style === 'comment') return drawComment(c, g, s);
-  if (g.style === 'knot') return drawKnot(c, g, s);
+  if (g.style === 'comment') {
+    drawComment(c, g, s);
+    return;
+  }
+  if (g.style === 'knot') {
+    drawKnot(c, g, s);
+    return;
+  }
   const { x, y } = g.node;
   const r = g.style === 'getter' ? g.h / 2 : METRICS.radius;
 

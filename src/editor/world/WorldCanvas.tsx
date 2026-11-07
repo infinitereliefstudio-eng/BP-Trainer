@@ -55,12 +55,12 @@ export function WorldCanvas({ store, session, requests }: Props) {
     const l = live.current;
     if (!l.camera) {
       l.camera = new Camera();
-      fit(l.camera);
+      fitCamera(l.camera);
     }
     return l.camera;
   };
 
-  const fit = (cam: Camera) => {
+  const fitCamera = (cam: Camera) => {
     const { w, h } = live.current.size;
     if (!w) return;
     const ps = store.project.level.playerStart;
@@ -143,7 +143,7 @@ export function WorldCanvas({ store, session, requests }: Props) {
       canvas.height = Math.round(r.height * dpr);
       canvas.style.width = `${r.width}px`;
       canvas.style.height = `${r.height}px`;
-      if (first && live.current.camera) fit(live.current.camera);
+      if (first && live.current.camera) fitCamera(live.current.camera);
       invalidate();
     });
     ro.observe(wrap);

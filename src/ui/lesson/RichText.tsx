@@ -5,9 +5,8 @@ function inline(text: string): ComponentChildren[] {
   const out: ComponentChildren[] = [];
   const re = /(\*\*[^*]+\*\*|`[^`]+`)/g;
   let last = 0;
-  let m: RegExpExecArray | null;
   let i = 0;
-  while ((m = re.exec(text))) {
+  for (const m of text.matchAll(re)) {
     if (m.index > last) out.push(text.slice(last, m.index));
     const tok = m[0];
     out.push(tok.startsWith('**') ? <strong key={i++}>{tok.slice(2, -2)}</strong> : <code key={i++}>{tok.slice(1, -1)}</code>);

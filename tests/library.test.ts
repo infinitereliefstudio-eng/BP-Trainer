@@ -3,7 +3,7 @@
  * arrays by reference, timers, spawning, switches and the rest.
  */
 import { describe, expect, it } from 'vitest';
-import { ClassBuilder, ProjectBuilder } from '../src/core/lessons/builder';
+import { type ClassBuilder, ProjectBuilder } from '../src/core/lessons/builder';
 import { contextFor, findPin } from '../src/core/nodes/registry';
 import { connect, disconnectPin } from '../src/core/operations/graphOps';
 import { releaseClassWildcards } from '../src/core/operations/wildcardOps';

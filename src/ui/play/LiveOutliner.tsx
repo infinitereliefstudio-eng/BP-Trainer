@@ -62,6 +62,11 @@ function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT 
     actor.vars[v.id] = value as RValue;
     session.notifyUi();
   };
+  /** Change the running actor, then refresh the panels. */
+  const live = (change: () => void) => {
+    change();
+    session.notifyUi();
+  };
 
   return (
     <div class="outliner">
@@ -74,16 +79,16 @@ function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT 
       </div>
       <Group title="Transform">
         <Field label="Location X">
-          <NumberField value={Math.round(actor.x)} unit="cm" onCommit={(x) => ((actor.x = x), session.notifyUi())} />
+          <NumberField value={Math.round(actor.x)} unit="cm" onCommit={(x) => live(() => { actor.x = x; })} />
         </Field>
         <Field label="Location Y">
-          <NumberField value={Math.round(actor.y)} unit="cm" onCommit={(y) => ((actor.y = y), session.notifyUi())} />
+          <NumberField value={Math.round(actor.y)} unit="cm" onCommit={(y) => live(() => { actor.y = y; })} />
         </Field>
         <Field label="Rotation Yaw">
-          <NumberField value={Math.round(actor.yaw)} unit="°" onCommit={(yaw) => ((actor.yaw = yaw), session.notifyUi())} />
+          <NumberField value={Math.round(actor.yaw)} unit="°" onCommit={(yaw) => live(() => { actor.yaw = yaw; })} />
         </Field>
         <Field label="Hidden In Game">
-          <Check checked={actor.hidden} onChange={(h) => ((actor.hidden = h), session.notifyUi())} />
+          <Check checked={actor.hidden} onChange={(h) => live(() => { actor.hidden = h; })} />
         </Field>
       </Group>
       {cls && cls.variables.length > 0 && (
@@ -109,7 +114,7 @@ function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT 
             .filter((c) => c.kind !== 'Scene')
             .map((c) => (
               <Field key={c.id} label={`${c.name} · Visible`}>
-                <Check checked={c.props.visible} onChange={(on) => ((c.props.visible = on), session.notifyUi())} />
+                <Check checked={c.props.visible} onChange={(on) => live(() => { c.props.visible = on; })} />
               </Field>
             ))}
         </Group>

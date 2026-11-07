@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  // Lint only: the code keeps its current formatting.
+  "files": { "includes": ["src/**", "tests/**", "tools/**/*.ts", "*.ts"] },
+  "formatter": { "enabled": false },
+  "assist": { "enabled": false },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        // `x!` after a lookup the code has just guaranteed; TypeScript strict covers the rest.
+        "noNonNullAssertion": "off"
+      },
+      "a11y": {
+        // A touch-only app with no <form>: buttons never submit anything.
+        "useButtonType": "off",
+        // Sheets and menus close on a tap of their backdrop; there is no keyboard to serve.
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off",
+        // Value dialogs focus their field so the phone keyboard opens at once.
+        "noAutofocus": "off"
+      }
+    }
+  }
+}

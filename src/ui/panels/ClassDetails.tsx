@@ -53,7 +53,11 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
           <select
             class="field"
             value={cls.autoReceiveInput ? 'p0' : 'off'}
-            onChange={(e) => store.apply('Auto Receive Input', (c) => void (c.autoReceiveInput = (e.target as HTMLSelectElement).value === 'p0'))}
+            onChange={(e) =>
+              store.apply('Auto Receive Input', (c) => {
+                c.autoReceiveInput = (e.target as HTMLSelectElement).value === 'p0';
+              })
+            }
           >
             <option value="off">Disabled</option>
             <option value="p0">Player 0</option>

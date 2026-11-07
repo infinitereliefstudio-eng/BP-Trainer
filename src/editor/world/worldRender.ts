@@ -136,7 +136,7 @@ function drawActor(c: CanvasRenderingContext2D, a: ActorRT, s: WorldScene): void
       c.restore();
     } else if (comp.kind === 'BoxCollision') {
       const shape = componentShape(a, comp);
-      if (!shape || shape.kind !== 'obb') continue;
+      if (shape?.kind !== 'obb') continue;
       const hot = [...a.compOverlaps].some((k) => k.startsWith(`${comp.id}|`));
       c.save();
       c.translate(shape.cx, shape.cy);

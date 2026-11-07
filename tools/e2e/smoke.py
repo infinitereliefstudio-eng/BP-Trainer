@@ -10,7 +10,7 @@ tools/e2e/out/shots and prints page errors (expected: "errors []").
 Needs Python Playwright and Chrome (CHROME env var, default /usr/bin/google-chrome).
 The app exposes its store as window.bpStore when the URL contains "?e2e".
 """
-import asyncio, os, pathlib
+import asyncio, os, pathlib, sys
 from playwright.async_api import async_playwright
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -107,8 +107,28 @@ async def main():
         await page.locator('.palette .search').fill('inter')
         await page.wait_for_timeout(200)
         await shot('13_palette')
+        await page.keyboard.press('Escape')
+
+        # Lesson 12 in Play, with the live Outliner (step 4)
+        await page.evaluate(PUT, ['project:lesson:l12-station', (HERE / 'out' / 'l12-station.json').read_text()])
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Remettre la station').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(600)
+        await page.locator('.pb-btn[aria-label="Outliner"]').tap()
+        await page.wait_for_timeout(300)
+        rows = await page.locator('.outliner-row').count()
+        if rows < 8:
+            errs.append(f'Outliner: {rows} acteurs listés, 8 attendus au moins')
+        await page.locator('.outliner-row', has_text='BP_Generateur').tap()
+        await page.wait_for_timeout(300)
+        await shot('14_l12_outliner')
         print('errors', errs)
         await b.close()
+        return errs
 
 
-asyncio.run(main())
+sys.exit(1 if asyncio.run(main()) else 0)

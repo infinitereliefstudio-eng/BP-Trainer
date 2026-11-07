@@ -368,7 +368,8 @@ export class Interpreter {
       ...base,
       entry: f.pin,
       out: (pin, value) => {
-        (scope.outputs[node.id] ??= {})[pin] = value;
+        scope.outputs[node.id] ??= {};
+        scope.outputs[node.id][pin] = value;
         this.remember(actor, node.id, pin, value);
       },
       state: <T extends object>(init: () => T): T => {
@@ -509,8 +510,8 @@ export class Interpreter {
 
   private remember(actor: ActorRT, nodeId: string, pin: string, value: RValue): void {
     const key = `${actor.id}:${nodeId}`;
-    let rec = this.lastValues.get(key);
-    if (!rec) this.lastValues.set(key, (rec = {}));
+    const rec = this.lastValues.get(key) ?? {};
+    this.lastValues.set(key, rec);
     rec[pin] = value;
   }
 

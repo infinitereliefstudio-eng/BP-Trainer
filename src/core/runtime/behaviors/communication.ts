@@ -101,7 +101,9 @@ export const communicationBehaviors: Record<string, Behavior> = {
         cx.world.runtimeError("Bind Event : la pin Event n'est reliée à aucun Custom Event.");
         return ['then'];
       }
-      const list = (owner.bindings[String(cx.node.config.dispatcher)] ??= []);
+      const key = String(cx.node.config.dispatcher);
+      owner.bindings[key] ??= [];
+      const list = owner.bindings[key];
       // UE's AddUnique: binding the same event twice has no effect.
       if (!list.some((b) => b.actor === ev.actor && b.node === ev.node)) list.push({ actor: ev.actor, node: ev.node });
       return ['then'];

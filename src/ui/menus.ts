@@ -31,7 +31,10 @@ export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => 
     },
     {
       label: 'Rompre tous les liens',
-      action: () => store.apply('Rompre les liens', (_c, g) => ids.forEach((id) => disconnectNode(g, id))),
+      action: () =>
+        store.apply('Rompre les liens', (_c, g) => {
+          for (const id of ids) disconnectNode(g, id);
+        }),
     },
     {
       label: 'Entourer d’un Comment',

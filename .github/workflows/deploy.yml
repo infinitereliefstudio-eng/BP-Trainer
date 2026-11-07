@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Lint, unit tests (core, runtime, every lesson) and the single-file build.
   build:
     runs-on: ubuntu-latest
     steps:
@@ -24,19 +25,55 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm test
       - run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: dist
           path: dist
 
-  deploy:
+  # The built app on a simulated landscape phone (800x370, touch): screens, Play, Outliner.
+  e2e:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: npx vitest run --config tools/e2e/vitest.config.ts
+      - run: pip install "playwright==1.*"
+      - run: python3 tools/e2e/smoke.py
+        env:
+          CHROME: /usr/bin/google-chrome
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phone-screenshots
+          path: tools/e2e/out/shots
+
+  # Publishing only: needs GitHub Pages set to "GitHub Actions" in Settings › Pages.
+  deploy:
+    needs: [build, e2e]
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4

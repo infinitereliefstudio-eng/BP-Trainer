@@ -73,6 +73,17 @@ export const eventNodes: NodeDefinition[] = [
     pins: [execOut(), dataOut('other', 'Other Actor', T.object('Actor'))],
   },
   {
+    id: 'event.destroyed',
+    title: 'Event Destroyed',
+    category: CAT,
+    kind: 'event',
+    unique: true,
+    allowedIn: ['event'],
+    description: "S'exécute quand l'acteur est détruit (Destroy Actor), juste avant qu'il disparaisse du niveau.",
+    keywords: ['destroyed', 'detruit', 'mort', 'disparait'],
+    pins: [execOut()],
+  },
+  {
     id: 'event.actorOnClicked',
     title: 'Event ActorOnClicked',
     category: CAT,

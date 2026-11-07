@@ -2,6 +2,7 @@
  * Just enough 2D geometry for the top view: oriented boxes and circles,
  * overlap tests (separating axis) and pushing the player out of walls.
  */
+import { collisionQueries } from '../types/enums';
 import { componentTransform, PLAYER_RADIUS, type ActorRT, type ComponentRT } from './world';
 
 export type Shape =
@@ -38,7 +39,7 @@ export function overlapShapes(actor: ActorRT): { comp?: ComponentRT; shape: Shap
   if (actor.isPlayer) return [{ shape: playerShape(actor) }];
   const out: { comp?: ComponentRT; shape: Shape }[] = [];
   for (const c of actor.components) {
-    if (c.kind !== 'BoxCollision') continue;
+    if (c.kind !== 'BoxCollision' || !collisionQueries(c.props.collision)) continue;
     const s = componentShape(actor, c);
     if (s) out.push({ comp: c, shape: s });
   }

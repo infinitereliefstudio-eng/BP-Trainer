@@ -3,6 +3,7 @@ import { newId } from '../model/ids';
 import { createClass, uniqueName, type BlueprintClass, type BlueprintInterface, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
+import { renameTypeRefs } from './enumOps';
 import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
 
 /** Drop links that no longer fit after a signature or type change, everywhere. */
@@ -13,7 +14,7 @@ export function pruneProject(p: Project): void {
 const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Self'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
-  const taken = [...p.classes.map((c) => c.name), ...BUILTIN_NAMES];
+  const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
   const finalName = uniqueName(name.trim() || 'BP_NewBlueprint', taken);
   const err = validateName(finalName, taken);
   if (err) return { ok: false, reason: err };
@@ -31,10 +32,8 @@ export function renameClass(p: Project, id: string, name: string): OpResult {
   if (/\s/.test(name.trim())) return { ok: false, reason: "Un nom de Blueprint ne peut pas contenir d'espace." };
   const oldName = cls.name;
   cls.name = name.trim();
-  // Object references name their class: follow the rename everywhere.
-  for (const c of p.classes) {
-    for (const v of c.variables) if (v.type.subtype === oldName) v.type = { ...v.type, subtype: cls.name };
-  }
+  // Object and class references name their class: follow the rename everywhere.
+  renameTypeRefs(p, ['object', 'class'], oldName, cls.name);
   pruneProject(p);
   return { ok: true, value: undefined };
 }

@@ -90,7 +90,7 @@ export const MAX_STEPS = 100_000;
 const MAX_PURE_DEPTH = 64;
 
 /** Nodes run by the interpreter itself rather than by a behaviour. */
-export const INTERPRETER_NODES = new Set(['var.get', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction']);
+export const INTERPRETER_NODES = new Set(['var.get', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
 
 /** Events and function entries: where a chain starts. */
 function isEntry(node: NodeInstance | undefined): boolean {
@@ -388,6 +388,7 @@ export class Interpreter {
         calls.push(entry, { actor, gi, node: node.id, mode: 'ret', pin: '' });
         entry.outputs = params;
       },
+      writeRef: (pin, value) => this.writeRef(actor, gi, node, pin, value),
     };
     const outs = behavior.exec(cx);
     if (resume) this.stack.push({ actor, gi, node: node.id, mode: 'in', pin: RESUME });
@@ -464,6 +465,32 @@ export class Interpreter {
 
   // ---------------------------------------------------------------- data
 
+  /** The node feeding a data input, through any Reroute nodes. */
+  private sourceOf(gi: GraphIndex, node: NodeInstance, pin: string): NodeInstance | undefined {
+    let link = gi.dataIn.get(`${node.id}:${pin}`);
+    for (let guard = 0; link && guard < 64; guard++) {
+      const src = gi.graph.nodes[link.from.node];
+      if (src?.def !== 'util.reroute') return src;
+      link = gi.dataIn.get(`${src.id}:in`);
+    }
+    return undefined;
+  }
+
+  /** Pass-by-reference write: the variable wired into `pin` takes `value`. */
+  private writeRef(actor: ActorRT, gi: GraphIndex, node: NodeInstance, pin: string, value: RValue): boolean {
+    const src = this.sourceOf(gi, node, pin);
+    if (src?.def === 'var.get') {
+      actor.vars[String(src.config.variable)] = value;
+      return true;
+    }
+    if (src?.def === 'var.getExternal') {
+      const target = this.host.actor(this.readInput(actor, gi, src, 'target', 0), 'Target');
+      if (target) target.vars[String(src.config.variable)] = value;
+      return true;
+    }
+    return false;
+  }
+
   private remember(actor: ActorRT, nodeId: string, pin: string, value: RValue): void {
     const key = `${actor.id}:${nodeId}`;
     let rec = this.lastValues.get(key);
@@ -514,6 +541,8 @@ export class Interpreter {
         return { ref: 'component', actor: actor.id, id: String(src.config.component) };
       case 'actor.self':
         return { ref: 'actor', id: actor.id };
+      case 'util.reroute':
+        return this.readInput(actor, gi, src, 'in', depth + 1);
       case 'event.custom':
         if (pin === 'delegate') return { ref: 'delegate', actor: actor.id, node: src.id };
         break;

@@ -2,6 +2,11 @@
 import { getDefinition } from '@core/nodes/registry';
 import { addVariable } from '@core/operations/classOps';
 import { addNode, connect, disconnectNode, disconnectPin, duplicateNodes, removeNodes } from '@core/operations/graphOps';
+import { addCommentAround, insertReroute } from '@core/operations/organizeOps';
+import { graphBounds, layoutGraph } from '@editor/layout';
+
+/** Text width close enough to frame nodes, without a canvas at hand. */
+const roughMeasure = (text: string, font: string) => text.length * (font.includes('600') ? 7.4 : 6.8);
 import type { PinRef } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import type { EditorStore } from '@core/store/editorStore';
@@ -27,6 +32,18 @@ export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => 
     {
       label: 'Rompre tous les liens',
       action: () => store.apply('Rompre les liens', (_c, g) => ids.forEach((id) => disconnectNode(g, id))),
+    },
+    {
+      label: 'Entourer d’un Comment',
+      hint: many ? `${ids.length} nœuds` : undefined,
+      action: () => {
+        const geoms = layoutGraph(store.graph, store.ctx, roughMeasure);
+        const picked = ids.map((id) => geoms.get(id)).filter((g) => !!g);
+        const box = graphBounds(new Map(picked.map((g) => [g.node.id, g])));
+        if (!box) return;
+        const res = store.apply('Ajouter un commentaire', (_c, g) => addCommentAround(g, box));
+        if (res.ok) store.selectNodes([res.value.id]);
+      },
     },
     ...breakpointItems(store, ids),
     ...gotoItems(store, ids),
@@ -128,7 +145,18 @@ export function linkMenu(store: EditorStore, linkId: string): MenuItem[] {
           delete g.links[linkId];
         }),
     },
-    { label: 'Ajouter un Reroute', hint: 'étape 4', disabled: true },
+    {
+      label: 'Ajouter un Reroute',
+      hint: 'ou double-touche le fil',
+      action: () => {
+        const l = store.graph.links[linkId];
+        const a = l && store.graph.nodes[l.from.node];
+        const b = l && store.graph.nodes[l.to.node];
+        if (!a || !b) return;
+        const res = store.apply('Ajouter un Reroute', (_c, g) => insertReroute(g, linkId, (a.x + b.x) / 2 + 100, (a.y + b.y) / 2 + 20, store.ctx));
+        if (!res.ok) store.warn(res.reason);
+      },
+    },
   ];
 }
 

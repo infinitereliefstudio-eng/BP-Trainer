@@ -7,8 +7,9 @@ import { findClass, type BlueprintClass, type Project } from '../model/project';
 import { defaultValueFor, type Value } from '../types/values';
 import type { PrintOptions } from './behaviors/types';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
+import { collisionBlocks } from '../types/enums';
 import { componentShape, overlapShapes, overlaps, pushOut } from './physics';
-import { isRef, PLAYER_RADIUS, PLAYER_SPEED, type ActorRT, type ComponentRT, type RValue } from './world';
+import { isRef, PLAYER_RADIUS, PLAYER_SPEED, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
 
 export const STEP = 1 / 60;
 
@@ -69,6 +70,8 @@ export class Simulation implements InterpreterHost {
   trace: TraceEntry[] = [];
   /** Joystick direction, each axis in [-1, 1]. */
   move = { x: 0, y: 0 };
+  /** Running timers (Set Timer by Event), by handle id. */
+  timers = new Map<number, TimerRT>();
 
   private interp: Interpreter;
   private site: NodeSite | undefined;
@@ -79,6 +82,9 @@ export class Simulation implements InterpreterHost {
   private muted = false;
   /** Remaining parts of the current frame, kept when a breakpoint stops it. */
   private phases: (() => void)[] = [];
+  /** Instances made so far per class, for UE-style names (BP_Lampe_C_2). */
+  private counters = new Map<string, number>();
+  private timerSeq = 0;
 
   constructor(
     readonly project: Project,
@@ -108,6 +114,7 @@ export class Simulation implements InterpreterHost {
           compOverlaps: new Set(),
           bindings: {},
           receivesInput: false,
+          hidden: false,
           destroyed: false,
         };
     this.player.x = ps.x;
@@ -141,12 +148,13 @@ export class Simulation implements InterpreterHost {
       compOverlaps: new Set(),
       bindings: {},
       receivesInput: cls.autoReceiveInput,
+      hidden: false,
       destroyed: false,
     };
   }
 
   private spawnLevel(): void {
-    const counters = new Map<string, number>();
+    const counters = this.counters;
     if (this.player.classId) counters.set(this.player.classId, 1);
     for (const la of this.project.level.actors) {
       const cls = findClass(this.project, la.classId);
@@ -199,6 +207,7 @@ export class Simulation implements InterpreterHost {
       },
       () => {
         for (const a of this.scripted()) this.interp.tickLatents(a, dt);
+        this.tickTimers(dt);
       },
       () => {
         this.time += dt;
@@ -309,7 +318,7 @@ export class Simulation implements InterpreterHost {
       for (const a of this.actors) {
         if (a.destroyed) continue;
         for (const c of a.components) {
-          if (c.kind !== 'StaticMesh' || !c.props.blocks) continue;
+          if (c.kind !== 'StaticMesh' || !c.props.blocks || !collisionBlocks(c.props.collision)) continue;
           const s = componentShape(a, c);
           if (s) [nx, ny] = pushOut(nx, ny, PLAYER_RADIUS, s);
         }
@@ -378,9 +387,27 @@ export class Simulation implements InterpreterHost {
     }
   }
 
+  /** Count timers down; a looping timer can fire several times in a long frame. */
+  private tickTimers(dt: number): void {
+    for (const t of [...this.timers.values()]) {
+      if (t.paused) continue;
+      t.remaining -= dt;
+      const owner = this.findActor(t.actor);
+      for (let guard = 0; t.remaining <= 1e-9 && guard < 1000; guard++) {
+        if (owner && !owner.destroyed) this.interp.fire(owner, (n) => n.id === t.node, 'then');
+        if (!t.looping) {
+          this.timers.delete(t.id);
+          break;
+        }
+        t.remaining += t.time;
+      }
+    }
+  }
+
   private removeDestroyed(): void {
     const gone = this.actors.filter((a) => a.destroyed);
     if (!gone.length) return;
+    for (const g of gone) for (const t of [...this.timers.values()]) if (t.actor === g.id) this.timers.delete(t.id);
     this.actors = this.actors.filter((a) => !a.destroyed);
     const goneIds = new Set(gone.map((g) => g.id));
     for (const a of [this.player, ...this.actors]) {
@@ -462,6 +489,7 @@ export class Simulation implements InterpreterHost {
   isValid(ref: RValue): boolean {
     if (!isRef(ref)) return false;
     if (ref.ref === 'actor') return !!this.tryActor(ref);
+    if (ref.ref === 'timer') return this.timers.has(ref.id);
     const a = this.findActor(ref.actor);
     return !!a && !a.destroyed && (ref.ref === 'delegate' || a.components.some((c) => c.id === ref.id));
   }
@@ -472,6 +500,42 @@ export class Simulation implements InterpreterHost {
 
   ownerOf(c: ComponentRT): ActorRT | undefined {
     return [this.player, ...this.actors].find((a) => a.components.includes(c));
+  }
+
+  allActors(): ActorRT[] {
+    return [...this.actors.filter((a) => !a.destroyed), this.player];
+  }
+
+  spawn(classId: string, x: number, y: number, yaw: number): ActorRT | null {
+    const cls = findClass(this.project, classId);
+    if (!cls) return null;
+    const n = this.counters.get(cls.id) ?? 0;
+    this.counters.set(cls.id, n + 1);
+    const a = this.makeActor(`spawn_${++seq}`, `${cls.name}${n + 1}`, `${cls.name}_C_${n}`, cls, {});
+    a.x = x;
+    a.y = y;
+    a.yaw = yaw;
+    this.actors.push(a);
+    return a;
+  }
+
+  setTimer(event: ObjRef, time: number, looping: boolean): RValue {
+    if (event.ref !== 'delegate') return null;
+    // UE: the same event set again replaces its timer; Time <= 0 clears it.
+    const existing = [...this.timers.values()].find((t) => t.actor === event.actor && t.node === event.node);
+    if (existing) this.timers.delete(existing.id);
+    if (!(time > 0)) return null;
+    const id = existing?.id ?? ++this.timerSeq;
+    this.timers.set(id, { id, actor: event.actor, node: event.node, time, remaining: time, looping, paused: false });
+    return { ref: 'timer', id };
+  }
+
+  timer(handle: RValue): TimerRT | undefined {
+    return isRef(handle) && handle.ref === 'timer' ? this.timers.get(handle.id) : undefined;
+  }
+
+  clearTimer(handle: RValue): void {
+    if (isRef(handle) && handle.ref === 'timer') this.timers.delete(handle.id);
   }
 
   destroy(actor: ActorRT): void {
@@ -486,6 +550,7 @@ export class Simulation implements InterpreterHost {
   displayName(ref: RValue): string {
     if (!isRef(ref)) return ref === null ? 'None' : String(ref);
     if (ref.ref === 'actor') return this.findActor(ref.id)?.label ?? 'None';
+    if (ref.ref === 'timer') return this.timers.has(ref.id) ? `Timer Handle ${ref.id}` : 'Timer Handle (invalide)';
     const a = this.findActor(ref.actor);
     if (ref.ref === 'delegate') return a ? `${a.label} (événement)` : 'None';
     return a?.components.find((c) => c.id === ref.id)?.name ?? 'None';

@@ -52,4 +52,20 @@ export const variableNodes: NodeDefinition[] = [
       return [dataOut('value', c?.name ?? '?', T.object(c ? COMPONENT_CLASS[c.kind] : 'SceneComponent'), { hideName: true })];
     },
   },
+  ...(['Int', 'Float'] as const).flatMap((kind): NodeDefinition[] =>
+    (['Increment', 'Decrement'] as const).map((op) => ({
+      id: `var.${op.toLowerCase()}${kind}`,
+      title: `${op} ${kind}`,
+      category: 'Utilities|Operators',
+      kind: 'function',
+      description: `${op === 'Increment' ? 'Ajoute' : 'Retire'} 1 à la variable reliée (passée par référence) et renvoie sa nouvelle valeur. Relie un Get de la variable à modifier.`,
+      keywords: op === 'Increment' ? ['increment', '++', 'plus un', 'compter', 'ajouter'] : ['decrement', '--', 'moins un', 'decompter', 'retirer'],
+      pins: [
+        execIn(),
+        dataIn('value', 'Value', kind === 'Int' ? T.int : T.float, { byRef: true }),
+        execOut(),
+        dataOut('result', 'Return Value', kind === 'Int' ? T.int : T.float),
+      ],
+    })),
+  ),
 ];

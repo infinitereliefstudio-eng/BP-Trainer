@@ -15,13 +15,16 @@ export type NodeKind =
   | 'latent' // blue header with a clock (Delay…)
   | 'flow' // grey header, flow control macros (Branch, Sequence…)
   | 'entry' // purple header, a function's entry and return nodes
-  | 'variable'; // variable / component getters and setters
+  | 'variable' // variable / component getters and setters
+  | 'comment'; // a box behind nodes, no pins
 
 /** How the node is drawn. */
 export type NodeStyle =
   | 'standard' // header + pin rows
   | 'compact' // no header, a big symbol in the middle (+, ×, AND…)
-  | 'getter'; // a pill with a single output (variable Get, Self…)
+  | 'getter' // a pill with a single output (variable Get, Self…)
+  | 'knot' // Reroute: a small dot
+  | 'comment'; // Comment: a resizable box drawn behind nodes
 
 export interface PinSpec {
   id: string;
@@ -36,6 +39,20 @@ export interface PinSpec {
   required?: boolean;
   /** Hide the label on the node (unlabelled exec pins, compact nodes). */
   hideName?: boolean;
+  /**
+   * Wildcard pins sharing a group take the same type (see types/wildcard).
+   * Set on resolved specs too, so callers know the pin was generic.
+   */
+  wildGroup?: string;
+  /** True on a generic pin, resolved or not. */
+  wild?: boolean;
+  /** For a wildcard pin: the only categories it may adopt. */
+  accepts?: PinType['category'][];
+  /**
+   * Passed by reference (UE's diamond pin): the node writes back into the
+   * variable wired here (Increment Int, array Add…). Must be wired to a Get.
+   */
+  byRef?: boolean;
 }
 
 export interface NodeContext {
@@ -50,6 +67,8 @@ export interface ConfigField {
   label: string;
   kind: 'string' | 'int' | 'choice';
   choices?: { value: string; label: string }[];
+  /** Choices taken from the project instead of a fixed list. */
+  choicesFrom?: 'enums' | 'classes';
   min?: number;
   max?: number;
 }

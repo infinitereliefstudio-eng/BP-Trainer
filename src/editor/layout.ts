@@ -4,6 +4,7 @@
  */
 import type { Graph, NodeInstance } from '@core/model/project';
 import type { NodeContext, NodeDefinition, NodeStyle, PinSpec } from '@core/nodes/definition';
+import { COMMENT_MIN } from '@core/nodes/library/organization';
 import { getDefinition, nodeTitle, pinValue, resolvePins } from '@core/nodes/registry';
 import { formatValue } from '@core/types/values';
 import { METRICS } from './theme';
@@ -43,14 +44,31 @@ const { headerH, rowH, padX, minW } = METRICS;
 /** Distance from the node edge to a pin anchor. */
 export const PIN_INSET = 14;
 
+/** Size of a Reroute node and the height of a Comment's title bar. */
+export const KNOT = { w: 32, h: 20 };
+export const COMMENT_HEADER = 30;
+
 /** Inputs whose literal can be typed on the node. */
 export function hasInlineValue(p: PinSpec): boolean {
-  if (p.dir !== 'in') return false;
-  return ['bool', 'int', 'float', 'string'].includes(p.type.category) && p.type.container !== 'array';
+  if (p.dir !== 'in' || p.byRef || p.type.container === 'array') return false;
+  if (p.type.category === 'struct') return p.type.subtype === 'LinearColor';
+  return ['bool', 'int', 'float', 'string', 'enum', 'class'].includes(p.type.category);
+}
+
+/** Text shown in an inline value box: enum entries and classes by name. */
+export function inlineText(node: NodeInstance, p: PinSpec, ctx: NodeContext): string {
+  const v = pinValue(node, p);
+  if (p.type.category === 'class') {
+    const cls = typeof v === 'string' ? ctx.project?.classes.find((c) => c.id === v) : undefined;
+    return cls?.name ?? 'Choisir…';
+  }
+  if (p.type.category === 'struct') return String(v ?? '#ffffff');
+  return formatValue(v, p.type, ctx.project);
 }
 
 function valueWidth(p: PinSpec, text: string, measure: Measure): number {
   if (p.type.category === 'bool') return 16;
+  if (p.type.category === 'struct') return 34;
   if (p.type.category === 'string') return Math.min(140, Math.max(44, measure(text, METRICS.labelFont) + 14));
   return Math.min(80, Math.max(40, measure(text, METRICS.labelFont) + 14));
 }
@@ -67,8 +85,17 @@ export function layoutNode(
   const pins = resolvePins(node, ctx);
   const isLinked = (p: PinSpec) => linkedPins.has(`${node.id}:${p.id}`);
 
+  if (style === 'comment') {
+    const w = Math.max(COMMENT_MIN.w, Number(node.config.w ?? 480));
+    const h = Math.max(COMMENT_MIN.h, Number(node.config.h ?? 280));
+    return { node, def, style, title, w, h, headerH: COMMENT_HEADER, pins: [] };
+  }
+  if (style === 'knot') {
+    const geoms: PinGeom[] = pins.map((p) => ({ spec: p, x: p.dir === 'in' ? 6 : KNOT.w - 6, y: KNOT.h / 2, linked: isLinked(p), labelX: 0 }));
+    return { node, def, style, title, w: KNOT.w, h: KNOT.h, headerH: 0, pins: geoms };
+  }
   if (style === 'getter') return layoutGetter(node, def, title, pins, measure, isLinked);
-  if (style === 'compact') return layoutCompact(node, def, title, pins, measure, isLinked);
+  if (style === 'compact') return layoutCompact(node, def, title, pins, measure, isLinked, ctx);
 
   const ins = pins.filter((p) => p.dir === 'in');
   const outs = pins.filter((p) => p.dir === 'out');
@@ -82,7 +109,7 @@ export function layoutNode(
     let w = 18 + label;
     let value: PinGeom['value'];
     if (!linked && hasInlineValue(p)) {
-      const text = formatValue(pinValue(node, p), p.type);
+      const text = inlineText(node, p, ctx);
       const vw = valueWidth(p, text, measure);
       const vx = padX + w + (label ? 8 : 0);
       value = { x: vx, y: y - 9, w: vw, h: 18, text };
@@ -134,6 +161,7 @@ function layoutCompact(
   pins: PinSpec[],
   measure: Measure,
   isLinked: (p: PinSpec) => boolean,
+  ctx: NodeContext,
 ): NodeGeom {
   const ins = pins.filter((p) => p.dir === 'in');
   const outs = pins.filter((p) => p.dir === 'out');
@@ -146,7 +174,7 @@ function layoutCompact(
     let value: PinGeom['value'];
     let w = 18;
     if (!linked && hasInlineValue(p)) {
-      const text = formatValue(pinValue(node, p), p.type);
+      const text = inlineText(node, p, ctx);
       const vw = valueWidth(p, text, measure);
       value = { x: padX + 16, y: y - 9, w: vw, h: 18, text };
       w += vw + 4;

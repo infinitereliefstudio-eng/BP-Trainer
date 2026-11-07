@@ -1,4 +1,5 @@
-/** The project's assets: Blueprints and Blueprint Interfaces. */
+/** The project's assets: Blueprints, Blueprint Interfaces and Enums. */
+import { addEnum } from '@core/operations/enumOps';
 import { addClass, addInterface, addInterfaceFunction } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
@@ -46,6 +47,21 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
         return null;
       },
     });
+  const createEnum = () =>
+    openOverlay({
+      kind: 'prompt',
+      title: 'Nouvel Enum',
+      initial: 'E_Etat',
+      confirmLabel: 'Créer',
+      onSubmit: (name) => {
+        if (/\s/.test(name.trim())) return "Un nom d'Enum ne peut pas contenir d'espace.";
+        const res = store.applyProject('Créer un Enum', (p) => addEnum(p, name));
+        if (!res.ok) return res.reason;
+        store.setFocus({ kind: 'enum', id: res.value.id });
+        onOpenDetails();
+        return null;
+      },
+    });
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
       <div class="sheet content" onClick={(e) => e.stopPropagation()}>
@@ -57,6 +73,9 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
           </button>
           <button class="btn" onClick={createInterface}>
             + Interface
+          </button>
+          <button class="btn" onClick={createEnum}>
+            + Enum
           </button>
           <button class="btn" onClick={onClose}>
             Fermer
@@ -94,6 +113,21 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
                 {i.functions.map((f) => f.name).join(', ') || 'aucune fonction'} · implémentée par{' '}
                 {store.project.classes.filter((c) => c.interfaces.includes(i.id)).length} Blueprint(s)
               </span>
+            </button>
+          ))}
+          {store.project.enums.length > 0 && <div class="palette-cat">Enums</div>}
+          {store.project.enums.map((e) => (
+            <button
+              key={e.id}
+              class="palette-item"
+              onClick={() => {
+                store.setFocus({ kind: 'enum', id: e.id });
+                onClose();
+                onOpenDetails();
+              }}
+            >
+              <span class="pi-title">{e.name}</span>
+              <span class="pi-desc">{e.entries.join(', ')}</span>
             </button>
           ))}
         </div>

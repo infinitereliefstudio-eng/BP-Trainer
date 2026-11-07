@@ -14,6 +14,7 @@ import { History, snapshot, type Scope } from '../history/history';
 import { findGraph, type BlueprintClass, type Graph, type Project } from '../model/project';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor } from '../nodes/registry';
+import { releaseClassWildcards } from '../operations/wildcardOps';
 
 export type ChangeKind = 'model' | 'view';
 export type Listener = (kind: ChangeKind) => void;
@@ -27,6 +28,7 @@ export type Focus =
   | { kind: 'function'; id: string }
   | { kind: 'dispatcher'; id: string }
   | { kind: 'interface'; id: string }
+  | { kind: 'enum'; id: string }
   | { kind: 'actor'; id: string }
   | { kind: 'playerStart' };
 
@@ -120,6 +122,10 @@ export class EditorStore {
     const tx = this.tx;
     if (!tx) return;
     this.tx = null;
+    // Generic nodes whose last wire went become generic again.
+    for (const c of this.project.classes) {
+      if (tx.scope.kind === 'project' || c.id === tx.scope.id) releaseClassWildcards(c, this.project);
+    }
     const after = snapshot(this.project, tx.scope);
     if (after === tx.before) return;
     this.history.push({ label: tx.label, scope: tx.scope, before: tx.before, after });

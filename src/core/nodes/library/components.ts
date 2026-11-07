@@ -1,5 +1,5 @@
 import { T } from '../../types/pins';
-import { dataIn, execIn, execOut, type NodeDefinition } from '../definition';
+import { dataIn, dataOut, execIn, execOut, type NodeDefinition } from '../definition';
 
 const CAT = 'Rendering';
 
@@ -88,6 +88,53 @@ export const componentNodes: NodeDefinition[] = [
       execIn(),
       dataIn('target', 'Target', T.object('TextRenderComponent'), { required: true }),
       dataIn('value', 'Value', T.string, { default: '' }),
+      execOut(),
+    ],
+  },
+  {
+    id: 'component.isVisible',
+    title: 'Is Visible',
+    category: CAT,
+    kind: 'pure',
+    description: 'Vrai si le composant est visible.',
+    keywords: ['visible', 'visibility', 'allume'],
+    pins: [dataIn('target', 'Target', T.object('SceneComponent'), { required: true }), dataOut('result', 'Return Value', T.bool)],
+  },
+  {
+    id: 'component.addRelativeRotation',
+    title: 'Add Relative Rotation',
+    category: 'Transformation',
+    kind: 'function',
+    description: "Ajoute Delta Rotation à la rotation actuelle du composant. Sur Tick, multiplie par Delta Seconds pour tourner à vitesse constante.",
+    keywords: ['rotation', 'tourner', 'ajouter', 'yaw', 'rotate'],
+    pins: [execIn(), dataIn('target', 'Target', T.object('SceneComponent'), { required: true }), dataIn('delta', 'Delta Rotation', T.rotator), execOut()],
+  },
+  {
+    id: 'component.setLightColor',
+    title: 'Set Light Color',
+    category: 'Rendering|Lighting',
+    kind: 'function',
+    description: 'Change la couleur de la lumière.',
+    keywords: ['color', 'couleur', 'lumiere', 'light'],
+    pins: [
+      execIn(),
+      dataIn('target', 'Target', T.object('PointLightComponent'), { required: true }),
+      dataIn('color', 'New Light Color', T.struct('LinearColor'), { default: '#ffffff' }),
+      execOut(),
+    ],
+  },
+  {
+    id: 'component.setCollisionEnabled',
+    title: 'Set Collision Enabled',
+    category: 'Collision',
+    kind: 'function',
+    description:
+      "Active ou coupe la collision du composant. No Collision : ni blocage ni overlap. Query Only : overlaps seulement. Physics Only : blocage seulement. Query and Physics : les deux.",
+    keywords: ['collision', 'bloquer', 'traverser', 'overlap', 'desactiver'],
+    pins: [
+      execIn(),
+      dataIn('target', 'Target', T.object('PrimitiveComponent'), { required: true }),
+      dataIn('collision', 'New Type', T.enum('ECollisionEnabled'), { default: 0 }),
       execOut(),
     ],
   },

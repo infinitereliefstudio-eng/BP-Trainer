@@ -1,6 +1,7 @@
 /** Right drawer: properties of whatever is selected. */
 import type { ComponentChildren } from 'preact';
-import { findVariable, type Variable } from '@core/model/project';
+import { findVariable, type Project, type Variable } from '@core/model/project';
+import { BUILTIN_ENUMS } from '@core/types/enums';
 import { getDefinition, nodeTitle, pinValue, resolvePins } from '@core/nodes/registry';
 import {
   removeVariable,
@@ -18,6 +19,7 @@ import { TypeSelect } from '../widgets/TypeSelect';
 import { ValueInput } from '../widgets/ValueInput';
 import { NameField } from '../widgets/NameField';
 import { ComponentDetails } from './ComponentDetails';
+import { EnumDetails } from './EnumDetails';
 import { Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
@@ -36,6 +38,7 @@ export function Details({ openOverlay, onOpenClass }: { openOverlay: OpenOverlay
   else if (f.kind === 'function') body = <FunctionDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'dispatcher') body = <DispatcherDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'interface') body = <InterfaceDetails id={f.id} openOverlay={openOverlay} />;
+  else if (f.kind === 'enum') body = <EnumDetails id={f.id} />;
   else
     body = (
       <p class="hint">
@@ -95,7 +98,7 @@ function NodeDetails() {
                     )
                   }
                 >
-                  {c.choices?.map((o) => (
+                  {(c.choicesFrom ? projectChoices(c.choicesFrom, store.project) : (c.choices ?? [])).map((o) => (
                     <option key={o.value} value={o.value}>
                       {o.label}
                     </option>
@@ -120,6 +123,18 @@ function NodeDetails() {
               )}
             </Field>
           ))}
+        </Group>
+      )}
+      {node.def === 'util.comment' && (
+        <Group title="Apparence">
+          <Field label="Comment Color">
+            <input
+              class="field color"
+              type="color"
+              value={String(node.config.color ?? '#ffffff')}
+              onChange={(e) => store.apply('Couleur du commentaire', (_c, g) => setNodeConfig(g, node.id, 'color', (e.target as HTMLInputElement).value, ctx))}
+            />
+          </Field>
         </Group>
       )}
       {inputs.length > 0 && (
@@ -203,3 +218,9 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
   });
 }
 
+
+/** Choices of a node setting that come from the project (Enums, Blueprints). */
+function projectChoices(from: 'enums' | 'classes', p: Project): { value: string; label: string }[] {
+  if (from === 'classes') return [{ value: '', label: '—' }, ...p.classes.map((c) => ({ value: c.id, label: c.name }))];
+  return [{ value: '', label: '—' }, ...Object.keys(BUILTIN_ENUMS).map((n) => ({ value: n, label: n })), ...p.enums.map((e) => ({ value: e.name, label: e.name }))];
+}

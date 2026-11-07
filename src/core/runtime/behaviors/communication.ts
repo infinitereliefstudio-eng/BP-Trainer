@@ -3,6 +3,7 @@
  * actor, Event Dispatchers, Custom Event calls and Blueprint Interfaces.
  */
 import { isRef, type ActorRT, type RValue } from '../world';
+import { copyValue } from '../values';
 import { RESUME, type Behavior, type ExecCx } from './types';
 
 const isCustom = (name: string) => (n: { def: string; config: Record<string, unknown> }) => n.def === 'event.custom' && n.config.name === name;
@@ -82,7 +83,7 @@ export const communicationBehaviors: Record<string, Behavior> = {
   'var.setExternal': {
     exec: (cx) => {
       const a = cx.world.actor(cx.in('target'), 'Target');
-      const v = cx.in('value');
+      const v = copyValue(cx.in('value'));
       if (a) a.vars[String(cx.node.config.variable)] = v;
       cx.out('out', v);
       return ['then'];

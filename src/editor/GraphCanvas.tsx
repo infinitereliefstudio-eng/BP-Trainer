@@ -9,6 +9,8 @@ import type { PinRef } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import { findPin } from '@core/nodes/registry';
 import { connect, moveNodes, setPinDefault, snapNodes } from '@core/operations/graphOps';
+import { insertReroute, nodesInComment } from '@core/operations/organizeOps';
+import { COMMENT_MIN } from '@core/nodes/library/organization';
 import type { EditorStore } from '@core/store/editorStore';
 import { isAssignable, type PinType } from '@core/types/pins';
 import { Camera, type Point } from './camera';
@@ -89,6 +91,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
     pending: undefined as (WireSource & { ref: PinRef }) | undefined,
     rect: undefined as { x0: number; y0: number; x1: number; y1: number } | undefined,
     dragIds: [] as string[],
+    resizing: undefined as { id: string; w: number; h: number } | undefined,
     frame: 0,
     selectionMode,
     requests,
@@ -291,7 +294,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
           if (!store.selection.has(hit.node)) store.selectNodes([hit.node]);
           return;
         }
-        if (hit.kind === 'node') {
+        if (hit.kind === 'node' || hit.kind === 'resize') {
           if (l.selectionMode) store.toggleNode(hit.node);
           else store.selectNodes([hit.node]);
           return;
@@ -301,6 +304,13 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
       },
 
       onDoubleTap(hit, sx, sy) {
+        if (hit.kind === 'link') {
+          // UE: double-click a wire to add a Reroute on it.
+          const w = camera().toWorld(sx, sy);
+          const res = store.apply('Ajouter un Reroute', (_c, g) => insertReroute(g, hit.link, w.x, w.y, store.ctx));
+          if (!res.ok) store.warn(res.reason);
+          return;
+        }
         if (hit.kind === 'node' || hit.kind === 'value') {
           store.selectNodes([hit.node]);
           live.current.requests.openDetails();
@@ -314,7 +324,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
         const r = live.current.requests;
         live.current.pending = undefined;
         if (hit.kind === 'pin') r.openPinMenu({ node: hit.node, pin: hit.pin }, hit.spec, sx, sy);
-        else if (hit.kind === 'node' || hit.kind === 'value') {
+        else if (hit.kind === 'node' || hit.kind === 'value' || hit.kind === 'resize') {
           if (!store.selection.has(hit.node)) store.selectNodes([hit.node]);
           r.openNodeMenu(hit.node, sx, sy);
         } else if (hit.kind === 'link') r.openLinkMenu(hit.link, sx, sy);
@@ -334,19 +344,47 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
         invalidate();
       },
 
-      onNodeDragStart(nodeId) {
+      onNodeDragStart(nodeId, resize) {
+        const l = live.current;
+        if (resize) {
+          l.resizing = { id: nodeId, w: Number(store.graph.nodes[nodeId]?.config.w ?? 480), h: Number(store.graph.nodes[nodeId]?.config.h ?? 280) };
+          store.begin('Redimensionner le commentaire');
+          return;
+        }
         if (!store.selection.has(nodeId)) store.selectNodes([nodeId]);
-        live.current.dragIds = [...store.selection];
-        store.begin(live.current.dragIds.length > 1 ? 'Déplacer des nœuds' : 'Déplacer un nœud');
+        // A Comment carries the nodes lying inside it, as in UE.
+        const ids = new Set(store.selection);
+        const gs = geoms();
+        for (const id of store.selection) {
+          const n = store.graph.nodes[id];
+          if (n?.def !== 'util.comment') continue;
+          for (const inner of nodesInComment(store.graph, n, (m) => gs.get(m.id) ?? { w: 0, h: 0 })) ids.add(inner);
+        }
+        l.dragIds = [...ids];
+        store.begin(l.dragIds.length > 1 ? 'Déplacer des nœuds' : 'Déplacer un nœud');
       },
       onNodeDrag(dsx, dsy) {
+        const l = live.current;
         const z = camera().zoom;
-        moveNodes(store.graph, live.current.dragIds, dsx / z, dsy / z);
+        if (l.resizing) {
+          const n = store.graph.nodes[l.resizing.id];
+          l.resizing.w += dsx / z;
+          l.resizing.h += dsy / z;
+          if (n) {
+            n.config.w = Math.round(Math.max(COMMENT_MIN.w, l.resizing.w));
+            n.config.h = Math.round(Math.max(COMMENT_MIN.h, l.resizing.h));
+          }
+          store.touch();
+          return;
+        }
+        moveNodes(store.graph, l.dragIds, dsx / z, dsy / z);
         store.touch();
       },
       onNodeDragEnd() {
-        snapNodes(store.graph, live.current.dragIds);
-        live.current.dragIds = [];
+        const l = live.current;
+        if (l.resizing) l.resizing = undefined;
+        else snapNodes(store.graph, l.dragIds);
+        l.dragIds = [];
         store.commit();
       },
 

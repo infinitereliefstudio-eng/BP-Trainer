@@ -3,6 +3,7 @@
  * `migrate` upgrades older files so projects survive app updates.
  */
 import { PROJECT_FORMAT, componentDefaults, createLevel, type Project } from '../model/project';
+import { adoptFromLinks } from '../operations/wildcardOps';
 
 export const FILE_KIND = 'bp-trainer-project';
 
@@ -58,6 +59,15 @@ function migrate(p: Project, from: number): Project {
       c.interfaces ??= [];
     }
     cur = 3;
+  }
+  if (cur === 3) {
+    // v4: Enums, Collision Enabled on components.
+    p.enums ??= [];
+    for (const c of p.classes ?? []) {
+      for (const k of c.components ?? []) k.props = { ...componentDefaults(k.kind), ...(k.props ?? {}) };
+    }
+    adoptFromLinks(p);
+    cur = 4;
   }
   p.format = cur;
   return p;

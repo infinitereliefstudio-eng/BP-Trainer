@@ -68,10 +68,16 @@ function drawWorld(c: CanvasRenderingContext2D, s: Scene, cam: Camera, dpr: numb
   const left = cam.x - ox / cam.zoom;
   const top = cam.y - oy / cam.zoom;
   drawGrid(c, cam.zoom, left, top, left + s.width / cam.zoom, top + s.height / cam.zoom);
+  // Comments sit behind wires and nodes.
+  for (const g of s.geoms.values()) {
+    if (g.style === 'comment') drawNode(c, g, { selected: s.selection.has(g.node.id), error: s.errorNodes.has(g.node.id) });
+  }
   drawLinks(c, s);
 
   const pinEnabled = s.wire ? compatibilityFilter(s) : undefined;
-  const ordered = [...s.geoms.values()].sort((a, b) => Number(s.selection.has(a.node.id)) - Number(s.selection.has(b.node.id)));
+  const ordered = [...s.geoms.values()]
+    .filter((g) => g.style !== 'comment')
+    .sort((a, b) => Number(s.selection.has(a.node.id)) - Number(s.selection.has(b.node.id)));
   for (const g of ordered) {
     drawNode(c, g, {
       selected: s.selection.has(g.node.id),

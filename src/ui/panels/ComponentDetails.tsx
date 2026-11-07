@@ -1,6 +1,7 @@
 /** Details of a component: name and the properties its kind uses. */
 import { COMPONENT_LABEL, findComponent, type ComponentProps, type MeshShape } from '@core/model/project';
 import { removeComponent, renameComponent, updateComponentProps } from '@core/operations/classOps';
+import { BUILTIN_ENUMS } from '@core/types/enums';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { Check, Field, Group, NumberField, TextCommit } from './fields';
@@ -106,6 +107,21 @@ export function ComponentDetails({ id }: { id: string }) {
             <NumberField value={p.sizeY} unit="cm" onCommit={(sizeY) => set({ sizeY: Math.max(1, sizeY) })} />
           </Field>
           <p class="muted small">Une zone qui ne bloque rien : elle déclenche les événements Begin / End Overlap.</p>
+        </Group>
+      )}
+
+      {(c.kind === 'StaticMesh' || c.kind === 'BoxCollision') && (
+        <Group title="Collision">
+          <Field label="Collision Enabled">
+            <select class="field" value={String(p.collision ?? 3)} onChange={(e) => set({ collision: Number((e.target as HTMLSelectElement).value) })}>
+              {BUILTIN_ENUMS.ECollisionEnabled.map((label, i) => (
+                <option key={i} value={String(i)}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <p class="muted small">Query : déclenche les overlaps. Physics : bloque le joueur. Set Collision Enabled le change en jeu.</p>
         </Group>
       )}
 

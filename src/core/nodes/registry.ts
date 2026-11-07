@@ -6,6 +6,7 @@
  */
 import { findVariable, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import { makeHierarchy } from '../types/pins';
+import { adoptedType, wildKey } from '../types/wildcard';
 import { defaultValueFor, type Value } from '../types/values';
 import type { NodeContext, NodeDefinition, PinSpec } from './definition';
 import { actorNodes } from './library/actor';
@@ -19,10 +20,15 @@ import { flowNodes } from './library/flow';
 import { mathNodes } from './library/math';
 import { timeNodes } from './library/time';
 import { variableNodes } from './library/variables';
+import { arrayNodes } from './library/arrays';
+import { organizationNodes } from './library/organization';
+import { switchNodes } from './library/switch';
+import { textNodes } from './library/text';
 
 const ALL: NodeDefinition[] = [
   ...eventNodes,
   ...flowNodes,
+  ...switchNodes,
   ...timeNodes,
   ...variableNodes,
   ...actorNodes,
@@ -30,8 +36,11 @@ const ALL: NodeDefinition[] = [
   ...communicationNodes,
   ...functionNodes,
   ...mathNodes,
+  ...textNodes,
+  ...arrayNodes,
   ...conversionNodes,
   ...debugNodes,
+  ...organizationNodes,
 ];
 
 const BY_ID = new Map<string, NodeDefinition>();
@@ -55,10 +64,20 @@ export function contextFor(cls: BlueprintClass, project?: Project): NodeContext 
   return { cls, hierarchy: makeHierarchy(parents), project };
 }
 
-export function resolvePins(node: NodeInstance, ctx: NodeContext): PinSpec[] {
+/** Pins as the definition declares them, wildcards unresolved. */
+export function declaredPins(node: NodeInstance, ctx: NodeContext): PinSpec[] {
   const def = BY_ID.get(node.def);
   if (!def) return [];
   return typeof def.pins === 'function' ? def.pins(node, ctx) : def.pins;
+}
+
+/** Pins of a node, with the wildcard pins typed by what is connected to them. */
+export function resolvePins(node: NodeInstance, ctx: NodeContext): PinSpec[] {
+  return declaredPins(node, ctx).map((p) => {
+    if (p.type.category !== 'wildcard') return p;
+    const wild = node.config[wildKey(p.wildGroup)];
+    return typeof wild === 'string' ? { ...p, type: adoptedType(p.type, wild), wild: true } : { ...p, wild: true };
+  });
 }
 
 export function findPin(node: NodeInstance, pinId: string, ctx: NodeContext): PinSpec | undefined {

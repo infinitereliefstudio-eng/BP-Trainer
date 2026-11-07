@@ -1,7 +1,9 @@
 /** Editors for literal values, used in Details and in the value dialog. */
 import { useEffect, useState } from 'preact/hooks';
 import type { PinType } from '@core/types/pins';
+import { enumEntries } from '@core/types/enums';
 import { formatValue, parseValue, type Value, type Vec3 } from '@core/types/values';
+import { useStore } from '../hooks';
 
 interface Props {
   type: PinType;
@@ -27,8 +29,16 @@ export function ValueInput({ type, value, onChange, autoFocus }: Props) {
     case 'vector':
     case 'rotator':
       return <VectorValue value={(value ?? { x: 0, y: 0, z: 0 }) as Vec3} onChange={onChange} labels={type.category === 'rotator' ? ['Roll', 'Pitch', 'Yaw'] : ['X', 'Y', 'Z']} />;
-    case 'object':
+    case 'enum':
+      return <EnumValue type={type} value={value} onChange={onChange} />;
     case 'class':
+      return <ClassValue value={value} onChange={onChange} />;
+    case 'struct':
+      if (type.subtype === 'LinearColor') {
+        return <input class="field color" type="color" value={String(value ?? '#ffffff')} onChange={(e) => onChange((e.target as HTMLInputElement).value)} />;
+      }
+      return <span class="muted">Invalide (à relier dans le graphe)</span>;
+    case 'object':
       return <span class="muted">None (à relier dans le graphe)</span>;
     default:
       return <span class="muted">{formatValue(value, type)}</span>;
@@ -74,5 +84,36 @@ function VectorValue({ value, onChange, labels }: { value: Vec3; onChange: (v: V
         </label>
       ))}
     </div>
+  );
+}
+
+/** An Enum literal: one of its entries, stored as the entry's index. */
+function EnumValue({ type, value, onChange }: { type: PinType; value: Value; onChange: (v: Value) => void }) {
+  const store = useStore();
+  const entries = enumEntries(type.subtype, store.project) ?? [];
+  if (!entries.length) return <span class="muted">Enum vide ou introuvable</span>;
+  return (
+    <select class="field" value={String(Number(value) || 0)} onChange={(e) => onChange(Number((e.target as HTMLSelectElement).value))}>
+      {entries.map((name, i) => (
+        <option key={i} value={String(i)}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** A Class Reference literal: a Blueprint of the project, stored by id. */
+function ClassValue({ value, onChange }: { value: Value; onChange: (v: Value) => void }) {
+  const store = useStore();
+  return (
+    <select class="field" value={typeof value === 'string' ? value : ''} onChange={(e) => onChange((e.target as HTMLSelectElement).value || null)}>
+      <option value="">None</option>
+      {store.project.classes.map((c) => (
+        <option key={c.id} value={c.id}>
+          {c.name}
+        </option>
+      ))}
+    </select>
   );
 }

@@ -37,6 +37,11 @@ export function checkConnection(graph: Graph, a: PinRef, b: PinRef, ctx: NodeCon
   if (fromExec !== toExec) {
     return { ok: false, reason: "Un fil d'exécution (blanc) ne se relie qu'à une pin d'exécution." };
   }
+  for (const [p, other] of [[pFrom, pTo], [pTo, pFrom]] as const) {
+    if (p.accepts && !p.accepts.includes(other.type.category) && other.type.category !== 'wildcard') {
+      return { ok: false, reason: `${p.name} n'accepte que : ${p.accepts.map((c) => typeLabel({ category: c })).join(', ')}.` };
+    }
+  }
   if (!isAssignable(pFrom.type, pTo.type, ctx.hierarchy)) {
     return {
       ok: false,

@@ -10,6 +10,7 @@ import type { NodeContext } from '../nodes/definition';
 import { getDefinition, resolvePins } from '../nodes/registry';
 import { isAssignable } from '../types/pins';
 import type { Value } from '../types/values';
+import { adoptWildcard, releaseWildcards } from './wildcardOps';
 
 export type OpResult<T = void> = { ok: true; value: T } | { ok: false; reason: string };
 
@@ -83,14 +84,17 @@ export function snapNodes(graph: Graph, ids: Iterable<string>, grid = 8): void {
 }
 
 export function connect(graph: Graph, a: PinRef, b: PinRef, ctx: NodeContext): OpResult<Link> {
+  const undoAdopt = adoptWildcard(graph, a, b, ctx);
   const check = checkConnection(graph, a, b, ctx);
   if (!check.ok) {
+    undoAdopt();
     const converted = connectWithConversion(graph, a, b, ctx);
     return converted ?? check;
   }
   for (const id of check.replaces) delete graph.links[id];
   const link: Link = { id: newId('l'), from: { ...check.from }, to: { ...check.to } };
   graph.links[link.id] = link;
+  if (check.replaces.length) releaseWildcards(graph, ctx);
   return ok(link);
 }
 
@@ -203,6 +207,7 @@ export function pruneInvalidLinks(graph: Graph, ctx: NodeContext): number {
       removed++;
     }
   }
+  if (removed) releaseWildcards(graph, ctx);
   return removed;
 }
 

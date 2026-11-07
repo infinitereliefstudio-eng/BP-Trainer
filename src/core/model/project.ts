@@ -104,6 +104,8 @@ export interface ComponentProps {
   /** Point light attenuation radius. */
   radius: number;
   text: string;
+  /** UE's Collision Enabled, an ECollisionEnabled index (3 = Query and Physics). */
+  collision: number;
 }
 
 export type ParentClass = 'Actor' | 'Pawn';
@@ -164,6 +166,13 @@ export interface Level {
   playerStart: { x: number; y: number; yaw: number };
 }
 
+/** A user Enum asset: named entries, stored as their index (Byte in UE). */
+export interface UserEnum {
+  id: string;
+  name: string;
+  entries: string[];
+}
+
 export interface Project {
   /** Format version of the saved file, see serialization/migrate. */
   format: number;
@@ -171,6 +180,7 @@ export interface Project {
   name: string;
   classes: BlueprintClass[];
   interfaces: BlueprintInterface[];
+  enums: UserEnum[];
   /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
   playerClassId?: string;
   level: Level;
@@ -178,7 +188,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 3;
+export const PROJECT_FORMAT = 4;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -202,6 +212,7 @@ export function componentDefaults(kind: ComponentKind): ComponentProps {
     intensity: 0,
     radius: 0,
     text: '',
+    collision: 3,
     ...DEFAULT_PROPS[kind],
   };
 }
@@ -257,6 +268,7 @@ export function createProject(name = 'Mon projet'): Project {
     name,
     classes: [],
     interfaces: [],
+    enums: [],
     level: createLevel(),
     createdAt: now,
     updatedAt: now,

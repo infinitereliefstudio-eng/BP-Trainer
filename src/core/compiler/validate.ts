@@ -17,6 +17,7 @@ import { classById, findCustomEvent } from '../nodes/library/communication';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor, getDefinition, nodeTitle, resolvePins } from '../nodes/registry';
+import { enumEntries } from '../types/enums';
 import { isAssignable } from '../types/pins';
 
 export type Severity = 'error' | 'warning' | 'info';
@@ -86,6 +87,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
         ...at,
       });
     }
+    for (const msg of nodeChecks(n, g, ctx)) out.push({ severity: 'error', text: `${title} : ${msg}`, ...at });
     for (const p of resolvePins(n, ctx)) {
       if (p.dir === 'in' && p.required && !linkedInputs.has(`${n.id}:${p.id}`)) {
         out.push({
@@ -121,6 +123,42 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       nodeId: n.id,
     });
   }
+}
+
+/** Variable getters a pass-by-reference pin may be wired to (through Reroutes). */
+function refSource(g: Graph, nodeId: string, pin: string): NodeInstance | undefined {
+  let cur = { node: nodeId, pin };
+  for (let guard = 0; guard < 64; guard++) {
+    const l = Object.values(g.links).find((x) => x.to.node === cur.node && x.to.pin === cur.pin);
+    const src = l && g.nodes[l.from.node];
+    if (src?.def !== 'util.reroute') return src;
+    cur = { node: src.id, pin: 'in' };
+  }
+  return undefined;
+}
+
+/** Checks of the step-4 library: references, generic pins, class and enum choices. */
+function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): string[] {
+  const out: string[] = [];
+  const linked = (pin: string) => Object.values(g.links).some((l) => (l.to.node === n.id && l.to.pin === pin) || (l.from.node === n.id && l.from.pin === pin));
+  for (const p of resolvePins(n, ctx)) {
+    if (p.dir === 'in' && p.byRef) {
+      const src = refSource(g, n.id, p.id);
+      if (src?.def !== 'var.get' && src?.def !== 'var.getExternal') {
+        out.push(`la pin ${p.name} est passée par référence : relie-y un Get de la variable à modifier.`);
+      }
+    }
+  }
+  if (n.def !== 'util.reroute' && n.def !== 'util.comment') {
+    const open = resolvePins(n, ctx).filter((p) => p.wild && p.type.category === 'wildcard');
+    if (open.length) out.push(`le type de ${open.map((p) => p.name || p.id).join(', ')} n'est pas déterminé : relie-y un fil (Wildcard).`);
+  }
+  if ((n.def === 'actor.spawn' || n.def === 'actor.getAllOfClass' || n.def === 'actor.getOfClass') && !linked('class')) {
+    const id = n.defaults.class;
+    if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id)) out.push('choisis une classe sur la pin Class.');
+  }
+  if (n.def === 'flow.switchEnum' && !enumEntries(String(n.config.enum ?? ''), ctx.project)) out.push("choisis l'Enum dans Details.");
+  return out;
 }
 
 /** Why a node pointing at another Blueprint, dispatcher or interface is broken. */

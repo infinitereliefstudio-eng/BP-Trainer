@@ -13,6 +13,7 @@ export const PIN_COLOR: Record<PinCategory, string> = {
   object: '#1aa6f2', // blue
   class: '#7a2ad4', // purple
   enum: '#0b6e5e', // dark teal
+  struct: '#0a5bd1', // structures (Timer Handle, Linear Color)
   delegate: '#ff3b3b', // event / dispatcher (red square)
   wildcard: '#808080',
 };
@@ -25,6 +26,7 @@ export const HEADER_COLOR: Record<NodeKind, [string, string]> = {
   flow: ['#6a6a6a', '#3a3a3a'],
   entry: ['#7b3fb0', '#3f1f5c'],
   variable: ['#4a4a4a', '#2a2a2a'],
+  comment: ['#3a3a3a', '#2a2a2a'],
 };
 
 export const GRAPH = {
@@ -50,6 +52,7 @@ export const METRICS = {
   font: '600 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   labelFont: '12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   symbolFont: '700 20px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  commentFont: '600 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   headerH: 28,
   rowH: 26,
   padX: 10,

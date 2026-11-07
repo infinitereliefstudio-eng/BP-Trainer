@@ -18,6 +18,7 @@ export type PinCategory =
   | 'object'
   | 'class'
   | 'enum'
+  | 'struct'
   | 'delegate'
   | 'wildcard';
 
@@ -25,7 +26,7 @@ export type PinDirection = 'in' | 'out';
 
 export interface PinType {
   category: PinCategory;
-  /** Class name for object/class pins, enum name for enum pins. */
+  /** Class name for object/class pins, enum name for enum pins, struct name for structs. */
   subtype?: string;
   container?: 'array';
 }
@@ -41,6 +42,8 @@ export const T = {
   wildcard: { category: 'wildcard' } as PinType,
   object: (subtype = 'Object'): PinType => ({ category: 'object', subtype }),
   class: (subtype = 'Object'): PinType => ({ category: 'class', subtype }),
+  enum: (subtype: string): PinType => ({ category: 'enum', subtype }),
+  struct: (subtype: StructName): PinType => ({ category: 'struct', subtype }),
   array: (inner: PinType): PinType => ({ ...inner, container: 'array' }),
 } as const;
 
@@ -56,6 +59,7 @@ export const CATEGORY_LABEL: Record<PinCategory, string> = {
   object: 'Object Reference',
   class: 'Class Reference',
   enum: 'Enum',
+  struct: 'Structure',
   delegate: 'Event',
   wildcard: 'Wildcard',
 };
@@ -69,13 +73,25 @@ export const VARIABLE_CATEGORIES: PinCategory[] = [
   'vector',
   'rotator',
   'object',
+  'class',
+  'enum',
+  'struct',
 ];
+
+/** Engine structures V1 knows, with their UE display names. */
+export type StructName = 'TimerHandle' | 'LinearColor';
+export const STRUCT_LABEL: Record<StructName, string> = {
+  TimerHandle: 'Timer Handle',
+  LinearColor: 'Linear Color',
+};
 
 export function typeLabel(t: PinType): string {
   let base = CATEGORY_LABEL[t.category];
   if ((t.category === 'object' || t.category === 'class') && t.subtype) {
     base = `${t.subtype} ${t.category === 'object' ? 'Object Reference' : 'Class Reference'}`;
   }
+  if (t.category === 'enum' && t.subtype) base = t.subtype;
+  if (t.category === 'struct' && t.subtype) base = STRUCT_LABEL[t.subtype as StructName] ?? t.subtype;
   return t.container === 'array' ? `Array of ${base}` : base;
 }
 
@@ -132,13 +148,16 @@ export function isAssignable(from: PinType, to: PinType, h: ClassHierarchy): boo
   }
   if (from.category === 'delegate' || to.category === 'delegate') {
     if (from.category !== to.category) return false;
-  } else if (from.category === 'wildcard' || to.category === 'wildcard') return true;
+  } else if (from.category === 'wildcard' || to.category === 'wildcard') {
+    // A generic pin accepts any type, but an array stays an array.
+    return (from.container ?? '') === (to.container ?? '');
+  }
   if ((from.container ?? '') !== (to.container ?? '')) return false;
   if (from.category !== to.category) return false;
   if (from.category === 'object' || from.category === 'class') {
     return h.isA(from.subtype ?? 'Object', to.subtype ?? 'Object');
   }
-  if (from.category === 'enum') return (from.subtype ?? '') === (to.subtype ?? '');
+  if (from.category === 'enum' || from.category === 'struct') return (from.subtype ?? '') === (to.subtype ?? '');
   // An event fits a dispatcher when their parameter types match.
   if (from.category === 'delegate') return (from.subtype ?? '') === (to.subtype ?? '');
   return true;

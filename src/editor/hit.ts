@@ -11,6 +11,7 @@ export type Hit =
   | { kind: 'pin'; node: string; pin: string; spec: PinSpec }
   | { kind: 'value'; node: string; pin: string; spec: PinSpec }
   | { kind: 'node'; node: string }
+  | { kind: 'resize'; node: string }
   | { kind: 'link'; link: string }
   | { kind: 'empty' };
 
@@ -32,9 +33,19 @@ export function hitTest(
     (a, b) => Number(selection.has(b.node.id)) - Number(selection.has(a.node.id)),
   );
 
+  const comments = list.filter((g) => g.style === 'comment');
+  const nodes = list.filter((g) => g.style !== 'comment');
+
+  // 0. A Reroute's dot: grabbing it moves it (its pins sit right beside it).
+  const knotR = Math.max(9, 12 / zoom);
+  for (const g of nodes) {
+    if (g.style !== 'knot') continue;
+    if (Math.hypot(wx - (g.node.x + g.w / 2), wy - (g.node.y + g.h / 2)) <= knotR) return { kind: 'node', node: g.node.id };
+  }
+
   // 1. Pins, nearest within reach (they may stick out of the node).
   let best: { d: number; hit: Hit } | undefined;
-  for (const g of list) {
+  for (const g of nodes) {
     for (const p of g.pins) {
       const ax = g.node.x + p.x;
       const ay = g.node.y + p.y;
@@ -44,7 +55,7 @@ export function hitTest(
   }
 
   // 2. Inline values and node bodies.
-  for (const g of list) {
+  for (const g of nodes) {
     const { x, y } = g.node;
     if (wx < x || wx > x + g.w || wy < y || wy > y + g.h) continue;
     for (const p of g.pins) {
@@ -59,7 +70,15 @@ export function hitTest(
   }
   if (best) return best.hit;
 
-  // 3. Links.
+  // 3. Comments: the resize grip and the title bar; their inside is free floor.
+  const grip = Math.max(22, 28 / zoom);
+  for (const g of comments) {
+    const { x, y } = g.node;
+    if (wx >= x + g.w - grip && wx <= x + g.w + 4 && wy >= y + g.h - grip && wy <= y + g.h + 4) return { kind: 'resize', node: g.node.id };
+    if (wx >= x && wx <= x + g.w && wy >= y && wy <= y + Math.max(g.headerH, 26 / zoom)) return { kind: 'node', node: g.node.id };
+  }
+
+  // 4. Links.
   const linkR = LINK_TOUCH_PX / zoom;
   for (const l of Object.values(graph.links)) {
     const ga = geoms.get(l.from.node);
@@ -81,7 +100,10 @@ export function nodesInRect(geoms: Map<string, NodeGeom>, x0: number, y0: number
   const [ay, by] = y0 < y1 ? [y0, y1] : [y1, y0];
   const out: string[] = [];
   for (const g of geoms.values()) {
-    if (g.node.x + g.w >= ax && g.node.x <= bx && g.node.y + g.h >= ay && g.node.y <= by) out.push(g.node.id);
+    // A Comment is picked only when the rectangle covers it entirely.
+    if (g.style === 'comment') {
+      if (g.node.x >= ax && g.node.x + g.w <= bx && g.node.y >= ay && g.node.y + g.h <= by) out.push(g.node.id);
+    } else if (g.node.x + g.w >= ax && g.node.x <= bx && g.node.y + g.h >= ay && g.node.y <= by) out.push(g.node.id);
   }
   return out;
 }

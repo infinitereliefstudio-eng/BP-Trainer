@@ -6,7 +6,7 @@
  */
 import type { BlueprintClass, NodeInstance, Project } from '../../model/project';
 import type { NodeContext } from '../../nodes/definition';
-import type { ActorRT, ComponentRT, RValue } from '../world';
+import type { ActorRT, ComponentRT, ObjRef, RValue, TimerRT } from '../world';
 
 /** Entry pin used when a node asked to be resumed (loops). */
 export const RESUME = '__resume';
@@ -35,6 +35,15 @@ export interface WorldApi {
   displayName(ref: RValue): string;
   /** Log a Blueprint Runtime Error at the current node. */
   runtimeError(message: string): void;
+  /** Every live actor, the player included, in level order. */
+  allActors(): ActorRT[];
+  /** Spawn an actor of a Blueprint class; BeginPlay runs at once. */
+  spawn(classId: string, x: number, y: number, yaw: number): ActorRT | null;
+  /** Set Timer by Event: returns the handle, or null for Time <= 0. */
+  setTimer(event: ObjRef, time: number, looping: boolean): RValue;
+  /** The timer behind a handle, if it is still running. */
+  timer(handle: RValue): TimerRT | undefined;
+  clearTimer(handle: RValue): void;
 }
 
 export interface ValueCx {
@@ -68,6 +77,12 @@ export interface ExecCx extends ValueCx {
   callEvents(target: ActorRT, match: (n: NodeInstance) => boolean, outputs: Record<string, RValue>): number;
   /** Run a function graph of `target` to its end; its outputs become this node's. */
   callFunction(target: ActorRT, graphId: string, params: Record<string, RValue>): void;
+  /**
+   * Write through a pass-by-reference input (Increment Int, Clear and
+   * Invalidate Timer…): the variable wired into `pin` gets `value`.
+   * Returns false when the pin is not wired to a variable.
+   */
+  writeRef(pin: string, value: RValue): boolean;
 }
 
 export interface Behavior {

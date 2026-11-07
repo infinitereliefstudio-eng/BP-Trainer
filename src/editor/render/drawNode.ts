@@ -2,7 +2,7 @@
 import type { PinSpec } from '@core/nodes/definition';
 import type { NodeGeom } from '../layout';
 import { GRAPH, HEADER_COLOR, METRICS } from '../theme';
-import { drawClock, drawPin, roundRect } from './primitives';
+import { drawClock, drawPin, pinColor, roundRect } from './primitives';
 
 export interface NodePaintState {
   selected: boolean;
@@ -18,6 +18,8 @@ export interface NodePaintState {
 }
 
 export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintState): void {
+  if (g.style === 'comment') return drawComment(c, g, s);
+  if (g.style === 'knot') return drawKnot(c, g, s);
   const { x, y } = g.node;
   const r = g.style === 'getter' ? g.h / 2 : METRICS.radius;
 
@@ -104,7 +106,7 @@ export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintS
       c.stroke();
       c.restore();
     }
-    drawPin(c, px, py, p.spec.type, p.linked, alpha);
+    drawPin(c, px, py, p.spec.type, p.linked, alpha, p.spec.byRef);
     c.globalAlpha = alpha;
     if (!p.spec.hideName && p.spec.name) {
       c.fillStyle = GRAPH.text;
@@ -124,6 +126,68 @@ export function drawNode(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintS
       c.fillText('self', x + p.labelX + lw + 8, py);
     }
     c.globalAlpha = 1;
+  }
+}
+
+/** Comment: a tinted box with a title bar and a resize grip, drawn behind nodes. */
+function drawComment(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintState): void {
+  const { x, y } = g.node;
+  const color = String(g.node.config.color ?? '#ffffff');
+  c.save();
+  c.globalAlpha = 0.1;
+  c.fillStyle = color;
+  c.fillRect(x, y, g.w, g.h);
+  c.globalAlpha = 0.28;
+  c.fillRect(x, y, g.w, g.headerH);
+  c.restore();
+  c.lineWidth = s.selected ? 2.5 : 1;
+  c.strokeStyle = s.selected ? GRAPH.selected : 'rgba(255,255,255,0.25)';
+  c.strokeRect(x, y, g.w, g.h);
+  c.save();
+  c.beginPath();
+  c.rect(x + 4, y, g.w - 8, g.headerH);
+  c.clip();
+  c.fillStyle = GRAPH.text;
+  c.font = METRICS.commentFont;
+  c.textAlign = 'left';
+  c.textBaseline = 'middle';
+  c.fillText(g.title, x + 10, y + g.headerH / 2 + 1);
+  c.restore();
+  // Resize grip, bottom right.
+  c.strokeStyle = 'rgba(255,255,255,0.45)';
+  c.lineWidth = 1.5;
+  c.beginPath();
+  for (const d of [8, 14, 20]) {
+    c.moveTo(x + g.w - d, y + g.h - 3);
+    c.lineTo(x + g.w - 3, y + g.h - d);
+  }
+  c.stroke();
+}
+
+/** Reroute: a dot in the colour of the wire it carries. */
+function drawKnot(c: CanvasRenderingContext2D, g: NodeGeom, s: NodePaintState): void {
+  const { x, y } = g.node;
+  const t = g.pins[0]?.spec.type;
+  const cx = x + g.w / 2,
+    cy = y + g.h / 2;
+  if (s.heat && s.heat > 0) {
+    c.beginPath();
+    c.arc(cx, cy, 12, 0, Math.PI * 2);
+    c.fillStyle = `rgba(255, 214, 90, ${0.6 * s.heat})`;
+    c.fill();
+  }
+  c.beginPath();
+  c.arc(cx, cy, 7, 0, Math.PI * 2);
+  c.fillStyle = t ? pinColor(t) : GRAPH.text;
+  c.fill();
+  c.lineWidth = s.selected || s.paused ? 2.5 : 1;
+  c.strokeStyle = s.paused ? GRAPH.paused : s.error ? GRAPH.error : s.selected ? GRAPH.selected : 'rgba(0,0,0,0.6)';
+  c.stroke();
+  if (s.breakpoint) {
+    c.beginPath();
+    c.arc(x + 2, y + 2, 5, 0, Math.PI * 2);
+    c.fillStyle = GRAPH.breakpoint;
+    c.fill();
   }
 }
 
@@ -149,6 +213,16 @@ function drawValueBox(c: CanvasRenderingContext2D, nx: number, ny: number, p: No
   const v = p.value!;
   const bx = nx + v.x;
   const by = ny + v.y;
+  if (p.spec.type.category === 'struct') {
+    // A Linear Color shows as a swatch of its colour.
+    roundRect(c, bx, by, v.w, v.h, 3);
+    c.fillStyle = v.text;
+    c.fill();
+    c.strokeStyle = GRAPH.valueBorder;
+    c.lineWidth = 1;
+    c.stroke();
+    return;
+  }
   if (p.spec.type.category === 'bool') {
     roundRect(c, bx, by + 1, 16, 16, 3);
     c.fillStyle = GRAPH.valueBg;

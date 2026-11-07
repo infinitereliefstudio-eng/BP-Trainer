@@ -15,7 +15,7 @@ export interface GestureHost {
   onLongPress(hit: Hit, sx: number, sy: number): void;
   onPan(dx: number, dy: number): void;
   onPinch(cx: number, cy: number, factor: number, dx: number, dy: number): void;
-  onNodeDragStart(nodeId: string): void;
+  onNodeDragStart(nodeId: string, resize?: boolean): void;
   onNodeDrag(dsx: number, dsy: number): void;
   onNodeDragEnd(): void;
   onWireStart(hit: Extract<Hit, { kind: 'pin' }>, sx: number, sy: number): void;
@@ -139,9 +139,9 @@ export class GestureController {
     if (h.kind === 'pin') {
       this.mode = 'wire';
       this.host.onWireStart(h, this.start.x, this.start.y);
-    } else if (h.kind === 'node' || h.kind === 'value') {
+    } else if (h.kind === 'node' || h.kind === 'value' || h.kind === 'resize') {
       this.mode = 'node';
-      this.host.onNodeDragStart(h.node);
+      this.host.onNodeDragStart(h.node, h.kind === 'resize');
     } else if (this.host.selectionMode()) {
       this.mode = 'rect';
       this.host.onRectStart(this.start.x, this.start.y);

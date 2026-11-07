@@ -1,6 +1,7 @@
 /** Impure nodes acting on the world: variables, printing, components, actors. */
 import type { Vec3 } from '../../types/values';
 import type { ActorRT, ComponentRT } from '../world';
+import { copyValue } from '../values';
 import type { Behavior } from './types';
 
 function withChildren(actor: ActorRT, root: ComponentRT): ComponentRT[] {
@@ -13,8 +14,9 @@ function withChildren(actor: ActorRT, root: ComponentRT): ComponentRT[] {
 
 export const actionBehaviors: Record<string, Behavior> = {
   'var.set': {
+    // UE copies arrays and vectors on Set: the variable never aliases another.
     exec: (cx) => {
-      const v = cx.in('value');
+      const v = copyValue(cx.in('value'));
       cx.actor.vars[String(cx.node.config.variable)] = v;
       cx.out('out', v);
       return ['then'];
@@ -95,11 +97,49 @@ export const actionBehaviors: Record<string, Behavior> = {
     },
   },
 
-  'actor.destroy': {
+  'component.isVisible': {
+    pure: (cx) => ({ result: !!cx.world.component(cx.in('target'), 'Target')?.props.visible }),
+  },
+
+  'component.addRelativeRotation': {
     exec: (cx) => {
-      const a = cx.world.actor(cx.in('target'), 'Target');
-      if (a) cx.world.destroy(a);
+      const c = cx.world.component(cx.in('target'), 'Target');
+      const r = cx.in('delta') as Vec3 | null;
+      if (c && r) c.props.yaw += Number(r.z) || 0;
       return ['then'];
     },
   },
+
+  'component.setLightColor': {
+    exec: (cx) => {
+      const c = cx.world.component(cx.in('target'), 'Target');
+      if (c) c.props.color = cx.str('color') || '#ffffff';
+      return ['then'];
+    },
+  },
+
+  'component.setCollisionEnabled': {
+    exec: (cx) => {
+      const c = cx.world.component(cx.in('target'), 'Target');
+      if (c) c.props.collision = Math.max(0, Math.min(3, Math.trunc(cx.num('collision'))));
+      return ['then'];
+    },
+  },
+
+  'var.incrementInt': step(1, true),
+  'var.decrementInt': step(-1, true),
+  'var.incrementFloat': step(1, false),
+  'var.decrementFloat': step(-1, false),
 };
+
+/** Increment / Decrement: the variable wired to Value changes by `delta`. */
+function step(delta: number, asInt: boolean): Behavior {
+  return {
+    exec: (cx) => {
+      const v = (asInt ? Math.trunc(cx.num('value')) : cx.num('value')) + delta;
+      if (!cx.writeRef('value', v)) cx.world.runtimeError(`${cx.node.def.endsWith('Int') ? 'Increment Int' : 'Increment Float'} : Value doit être relié à une variable.`);
+      cx.out('result', v);
+      return ['then'];
+    },
+  };
+}

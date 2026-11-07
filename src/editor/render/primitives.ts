@@ -25,6 +25,7 @@ export function drawPin(
   t: PinType,
   filled: boolean,
   alpha = 1,
+  byRef = false,
 ): void {
   const color = pinColor(t);
   c.save();
@@ -46,6 +47,17 @@ export function drawPin(
   } else if (t.category === 'delegate') {
     c.beginPath();
     c.rect(x - 5, y - 5, 10, 10);
+    if (filled) c.fill();
+    else c.stroke();
+  } else if (byRef) {
+    // Pass-by-reference pins are diamonds in UE.
+    const s = 6;
+    c.beginPath();
+    c.moveTo(x, y - s);
+    c.lineTo(x + s, y);
+    c.lineTo(x, y + s);
+    c.lineTo(x - s, y);
+    c.closePath();
     if (filled) c.fill();
     else c.stroke();
   } else if (t.container === 'array') {

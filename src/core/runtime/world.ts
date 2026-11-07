@@ -13,7 +13,8 @@ import type { Value } from '../types/values';
 export type ObjRef =
   | { ref: 'actor'; id: string }
   | { ref: 'component'; actor: string; id: string }
-  | { ref: 'delegate'; actor: string; node: string };
+  | { ref: 'delegate'; actor: string; node: string }
+  | { ref: 'timer'; id: number };
 
 export type RValue = Exclude<Value, Value[]> | ObjRef | RValue[];
 
@@ -67,7 +68,20 @@ export interface ActorRT {
   /** Event Dispatcher id → events bound to it, in binding order. */
   bindings: Record<string, Binding[]>;
   receivesInput: boolean;
+  /** Set Actor Hidden In Game: not drawn, still colliding (as in UE). */
+  hidden: boolean;
   destroyed: boolean;
+}
+
+/** A timer set by Set Timer by Event: an event to call after Time seconds. */
+export interface TimerRT {
+  id: number;
+  actor: string;
+  node: string;
+  time: number;
+  remaining: number;
+  looping: boolean;
+  paused: boolean;
 }
 
 export interface Transform2D {

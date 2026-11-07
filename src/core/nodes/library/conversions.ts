@@ -26,6 +26,12 @@ export const conversionNodes: NodeDefinition[] = [
   conv('conv.intToFloat', 'To Float (Integer)', T.int, T.float, 'Convertit un entier en nombre décimal.'),
   conv('conv.floatToInt', 'Truncate', T.float, T.int, 'Garde la partie entière d’un nombre décimal (2,9 donne 2).'),
   conv('conv.objectToString', 'Get Display Name', T.object('Object'), T.string, "Donne le nom affiché d'un objet."),
+  conv('conv.vectorToString', 'To String (Vector)', T.vector, T.string, 'Écrit un vecteur sous la forme X=… Y=… Z=…'),
+  conv('conv.rotatorToString', 'To String (Rotator)', T.rotator, T.string, 'Écrit une rotation sous la forme P=… Y=… R=…'),
+  conv('conv.stringToInt', 'String to Int', T.string, T.int, 'Lit un entier dans un texte ("12" donne 12, un texte non numérique donne 0).'),
+  conv('conv.stringToFloat', 'String to Float', T.string, T.float, 'Lit un nombre décimal dans un texte ("1.5" donne 1,5).'),
+  conv('conv.boolToInt', 'To Integer (Boolean)', T.bool, T.int, 'true donne 1, false donne 0.'),
+  { ...conv('conv.enumToString', 'To String (Enum)', T.wildcard, T.string, "Le nom de la valeur d'Enum."), pins: [dataIn('in', 'In', T.wildcard, { hideName: true, accepts: ['enum'] }), dataOut('result', 'Return Value', T.string, { hideName: true })] },
 ];
 
 /** Conversion node to insert between two types, if UE would insert one. */
@@ -40,6 +46,10 @@ export function conversionFor(from: PinType, to: PinType): string | undefined {
       'int>float': 'conv.intToFloat',
       'float>int': 'conv.floatToInt',
       'object>string': 'conv.objectToString',
+      'vector>string': 'conv.vectorToString',
+      'rotator>string': 'conv.rotatorToString',
+      'bool>int': 'conv.boolToInt',
+      'enum>string': 'conv.enumToString',
     } as Record<string, string>
   )[key];
 }

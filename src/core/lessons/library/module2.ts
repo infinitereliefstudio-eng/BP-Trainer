@@ -12,7 +12,12 @@ function doorYaw(cx: CheckContext): number {
   return ((((yaw + 180) % 360) + 360) % 360) - 180;
 }
 
-function doorOpen(id: string, open: boolean, label: string, at?: string): Check {
+/**
+ * The door is open (Yaw ±90) or closed (Yaw 0) at a checkpoint. `closedReason`
+ * replaces "it did not move" when the door is expected open but found closed
+ * after having opened earlier in the scenario.
+ */
+function doorOpen(id: string, open: boolean, label: string, at?: string, closedReason?: string): Check {
   return {
     id,
     label,
@@ -20,7 +25,11 @@ function doorOpen(id: string, open: boolean, label: string, at?: string): Check 
     test: (cx) => {
       const yaw = doorYaw(cx);
       const isOpen = Math.abs(Math.abs(yaw) - 90) < 1;
-      if (open) return isOpen ? true : yaw === 0 ? 'La porte n’a pas bougé.' : `La porte a tourné de ${yaw}° au lieu de 90°.`;
+      if (open) {
+        if (isOpen) return true;
+        if (yaw === 0) return closedReason ?? 'La porte n’a pas bougé.';
+        return `La porte a tourné de ${yaw}° au lieu de 90°.`;
+      }
       return Math.abs(yaw) < 1 ? true : 'La porte est ouverte à ce moment-là.';
     },
   };
@@ -321,7 +330,13 @@ export const lesson8: Lesson = {
   ],
   checks: [
     doorOpen('open', true, 'La porte s’ouvre quand le joueur arrive (déjà fait)', 'ouverte'),
-    doorOpen('again', true, '3 s après la 1re sortie, elle reste ouverte car le joueur est repassé', 'retour'),
+    doorOpen(
+      'again',
+      true,
+      '3 s après la 1re sortie, elle reste ouverte car le joueur est repassé',
+      'retour',
+      'La porte s’est déjà refermée, 3 s après la 1re sortie, alors que le joueur est repassé depuis : l’attente lancée à la 1re sortie n’a pas été remise à zéro par la 2e. Un Delay déjà en cours ignore les nouveaux appels.',
+    ),
     doorOpen('closed', false, '3 s après la dernière sortie, elle est refermée'),
     noRuntimeErrors(),
   ],

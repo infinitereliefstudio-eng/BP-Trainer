@@ -19,7 +19,10 @@ describe('lesson variants', () => {
     const wait = b.node('time.delay', {}, { duration: 3 });
     const rot = b.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 0 } });
     b.link(e, 'then', wait, 'exec').link(wait, 'completed', rot, 'exec').target('Porte', rot);
-    expect(failed(runLesson(lesson8, p))).toEqual(['again']);
+    const run = runLesson(lesson8, p);
+    expect(failed(run)).toEqual(['again']);
+    // The door did move (opened, then closed too early): say so, not "it did not move".
+    expect(run.results.find((r) => r.check.id === 'again')?.reason).toMatch(/déjà refermée/);
   });
 
   it('L9 without Is Valid logs Accessed None', () => {

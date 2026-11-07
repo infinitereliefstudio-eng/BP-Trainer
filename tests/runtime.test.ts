@@ -8,6 +8,7 @@ import { addClass } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
 import type { Value } from '../src/core/types/values';
+import { ProjectBuilder } from '../src/core/lessons/builder';
 
 /** Tiny DSL to build graphs in tests. */
 function build(setup: (b: Builder) => void): { p: Project; cls: BlueprintClass } {
@@ -243,5 +244,35 @@ describe('interpreter', () => {
     s.move = { x: 1, y: 0 };
     runFor(s, 1);
     expect(s.player.x).toBeLessThanOrEqual(-50 - 34 + 0.5);
+  });
+});
+
+describe('component visibility', () => {
+  /** A lamp: root, mesh, light (siblings under the root), one call at BeginPlay. */
+  function lamp(target: 'Pied' | 'DefaultSceneRoot', propagate: boolean) {
+    const pb = new ProjectBuilder('t');
+    const b = pb.blueprint('BP_Lampe');
+    b.component('StaticMesh', 'Pied', { shape: 'cylinder', sizeX: 40, sizeY: 40 });
+    b.component('PointLight', 'Lumiere');
+    const e = b.node('event.beginPlay');
+    const sv = b.node('component.setVisibility', {}, { visible: false, propagate });
+    b.link(e, 'then', sv, 'exec').target(target, sv);
+    pb.place(b, 0, 0);
+    const s = new Simulation(pb.project);
+    runFor(s, 0.1);
+    const vis = (name: string) => s.actors[0].components.find((c) => c.name === name)!.props.visible;
+    return { s, vis };
+  }
+
+  it('hides only the targeted mesh: its sibling light stays on', () => {
+    const { s, vis } = lamp('Pied', false);
+    expect([vis('Pied'), vis('Lumiere')]).toEqual([false, true]);
+    expect(s.runtimeErrors).toBe(0);
+  });
+
+  it('on the root, hides nothing else unless Propagate to Children is ticked', () => {
+    expect(lamp('DefaultSceneRoot', false).vis('Pied')).toBe(true);
+    const { vis } = lamp('DefaultSceneRoot', true);
+    expect([vis('Pied'), vis('Lumiere')]).toEqual([false, false]);
   });
 });

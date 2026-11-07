@@ -43,6 +43,7 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 - Les fonctions d'interface n'ont **pas de paramètres** pour l'instant (événements simples).
 - Pendant Play, le graphe et le niveau sont des **onglets** (pas d'écran partagé, trop petit sur téléphone). En pause, un tiroir Debug s'ouvre à droite du graphe.
 - Les breakpoints ne sont **pas sauvegardés** (comme dans UE).
+- En jeu, une Point Light n'est visible que par son halo : son icône (ampoule) n'est dessinée que dans l'éditeur, comme dans UE. Cacher le mesh d'une lampe laisse donc seulement la lumière au sol.
 - La validation d'une leçon est **comportementale** (scénario joué puis vérifications) ; quelques contraintes de notion (Branch en L4, DoOnce en L5, Cast en L6, pas de Tick en L10, pas de Cast en L11).
 - Hébergement : l'appli est publiée par GitHub Pages depuis le dépôt BP-Trainer. Le fichier `assetlinks.json` doit être à la **racine du domaine** : il faudra un second dépôt `infinitereliefstudio-eng.github.io` qui sert `/.well-known/assetlinks.json` (ou y déplacer l'appli). À trancher avec Tristan à l'étape 4.
 

@@ -1,6 +1,6 @@
 /**
  * Top-view drawing of the level, for editing (all components shown) and
- * for Play (hidden components are not rendered, like in game).
+ * for Play (hidden components and editor-only icons are not rendered, like in game).
  */
 import { componentShape } from '@core/runtime/physics';
 import { componentTransform, PLAYER_RADIUS, type ActorRT } from '@core/runtime/world';
@@ -146,6 +146,8 @@ function drawActor(c: CanvasRenderingContext2D, a: ActorRT, s: WorldScene): void
       c.strokeRect(-shape.hx, -shape.hy, shape.hx * 2, shape.hy * 2);
       c.restore();
     } else if (comp.kind === 'PointLight') {
+      // The bulb icon is an editor sprite, as in UE: in game a light is only its glow.
+      if (s.playing) continue;
       const t = componentTransform(a, comp);
       const on = comp.props.visible && comp.props.intensity > 0;
       c.beginPath();

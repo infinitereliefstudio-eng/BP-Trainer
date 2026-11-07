@@ -1,36 +1,29 @@
 /** Conversions and string functions: pure nodes, recomputed for every read. */
 import { enumLabel } from '../../types/enums';
-import { decodeType, wildKey } from '../../types/wildcard';
-import type { Vec3 } from '../../types/values';
+import { adoptedBy, decodeType } from '../../types/wildcard';
+import { toInt, toVec } from '../values';
 import type { Behavior } from './types';
-
-const int = (n: number) => Math.trunc(n) | 0;
 
 /** UE prints floats with six decimals (1.500000). */
 const formatFloat = (n: number) => n.toFixed(6);
 
-const vec = (v: unknown): Vec3 => {
-  const p = (v ?? {}) as Partial<Vec3>;
-  return { x: Number(p.x) || 0, y: Number(p.y) || 0, z: Number(p.z) || 0 };
-};
-
 export const pureBehaviors: Record<string, Behavior> = {
-  'conv.intToString': { pure: (cx) => ({ result: String(int(cx.num('in'))) }) },
+  'conv.intToString': { pure: (cx) => ({ result: String(toInt(cx.num('in'))) }) },
   'conv.floatToString': { pure: (cx) => ({ result: formatFloat(cx.num('in')) }) },
   'conv.boolToString': { pure: (cx) => ({ result: cx.bool('in') ? 'true' : 'false' }) },
   'conv.intToFloat': { pure: (cx) => ({ result: cx.num('in') }) },
-  'conv.floatToInt': { pure: (cx) => ({ result: int(cx.num('in')) }) },
+  'conv.floatToInt': { pure: (cx) => ({ result: toInt(cx.num('in')) }) },
   'conv.boolToInt': { pure: (cx) => ({ result: cx.bool('in') ? 1 : 0 }) },
   'conv.objectToString': { pure: (cx) => ({ result: cx.world.displayName(cx.in('in')) }) },
   'conv.vectorToString': {
     pure: (cx) => {
-      const v = vec(cx.in('in'));
+      const v = toVec(cx.in('in'));
       return { result: `X=${formatFloat(v.x).slice(0, -3)} Y=${formatFloat(v.y).slice(0, -3)} Z=${formatFloat(v.z).slice(0, -3)}` };
     },
   },
   'conv.rotatorToString': {
     pure: (cx) => {
-      const r = vec(cx.in('in'));
+      const r = toVec(cx.in('in'));
       return { result: `P=${formatFloat(r.y)} Y=${formatFloat(r.z)} R=${formatFloat(r.x)}` };
     },
   },
@@ -48,9 +41,9 @@ export const pureBehaviors: Record<string, Behavior> = {
   },
   'conv.enumToString': {
     pure: (cx) => {
-      const wild = cx.node.config[wildKey()];
-      const name = typeof wild === 'string' ? decodeType(wild).subtype : undefined;
-      return { result: enumLabel(name, int(cx.num('in')), cx.ctx.project) };
+      const wild = adoptedBy(cx.node);
+      const name = wild ? decodeType(wild).subtype : undefined;
+      return { result: enumLabel(name, toInt(cx.num('in')), cx.ctx.project) };
     },
   },
 

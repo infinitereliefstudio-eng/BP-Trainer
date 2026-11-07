@@ -31,6 +31,12 @@ export interface NodeInstance {
   config: Record<string, Value>;
   /** Literal values typed on unconnected input pins, keyed by pin id. */
   defaults: Record<string, Value>;
+  /**
+   * Types adopted by the node's wildcard pins, by group ("default" when the
+   * node has one group), encoded as in types/wildcard. Internal state, kept
+   * apart from the settings the user edits in `config`.
+   */
+  wild?: Record<string, string>;
 }
 
 export type GraphKind = 'event' | 'function';
@@ -188,7 +194,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 4;
+export const PROJECT_FORMAT = 5;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

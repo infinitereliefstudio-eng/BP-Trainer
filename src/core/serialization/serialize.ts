@@ -61,13 +61,28 @@ function migrate(p: Project, from: number): Project {
     cur = 3;
   }
   if (cur === 3) {
-    // v4: Enums, Collision Enabled on components.
+    // v4: Enums, Collision Enabled on components (v3 files go straight to v5:
+    // their generic nodes are typed from their wires into node.wild).
     p.enums ??= [];
     for (const c of p.classes ?? []) {
       for (const k of c.components ?? []) k.props = { ...componentDefaults(k.kind), ...(k.props ?? {}) };
     }
     adoptFromLinks(p);
-    cur = 4;
+    cur = 5;
+  } else if (cur === 4) {
+    // v5: adopted wildcard types move from `config` to `node.wild`.
+    for (const c of p.classes ?? []) {
+      for (const g of c.graphs ?? []) {
+        for (const n of Object.values(g.nodes ?? {})) {
+          for (const [k, v] of Object.entries(n.config ?? {})) {
+            if ((k !== 'wild' && !k.startsWith('wild:')) || typeof v !== 'string') continue;
+            n.wild = { ...n.wild, [k === 'wild' ? 'default' : k.slice(5)]: v };
+            delete n.config[k];
+          }
+        }
+      }
+    }
+    cur = 5;
   }
   p.format = cur;
   return p;

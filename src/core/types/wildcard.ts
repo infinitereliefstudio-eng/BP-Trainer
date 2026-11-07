@@ -2,13 +2,28 @@
  * Wildcard pins, as in UE: a generic node (array functions, Select,
  * Reroute…) takes the type of the first wire connected to one of its
  * wildcard pins, and becomes generic again when its last such wire goes.
- * The adopted type is stored on the node, in `config["wild"]` (or
- * `config["wild:<group>"]` when a node has several independent groups).
+ * The adopted type is stored on the node, in `node.wild[<group>]`; a node
+ * with independent generic pins (Select: options and index) has a group each.
  */
+import type { NodeInstance } from '../model/project';
 import type { PinCategory, PinType } from './pins';
 
-export function wildKey(group?: string): string {
-  return group ? `wild:${group}` : 'wild';
+/** The group a wildcard pin belongs to. */
+export const groupOf = (group?: string) => group ?? 'default';
+
+/** Encoded type adopted by a group of a node's wildcard pins, if any. */
+export function adoptedBy(node: Pick<NodeInstance, 'wild'>, group?: string): string | undefined {
+  return node.wild?.[groupOf(group)];
+}
+
+export function adopt(node: NodeInstance, group: string | undefined, encoded: string): void {
+  node.wild = { ...node.wild, [groupOf(group)]: encoded };
+}
+
+export function release(node: NodeInstance, group: string): void {
+  if (!node.wild) return;
+  delete node.wild[group];
+  if (!Object.keys(node.wild).length) delete node.wild;
 }
 
 /** "int", "object:BP_Lampe", "enum:E_Etat"… (the container is not part of it). */

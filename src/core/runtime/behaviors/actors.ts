@@ -1,13 +1,9 @@
 /** Actor functions: destroy and spawn, find by class, location and rotation. */
-import type { Vec3 } from '../../types/values';
+import { toVec } from '../values';
 import type { ActorRT, RValue } from '../world';
 import { RESUME, type Behavior, type ValueCx } from './types';
 
 const DEG = Math.PI / 180;
-const vec = (v: RValue): Vec3 => {
-  const p = (v ?? {}) as Partial<Vec3>;
-  return { x: Number(p.x) || 0, y: Number(p.y) || 0, z: Number(p.z) || 0 };
-};
 const ref = (a: ActorRT): RValue => ({ ref: 'actor', id: a.id });
 
 /** Actors of the class chosen on the Class pin (a class id), in level order. */
@@ -49,8 +45,8 @@ export const actorBehaviors: Record<string, Behavior> = {
         cx.out('result', null);
         return ['then'];
       }
-      const loc = vec(cx.in('location'));
-      const rot = vec(cx.in('rotation'));
+      const loc = toVec(cx.in('location'));
+      const rot = toVec(cx.in('rotation'));
       const a = cx.world.spawn(id, loc.x, loc.y, rot.z);
       cx.out('result', a ? ref(a) : null);
       if (a) cx.callEvents(a, (n) => n.def === 'event.beginPlay', {});
@@ -91,7 +87,7 @@ export const actorBehaviors: Record<string, Behavior> = {
   'actor.setLocation': {
     exec: (cx) => {
       const a = cx.world.actor(cx.in('target'), 'Target');
-      const v = vec(cx.in('location'));
+      const v = toVec(cx.in('location'));
       if (a) {
         a.x = v.x;
         a.y = v.y;
@@ -104,7 +100,7 @@ export const actorBehaviors: Record<string, Behavior> = {
   'actor.addOffset': {
     exec: (cx) => {
       const a = cx.world.actor(cx.in('target'), 'Target');
-      const d = vec(cx.in('delta'));
+      const d = toVec(cx.in('delta'));
       if (a) {
         a.x += d.x;
         a.y += d.y;
@@ -123,7 +119,7 @@ export const actorBehaviors: Record<string, Behavior> = {
   'actor.setRotation': {
     exec: (cx) => {
       const a = cx.world.actor(cx.in('target'), 'Target');
-      if (a) a.yaw = vec(cx.in('rotation')).z;
+      if (a) a.yaw = toVec(cx.in('rotation')).z;
       cx.out('result', !!a);
       return ['then'];
     },

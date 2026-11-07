@@ -6,7 +6,7 @@
 import type { BlueprintClass, Graph, PinRef, Project } from '../model/project';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor, findPin, resolvePins } from '../nodes/registry';
-import { encodeType, wildKey } from '../types/wildcard';
+import { adopt, encodeType, groupOf, release } from '../types/wildcard';
 
 /**
  * Joining an untyped wildcard pin to a typed pin types the wildcard's node.
@@ -26,11 +26,8 @@ export function adoptWildcard(graph: Graph, a: PinRef, b: PinRef, ctx: NodeConte
   if (other.type.category === 'exec' && (pin.type.container || node.def !== 'util.reroute')) return () => {};
   if (other.type.category === 'delegate') return () => {};
   if (pin.accepts && !pin.accepts.includes(other.type.category)) return () => {};
-  const key = wildKey(pin.wildGroup);
-  node.config[key] = encodeType(other.type);
-  return () => {
-    delete node.config[key];
-  };
+  adopt(node, pin.wildGroup, encodeType(other.type));
+  return () => release(node, groupOf(pin.wildGroup));
 }
 
 /** A generic node with no wire left on a wildcard group becomes generic again. */
@@ -41,15 +38,14 @@ export function releaseWildcards(graph: Graph, ctx: NodeContext): void {
     used.add(`${l.to.node}:${l.to.pin}`);
   }
   for (const node of Object.values(graph.nodes)) {
-    const keys = Object.keys(node.config).filter((k) => k === 'wild' || k.startsWith('wild:'));
-    if (!keys.length) continue;
+    if (!node.wild) continue;
     const pins = resolvePins(node, ctx).filter((p) => p.wild);
-    for (const key of keys) {
-      const inUse = pins.some((p) => wildKey(p.wildGroup) === key && used.has(`${node.id}:${p.id}`));
+    for (const group of Object.keys(node.wild)) {
+      const inUse = pins.some((p) => groupOf(p.wildGroup) === group && used.has(`${node.id}:${p.id}`));
       if (!inUse) {
-        delete node.config[key];
+        release(node, group);
         // Literals typed for the old type no longer make sense.
-        for (const p of pins) if (wildKey(p.wildGroup) === key) delete node.defaults[p.id];
+        for (const p of pins) if (groupOf(p.wildGroup) === group) delete node.defaults[p.id];
       }
     }
   }

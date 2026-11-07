@@ -1,37 +1,28 @@
 /**
- * A play session ("Play In Editor"): spawns the level, moves the player,
- * detects overlaps, fires events and advances time in fixed 1/60 s steps.
- * It has no rendering: the UI draws its state, the lesson runner checks it.
+ * A play session ("Play In Editor"): spawns the level, then advances time in
+ * fixed 1/60 s steps made of resumable phases (move and overlaps, Tick,
+ * latent actions and timers, cleanup). It has no rendering: the UI draws its
+ * state, the lesson runner checks it.
+ *
+ * The work itself lives beside it: actorFactory (instances), movement and
+ * overlaps (physics events), timers, journal (Output Log and screen). This
+ * class orders them and answers the interpreter (WorldApi).
  */
-import { findClass, type BlueprintClass, type Project } from '../model/project';
-import { defaultValueFor, type Value } from '../types/values';
+import { findClass, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import type { PrintOptions } from './behaviors/types';
+import { createActor, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
-import { collisionBlocks } from '../types/enums';
-import { componentShape, overlapShapes, overlaps, pushOut } from './physics';
-import { isRef, PLAYER_RADIUS, PLAYER_SPEED, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
+import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
+import { movePlayer } from './movement';
+import { endOverlapsWith, updateOverlaps, type Fire } from './overlaps';
+import { TimerSet } from './timers';
+import { isRef, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
+
+export type { ScreenMessage, SimLogEntry, SimLogLevel } from './journal';
 
 export const STEP = 1 / 60;
 
 export type InputKey = 'E' | 'F' | 'SpaceBar';
-
-export interface ScreenMessage {
-  id: number;
-  text: string;
-  until: number;
-}
-
-export type SimLogLevel = 'log' | 'warning' | 'error';
-
-export interface SimLogEntry {
-  id: number;
-  time: number;
-  level: SimLogLevel;
-  text: string;
-  /** For prints: the actor and the raw text, used by lesson checks. */
-  actor?: string;
-  message?: string;
-}
 
 /** One node run, for the Execution Trace and the animated wires. */
 export interface TraceEntry {
@@ -50,41 +41,30 @@ export interface TraceEntry {
 
 const TRACE_MAX = 400;
 
-let seq = 0;
-
-/** Object variables edited on a level instance are saved as "actor:<id>". */
-function instanceValue(v: Value): RValue {
-  if (typeof v === 'string' && v.startsWith('actor:')) return { ref: 'actor', id: v.slice(6) };
-  return structuredClone(v) as RValue;
-}
-
 export class Simulation implements InterpreterHost {
   time = 0;
   frame = 0;
   actors: ActorRT[] = [];
   readonly player: ActorRT;
-  log: SimLogEntry[] = [];
-  screen: ScreenMessage[] = [];
-  runtimeErrors = 0;
   /** Last nodes run, oldest first (bounded). */
   trace: TraceEntry[] = [];
   /** Joystick direction, each axis in [-1, 1]. */
   move = { x: 0, y: 0 };
-  /** Running timers (Set Timer by Event), by handle id. */
-  timers = new Map<number, TimerRT>();
+  /** Running timers (Set Timer by Event). */
+  readonly timers = new TimerSet();
 
+  private readonly journal = new Journal();
   private interp: Interpreter;
   private site: NodeSite | undefined;
   private rng: number;
   private accumulator = 0;
   private started = false;
-  private errorCounts = new Map<string, number>();
   private muted = false;
   /** Remaining parts of the current frame, kept when a breakpoint stops it. */
   private phases: (() => void)[] = [];
   /** Instances made so far per class, for UE-style names (BP_Lampe_C_2). */
   private counters = new Map<string, number>();
-  private timerSeq = 0;
+  private readonly fire: Fire = (actor, match, pin, outputs) => this.interp.fire(actor, match, pin, outputs);
 
   constructor(
     readonly project: Project,
@@ -93,75 +73,42 @@ export class Simulation implements InterpreterHost {
     this.rng = opts.seed ?? 12345;
     this.interp = new Interpreter(project, this, opts.breakpoints);
     const ps = project.level.playerStart;
-    const playerCls = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
-    this.player = playerCls
-      ? { ...this.makeActor('player', 'Joueur', `${playerCls.name}_C_0`, playerCls, {}), isPlayer: true, receivesInput: true }
-      : {
-          id: 'player',
-          label: 'Joueur',
-          objectName: 'DefaultPawn_C_0',
-          className: 'Pawn',
-          isPlayer: true,
-          x: 0,
-          y: 0,
-          yaw: 0,
-          components: [],
-          vars: {},
-          outputs: {},
-          nodeState: {},
-          latent: {},
-          overlaps: new Set(),
-          compOverlaps: new Set(),
-          bindings: {},
-          receivesInput: false,
-          hidden: false,
-          destroyed: false,
-        };
+    this.player = createPlayer(project.playerClassId ? findClass(project, project.playerClassId) : undefined);
     this.player.x = ps.x;
     this.player.y = ps.y;
     this.player.yaw = ps.yaw;
+    if (this.player.classId) this.counters.set(this.player.classId, 1);
     this.spawnLevel();
   }
 
-  private makeActor(id: string, label: string, objectName: string, cls: BlueprintClass, overrides: Record<string, Value>): ActorRT {
-    const vars: Record<string, RValue> = {};
-    for (const v of cls.variables) {
-      const value = v.instanceEditable && v.id in overrides ? overrides[v.id] : v.defaultValue;
-      vars[v.id] = instanceValue(value ?? defaultValueFor(v.type));
-    }
-    return {
-      id,
-      label,
-      objectName,
-      classId: cls.id,
-      className: cls.name,
-      isPlayer: false,
-      x: 0,
-      y: 0,
-      yaw: 0,
-      components: cls.components.map((c) => ({ id: c.id, name: c.name, kind: c.kind, parent: c.parent, props: structuredClone(c.props) })),
-      vars,
-      outputs: {},
-      nodeState: {},
-      latent: {},
-      overlaps: new Set(),
-      compOverlaps: new Set(),
-      bindings: {},
-      receivesInput: cls.autoReceiveInput,
-      hidden: false,
-      destroyed: false,
-    };
+  // ------------------------------------------------------------- journal
+
+  get log(): SimLogEntry[] {
+    return this.journal.log;
+  }
+
+  get screen(): ScreenMessage[] {
+    return this.journal.screen;
+  }
+
+  get runtimeErrors(): number {
+    return this.journal.runtimeErrors;
+  }
+
+  // --------------------------------------------------------------- level
+
+  /** The next UE-style object name for a class: BP_Lampe_C_0, _C_1… */
+  private objectName(cls: BlueprintClass): { n: number; name: string } {
+    const n = this.counters.get(cls.id) ?? 0;
+    this.counters.set(cls.id, n + 1);
+    return { n, name: `${cls.name}_C_${n}` };
   }
 
   private spawnLevel(): void {
-    const counters = this.counters;
-    if (this.player.classId) counters.set(this.player.classId, 1);
     for (const la of this.project.level.actors) {
       const cls = findClass(this.project, la.classId);
       if (!cls) continue;
-      const n = counters.get(cls.id) ?? 0;
-      counters.set(cls.id, n + 1);
-      const a = this.makeActor(la.id, la.name, `${cls.name}_C_${n}`, cls, la.overrides);
+      const a = createActor(la.id, la.name, this.objectName(cls).name, cls, la.overrides);
       a.x = la.x;
       a.y = la.y;
       a.yaw = la.yaw;
@@ -175,11 +122,17 @@ export class Simulation implements InterpreterHost {
     return this.player.classId ? [...list, this.player] : list;
   }
 
+  private fireAll(match: (n: NodeInstance) => boolean, pin: string, outputs?: Record<string, RValue>): void {
+    for (const a of this.scripted()) this.fire(a, match, pin, outputs);
+  }
+
+  // ---------------------------------------------------------------- time
+
   /** Fire BeginPlay on every actor, in level order. */
   start(): void {
     if (this.started) return;
     this.started = true;
-    for (const a of this.scripted()) this.interp.fire(a, (n) => n.def === 'event.beginPlay', 'then');
+    this.fireAll((n) => n.def === 'event.beginPlay', 'then');
     this.runPhases();
   }
 
@@ -193,26 +146,27 @@ export class Simulation implements InterpreterHost {
     }
   }
 
-  /** One frame: move, overlaps, Tick, latent actions, cleanup. */
+  /** One frame: move, overlaps, Tick, latent actions and timers, cleanup. */
   step(dt = STEP): void {
     if (!this.started) this.start();
     if (this.paused) return;
     this.phases.push(
       () => {
-        this.movePlayer(dt);
-        this.updateOverlaps();
+        movePlayer(this.player, this.move, this.actors, dt);
+        updateOverlaps([this.player, ...this.actors.filter((a) => !a.destroyed)], this.fire);
       },
-      () => {
-        for (const a of this.scripted()) this.interp.fire(a, (n) => n.def === 'event.tick', 'then', { delta: dt });
-      },
+      () => this.fireAll((n) => n.def === 'event.tick', 'then', { delta: dt }),
       () => {
         for (const a of this.scripted()) this.interp.tickLatents(a, dt);
-        this.tickTimers(dt);
+        this.timers.tick(dt, (t) => {
+          const owner = this.findActor(t.actor);
+          if (owner && !owner.destroyed) this.fire(owner, (n) => n.id === t.node, 'then');
+        });
       },
       () => {
         this.time += dt;
         this.frame++;
-        this.screen = this.screen.filter((m) => m.until > this.time);
+        this.journal.expire(this.time);
         this.removeDestroyed();
       },
     );
@@ -226,6 +180,21 @@ export class Simulation implements InterpreterHost {
       const next = this.phases.shift();
       if (!next) return;
       next();
+    }
+  }
+
+  private removeDestroyed(): void {
+    const gone = this.actors.filter((a) => a.destroyed);
+    if (!gone.length) return;
+    this.actors = this.actors.filter((a) => !a.destroyed);
+    const goneIds = new Set(gone.map((g) => g.id));
+    const remaining = [this.player, ...this.actors];
+    for (const a of remaining) {
+      for (const key of Object.keys(a.bindings)) a.bindings[key] = a.bindings[key].filter((b) => !goneIds.has(b.actor));
+    }
+    for (const g of gone) {
+      this.timers.dropOwner(g.id);
+      endOverlapsWith(g, remaining, this.fire);
     }
   }
 
@@ -275,8 +244,7 @@ export class Simulation implements InterpreterHost {
     if (!this.started) this.start();
     if (this.paused) return;
     for (const a of this.scripted()) {
-      if (!a.receivesInput) continue;
-      this.interp.fire(a, (n) => n.def === 'event.inputKey' && n.config.key === key, pin);
+      if (a.receivesInput) this.fire(a, (n) => n.def === 'event.inputKey' && n.config.key === key, pin);
     }
     this.runPhases();
   }
@@ -291,136 +259,13 @@ export class Simulation implements InterpreterHost {
   click(actorId: string): void {
     const a = this.actors.find((x) => x.id === actorId);
     if (!a || this.paused) return;
-    this.interp.fire(a, (n) => n.def === 'event.actorOnClicked', 'then');
+    this.fire(a, (n) => n.def === 'event.actorOnClicked', 'then');
     this.runPhases();
   }
 
   teleportPlayer(x: number, y: number): void {
     this.player.x = x;
     this.player.y = y;
-  }
-
-  // -------------------------------------------------------------- physics
-
-  private movePlayer(dt: number): void {
-    let { x: mx, y: my } = this.move;
-    const len = Math.hypot(mx, my);
-    if (len < 0.05) return;
-    if (len > 1) {
-      mx /= len;
-      my /= len;
-    }
-    const p = this.player;
-    let nx = p.x + mx * PLAYER_SPEED * dt;
-    let ny = p.y + my * PLAYER_SPEED * dt;
-    p.yaw = (Math.atan2(my, mx) * 180) / Math.PI;
-    for (let iter = 0; iter < 3; iter++) {
-      for (const a of this.actors) {
-        if (a.destroyed) continue;
-        for (const c of a.components) {
-          if (c.kind !== 'StaticMesh' || !c.props.blocks || !collisionBlocks(c.props.collision)) continue;
-          const s = componentShape(a, c);
-          if (s) [nx, ny] = pushOut(nx, ny, PLAYER_RADIUS, s);
-        }
-      }
-    }
-    p.x = nx;
-    p.y = ny;
-  }
-
-  private updateOverlaps(): void {
-    const live = [this.player, ...this.actors.filter((a) => !a.destroyed)];
-    const shapes = new Map(live.map((a) => [a.id, overlapShapes(a)]));
-    const nextActor = new Map<string, Set<string>>(live.map((a) => [a.id, new Set()]));
-    const nextComp = new Map<string, Set<string>>(live.map((a) => [a.id, new Set()]));
-
-    for (let i = 0; i < live.length; i++) {
-      for (let j = i + 1; j < live.length; j++) {
-        const A = live[i],
-          B = live[j];
-        const sa = shapes.get(A.id)!,
-          sb = shapes.get(B.id)!;
-        let any = false;
-        for (const x of sa) {
-          for (const y of sb) {
-            if (!overlaps(x.shape, y.shape)) continue;
-            any = true;
-            if (x.comp) nextComp.get(A.id)!.add(`${x.comp.id}|${B.id}`);
-            if (y.comp) nextComp.get(B.id)!.add(`${y.comp.id}|${A.id}`);
-          }
-        }
-        if (any) {
-          nextActor.get(A.id)!.add(B.id);
-          nextActor.get(B.id)!.add(A.id);
-        }
-      }
-    }
-
-    // End events first, then begin events, like a frame of UE overlaps.
-    for (const a of live) {
-      const nextC = nextComp.get(a.id)!;
-      for (const key of a.compOverlaps) {
-        if (nextC.has(key)) continue;
-        const [comp, other] = key.split('|');
-        this.interp.fire(a, (n) => n.def === 'event.componentEndOverlap' && n.config.component === comp, 'then', { other: { ref: 'actor', id: other } });
-      }
-      const nextA = nextActor.get(a.id)!;
-      for (const other of a.overlaps) {
-        if (!nextA.has(other)) this.interp.fire(a, (n) => n.def === 'event.actorEndOverlap', 'then', { other: { ref: 'actor', id: other } });
-      }
-    }
-    for (const a of live) {
-      const nextC = nextComp.get(a.id)!;
-      const prevC = a.compOverlaps;
-      const nextA = nextActor.get(a.id)!;
-      const prevA = a.overlaps;
-      a.compOverlaps = nextC;
-      a.overlaps = nextA;
-      for (const key of nextC) {
-        if (prevC.has(key)) continue;
-        const [comp, other] = key.split('|');
-        this.interp.fire(a, (n) => n.def === 'event.componentBeginOverlap' && n.config.component === comp, 'then', { other: { ref: 'actor', id: other } });
-      }
-      for (const other of nextA) {
-        if (!prevA.has(other)) this.interp.fire(a, (n) => n.def === 'event.actorBeginOverlap', 'then', { other: { ref: 'actor', id: other } });
-      }
-    }
-  }
-
-  /** Count timers down; a looping timer can fire several times in a long frame. */
-  private tickTimers(dt: number): void {
-    for (const t of [...this.timers.values()]) {
-      if (t.paused) continue;
-      t.remaining -= dt;
-      const owner = this.findActor(t.actor);
-      for (let guard = 0; t.remaining <= 1e-9 && guard < 1000; guard++) {
-        if (owner && !owner.destroyed) this.interp.fire(owner, (n) => n.id === t.node, 'then');
-        if (!t.looping) {
-          this.timers.delete(t.id);
-          break;
-        }
-        t.remaining += t.time;
-      }
-    }
-  }
-
-  private removeDestroyed(): void {
-    const gone = this.actors.filter((a) => a.destroyed);
-    if (!gone.length) return;
-    for (const g of gone) for (const t of [...this.timers.values()]) if (t.actor === g.id) this.timers.delete(t.id);
-    this.actors = this.actors.filter((a) => !a.destroyed);
-    const goneIds = new Set(gone.map((g) => g.id));
-    for (const a of [this.player, ...this.actors]) {
-      for (const key of Object.keys(a.bindings)) a.bindings[key] = a.bindings[key].filter((b) => !goneIds.has(b.actor));
-    }
-    for (const g of gone) {
-      for (const a of [this.player, ...this.actors]) {
-        if (!a.overlaps.has(g.id)) continue;
-        a.overlaps.delete(g.id);
-        for (const k of [...a.compOverlaps]) if (k.endsWith(`|${g.id}`)) a.compOverlaps.delete(k);
-        this.interp.fire(a, (n) => n.def === 'event.actorEndOverlap', 'then', { other: { ref: 'actor', id: g.id } });
-      }
-    }
   }
 
   // ------------------------------------------------------------ WorldApi
@@ -435,18 +280,7 @@ export class Simulation implements InterpreterHost {
   }
 
   print(actor: ActorRT, text: string, opts: PrintOptions): void {
-    if (opts.toScreen) this.screen.unshift({ id: ++seq, text, until: this.time + Math.max(0, opts.duration) });
-    if (this.screen.length > 12) this.screen.length = 12;
-    if (opts.toLog) {
-      this.log.push({
-        id: ++seq,
-        time: this.time,
-        level: 'log',
-        text: `LogBlueprintUserMessages: [${actor.objectName}] ${text}`,
-        actor: actor.id,
-        message: text,
-      });
-    }
+    this.journal.print(this.time, actor.id, actor.objectName, text, opts);
   }
 
   private findActor(id: string): ActorRT | undefined {
@@ -510,9 +344,8 @@ export class Simulation implements InterpreterHost {
   spawn(classId: string, x: number, y: number, yaw: number): ActorRT | null {
     const cls = findClass(this.project, classId);
     if (!cls) return null;
-    const n = this.counters.get(cls.id) ?? 0;
-    this.counters.set(cls.id, n + 1);
-    const a = this.makeActor(`spawn_${++seq}`, `${cls.name}${n + 1}`, `${cls.name}_C_${n}`, cls, {});
+    const { n, name } = this.objectName(cls);
+    const a = createActor(`spawn_${nextId()}`, `${cls.name}${n + 1}`, name, cls, {});
     a.x = x;
     a.y = y;
     a.yaw = yaw;
@@ -521,22 +354,15 @@ export class Simulation implements InterpreterHost {
   }
 
   setTimer(event: ObjRef, time: number, looping: boolean): RValue {
-    if (event.ref !== 'delegate') return null;
-    // UE: the same event set again replaces its timer; Time <= 0 clears it.
-    const existing = [...this.timers.values()].find((t) => t.actor === event.actor && t.node === event.node);
-    if (existing) this.timers.delete(existing.id);
-    if (!(time > 0)) return null;
-    const id = existing?.id ?? ++this.timerSeq;
-    this.timers.set(id, { id, actor: event.actor, node: event.node, time, remaining: time, looping, paused: false });
-    return { ref: 'timer', id };
+    return event.ref === 'delegate' ? this.timers.set(event, time, looping) : null;
   }
 
   timer(handle: RValue): TimerRT | undefined {
-    return isRef(handle) && handle.ref === 'timer' ? this.timers.get(handle.id) : undefined;
+    return this.timers.get(handle);
   }
 
   clearTimer(handle: RValue): void {
-    if (isRef(handle) && handle.ref === 'timer') this.timers.delete(handle.id);
+    this.timers.clear(handle);
   }
 
   destroy(actor: ActorRT): void {
@@ -560,7 +386,7 @@ export class Simulation implements InterpreterHost {
   enterNode(site: NodeSite): void {
     this.site = site;
     this.trace.push({
-      id: ++seq,
+      id: nextId(),
       time: this.time,
       frame: this.frame,
       actorId: site.actor.id,
@@ -583,11 +409,6 @@ export class Simulation implements InterpreterHost {
     if (this.muted) return;
     const s = this.site;
     const where = s ? ` Node: ${s.nodeTitle} Graph: ${s.graphName} Blueprint: ${s.className}` : '';
-    const text = `Blueprint Runtime Error: "${message}".${where}`;
-    const count = (this.errorCounts.get(text) ?? 0) + 1;
-    this.errorCounts.set(text, count);
-    this.runtimeErrors++;
-    if (count <= 3) this.log.push({ id: ++seq, time: this.time, level: 'error', text });
-    else if (count === 4) this.log.push({ id: ++seq, time: this.time, level: 'warning', text: `(erreur répétée, masquée) ${text}` });
+    this.journal.error(this.time, `Blueprint Runtime Error: "${message}".${where}`);
   }
 }

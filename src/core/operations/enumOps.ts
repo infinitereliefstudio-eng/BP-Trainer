@@ -22,9 +22,7 @@ function eachType(p: Project, fn: (t: PinType) => PinType): void {
       }
       // Generic nodes remember the type they adopted.
       for (const n of Object.values(g.nodes)) {
-        for (const [k, v] of Object.entries(n.config)) {
-          if ((k === 'wild' || k.startsWith('wild:')) && typeof v === 'string') n.config[k] = encodeType(fn(decodeType(v)));
-        }
+        for (const [group, v] of Object.entries(n.wild ?? {})) n.wild![group] = encodeType(fn(decodeType(v)));
       }
     }
   }

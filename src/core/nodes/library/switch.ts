@@ -2,9 +2,10 @@
  * Switch nodes (one exec output per case, plus Default) and Select (pick a
  * value by index). Switch on Enum and Select take their cases from a type.
  */
+import type { NodeInstance } from '../../model/project';
 import { enumEntries } from '../../types/enums';
 import { T } from '../../types/pins';
-import { decodeType, wildKey } from '../../types/wildcard';
+import { adoptedBy, decodeType } from '../../types/wildcard';
 import { dataIn, dataOut, execIn, execOut, type NodeDefinition, type PinSpec } from '../definition';
 
 const CAT = 'Utilities|Flow Control';
@@ -20,9 +21,9 @@ export function stringCases(raw: unknown): string[] {
 }
 
 /** Labels of Select's options, from the type its Index pin adopted. */
-export function selectOptions(n: { config: Record<string, unknown> }, project?: Parameters<typeof enumEntries>[1]): string[] {
-  const wild = n.config[wildKey('index')];
-  const t = typeof wild === 'string' ? decodeType(wild) : undefined;
+export function selectOptions(n: Pick<NodeInstance, 'config' | 'wild'>, project?: Parameters<typeof enumEntries>[1]): string[] {
+  const wild = adoptedBy(n, 'index');
+  const t = wild ? decodeType(wild) : undefined;
   if (t?.category === 'bool') return ['False', 'True'];
   if (t?.category === 'enum') return enumEntries(t.subtype, project) ?? [];
   const count = Math.max(1, Math.min(MAX_CASES, Number(n.config.options ?? 2)));

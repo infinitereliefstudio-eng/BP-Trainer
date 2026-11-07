@@ -6,7 +6,7 @@
  */
 import { findVariable, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import { makeHierarchy } from '../types/pins';
-import { adoptedType, wildKey } from '../types/wildcard';
+import { adoptedBy, adoptedType } from '../types/wildcard';
 import { defaultValueFor, type Value } from '../types/values';
 import type { NodeContext, NodeDefinition, PinSpec } from './definition';
 import { actorNodes } from './library/actor';
@@ -75,8 +75,8 @@ export function declaredPins(node: NodeInstance, ctx: NodeContext): PinSpec[] {
 export function resolvePins(node: NodeInstance, ctx: NodeContext): PinSpec[] {
   return declaredPins(node, ctx).map((p) => {
     if (p.type.category !== 'wildcard') return p;
-    const wild = node.config[wildKey(p.wildGroup)];
-    return typeof wild === 'string' ? { ...p, type: adoptedType(p.type, wild), wild: true } : { ...p, wild: true };
+    const wild = adoptedBy(node, p.wildGroup);
+    return wild ? { ...p, type: adoptedType(p.type, wild), wild: true } : { ...p, wild: true };
   });
 }
 

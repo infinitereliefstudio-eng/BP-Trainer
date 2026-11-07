@@ -383,6 +383,24 @@ describe('maths and text', () => {
 });
 
 describe('saved projects', () => {
+  it('a format-4 node keeps its adopted type, moved out of its settings', async () => {
+    const { parseProject, serializeProject } = await import('../src/core/serialization/serialize');
+    const { b, p } = world((b) => {
+      const arr = b.variable('Liste', T.array(T.int), [1]);
+      const loop = b.node('flow.forEachLoop');
+      b.link(b.node('var.get', { variable: arr }), 'value', loop, 'array');
+      chain(b, loop);
+    });
+    const loop = Object.values(b.graph.nodes).find((n) => n.def === 'flow.forEachLoop')!;
+    loop.config.wild = loop.wild!.default;
+    delete loop.wild;
+    const file = JSON.parse(serializeProject(p));
+    file.format = file.project.format = 4;
+    const loaded = parseProject(JSON.stringify(file));
+    const again = Object.values(loaded.classes[0].graphs[0].nodes).find((n) => n.def === 'flow.forEachLoop')!;
+    expect([again.wild, 'wild' in again.config]).toEqual([{ default: 'int' }, false]);
+  });
+
   it('a format-3 For Each Loop is typed from its wires when loaded', async () => {
     const { parseProject, serializeProject } = await import('../src/core/serialization/serialize');
     const { b, p } = world((b) => {
@@ -392,7 +410,7 @@ describe('saved projects', () => {
       chain(b, loop);
     });
     const loop = Object.values(b.graph.nodes).find((n) => n.def === 'flow.forEachLoop')!;
-    delete loop.config.wild;
+    delete loop.wild;
     const file = JSON.parse(serializeProject(p));
     file.format = 3;
     file.project.format = 3;

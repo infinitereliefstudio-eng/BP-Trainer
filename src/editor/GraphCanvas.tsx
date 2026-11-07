@@ -5,7 +5,7 @@
  */
 import { forwardRef } from 'preact/compat';
 import { useEffect, useImperativeHandle, useRef } from 'preact/hooks';
-import type { PinRef } from '@core/model/project';
+import type { Graph, PinRef } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import { findPin } from '@core/nodes/registry';
 import { connect, moveNodes, setPinDefault, snapNodes } from '@core/operations/graphOps';
@@ -120,7 +120,19 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
     return cam;
   };
 
-  const geoms = (): Map<string, NodeGeom> => layoutGraph(store.graph, store.ctx, measure);
+  /**
+   * Node geometry, computed once per change rather than for every frame and
+   * every touch: every model edit, drag or resize goes through the store,
+   * whose notifications clear it (node positions are read live from the nodes).
+   */
+  const layoutCache = useRef<{ graph: Graph; geoms: Map<string, NodeGeom> } | null>(null);
+  const geoms = (): Map<string, NodeGeom> => {
+    const c = layoutCache.current;
+    if (c && c.graph === store.graph) return c.geoms;
+    const fresh = layoutGraph(store.graph, store.ctx, measure);
+    layoutCache.current = { graph: store.graph, geoms: fresh };
+    return fresh;
+  };
 
   const invalidate = () => {
     const l = live.current;
@@ -252,7 +264,10 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
       invalidate();
     });
     ro.observe(wrap);
-    const unsub = store.subscribe(invalidate);
+    const unsub = store.subscribe(() => {
+      layoutCache.current = null;
+      invalidate();
+    });
 
     const host: GestureHost = {
       hitAt(sx, sy) {

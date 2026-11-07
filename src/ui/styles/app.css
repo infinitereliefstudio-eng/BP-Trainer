@@ -208,7 +208,7 @@ select.field { padding-right: 4px; }
   position: absolute; top: 8px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px;
   padding: 4px; background: rgba(20, 20, 20, 0.9); border: 1px solid var(--line-2); border-radius: 10px;
 }
-.pb-btn { height: 34px; min-width: 38px; padding: 0 8px; border-radius: 7px; background: var(--panel-2); border: 1px solid var(--line-2); font-weight: 600; }
+.pb-btn { white-space: nowrap; height: 34px; min-width: 38px; padding: 0 8px; border-radius: 7px; background: var(--panel-2); border: 1px solid var(--line-2); font-weight: 600; }
 .pb-btn.small { min-width: 34px; font-size: 13px; }
 .pb-btn.on { background: var(--accent-soft); border-color: var(--accent); }
 .pb-btn.stop { color: #ffb3b3; border-color: #6b2a2a; }

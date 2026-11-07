@@ -1,5 +1,15 @@
-/** Runtime value helpers shared by behaviours: copies and UE-style equality. */
+/** Runtime value helpers shared by behaviours: conversions, copies and UE-style equality. */
+import type { Vec3 } from '../types/values';
 import { isRef, type RValue } from './world';
+
+/** An Integer as UE stores it: 32 bits, truncated toward zero. */
+export const toInt = (n: number) => Math.trunc(n) | 0;
+
+/** A Vector or Rotator value, missing or broken parts read as 0. */
+export function toVec(v: unknown): Vec3 {
+  const p = (v ?? {}) as Partial<Vec3>;
+  return { x: Number(p.x) || 0, y: Number(p.y) || 0, z: Number(p.z) || 0 };
+}
 
 /** A deep copy for arrays and vectors, as UE copies on Set; references stay shared. */
 export function copyValue(v: RValue): RValue {

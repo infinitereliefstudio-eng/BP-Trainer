@@ -35,7 +35,8 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 
 - Valider l'étape 4 sur la page de test.
 - Fait le 2026-11-07 : BP-Trainer rendu public (option A), GitHub Pages activé (source GitHub Actions), appli en ligne à https://infinitereliefstudio-eng.github.io/BP-Trainer/ (manifest et service worker vérifiés). Dépôt racine `infinitereliefstudio-eng.github.io` créé et rattaché à la session, avec `.nojekyll`, `index.html` (redirection) et un README.
-- Passer l'adresse `https://infinitereliefstudio-eng.github.io/BP-Trainer/` dans PWABuilder et envoyer `assetlinks.json`. Marche à suivre complète : [APK.md](APK.md).
+- Fait le 2026-11-07 : paquet PWABuilder généré par Tristan (Package ID `com.infiniterelief.bptrainer`, clé « New », empreinte SHA-256 `CB:44:1E:…:4E:A2`, vérifiée identique dans l'APK). `assetlinks.json` publié dans le dépôt racine (copie dans `hosting/root-site/.well-known/`). Tristan garde le zip (clé et mots de passe) : ne jamais les mettre dans un dépôt.
+- Reste : Tristan installe l'APK et confirme plein écran sans barre d'adresse et hors ligne.
 
 ### Après l'APK
 

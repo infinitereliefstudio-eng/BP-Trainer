@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.infiniterelief.bptrainer",
+      "sha256_cert_fingerprints": [
+        "CB:44:1E:28:22:CC:3A:C4:2B:15:B5:F6:47:6F:2F:24:C4:7B:DC:54:2B:13:5F:53:7C:2D:5B:E4:82:D6:4E:A2"
+      ]
+    }
+  }
+]

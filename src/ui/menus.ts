@@ -128,7 +128,7 @@ export function linkMenu(store: EditorStore, linkId: string): MenuItem[] {
           delete g.links[linkId];
         }),
     },
-    { label: 'Ajouter un Reroute', hint: 'étape 3', disabled: true },
+    { label: 'Ajouter un Reroute', hint: 'étape 4', disabled: true },
   ];
 }
 

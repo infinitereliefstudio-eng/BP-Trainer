@@ -111,16 +111,17 @@ export function ConfirmDialog(props: { title: string; text: string; confirmLabel
 
 export function AboutDialog({ onClose }: { onClose: () => void }) {
   return (
-    <Dialog title="BP Trainer — étape 1" onClose={onClose}>
-      <p>Le socle de l’éditeur : créer des Blueprints, des nœuds, des fils et des variables, au doigt.</p>
+    <Dialog title="BP Trainer — étape 3" onClose={onClose}>
+      <p>Créer des Blueprints, les faire communiquer, les lancer avec Play et les déboguer, au doigt.</p>
       <ul class="about-list">
         <li>Appui long sur le vide : palette des nœuds.</li>
         <li>Tirer depuis une pin : un fil. Relâcher dans le vide : palette filtrée.</li>
         <li>Toucher une pin puis une autre : relier sans glisser.</li>
         <li>Appui long sur un nœud, une pin ou un fil : options.</li>
         <li>Deux doigts : zoom et déplacement.</li>
+        <li>Appui long sur un nœud › Ajouter un breakpoint : Play s’arrête juste avant lui.</li>
       </ul>
-      <p class="muted small">La simulation (Play) arrive à l’étape 2.</p>
+      <p class="muted small">La leçon 12, le mode Simulation complet et l’installation hors ligne arrivent à l’étape 4.</p>
       <div class="dialog-actions">
         <button class="btn primary" onClick={onClose}>
           Compris

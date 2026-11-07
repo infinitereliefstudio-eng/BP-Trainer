@@ -81,3 +81,8 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 ## Format de sauvegarde
 
 Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 3 (Event Dispatchers, interfaces implémentées, Blueprint Interfaces du projet, pion du joueur, signatures des fonctions). Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
+
+## Outils
+
+- `tools/e2e/solved.gen.ts` écrit les projets résolus de quelques leçons ; `tools/e2e/smoke.py` les charge dans l'appli construite et parcourt les écrans principaux sur un téléphone simulé (800×370, tactile), captures dans `tools/e2e/out/shots/`.
+- `tools/make-test-page.py` transforme `dist/index.html` en page publiable sur claude.ai.

@@ -31,4 +31,10 @@ npm run build      # build dans dist/ (un seul index.html autonome)
 
 Chaque push sur `main` est testé, construit et publié sur GitHub Pages par `.github/workflows/deploy.yml`.
 
-L'architecture est décrite dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Documentation :
+
+- [docs/HANDOFF.md](docs/HANDOFF.md) : pour reprendre le projet (état, décisions, étape suivante, méthode).
+- [docs/PLAN_V1.md](docs/PLAN_V1.md) : le plan V1 validé.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) : l'architecture du code.
+- [docs/BACKLOG.md](docs/BACKLOG.md) : les idées notées pour plus tard.
+- `tools/` : test visuel sur téléphone simulé (`tools/e2e`) et génération de la page de test.

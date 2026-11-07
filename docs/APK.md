@@ -2,6 +2,13 @@
 
 L'appli est une PWA (hors ligne, plein écran, paysage) publiée sur GitHub Pages. PWABuilder l'emballe en APK Android (Trusted Web Activity) : l'APK charge l'appli publiée, donc les mises à jour arrivent sans réinstaller.
 
+Guide pas à pas pour Tristan : Claude Doc « BP Trainer — Packager l'APK », https://claude.ai/artifact/BPbTioRMLtn9fNgSWMR5Po.
+
+**Le dépôt BP-Trainer est privé** (vérifié le 2026-11-07). Avec un compte GitHub gratuit, Pages ne publie que des dépôts publics : c'est pour ça que le job `deploy` échoue. Deux options :
+
+- **A** (recommandée) : rendre BP-Trainer public. L'appli est à `/BP-Trainer/`, publiée par la CI ; le dépôt racine ne sert que `.nojekyll`, `index.html` (redirection) et `.well-known/assetlinks.json`.
+- **B** : garder BP-Trainer privé. Claude pousse `dist/` à la racine du dépôt `infinitereliefstudio-eng.github.io` à chaque version (plus `.nojekyll` et `.well-known/`) ; l'appli est à `/`. Pas de mise à jour automatique.
+
 ## Ce que Tristan fait, depuis son téléphone
 
 1. **Activer GitHub Pages sur BP-Trainer** : dépôt BP-Trainer › Settings › Pages › Source : **GitHub Actions**. Le prochain envoi publie l'appli à `https://infinitereliefstudio-eng.github.io/BP-Trainer/`.

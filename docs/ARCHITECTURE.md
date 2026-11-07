@@ -15,11 +15,11 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 
 | Dossier | Rôle |
 | --- | --- |
-| `types/` | Système de types des pins (`PinType`, compatibilité, héritage des classes) et valeurs littérales |
+| `types/` | Système de types des pins (`PinType`, compatibilité, héritage des classes), valeurs littérales, Enums (`enums.ts` : ECollisionEnabled et ceux du projet), pins génériques (`wildcard.ts`) |
 | `model/` | Les données du projet : `Project` → `BlueprintClass` → `Graph` → `NodeInstance` / `Link`, plus variables et composants. Du JSON pur |
 | `nodes/` | La bibliothèque de nœuds : une **définition** par nœud (titre, pins, réglages, aide), rangée par catégorie dans `library/`, indexée par `registry.ts`. `palette.ts` génère les entrées de recherche (dont Get/Set par variable) |
 | `graph/rules.ts` | Les règles de connexion d'UE (une source par entrée de données, une cible par sortie exec, types compatibles) |
-| `operations/` | Les mutateurs : ajouter un nœud, relier, renommer une variable… Chaque fonction modifie le modèle, sans gérer l'annulation |
+| `operations/` | Les mutateurs : ajouter un nœud, relier, renommer une variable… Chaque fonction modifie le modèle, sans gérer l'annulation. `wildcardOps` type les nœuds génériques, `organizeOps` gère Reroute et Comment, `enumOps` les Enums et les renommages de types |
 | `history/` | Annuler / rétablir par instantanés JSON du Blueprint touché (ou du projet) |
 | `compiler/` | Le bouton Compile : vérifications façon UE et messages pour Compiler Results |
 | `store/` | `EditorStore`, la source de vérité de la session : projet, historique, Blueprint et graphe ouverts, sélection, messages |
@@ -35,6 +35,14 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 3. Écrire son comportement dans `core/runtime/behaviors/` sous le même identifiant : `exec` pour un nœud impur (il renvoie les sorties exec à suivre), `pure` pour un nœud pur (il renvoie ses valeurs).
 
 L'éditeur, la palette, Details, la compilation et l'interpréteur le prennent en compte sans autre changement. Un test vérifie que chaque nœud exécutable a un comportement.
+
+### Pins génériques (Wildcard)
+
+Comme dans UE, un nœud générique (tableaux, Select, Reroute, For Each…) prend le type du premier fil branché sur l'une de ses pins Wildcard : `adoptWildcard` l'écrit dans `config.wild` (ou `config["wild:<groupe>"]` quand le nœud a plusieurs groupes, comme Select). `resolvePins` remplace alors les pins Wildcard par ce type ; `releaseWildcards` le retire quand le dernier fil part (à chaque fin de transaction du store). `accepts` limite les types possibles (Index de Select : Integer, Boolean ou Enum). Les projets au format 3 sont typés au chargement depuis leurs fils.
+
+### Pins par référence
+
+Une pin `byRef` (losange, comme dans UE) attend un Get de variable : le comportement écrit dans cette variable avec `cx.writeRef` (Increment Int, Clear and Invalidate Timer). Les fonctions de tableau modifient le tableau en place : un Get transmet le tableau de la variable lui-même. Set copie les tableaux et vecteurs (`runtime/values.ts`). Le compilateur refuse une pin par référence qui n'est pas reliée à une variable.
 
 ### Nœuds liés au projet
 
@@ -59,6 +67,8 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - `layout.ts` calcule la géométrie de chaque nœud (taille, position des pins, champs de valeur) ; le rendu et le hit-test s'en servent tous les deux.
 - `render/` dessine la grille, les fils (courbes de Bézier) et les nœuds, aux couleurs d'UE (`theme.ts`), plus la loupe pendant qu'on tire un fil.
 - `gestures.ts` reconnaît les gestes (toucher, double toucher, appui long, glisser, pincer) ; `GraphCanvas.tsx` leur donne un sens et appelle le store.
+- Reroute (style `knot`) : un point, saisi par son centre ; ses pins sont de part et d'autre. Comment (style `comment`) : dessiné derrière les fils, saisi par sa barre de titre (déplace les nœuds qu'il contient entièrement) ou sa poignée (redimensionne) ; son intérieur reste du vide.
+- `world/playSession.ts` garde l'acteur choisi (`selected`) : surligné dans le niveau, montré dans l'Outliner en direct (`ui/play/LiveOutliner.tsx`), et objet débogué.
 
 ## Débogage
 
@@ -77,12 +87,21 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - Appeler un Custom Event, un Event Dispatcher ou une fonction exécute la chaîne appelée tout de suite, puis l'appelant continue (les frames appelées sont empilées au-dessus). Un Interface Message vers un acteur qui n'implémente pas l'interface ne fait rien, sans erreur ; Cast Failed n'est pas une erreur non plus.
 - Une fonction pure est exécutée jusqu'au bout à chaque lecture de ses sorties.
 - Au-delà de 100 000 nœuds pour un seul événement : « Infinite loop detected ».
+- Set Timer by Event garde un timer par événement (`Simulation.timers`), décompté après les actions latentes ; relancer le même événement remplace son timer, Time à 0 l'arrête. Un timer en Looping peut se déclencher plusieurs fois dans une longue frame.
+- Spawn Actor exécute le BeginPlay du nouvel acteur avant que la chaîne continue ; Destroy Actor exécute d'abord son Event Destroyed.
+- Collision Enabled (ECollisionEnabled) : Query déclenche les overlaps (Box Collision), Physics bloque le joueur (Static Mesh). Set Actor Hidden In Game ne touche pas la collision, comme dans UE.
+- Une Point Light n'a pas d'icône en jeu : seul son halo est dessiné.
 
 ## Format de sauvegarde
 
-Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 3 (Event Dispatchers, interfaces implémentées, Blueprint Interfaces du projet, pion du joueur, signatures des fonctions). Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
+Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 4 (Enums du projet, Collision Enabled des composants, type adopté par les nœuds génériques). Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
 
 ## Outils
 
 - `tools/e2e/solved.gen.ts` écrit les projets résolus de quelques leçons ; `tools/e2e/smoke.py` les charge dans l'appli construite et parcourt les écrans principaux sur un téléphone simulé (800×370, tactile), captures dans `tools/e2e/out/shots/`.
 - `tools/make-test-page.py` transforme `dist/index.html` en page publiable sur claude.ai.
+- `tools/icons/make_icons.py` dessine les icônes de `public/icons/`.
+
+## Hors ligne et APK
+
+`public/` est copié tel quel dans `dist/` : manifest (plein écran, paysage), service worker (`sw.js` : page en réseau d'abord, cache sinon), icônes. `src/offline.ts` enregistre le service worker en HTTPS hors d'un cadre (pas dans la page de test claude.ai). Le dépôt `infinitereliefstudio-eng.github.io` servira `/.well-known/assetlinks.json` (contenu dans `hosting/root-site/`). Marche à suivre : [APK.md](APK.md).

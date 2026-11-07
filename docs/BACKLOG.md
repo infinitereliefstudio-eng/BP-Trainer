@@ -17,5 +17,5 @@ Limites : règles sans compréhension de l'intention (fausses alertes possibles,
 
 - Variables locales des fonctions, paramètres des fonctions d'interface, fonctions d'interface avec sortie (aujourd'hui : événements sans paramètre).
 - Remplacer un Custom Event par l'événement d'interface du même nom en un geste (UE le propose quand on implémente l'interface).
-- Pendant Play : modifier une variable d'instance dans Details, choisir l'objet débogué depuis le niveau.
+- ~~Pendant Play : modifier une variable d'instance dans Details, choisir l'objet débogué depuis le niveau.~~ Fait à l'étape 4 avec l'Outliner en direct.
 - Flèches entre les acteurs du niveau qui se référencent (Details › variables Instance Editable).

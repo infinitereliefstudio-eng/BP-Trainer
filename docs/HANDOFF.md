@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V1.md](PLAN_V1.md) (le plan validé), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-06, fin de l'étape 3.
+Dernière mise à jour : 2026-11-07, fin de l'étape 4 (V1 complète, en attente de validation et d'APK).
 
 ## Le projet
 
@@ -17,7 +17,8 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 - **Tristan** (studio Infinite Relief Studio), développeur indé UE5 sur son jeu « Station enterrée ». Il parle **français** : réponses, textes de l'appli et docs en français ; noms des nœuds, pins et panneaux **en anglais comme dans UE**.
 - Il n'a **qu'un téléphone**, pas d'ordinateur. Il teste sur la page claude.ai en paysage. Il ne lance aucune commande.
 - Il veut **une architecture maintenable et évolutive**, pas de gros fichiers : un fichier par responsabilité, des définitions déclaratives.
-- **Une étape à la fois, avec une porte de validation** : on ne commence l'étape suivante qu'après son feu vert explicite sur son téléphone. Il a validé les étapes 1 et 2 (« Tout fonctionne parfaitement »).
+- Il veut être sûr que la **logique est simulée de façon générale**, pas seulement les cas des leçons (retour du 7 novembre, après un Set Visibility sur le mesh qui semblait sans effet : c'était l'icône de la lumière dessinée par-dessus). Le runtime ne contient aucun cas particulier de leçon : garder ce principe.
+- **Une étape à la fois, avec une porte de validation** : on ne commence l'étape suivante qu'après son feu vert explicite sur son téléphone. Il a validé les étapes 1, 2 et 3.
 - Il ne veut pas avancer le packaging APK avant l'étape 4.
 - Les retours sur la qualité des solutions (au-delà de « ça marche ») sont notés dans BACKLOG.md ; il a demandé de **ne pas les implémenter maintenant**.
 
@@ -27,44 +28,45 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 |---|---|---|
 | 1 — Socle de l'éditeur | Canvas, nœuds, fils, gestes, palette, My Blueprint, Details, variables, sauvegarde, export | Validée |
 | 2 — Interpréteur et monde 2D | Compilation, interpréteur, niveau, Play (joystick, E/F/Espace, vitesse, frame par frame), Output Log, leçons 1 à 5 | Validée |
-| 3 — Communication et débogage | Références, Cast, dispatchers, interfaces, fonctions ; breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés ; leçons 6 à 11, Prédis P1–P3, Débogue D1–D2 | **Livrée le 2026-11-06, en attente de la validation de Tristan** |
-| 4 — Synthèse et APK | Voir plus bas | À faire après validation |
+| 3 — Communication et débogage | Références, Cast, dispatchers, interfaces, fonctions ; breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés ; leçons 6 à 11, Prédis P1–P3, Débogue D1–D2 | Validée le 2026-11-07 |
+| 4 — Synthèse et APK | Bibliothèque complète (172 définitions, 153 dans la palette), leçon 12, Outliner en direct pendant Play, hors ligne (manifest, service worker, icônes) | **Livrée le 2026-11-07, en attente de la validation de Tristan** ; APK à faire avec lui |
 
 ### En attente côté Tristan
 
-- **Activer GitHub Pages** : Settings → Pages → Source : « GitHub Actions ». Tant que ce n'est pas fait, le job `deploy` du workflow échoue (le build et les tests passent). L'API Pages n'est pas joignable depuis l'espace de travail de Claude (proxy).
-- Valider l'étape 3 sur la page de test.
+- Valider l'étape 4 sur la page de test.
+- **Activer GitHub Pages** : Settings → Pages → Source : « GitHub Actions ». Tant que ce n'est pas fait, le job `build` échoue à `configure-pages` (les tests et le build passent). L'API Pages n'est pas joignable depuis l'espace de travail de Claude (proxy).
+- **Créer le dépôt public `infinitereliefstudio-eng.github.io`** et autoriser Claude à y écrire (rattacher un nouveau dépôt demande son accord explicite). Claude y pousse `hosting/root-site/`.
+- Passer l'adresse `https://infinitereliefstudio-eng.github.io/BP-Trainer/` dans PWABuilder et envoyer `assetlinks.json`. Marche à suivre complète : [APK.md](APK.md).
+
+### Après l'APK
+
+- Publier `assetlinks.json` dans `hosting/root-site/.well-known/` puis dans le dépôt racine ; vérifier que l'URL `/.well-known/assetlinks.json` répond.
+- Vérifier avec Tristan : APK installée, plein écran sans barre d'adresse, fonctionne hors ligne. C'est la livraison V1.
 
 ## Écarts et décisions depuis le plan
 
 - Le joueur fourni s'appelle **BP_Joueur** (le plan dit BP_Player). Leçons 1 à 5 : pion par défaut, sans Blueprint. À partir de la leçon 6 : BP_Joueur (parent Pawn) réglé comme pion du joueur (`Project.playerClassId`, case « Default Pawn » dans Class Settings). Le joueur Blueprint reçoit toujours les touches.
 - Ordre du parcours (`core/lessons/index.ts`) : L1–L4, **P1**, L5–L8, **P2**, L9, **D1**, L10, **P3**, L11, **D2**. Les exercices ont `kind: 'predict' | 'debug'` et un `code` (P1, D1…).
-- Les **fonctions utilisateur** sont livrées à l'étape 3 (entrées, sorties, pure ou non, appel depuis un autre Blueprint). Pas encore de variables locales.
+- Les **fonctions utilisateur** sont livrées à l'étape 3 (entrées, sorties, pure ou non, appel depuis un autre Blueprint). Pas de variables locales (V2).
 - Les fonctions d'interface n'ont **pas de paramètres** pour l'instant (événements simples).
 - Pendant Play, le graphe et le niveau sont des **onglets** (pas d'écran partagé, trop petit sur téléphone). En pause, un tiroir Debug s'ouvre à droite du graphe.
 - Les breakpoints ne sont **pas sauvegardés** (comme dans UE).
 - En jeu, une Point Light n'est visible que par son halo : son icône (ampoule) n'est dessinée que dans l'éditeur, comme dans UE. Cacher le mesh d'une lampe laisse donc seulement la lumière au sol.
 - La validation d'une leçon est **comportementale** (scénario joué puis vérifications) ; quelques contraintes de notion (Branch en L4, DoOnce en L5, Cast en L6, pas de Tick en L10, pas de Cast en L11).
-- Hébergement : l'appli est publiée par GitHub Pages depuis le dépôt BP-Trainer. Le fichier `assetlinks.json` doit être à la **racine du domaine** : il faudra un second dépôt `infinitereliefstudio-eng.github.io` qui sert `/.well-known/assetlinks.json` (ou y déplacer l'appli). À trancher avec Tristan à l'étape 4.
+- Hébergement : l'appli reste publiée par GitHub Pages depuis BP-Trainer, sous `/BP-Trainer/`. Le fichier `assetlinks.json` doit être à la **racine du domaine** : un second dépôt `infinitereliefstudio-eng.github.io` le sert (contenu prêt dans `hosting/root-site/`, avec `.nojekyll` pour que `.well-known` soit publié et un `index.html` qui redirige vers l'appli).
+- Étape 4, choix d'implémentation :
+  - Pins génériques à la manière d'UE (type adopté au premier fil, perdu au dernier) ; pins par référence en losange pour Increment / Decrement et Clear and Invalidate Timer ; les fonctions de tableau modifient le tableau de la variable reliée.
+  - Valeurs : une Class Reference est l'**id** de la classe (les types, eux, nomment la classe) ; un Linear Color est une couleur `#rrggbb` ; un Enum vaut l'index de son entrée. Renommer une classe ou un Enum suit partout (variables, paramètres, nœuds génériques).
+  - Spawn Actor : Spawn Transform découpé en Location et Rotation (pin de structure éclatée d'UE). Le BeginPlay du nouvel acteur s'exécute avant la suite. Destroy Actor exécute d'abord Event Destroyed.
+  - Supprimer un Enum encore utilisé est refusé, comme UE refuse de supprimer un asset référencé.
+  - Increment Float et Decrement Float existent en plus d'Int ; XOR, Floor, Ceil, To Upper, Random Array Item aussi.
+  - Le mode Simulation était déjà libre pour placer les acteurs (+ Placer, glisser) ; l'étape 4 ajoute l'Outliner en direct pendant Play (☷).
+  - La page de test claude.ai n'enregistre pas le service worker (dans un cadre) : le hors ligne ne se teste que sur GitHub Pages.
 
-## Étape 4 — à faire (après le feu vert)
+## Suite possible (V2, à décider avec Tristan)
 
-1. **Leçon 12 « Remettre la station en route »** (module 4 « Synthèse », voir le tableau du plan) : ramasser 3 fusibles, réparer le générateur qui alimente lampes et porte, carburant qui baisse avec le temps. Notions : tableau ou compteur, **Set Timer by Event**, **Clamp**, plus interface et dispatcher. Les briques réutilisables sont dans `core/lessons/library/props.ts`.
-2. **Compléter la bibliothèque** vers la centaine de nœuds du plan. Manquent notamment :
-   - Events : Event Destroyed.
-   - Flow : DoN, MultiGate, ForLoopWithBreak, WhileLoop, Switch on Int / String / Enum, Select.
-   - Temps : Set Timer by Event, Clear and Invalidate Timer by Handle, Is Timer Active by Handle (+ type Timer Handle).
-   - Variables : Increment / Decrement Int.
-   - Maths et logique : toutes les opérations pour Int et Float (÷, %, −, ×, comparaisons !=, <=, >=…), Clamp, Min, Max, Abs, Truncate, Round, Random Float in Range, Random Bool.
-   - Texte : Append, Contains, Len, Equal (String).
-   - Tableaux : Add, Remove Index, Get, Set Array Elem, Contains, Find, Clear (Length et For Each existent).
-   - Acteurs : Spawn Actor from Class, Get All Actors of Class, Get Actor of Class, Get Display Name, Set Actor Hidden In Game, Get / Set Actor Location.
-   - Composants : Set Light Color, Set Collision Enabled.
-   - Organisation : Reroute (l'entrée « Ajouter un Reroute » du menu d'un fil est désactivée), Comment.
-   - Types : Enum (et création d'Enums), Class Reference, Timer Handle.
-3. **Mode Simulation complet** : Outliner et Details en direct pendant Play (variables de chaque instance, modifiables), placement libre des acteurs.
-4. **Hors ligne et APK** : manifest, service worker, icônes, paysage forcé ; GitHub Pages actif ; APK via PWABuilder ; `assetlinks.json` (Tristan envoie celui du zip PWABuilder). Étapes détaillées dans PLAN_V1.md, section « Packaging APK via PWABuilder et hébergement ».
-5. Selon le temps : les points de BACKLOG.md marqués « étape 3 ».
+- Points de [BACKLOG.md](BACKLOG.md) : qualité des solutions (ne pas les faire sans sa demande), variables locales, paramètres des fonctions d'interface.
+- Types et assets annoncés pour la V2 dans le plan : Text, Name, Struct, Map, Set, GameMode, GameInstance, Data Tables.
 
 ## Méthode de travail
 

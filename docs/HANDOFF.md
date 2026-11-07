@@ -34,9 +34,7 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 ### En attente côté Tristan
 
 - Valider l'étape 4 sur la page de test.
-- **Le dépôt BP-Trainer est privé** : Pages gratuit ne publie que les dépôts publics. Tristan choisit entre le rendre public (option A, recommandée) et le garder privé (option B, Claude pousse `dist/` dans le dépôt racine). Voir [APK.md](APK.md).
-- **Activer GitHub Pages** (option A) : Settings → Pages → Source : « GitHub Actions ». Tant que ce n'est pas fait, le job `build` échoue à `configure-pages` (les tests et le build passent). L'API Pages n'est pas joignable depuis l'espace de travail de Claude (proxy).
-- **Créer le dépôt public `infinitereliefstudio-eng.github.io`** et autoriser Claude à y écrire (rattacher un nouveau dépôt demande son accord explicite). Claude y pousse `hosting/root-site/`.
+- Fait le 2026-11-07 : BP-Trainer rendu public (option A), GitHub Pages activé (source GitHub Actions), appli en ligne à https://infinitereliefstudio-eng.github.io/BP-Trainer/ (manifest et service worker vérifiés). Dépôt racine `infinitereliefstudio-eng.github.io` créé et rattaché à la session, avec `.nojekyll`, `index.html` (redirection) et un README.
 - Passer l'adresse `https://infinitereliefstudio-eng.github.io/BP-Trainer/` dans PWABuilder et envoyer `assetlinks.json`. Marche à suivre complète : [APK.md](APK.md).
 
 ### Après l'APK

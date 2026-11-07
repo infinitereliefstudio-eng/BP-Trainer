@@ -14,7 +14,8 @@ Avant toute chose, lis **docs/HANDOFF.md** : contexte, état des étapes, décis
 
 ```bash
 npm ci
-npm test                 # vitest : cœur, runtime, chaque leçon et exercice
+npm run lint             # Biome
+npm test                 # vitest : cœur, runtime, chaque leçon et exercice, chaque nœud
 npx tsc --noEmit
 npm run build            # un seul fichier dist/index.html
 npx vitest run --config tools/e2e/vitest.config.ts && python3 tools/e2e/smoke.py   # captures téléphone simulé

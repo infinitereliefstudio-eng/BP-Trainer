@@ -25,7 +25,7 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 | `store/` | `EditorStore`, la source de vérité de la session : projet, historique, Blueprint et graphe ouverts, sélection, messages |
 | `serialization/` | Format de fichier versionné et migrations |
 | `templates/` | Le projet de départ du mode Simulation |
-| `runtime/` | L'exécution : `interpreter.ts` (pile de frames explicite, file d'événements, appels synchrones, fonctions, nœuds purs recalculés à chaque lecture, actions latentes, breakpoints, erreurs façon UE), `behaviors/` (ce que fait chaque nœud), `physics.ts` (boîtes orientées, overlaps, collisions du joueur), `simulation.ts` (le niveau en jeu : acteurs, joueur éventuellement Blueprint, BeginPlay, Tick, touches, temps en pas fixes de 1/60 s découpés en phases reprenables, Execution Trace) |
+| `runtime/` | L'exécution : `interpreter.ts` (pile de frames explicite, file d'événements, appels synchrones, fonctions avec une portée par appel, nœuds purs recalculés à chaque lecture, actions latentes, breakpoints, erreurs façon UE), `behaviors/` (ce que fait chaque nœud), `simulation.ts` (orchestre une partie : BeginPlay, Tick, touches, temps en pas fixes de 1/60 s découpés en phases reprenables, Execution Trace, réponses à l'interpréteur) et ce qu'il ordonne : `actorFactory.ts` (instances, joueur), `movement.ts` (déplacement du joueur), `physics.ts` et `overlaps.ts` (formes, événements d'overlap), `timers.ts` (Set Timer by Event), `journal.ts` (Output Log, messages à l'écran), `values.ts` (copies, égalité, conversions) |
 | `lessons/` | Le parcours : chaque leçon décrit ses explications, son projet de départ, un scénario joué automatiquement et des vérifications. `runner.ts` exécute le scénario sans affichage ; chaque leçon fournit aussi sa solution de référence, testée. `library/props.ts` regroupe les Blueprints réutilisés (joueur, clé, porte, générateur, lampe) ; `library/exercises.ts` les exercices « Prédis » (`kind: 'predict'`, réponse vérifiée par la simulation dans les tests) et « Débogue » (`kind: 'debug'`) |
 
 ### Ajouter un nœud
@@ -34,11 +34,11 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 2. Si c'est un nouveau fichier, l'ajouter à la liste de `core/nodes/registry.ts`.
 3. Écrire son comportement dans `core/runtime/behaviors/` sous le même identifiant : `exec` pour un nœud impur (il renvoie les sorties exec à suivre), `pure` pour un nœud pur (il renvoie ses valeurs).
 
-L'éditeur, la palette, Details, la compilation et l'interpréteur le prennent en compte sans autre changement. Un test vérifie que chaque nœud exécutable a un comportement.
+L'éditeur, la palette, Details, la compilation et l'interpréteur le prennent en compte sans autre changement. Deux tests le gardent : chaque nœud exécutable a un comportement (`tests/lessons.test.ts`), et ce comportement ne lit et n'écrit que des pins de sa définition (`tests/behaviours.test.ts`, qui l'exécute à blanc : une pin mal nommée y échoue au lieu de lire une valeur vide). Un nœud dont les pins dépendent d'un réglage y reçoit un réglage d'exemple (`CONFIG`).
 
 ### Pins génériques (Wildcard)
 
-Comme dans UE, un nœud générique (tableaux, Select, Reroute, For Each…) prend le type du premier fil branché sur l'une de ses pins Wildcard : `adoptWildcard` l'écrit dans `config.wild` (ou `config["wild:<groupe>"]` quand le nœud a plusieurs groupes, comme Select). `resolvePins` remplace alors les pins Wildcard par ce type ; `releaseWildcards` le retire quand le dernier fil part (à chaque fin de transaction du store). `accepts` limite les types possibles (Index de Select : Integer, Boolean ou Enum). Les projets au format 3 sont typés au chargement depuis leurs fils.
+Comme dans UE, un nœud générique (tableaux, Select, Reroute, For Each…) prend le type du premier fil branché sur l'une de ses pins Wildcard : `adoptWildcard` l'écrit dans `node.wild[<groupe>]` (`default`, ou le `wildGroup` de la pin quand le nœud a plusieurs groupes, comme Select). Cet état interne reste hors de `config`, qui ne porte que les réglages de l'utilisateur. `resolvePins` remplace alors les pins Wildcard par ce type ; `releaseWildcards` le retire quand le dernier fil part (à chaque fin de transaction du store). `accepts` limite les types possibles (Index de Select : Integer, Boolean ou Enum). Les projets au format 3 sont typés au chargement depuis leurs fils.
 
 ### Pins par référence
 
@@ -84,7 +84,10 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - Les boucles se rappellent elles-mêmes après leur corps (`resume`) : une boucle entière tient dans une frame.
 - Delay ignore un nouvel appel pendant son attente ; Retriggerable Delay repart de zéro.
 - Une référence vide produit « Accessed None trying to read property… » dans l'Output Log, le nœud est sauté et la suite continue.
-- Appeler un Custom Event, un Event Dispatcher ou une fonction exécute la chaîne appelée tout de suite, puis l'appelant continue (les frames appelées sont empilées au-dessus). Un Interface Message vers un acteur qui n'implémente pas l'interface ne fait rien, sans erreur ; Cast Failed n'est pas une erreur non plus.
+- Appeler un Custom Event, un Event Dispatcher ou une fonction exécute la chaîne appelée tout de suite, puis l'appelant continue (les frames appelées sont empilées au-dessus).
+- Chaque frame porte une portée (`Scope`) : sorties des nœuds et mémoire des macros. Un Event Graph utilise celle de l'acteur, gardée d'un événement à l'autre ; chaque appel de fonction en reçoit une neuve, comme les variables locales d'UE. Une fonction peut donc s'appeler elle-même, et un DoOnce dans une fonction repart à zéro à chaque appel.
+- Equal (Float) est exact, comme le == d'UE ; Nearly Equal (Float) prend une tolérance.
+- Les composants d'un joueur Blueprint comptent comme ceux de tout acteur : ses Box Collision déclenchent des overlaps, ses meshes, lumières et textes sont dessinés sous sa capsule. Un Interface Message vers un acteur qui n'implémente pas l'interface ne fait rien, sans erreur ; Cast Failed n'est pas une erreur non plus.
 - Une fonction pure est exécutée jusqu'au bout à chaque lecture de ses sorties.
 - Au-delà de 100 000 nœuds pour un seul événement : « Infinite loop detected ».
 - Set Timer by Event garde un timer par événement (`Simulation.timers`), décompté après les actions latentes ; relancer le même événement remplace son timer, Time à 0 l'arrête. Un timer en Looping peut se déclencher plusieurs fois dans une longue frame.
@@ -94,11 +97,13 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 
 ## Format de sauvegarde
 
-Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 4 (Enums du projet, Collision Enabled des composants, type adopté par les nœuds génériques). Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
+Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 5 (le type adopté par les nœuds génériques passe de `config` à `node.wild`). Le format 4 avait ajouté les Enums du projet, Collision Enabled des composants et le type adopté par les nœuds génériques. Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
 
 ## Outils
 
-- `tools/e2e/solved.gen.ts` écrit les projets résolus de quelques leçons ; `tools/e2e/smoke.py` les charge dans l'appli construite et parcourt les écrans principaux sur un téléphone simulé (800×370, tactile), captures dans `tools/e2e/out/shots/`.
+- `tools/e2e/solved.gen.ts` écrit les projets résolus de quelques leçons ; `tools/e2e/smoke.py` les charge dans l'appli construite et parcourt les écrans principaux sur un téléphone simulé (800×370, tactile), jusqu'à la leçon 12 en Play avec l'Outliner ; captures dans `tools/e2e/out/shots/`, code de sortie en échec au moindre problème.
+- `npm run lint` : Biome (`biome.jsonc`), règles recommandées, formatage non imposé ; les règles coupées le sont avec leur raison.
+- CI (`.github/workflows/deploy.yml`) : `build` (lint, tests, build), puis `e2e` (smoke sur téléphone simulé, captures en artefact `phone-screenshots`), puis `deploy` (GitHub Pages) qui seul dépend de l'activation de Pages.
 - `tools/make-test-page.py` transforme `dist/index.html` en page publiable sur claude.ai.
 - `tools/icons/make_icons.py` dessine les icônes de `public/icons/`.
 

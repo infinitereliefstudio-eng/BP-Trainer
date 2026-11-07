@@ -10,11 +10,12 @@ interface Props {
   session: PlaySession;
   onStop: () => void;
   onShowLog: () => void;
+  onOutliner: () => void;
 }
 
 const SPEEDS: Speed[] = [0.25, 1, 4];
 
-export function PlayOverlay({ session, onStop, onShowLog }: Props) {
+export function PlayOverlay({ session, onStop, onShowLog, onOutliner }: Props) {
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.onUi(() => force(0)), [session]);
   const sim = session.sim;
@@ -39,6 +40,9 @@ export function PlayOverlay({ session, onStop, onShowLog }: Props) {
             {sim.runtimeErrors} erreur{sim.runtimeErrors > 1 ? 's' : ''}
           </button>
         )}
+        <button class="pb-btn" onClick={onOutliner} aria-label="Outliner">
+          ☷
+        </button>
         <button class="pb-btn stop" onClick={onStop} aria-label="Arrêter">
           ■ Stop
         </button>

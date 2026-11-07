@@ -2,7 +2,6 @@
  * Debug tab: values on the paused node (or the selected one), the debugged
  * actor's variables, and the Execution Trace.
  */
-import { useState } from 'preact/hooks';
 import { findClass } from '@core/model/project';
 import { nodeTitle } from '@core/nodes/registry';
 import type { Simulation } from '@core/runtime/simulation';
@@ -32,7 +31,6 @@ export function formatRuntime(sim: Simulation, v: RValue | undefined, type?: Pin
 
 export function DebugPanel({ session, onFocusNode, compact }: Props) {
   const store = useStore();
-  const [debugActor, setDebugActor] = useState<string | undefined>(undefined);
   if (!session) {
     return (
       <p class="hint">
@@ -45,7 +43,7 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
   const instances = [...sim.actors, sim.player].filter((a) => a.classId === store.classId);
   const actor = paused
     ? [...sim.actors, sim.player].find((a) => a.id === paused.actorId)
-    : (instances.find((a) => a.id === debugActor) ?? instances[0]);
+    : (instances.find((a) => a.id === session.selected) ?? instances[0]);
   const selected = store.selection.size === 1 ? [...store.selection][0] : undefined;
   const watchId = paused?.nodeId ?? selected;
   const watchGraph = paused?.graphId ?? store.graphId;
@@ -63,7 +61,7 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
           {paused ? (
             <strong>{actor?.label}</strong>
           ) : instances.length ? (
-            <select class="field small-field" value={actor?.id} onChange={(e) => setDebugActor((e.target as HTMLSelectElement).value)}>
+            <select class="field small-field" value={actor?.id} onChange={(e) => session.select((e.target as HTMLSelectElement).value)}>
               {instances.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.label}

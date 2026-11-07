@@ -315,3 +315,11 @@ select.field { padding-right: 4px; }
 .row-buttons.flush { padding: 0; margin-top: 8px; }
 .lesson-item.exercise.done .li-num { background: var(--ok); border: 0; }
 .debug-bar.beside-drawer .hide-narrow { display: none; }
+
+/* Live Outliner during Play */
+.outliner{padding:4px 0 16px}
+.outliner-row{width:100%;padding:0 12px;border-bottom:1px solid #191919}
+.outliner-row .mb-label{flex:1}
+.outliner-back{align-items:center;gap:8px;padding:8px 12px;margin:0;display:flex}
+.outliner-back strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.outliner-drawer{z-index:9}

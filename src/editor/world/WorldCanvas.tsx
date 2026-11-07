@@ -101,7 +101,7 @@ export function WorldCanvas({ store, session, requests }: Props) {
         width: l.size.w,
         height: l.size.h,
         playing: !!s,
-        selectedId: s ? undefined : f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : undefined,
+        selectedId: s ? s.selected : f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : undefined,
       },
       l.size.dpr,
     );
@@ -166,7 +166,11 @@ export function WorldCanvas({ store, session, requests }: Props) {
       onTap(hit) {
         const s = live.current.session;
         if (s) {
-          if (hit.kind === 'node') s.sim.click(hit.node);
+          // Tapping an actor clicks it (Event ActorOnClicked) and picks it in the Outliner.
+          if (hit.kind === 'node' && hit.node !== 'playerStart') {
+            s.sim.click(hit.node);
+            s.select(hit.node);
+          }
           return;
         }
         if (hit.kind !== 'node') return store.setFocus({ kind: 'none' });

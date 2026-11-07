@@ -25,6 +25,7 @@ import { DebugPanel } from './panels/DebugPanel';
 import { Details } from './panels/Details';
 import { MyBlueprint } from './panels/MyBlueprint';
 import { DebugBar } from './play/DebugBar';
+import { LiveOutliner } from './play/LiveOutliner';
 import { PlayOverlay } from './play/PlayOverlay';
 import { Toolbar, type MainView } from './Toolbar';
 import { Toasts } from './widgets/Toasts';
@@ -115,6 +116,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
   // A breakpoint shows the node where execution stopped, like UE does,
   // with the Debug drawer open beside it.
   const [debugOpen, setDebugOpen] = useState(false);
+  const [outliner, setOutliner] = useState(false);
   const showPaused = () => {
     const p = session?.sim.paused;
     if (!p) return;
@@ -207,7 +209,22 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
           <WorldCanvas store={store} session={session ?? undefined} requests={worldRequests} />
         )}
 
-        {playing && session && view === 'level' && <PlayOverlay session={session} onStop={stop} onShowLog={() => setBottom('log')} />}
+        {playing && session && view === 'level' && (
+          <PlayOverlay session={session} onStop={stop} onShowLog={() => setBottom('log')} onOutliner={() => setOutliner((v) => !v)} />
+        )}
+        {playing && session && view === 'level' && (
+          <aside class={`drawer right outliner-drawer${outliner ? ' open' : ''}`} aria-hidden={!outliner}>
+            <div class="drawer-head">
+              <strong>Outliner</strong>
+              <button class="btn" onClick={() => setOutliner(false)}>
+                ✕
+              </button>
+            </div>
+            <div class="panel-scroll">
+              <LiveOutliner session={session} />
+            </div>
+          </aside>
+        )}
         {playing && session && view === 'graph' && (
           <DebugBar
             session={session}

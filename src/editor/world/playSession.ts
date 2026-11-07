@@ -17,6 +17,11 @@ export class PlaySession {
   private lastNotify = 0;
   /** Glow of the wires and nodes that just ran, for the graph view. */
   readonly heat = new ExecHeat();
+  /**
+   * The actor picked in the Outliner or by tapping it in the level: shown in
+   * the live Details, highlighted, and used as the debugged object.
+   */
+  selected?: string;
   private wasPaused = false;
   private frameListeners = new Set<() => void>();
   private uiListeners = new Set<() => void>();
@@ -88,6 +93,12 @@ export class PlaySession {
   onUi(fn: () => void): () => void {
     this.uiListeners.add(fn);
     return () => this.uiListeners.delete(fn);
+  }
+
+  select(actorId: string | undefined): void {
+    this.selected = actorId;
+    this.notifyUi();
+    for (const fn of this.frameListeners) fn();
   }
 
   togglePause(): void {

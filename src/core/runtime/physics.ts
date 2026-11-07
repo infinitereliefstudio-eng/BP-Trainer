@@ -34,10 +34,13 @@ export function playerShape(p: ActorRT): Shape {
   return { kind: 'circle', cx: p.x, cy: p.y, r: PLAYER_RADIUS };
 }
 
-/** Shapes that generate overlap events for an actor. */
+/**
+ * Shapes that generate overlap events for an actor: its Box Collisions, plus
+ * the capsule for the player. A Blueprint player's own zones count too, as
+ * every component of a Pawn does in UE.
+ */
 export function overlapShapes(actor: ActorRT): { comp?: ComponentRT; shape: Shape }[] {
-  if (actor.isPlayer) return [{ shape: playerShape(actor) }];
-  const out: { comp?: ComponentRT; shape: Shape }[] = [];
+  const out: { comp?: ComponentRT; shape: Shape }[] = actor.isPlayer ? [{ shape: playerShape(actor) }] : [];
   for (const c of actor.components) {
     if (c.kind !== 'BoxCollision' || !collisionQueries(c.props.collision)) continue;
     const s = componentShape(actor, c);

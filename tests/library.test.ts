@@ -8,6 +8,8 @@ import { contextFor, findPin } from '../src/core/nodes/registry';
 import { connect, disconnectPin } from '../src/core/operations/graphOps';
 import { releaseClassWildcards } from '../src/core/operations/wildcardOps';
 import { compileClass } from '../src/core/compiler/validate';
+import { addFunction, addFunctionParam } from '../src/core/operations/functionOps';
+import { setPlayerClass } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
 import type { Value } from '../src/core/types/values';
@@ -398,5 +400,74 @@ describe('saved projects', () => {
     const again = Object.values(loaded.classes[0].graphs[0].nodes).find((n) => n.def === 'flow.forEachLoop')!;
     expect(findPin(again, 'element', contextFor(loaded.classes[0], loaded))?.type).toEqual(T.int);
     expect(compileClass(loaded.classes[0], loaded).status).toBe('ok');
+  });
+});
+
+describe('function calls', () => {
+  /** Fact(n) = n <= 1 ? 1 : n * Fact(n - 1), with an optional DoOnce printing in its body. */
+  function factorial(withDoOnce = false) {
+    return world((b, pb) => {
+      const g = addFunction(b.cls, 'Fact');
+      const n = addFunctionParam(pb.project, b.cls, g.id, 'inputs', T.int)!;
+      const out = addFunctionParam(pb.project, b.cls, g.id, 'outputs', T.int)!;
+      const f = b.inGraph(g.id);
+      const entry = Object.values(g.nodes).find((x) => x.def === 'fn.entry')!.id;
+      const le = f.node('math.lessEqualInt', {}, { b: 1 });
+      const br = f.node('flow.branch');
+      const one = f.node('fn.return', { graph: g.id }, { [out.id]: 1 });
+      const minus = f.node('math.subtractInt', {}, { b: 1 });
+      const call = f.node('call.function', { graph: g.id });
+      const mul = f.node('math.multiplyInt');
+      const ret = f.node('fn.return', { graph: g.id });
+      let head = entry;
+      if (withDoOnce) {
+        const once = f.node('flow.doOnce');
+        const pr = f.node('debug.printString', {}, { text: 'appel' });
+        f.link(entry, 'then', once, 'exec').link(once, 'completed', pr, 'exec');
+        head = pr;
+      }
+      f.link(head, 'then', br, 'exec').link(entry, n.id, le, 'a').link(le, 'result', br, 'condition');
+      f.link(br, 'true', one, 'exec').link(br, 'false', call, 'exec');
+      f.link(entry, n.id, minus, 'a').link(minus, 'result', call, n.id);
+      f.link(call, 'then', ret, 'exec').link(entry, n.id, mul, 'a').link(call, out.id, mul, 'b').link(mul, 'result', ret, out.id);
+      const c = b.node('call.function', { graph: g.id }, { [n.id]: 5 });
+      b.link(b.node('event.beginPlay'), 'then', c, 'exec');
+      printOf(b, c, c, out.id);
+    });
+  }
+
+  it('a recursive function gets its own inputs at every call (5! = 120)', () => {
+    expect(prints(run(factorial().p)).at(-1)).toBe('120');
+  });
+
+  it('a DoOnce inside a function starts anew at every call, as in UE', () => {
+    expect(prints(run(factorial(true).p))).toEqual(['appel', 'appel', 'appel', 'appel', 'appel', '120']);
+  });
+});
+
+describe('a Blueprint player', () => {
+  it('its own Box Collision raises overlap events, on both sides', () => {
+    const pb = new ProjectBuilder('t');
+    const pl = pb.blueprint('BP_Joueur', 'Pawn');
+    setPlayerClass(pb.project, pl.cls.id);
+    pl.component('BoxCollision', 'Portee', { sizeX: 600, sizeY: 600 });
+    pl.link(pl.node('event.componentBeginOverlap', { component: pl.componentId('Portee') }), 'then', pl.node('debug.printString', {}, { text: 'à portée' }), 'exec');
+    const lamp = pb.blueprint('BP_Lampe');
+    lamp.component('BoxCollision', 'Z', { sizeX: 50, sizeY: 50 });
+    lamp.link(lamp.node('event.actorBeginOverlap'), 'then', lamp.node('debug.printString', {}, { text: 'joueur proche' }), 'exec');
+    pb.place(lamp, 200, 0);
+    pb.playerStart(0, 0);
+    expect(prints(run(pb.project)).sort()).toEqual(['joueur proche', 'à portée']);
+  });
+});
+
+describe('float comparison', () => {
+  it('== is exact; Nearly Equal takes a tolerance', () => {
+    const { p } = world((b) => {
+      const eq = b.node('math.equalFloat', {}, { a: 0.10001, b: 0.1 });
+      const near = b.node('math.nearlyEqualFloat', {}, { a: 0.10001, b: 0.1 });
+      printOf(b, printOf(b, b.node('event.beginPlay'), eq, 'result'), near, 'result');
+    });
+    expect(prints(run(p))).toEqual(['false', 'true']);
   });
 });

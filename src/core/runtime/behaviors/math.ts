@@ -35,8 +35,9 @@ const ops = (asInt: boolean): Record<string, (a: number, b: number, cx: ValueCx)
   subtract: (a, b) => a - b,
   multiply: (a, b) => a * b,
   divide: (a, b, cx) => divide(a, b, cx, asInt),
-  equal: (a, b) => (asInt ? a === b : Math.abs(a - b) <= 1e-4),
-  notEqual: (a, b) => (asInt ? a !== b : Math.abs(a - b) > 1e-4),
+  // Exact, as UE's == ; Nearly Equal (Float) is the tolerant one.
+  equal: (a, b) => a === b,
+  notEqual: (a, b) => a !== b,
   less: (a, b) => a < b,
   lessEqual: (a, b) => a <= b,
   greater: (a, b) => a > b,
@@ -60,6 +61,9 @@ for (const k of ['Int', 'Float'] as const) {
 
 export const mathBehaviors: Record<string, Behavior> = {
   ...families,
+  'math.nearlyEqualFloat': {
+    pure: (cx) => ({ result: Math.abs(cx.num('a') - cx.num('b')) <= Math.abs(cx.num('tolerance')) }),
+  },
   'math.moduloInt': binary((a, b, cx) => {
     if (b === 0) {
       cx.world.runtimeError('Modulo by zero');

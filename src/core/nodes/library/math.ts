@@ -62,7 +62,7 @@ const OPS: { op: string; title: string; symbol: string; bool?: boolean; text: st
   { op: 'subtract', title: 'Subtract', symbol: '−', text: 'Soustrait B à A.', kw: ['subtract', 'moins', 'minus', '-'] },
   { op: 'multiply', title: 'Multiply', symbol: '×', text: 'Multiplie A par B.', kw: ['multiply', 'fois', 'times', '*'], b: 1 },
   { op: 'divide', title: 'Divide', symbol: '÷', text: 'Divise A par B. Diviser par 0 donne 0 et une erreur dans le log, comme dans UE.', kw: ['divide', 'diviser', '/'], b: 1 },
-  { op: 'equal', title: 'Equal', symbol: '==', bool: true, text: 'Vrai si A est égal à B.', kw: ['equal', 'egal', 'compare', '=='] },
+  { op: 'equal', title: 'Equal', symbol: '==', bool: true, text: 'Vrai si A est exactement égal à B. Pour des Float issus de calculs, préfère Nearly Equal (0,1 + 0,2 ne vaut pas exactement 0,3).', kw: ['equal', 'egal', 'compare', '=='] },
   { op: 'notEqual', title: 'Not Equal', symbol: '!=', bool: true, text: 'Vrai si A est différent de B.', kw: ['not equal', 'different', '!='] },
   { op: 'less', title: 'Less', symbol: '<', bool: true, text: 'Vrai si A est strictement inférieur à B.', kw: ['less', 'inferieur', 'compare', '<'] },
   { op: 'lessEqual', title: 'Less Equal', symbol: '<=', bool: true, text: 'Vrai si A est inférieur ou égal à B.', kw: ['less equal', 'inferieur ou egal', '<='] },
@@ -105,6 +105,7 @@ const helpers: NodeDefinition[] = (['Int', 'Float'] as const).flatMap((k): NodeD
 });
 
 const rounding: NodeDefinition[] = [
+  fn('math.nearlyEqualFloat', 'Nearly Equal (Float)', FLOAT, "Vrai si A et B diffèrent d'au plus Error Tolerance. Le bon test pour des Float issus de calculs.", ['nearly', 'presque', 'egal', 'tolerance', 'compare'], [['a', 'A', T.float, 0], ['b', 'B', T.float, 0], ['tolerance', 'Error Tolerance', T.float, 1e-4]], [['result', 'Return Value', T.bool]]),
   fn('math.round', 'Round', FLOAT, "Arrondit à l'entier le plus proche (2,5 donne 3).", ['round', 'arrondir'], [['a', 'A', T.float, 0]], [['result', 'Return Value', T.int]]),
   fn('math.floor', 'Floor', FLOAT, "Arrondit à l'entier inférieur (2,9 donne 2 ; −2,1 donne −3).", ['floor', 'arrondir', 'inferieur'], [['a', 'A', T.float, 0]], [['result', 'Return Value', T.int]]),
   fn('math.ceil', 'Ceil', FLOAT, "Arrondit à l'entier supérieur (2,1 donne 3).", ['ceil', 'arrondir', 'superieur'], [['a', 'A', T.float, 0]], [['result', 'Return Value', T.int]]),

@@ -59,6 +59,8 @@ interface GraphIndex {
  */
 interface Frame {
   actor: ActorRT;
+  /** Where this run keeps node outputs and node memory. */
+  scope: Scope;
   gi: GraphIndex;
   node: string;
   mode: 'in' | 'out' | 'ret';
@@ -66,6 +68,20 @@ interface Frame {
   via?: string;
   outputs?: Record<string, RValue>;
 }
+
+/**
+ * Node outputs and node memory (DoOnce, loops…) of one graph run. An Event
+ * Graph uses the actor's own, kept between events as in UE; each function
+ * call gets a fresh one, like UE's per-call locals, so a function can call
+ * itself and its macros start anew each call.
+ */
+interface Scope {
+  outputs: Record<string, Record<string, RValue>>;
+  state: Record<string, unknown>;
+}
+
+const actorScope = (a: ActorRT): Scope => ({ outputs: a.outputs, state: a.nodeState });
+const callScope = (): Scope => ({ outputs: {}, state: {} });
 
 export interface PauseInfo {
   reason: 'breakpoint' | 'step';
@@ -161,7 +177,7 @@ export class Interpreter {
       if (action.remaining > 1e-9) continue;
       delete actor.latent[nodeId];
       const gi = this.graphs.get(action.graphId);
-      if (gi) this.queue.push([{ actor, gi, node: nodeId, mode: 'out', pin: action.outPin }]);
+      if (gi) this.queue.push([{ actor, scope: actorScope(actor), gi, node: nodeId, mode: 'out', pin: action.outPin }]);
     }
   }
 
@@ -193,7 +209,7 @@ export class Interpreter {
     const p = this.paused;
     const frame = this.stack[this.stack.length - 1];
     if (!p || !frame) return [];
-    const { actor, gi } = frame;
+    const { actor, gi, scope } = frame;
     const node = gi.graph.nodes[p.nodeId];
     if (!node) return [];
     const result: PinWatch[] = [];
@@ -202,7 +218,7 @@ export class Interpreter {
       for (const spec of resolvePins(node, gi.ctx)) {
         if (spec.type.category === 'exec') continue;
         const value =
-          spec.dir === 'in' ? this.readInput(actor, gi, node, spec.id, 0) : this.readOutput(actor, gi, node.id, spec.id, 0);
+          spec.dir === 'in' ? this.readInput(actor, scope, gi, node, spec.id, 0) : this.readOutput(actor, scope, gi, node.id, spec.id, 0);
         result.push({ pin: spec.id, label: spec.name || spec.id, direction: spec.dir, value, type: spec.type });
       }
     } finally {
@@ -304,40 +320,40 @@ export class Interpreter {
     for (const gi of this.byClass.get(actor.classId) ?? []) {
       if (gi.graph.kind !== 'event') continue;
       for (const n of Object.values(gi.graph.nodes)) {
-        if (match(n)) frames.push({ actor, gi, node: n.id, mode: 'out', pin, outputs });
+        if (match(n)) frames.push({ actor, scope: actorScope(actor), gi, node: n.id, mode: 'out', pin, outputs });
       }
     }
     return frames;
   }
 
-  private pushTargets(actor: ActorRT, gi: GraphIndex, node: string, pin: string): void {
+  private pushTargets(actor: ActorRT, scope: Scope, gi: GraphIndex, node: string, pin: string): void {
     const targets = gi.execOut.get(`${node}:${pin}`) ?? [];
     for (let i = targets.length - 1; i >= 0; i--) {
-      this.stack.push({ actor, gi, node: targets[i].to.node, mode: 'in', pin: targets[i].to.pin, via: targets[i].link });
+      this.stack.push({ actor, scope, gi, node: targets[i].to.node, mode: 'in', pin: targets[i].to.pin, via: targets[i].link });
     }
   }
 
   private execute(f: Frame): void {
-    const { actor, gi } = f;
+    const { actor, gi, scope } = f;
     const node = gi.graph.nodes[f.node];
     if (!node) return;
     if (f.mode === 'ret') {
       // The function ended without reaching a Return Node: default outputs.
-      actor.outputs[node.id] = this.defaultOutputs(f);
+      scope.outputs[node.id] = this.defaultOutputs(f);
       return;
     }
     if (f.mode === 'out') {
       if (isEntry(node)) this.enter(f);
       if (f.outputs) {
-        actor.outputs[node.id] = { ...f.outputs };
+        scope.outputs[node.id] = { ...f.outputs };
         for (const [pin, v] of Object.entries(f.outputs)) this.remember(actor, node.id, pin, v);
       }
-      this.pushTargets(actor, gi, node.id, f.pin);
+      this.pushTargets(actor, scope, gi, node.id, f.pin);
       return;
     }
     this.enter(f);
     if (node.def === 'fn.return') {
-      this.returnFrom(actor, gi, node);
+      this.returnFrom(actor, scope, gi, node);
       return;
     }
     const behavior = getBehavior(node.def);
@@ -347,19 +363,19 @@ export class Interpreter {
     }
     let resume = false;
     const calls: Frame[] = [];
-    const base = this.valueCx(actor, gi, node, 0);
+    const base = this.valueCx(actor, scope, gi, node, 0);
     const cx: ExecCx = {
       ...base,
       entry: f.pin,
       out: (pin, value) => {
-        (actor.outputs[node.id] ??= {})[pin] = value;
+        (scope.outputs[node.id] ??= {})[pin] = value;
         this.remember(actor, node.id, pin, value);
       },
       state: <T extends object>(init: () => T): T => {
-        const st = actor.nodeState[node.id] as T | undefined;
+        const st = scope.state[node.id] as T | undefined;
         if (st) return st;
         const fresh = init();
-        actor.nodeState[node.id] = fresh;
+        scope.state[node.id] = fresh;
         return fresh;
       },
       resume: () => {
@@ -373,7 +389,7 @@ export class Interpreter {
         const values: Record<string, RValue> = {};
         for (const spec of resolvePins(node, gi.ctx)) {
           if (spec.dir !== 'in' || spec.type.category === 'exec' || spec.id === 'target') continue;
-          values[spec.id] = this.readInput(actor, gi, node, spec.id, 0);
+          values[spec.id] = this.readInput(actor, scope, gi, node, spec.id, 0);
         }
         return values;
       },
@@ -385,14 +401,14 @@ export class Interpreter {
       callFunction: (target, graphId, params) => {
         const entry = this.functionEntry(target, graphId);
         if (!entry) return;
-        calls.push(entry, { actor, gi, node: node.id, mode: 'ret', pin: '' });
+        calls.push(entry, { actor, scope, gi, node: node.id, mode: 'ret', pin: '' });
         entry.outputs = params;
       },
-      writeRef: (pin, value) => this.writeRef(actor, gi, node, pin, value),
+      writeRef: (pin, value) => this.writeRef(actor, scope, gi, node, pin, value),
     };
     const outs = behavior.exec(cx);
-    if (resume) this.stack.push({ actor, gi, node: node.id, mode: 'in', pin: RESUME });
-    for (let i = outs.length - 1; i >= 0; i--) this.pushTargets(actor, gi, node.id, outs[i]);
+    if (resume) this.stack.push({ actor, scope, gi, node: node.id, mode: 'in', pin: RESUME });
+    for (let i = outs.length - 1; i >= 0; i--) this.pushTargets(actor, scope, gi, node.id, outs[i]);
     // Called events go on top: they run before this node's outputs continue.
     for (let i = calls.length - 1; i >= 0; i--) this.stack.push(calls[i]);
   }
@@ -407,17 +423,17 @@ export class Interpreter {
       this.host.runtimeError(`${target.label} n'a pas cette fonction.`);
       return undefined;
     }
-    return { actor: target, gi, node: entry.id, mode: 'out', pin: 'then' };
+    return { actor: target, scope: callScope(), gi, node: entry.id, mode: 'out', pin: 'then' };
   }
 
   /** Return Node: hand the outputs to the caller and drop the rest of the function. */
-  private returnFrom(actor: ActorRT, gi: GraphIndex, node: NodeInstance): void {
+  private returnFrom(actor: ActorRT, scope: Scope, gi: GraphIndex, node: NodeInstance): void {
     const values: Record<string, RValue> = {};
-    for (const p of gi.graph.fn?.outputs ?? []) values[p.id] = this.readInput(actor, gi, node, p.id, 0);
+    for (const p of gi.graph.fn?.outputs ?? []) values[p.id] = this.readInput(actor, scope, gi, node, p.id, 0);
     while (this.stack.length) {
       const f = this.stack.pop()!;
       if (f.mode === 'ret') {
-        f.actor.outputs[f.node] = values;
+        f.scope.outputs[f.node] = values;
         return;
       }
     }
@@ -437,8 +453,8 @@ export class Interpreter {
    * A pure function runs to its end on the spot, each time a value is read.
    * Breakpoints are not checked inside it.
    */
-  private runPure(actor: ActorRT, gi: GraphIndex, call: NodeInstance, depth: number): Record<string, RValue> {
-    const cx = this.valueCx(actor, gi, call, depth);
+  private runPure(actor: ActorRT, scope: Scope, gi: GraphIndex, call: NodeInstance, depth: number): Record<string, RValue> {
+    const cx = this.valueCx(actor, scope, gi, call, depth);
     const target = this.host.actor(cx.in('target'), 'Target');
     if (!target) return {};
     const entry = this.functionEntry(target, String(call.config.graph));
@@ -449,7 +465,7 @@ export class Interpreter {
     }
     entry.outputs = params;
     const base = this.stack.length;
-    this.stack.push({ actor, gi, node: call.id, mode: 'ret', pin: '' }, entry);
+    this.stack.push({ actor, scope, gi, node: call.id, mode: 'ret', pin: '' }, entry);
     let steps = 0;
     while (this.stack.length > base) {
       const f = this.stack.pop()!;
@@ -460,7 +476,7 @@ export class Interpreter {
       }
       if (!f.actor.destroyed) this.execute(f);
     }
-    return actor.outputs[call.id] ?? {};
+    return scope.outputs[call.id] ?? {};
   }
 
   // ---------------------------------------------------------------- data
@@ -477,14 +493,14 @@ export class Interpreter {
   }
 
   /** Pass-by-reference write: the variable wired into `pin` takes `value`. */
-  private writeRef(actor: ActorRT, gi: GraphIndex, node: NodeInstance, pin: string, value: RValue): boolean {
+  private writeRef(actor: ActorRT, scope: Scope, gi: GraphIndex, node: NodeInstance, pin: string, value: RValue): boolean {
     const src = this.sourceOf(gi, node, pin);
     if (src?.def === 'var.get') {
       actor.vars[String(src.config.variable)] = value;
       return true;
     }
     if (src?.def === 'var.getExternal') {
-      const target = this.host.actor(this.readInput(actor, gi, src, 'target', 0), 'Target');
+      const target = this.host.actor(this.readInput(actor, scope, gi, src, 'target', 0), 'Target');
       if (target) target.vars[String(src.config.variable)] = value;
       return true;
     }
@@ -498,9 +514,9 @@ export class Interpreter {
     rec[pin] = value;
   }
 
-  private valueCx(actor: ActorRT, gi: GraphIndex, node: NodeInstance, depth: number): ValueCx {
+  private valueCx(actor: ActorRT, scope: Scope, gi: GraphIndex, node: NodeInstance, depth: number): ValueCx {
     const read = (pin: string) => {
-      const v = this.readInput(actor, gi, node, pin, depth);
+      const v = this.readInput(actor, scope, gi, node, pin, depth);
       this.remember(actor, node.id, pin, v);
       return v;
     };
@@ -519,7 +535,7 @@ export class Interpreter {
     };
   }
 
-  private readInput(actor: ActorRT, gi: GraphIndex, node: NodeInstance, pin: string, depth: number): RValue {
+  private readInput(actor: ActorRT, scope: Scope, gi: GraphIndex, node: NodeInstance, pin: string, depth: number): RValue {
     const spec = findPin(node, pin, gi.ctx);
     const link = gi.dataIn.get(`${node.id}:${pin}`);
     if (!link) {
@@ -527,10 +543,10 @@ export class Interpreter {
       if (spec.defaultsToSelf) return { ref: 'actor', id: actor.id };
       return structuredClone(pinValue(node, spec)) as RValue;
     }
-    return this.readOutput(actor, gi, link.from.node, link.from.pin, depth + 1);
+    return this.readOutput(actor, scope, gi, link.from.node, link.from.pin, depth + 1);
   }
 
-  private readOutput(actor: ActorRT, gi: GraphIndex, nodeId: string, pin: string, depth: number): RValue {
+  private readOutput(actor: ActorRT, scope: Scope, gi: GraphIndex, nodeId: string, pin: string, depth: number): RValue {
     const src = gi.graph.nodes[nodeId];
     if (!src) return null;
     const def = getDefinition(src.def);
@@ -542,7 +558,7 @@ export class Interpreter {
       case 'actor.self':
         return { ref: 'actor', id: actor.id };
       case 'util.reroute':
-        return this.readInput(actor, gi, src, 'in', depth + 1);
+        return this.readInput(actor, scope, gi, src, 'in', depth + 1);
       case 'event.custom':
         if (pin === 'delegate') return { ref: 'delegate', actor: actor.id, node: src.id };
         break;
@@ -552,14 +568,14 @@ export class Interpreter {
         this.host.runtimeError('Boucle de nœuds purs : un nœud pur dépend de lui-même.');
         return null;
       }
-      if (src.def === 'call.pureFunction') return this.runPure(actor, gi, src, depth)[pin] ?? null;
+      if (src.def === 'call.pureFunction') return this.runPure(actor, scope, gi, src, depth)[pin] ?? null;
       const behavior = getBehavior(src.def);
       if (!behavior?.pure) return null;
-      const value = behavior.pure(this.valueCx(actor, gi, src, depth))[pin] ?? null;
+      const value = behavior.pure(this.valueCx(actor, scope, gi, src, depth))[pin] ?? null;
       this.remember(actor, src.id, pin, value);
       return value;
     }
-    const stored = actor.outputs[nodeId]?.[pin];
+    const stored = scope.outputs[nodeId]?.[pin];
     if (stored !== undefined) return stored;
     const spec: PinSpec | undefined = findPin(src, pin, gi.ctx);
     return spec ? (defaultValueFor(spec.type) as RValue) : null;

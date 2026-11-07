@@ -42,7 +42,10 @@ export function renderWorld(c: CanvasRenderingContext2D, s: WorldScene, dpr: num
 
   // Light halos first, so meshes sit on top of the light they cast.
   const shown = s.playing ? s.actors.filter((a) => !a.hidden) : s.actors;
-  for (const a of shown) {
+  // A Blueprint player's components are drawn like any actor's, under its capsule.
+  const player = s.player && !s.player.hidden ? s.player : undefined;
+  const lit = player ? [...shown, player] : shown;
+  for (const a of lit) {
     for (const comp of a.components) {
       if (comp.kind !== 'PointLight') continue;
       const on = comp.props.visible && comp.props.intensity > 0;
@@ -61,9 +64,10 @@ export function renderWorld(c: CanvasRenderingContext2D, s: WorldScene, dpr: num
   }
 
   for (const a of shown) drawActor(c, a, s);
+  if (player) drawActor(c, player, s);
 
   if (!s.playing && s.playerStart) drawPlayerStart(c, s.playerStart, cam.zoom, s.selectedId === 'playerStart');
-  if (s.player && !s.player.hidden) drawPlayer(c, s.player);
+  if (player) drawPlayer(c, player);
 }
 
 function drawGrid(c: CanvasRenderingContext2D, s: WorldScene): void {

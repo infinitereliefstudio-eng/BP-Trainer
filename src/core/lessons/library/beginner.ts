@@ -4,10 +4,8 @@
  */
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, usesNode, visible } from '../checks';
+import { noRuntimeErrors, normText as norm, printedNumbers as numbers, usesNode, visible } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
-
-const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 
 /** An Integer variable named `name` in `className`, or why not. */
 function intVariable(id: string, className: string, name: string): Check {
@@ -21,9 +19,6 @@ function intVariable(id: string, className: string, name: string): Check {
     },
   };
 }
-
-/** Prints that are exactly a number, in order. */
-const numbers = (cx: CheckContext) => cx.prints().filter((p) => /^-?\d+$/.test(p.trim())).map((p) => p.trim());
 
 // ------------------------------------------------------------ Le compteur
 

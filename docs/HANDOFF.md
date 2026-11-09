@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V2.md](PLAN_V2.md) (le plan en cours), [PLAN_V1.md](PLAN_V1.md) (le plan de la V1), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-09, étape C de la V2 livrée (en attente de validation).
+Dernière mise à jour : 2026-11-09, étape D de la V2 livrée (en attente de validation).
 
 ## Le projet
 
@@ -81,8 +81,8 @@ Demande de Tristan : simuler précisément (il s'interrogeait sur le Set d'une v
 |---|---|
 | A — Réalisme | Livrée le 2026-11-09, validée (« passe à la suite ») |
 | B — Explications | Livrée le 2026-11-09, validée (« tu peux passer à l'étape c ») |
-| C — Débutant et Intermédiaire | **Livrée le 2026-11-09, en attente de validation** |
-| D — Confirmé et Avancé | — |
+| C — Débutant et Intermédiaire | Livrée le 2026-11-09, validée (« ok tu peux passer à la suite ») |
+| D — Confirmé et Avancé | **Livrée le 2026-11-09, en attente de validation** |
 | E — Héritage | — |
 
 Étape A, choix d'implémentation :
@@ -104,6 +104,14 @@ Demande de Tristan : simuler précisément (il s'interrogeait sur le Set d'une v
 - Nouveaux types d'exercice : `kind: 'complete'` (C1 : graphe à trous marqués par des Comments jaunes, nœuds à placer nommés) et `kind: 'refactor'` (R2 : le projet de départ marche, une contrainte de forme échoue).
 - Fichiers : `library/beginner.ts` (Le compteur, Visible caché traversable, C1 La lampe torche), `library/choices.ts` (Le digicode, Les états de la porte, R2 Les feux), `library/inventory.ts` (L'inventaire). `tests/lessonVariantsV2.test.ts` vérifie que le piège de chaque leçon échoue avec son explication.
 - La caméra du graphe, quand le graphe ne tient pas à l'écran, part du coin haut gauche (là où sont les événements) au lieu du centre.
+
+Étape D, choix d'implémentation :
+- Fichiers : `library/confirmed.ts` (Qui modifie quoi, L'ordre des BeginPlay, D3 La tourelle, D4 Une partie sur deux), `library/timing.ts` (Les vagues, L'ascenseur), `library/advanced.ts` (Fonctions pures et impures, Détruire proprement, C2 La factorielle), `library/controlRoom.ts` (La salle de contrôle, R1 L'afficheur). Aides communes dans `checks.ts` (`countPrints`, `printedNumbers`, `PRESS_E`, `notUsing`, `normText`).
+- Scénario : nouvelle étape `{ fps: n }` (images par seconde à partir de là). L'ascenseur est vérifié à 30 images par seconde, pour qu'un déplacement fixe par Tick échoue comme sur un appareil lent.
+- L'ordre des BeginPlay et D4 s'appuient sur la double vérification de l'étape A : le projet de départ marche dans l'ordre du niveau et échoue dans l'ordre inverse, avec `ORDER_NOTE`.
+- R1 compte les exécutions de Get All Actors Of Class avec `sim.record` (au plus une).
+- Écarts au plan, faute de quoi la leçon aurait été fausse ou impossible : « Fonctions pures et impures » se fait sans variables locales (pas encore dans l'appli, BACKLOG) ; « Détruire proprement » porte sur une liste qui garde un acteur détruit, car UE (et le simulateur) arrête déjà les timers et retire les Bind d'un acteur détruit ; « La salle de contrôle » n'utilise pas de tableau (déjà vu dans L'inventaire et Détruire proprement).
+- Corrigé au passage : 12 cartes de leçons (exercices et module 3) affichaient « \n\n » au lieu d'un saut de paragraphe ; un test l'empêche désormais.
 
 Toujours au BACKLOG : qualité des solutions (ne pas faire sans sa demande), variables locales, paramètres des fonctions d'interface, Text, Name, Struct, Map, Set, GameMode, GameInstance, Data Tables.
 

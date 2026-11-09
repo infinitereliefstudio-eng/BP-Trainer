@@ -48,3 +48,27 @@ export function noRuntimeErrors(id = 'no-errors'): Check {
     },
   };
 }
+
+/** Lowercase, without accents: « Bloqué » matches "bloque". */
+export const normText = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/** How many printed messages contain `text` (case and accents ignored). */
+export function countPrints(cx: CheckContext, text: string): number {
+  return cx.prints().filter((p) => normText(p).includes(normText(text))).length;
+}
+
+/** Printed messages that are exactly a whole number, in order. */
+export function printedNumbers(cx: CheckContext): string[] {
+  return cx
+    .prints()
+    .map((p) => p.trim())
+    .filter((p) => /^-?\d+$/.test(p));
+}
+
+/** One press of E, as scenario steps. */
+export const PRESS_E = [{ press: 'E' as const }, { release: 'E' as const }];
+
+/** Fails while `className` contains one of `defs`. */
+export function notUsing(id: string, className: string, defs: string[], label: string, reason: string): Check {
+  return { id, label, test: (cx) => (cx.nodes(className).some((n) => defs.includes(n.def)) ? reason : true) };
+}

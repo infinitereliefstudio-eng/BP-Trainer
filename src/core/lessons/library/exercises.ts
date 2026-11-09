@@ -41,7 +41,7 @@ export const predict1: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre l’Event Graph de **BP_Ordre**. **Sequence** exécute **Then 0**, puis **Then 1**, dans la même frame.\\n\\n' +
+        'Ouvre l’Event Graph de **BP_Ordre**. **Sequence** exécute **Then 0**, puis **Then 1**, dans la même frame.\n\n' +
         'Question : que fait l’exécution quand elle rencontre le **Delay** sur Then 0 ?',
     },
   ],
@@ -92,7 +92,7 @@ export const predict2: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Boucle**. **For Loop** exécute **Loop Body** pour chaque index de First à Last, puis **Completed**.\\n\\n' +
+        'Ouvre **BP_Boucle**. **For Loop** exécute **Loop Body** pour chaque index de First à Last, puis **Completed**.\n\n' +
         'Toute la boucle s’exécute d’un coup, dans la même frame. Et un Delay déjà en cours ignore les nouveaux appels…',
     },
   ],
@@ -142,7 +142,7 @@ export const predict3: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_De**. Le nœud vert **Random Integer in Range** n’a pas de pin d’exécution : c’est un nœud **pur**.\\n\\n' +
+        'Ouvre **BP_De**. Le nœud vert **Random Integer in Range** n’a pas de pin d’exécution : c’est un nœud **pur**.\n\n' +
         'Question : quand un nœud pur calcule-t-il sa valeur ?',
     },
   ],
@@ -191,7 +191,7 @@ export const debug1: Lesson = {
     {
       title: 'Enquêter',
       body:
-        'Lance ▶ Play, appuie sur E, puis ouvre l’**Output Log** : l’erreur indique le **nœud**, le **graphe** et le **Blueprint** fautifs.\\n\\n' +
+        'Lance ▶ Play, appuie sur E, puis ouvre l’**Output Log** : l’erreur indique le **nœud**, le **graphe** et le **Blueprint** fautifs.\n\n' +
         '« Accessed None » veut dire qu’une référence est vide. Laquelle des deux lampes n’a pas de générateur ?',
     },
   ],
@@ -245,7 +245,7 @@ export const debug2: Lesson = {
     {
       title: 'Une panne silencieuse',
       body:
-        'Un **Interface Message** envoyé à un acteur qui n’implémente pas l’interface ne fait rien, **sans erreur**. C’est pratique… et c’est aussi un piège.\\n\\n' +
+        'Un **Interface Message** envoyé à un acteur qui n’implémente pas l’interface ne fait rien, **sans erreur**. C’est pratique… et c’est aussi un piège.\n\n' +
         'Compare BP_Lampe, qui fonctionne, avec BP_Generateur : leurs **Class Settings**, et le nœud rouge de départ.',
     },
   ],

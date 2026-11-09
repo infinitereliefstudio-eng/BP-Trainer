@@ -4,13 +4,11 @@
  */
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, usesNode } from '../checks';
-import type { CheckContext, Lesson } from '../types';
+import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode } from '../checks';
+import type { Lesson } from '../types';
 import { playerBlueprint } from './props';
 
-const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-const count = (cx: CheckContext, text: string) => cx.prints().filter((p) => norm(p).includes(norm(text))).length;
-const press = [{ press: 'E' as const }, { release: 'E' as const }];
+const press = PRESS_E;
 
 const ITEMS = ['Clé', 'Fusible', 'Carte'];
 

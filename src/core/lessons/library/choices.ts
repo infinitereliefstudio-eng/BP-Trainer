@@ -6,12 +6,10 @@ import { addEnum } from '../../operations/enumOps';
 import { removeNodes } from '../../operations/graphOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, usesNode, visible } from '../checks';
+import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, visible } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 
-const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-const count = (cx: CheckContext, text: string) => cx.prints().filter((p) => norm(p).includes(norm(text))).length;
-const press = [{ press: 'E' as const }, { release: 'E' as const }];
+const press = PRESS_E;
 
 function printedAt(id: string, label: string, at: string, text: string, missing: string): Check {
   return { id, label, at, test: (cx) => (count(cx, text) > 0 ? true : missing) };

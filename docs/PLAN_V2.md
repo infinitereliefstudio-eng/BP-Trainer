@@ -45,6 +45,8 @@ Les 12 leçons et 5 exercices actuels restent ; 12 leçons et 6 exercices s'ajou
 | Confirmé | L9–L11, D1, D2 (D1 déplacé ici à l'étape C : il suppose les références) | Qui modifie quoi (Set direct / fonction / Dispatcher, Private) ; L'ordre des BeginPlay ; Les vagues (Expose on Spawn) ; L'ascenseur (Delta Seconds) ; D3 (Accessed None après Destroy) ; D4 (dépendance à l'ordre) |
 | Avancé | L12 | Fonctions pures et impures ; Détruire proprement ; La salle de contrôle ; R1 Refactor (Get All Actors dans Tick) ; C2 Complète (récursion) |
 
+Écarts de l'étape D : « Fonctions pures et impures » sans variables locales (pas encore dans l'appli) ; « Détruire proprement » sur une liste qui garde un acteur détruit (UE arrête lui-même les timers et les Bind d'un acteur détruit) ; pas de tableau dans « La salle de contrôle ».
+
 ## Étapes
 
 | Étape | Contenu |

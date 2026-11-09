@@ -146,7 +146,7 @@ async def main():
 
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Accessed None').tap()
+        await page.locator('.lesson-item', has_text='Accessed None').first.tap()
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -181,6 +181,17 @@ async def main():
         await page.locator('.tab', has_text='Event Graph').tap()
         await page.wait_for_timeout(300)
         await shot('19_complete_graph')
+
+        # Step D of V2: the Confirmé and Avancé levels
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
+        await shot('20_home_advanced')
+        if await page.locator('.lesson-item').count() != 35:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 35")
+        await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
+        await page.wait_for_timeout(500)
+        await shot('21_control_room_sheet')
         print('errors', errs)
         await b.close()
         return errs

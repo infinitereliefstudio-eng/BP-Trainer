@@ -84,14 +84,16 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
 
   const notes: string[] = [];
   sim.start();
+  let dt = STEP;
   for (const step of lesson.scenario) {
-    if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += STEP) sim.step();
+    if ('fps' in step) dt = 1 / step.fps;
+    else if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += dt) sim.step(dt);
     else if ('teleport' in step) {
       sim.teleportPlayer(step.teleport[0], step.teleport[1]);
-      sim.step();
+      sim.step(dt);
     } else if ('walk' in step) {
       sim.move = { x: step.walk[0], y: step.walk[1] };
-      for (let t = 0; t < step.seconds - 1e-9; t += STEP) sim.step();
+      for (let t = 0; t < step.seconds - 1e-9; t += dt) sim.step(dt);
       sim.move = { x: 0, y: 0 };
     } else if ('press' in step) {
       if (sim.deafActors(step.press).length && !notes.length) {
@@ -100,10 +102,10 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
         );
       }
       sim.pressKey(step.press);
-      sim.step();
+      sim.step(dt);
     } else if ('release' in step) {
       sim.releaseKey(step.release);
-      sim.step();
+      sim.step(dt);
     } else evaluate(step.checkpoint);
   }
   evaluate(undefined);

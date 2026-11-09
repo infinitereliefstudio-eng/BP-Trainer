@@ -17,7 +17,9 @@ export type ScenarioStep =
   | { walk: [number, number]; seconds: number }
   | { press: InputKey }
   | { release: InputKey }
-  | { checkpoint: string };
+  | { checkpoint: string }
+  /** Frames per second from here on (60 by default): Delta Seconds changes with it, as on a slower device. */
+  | { fps: number };
 
 export interface CheckContext {
   sim: Simulation;

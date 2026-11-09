@@ -81,3 +81,9 @@ describe('notes and lessons', () => {
     for (const l of LESSONS) expect(l.remember.length, l.id).toBeGreaterThan(30);
   });
 });
+
+describe('lesson texts', () => {
+  it('no escaped line break shows up as "\\n" in a card', () => {
+    for (const l of LESSONS) for (const c of l.cards) expect(c.body.includes('\\n'), `${l.id} › ${c.title}`).toBe(false);
+  });
+});

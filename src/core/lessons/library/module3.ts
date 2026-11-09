@@ -4,8 +4,8 @@ import { addDispatcher, addDispatcherParam, implementInterface } from '../../ope
 import { addInterface, addInterfaceFunction } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
-import { noRuntimeErrors, usesNode, visible } from '../checks';
-import type { Check, Lesson } from '../types';
+import { noRuntimeErrors, notUsing, usesNode, visible } from '../checks';
+import type { Lesson } from '../types';
 import { doorBlueprint, generatorBlueprint, lampBlueprint, playerBlueprint, referenceVariable } from './props';
 
 const MODULE = 'Faire communiquer les Blueprints';
@@ -19,10 +19,6 @@ export function setReference(p: Project, fromLabel: string, variableId: string, 
 
 function varId(b: ClassBuilder, name: string): string {
   return b.cls.variables.find((v) => v.name === name)!.id;
-}
-
-function notUsing(id: string, className: string, defs: string[], label: string, reason: string): Check {
-  return { id, label, test: (cx) => (cx.nodes(className).some((n) => defs.includes(n.def)) ? reason : true) };
 }
 
 /** Lamp logic of lesson 9: Tick → Is Valid → Set Visibility(bEnMarche of the generator). */
@@ -67,19 +63,19 @@ export const lesson9: Lesson = {
     {
       title: 'Une référence',
       body:
-        'Pour lire `bEnMarche`, la lampe doit savoir **quel** générateur regarder. Crée dans BP_Lampe une variable de type **BP_Generateur (Object Reference)**, par exemple `Generateur`.\\n\\n' +
+        'Pour lire `bEnMarche`, la lampe doit savoir **quel** générateur regarder. Crée dans BP_Lampe une variable de type **BP_Generateur (Object Reference)**, par exemple `Generateur`.\n\n' +
         'Coche **Instance Editable** : la variable apparaît alors dans le Details de chaque lampe placée dans le niveau.',
     },
     {
       title: 'Régler l’instance',
       body:
-        'Dans l’onglet **Niveau**, touche la première lampe : dans Details, choisis le générateur pour `Generateur`. La seconde lampe garde **None** : elle n’est reliée à rien.\\n\\n' +
+        'Dans l’onglet **Niveau**, touche la première lampe : dans Details, choisis le générateur pour `Generateur`. La seconde lampe garde **None** : elle n’est reliée à rien.\n\n' +
         'Dans le graphe, **Get Generateur** puis, en tirant un fil depuis sa sortie, **Get bEnMarche**.',
     },
     {
       title: 'Accessed None',
       body:
-        'Lire une variable à travers une référence vide (None) produit l’erreur **Accessed None trying to read property…** dans l’Output Log.\\n\\n' +
+        'Lire une variable à travers une référence vide (None) produit l’erreur **Accessed None trying to read property…** dans l’Output Log.\n\n' +
         '**Is Valid** vérifie la référence avant de s’en servir : **Is Valid** d’un côté, **Is Not Valid** de l’autre.',
     },
   ],
@@ -128,7 +124,7 @@ export const lesson10: Lesson = {
     {
       title: 'Annoncer plutôt que surveiller',
       body:
-        'Dans « Générateur et lampe », la lampe interrogeait le générateur à chaque Tick. Avec un **Event Dispatcher**, c’est le générateur qui **annonce** son changement, une seule fois, à tous ceux qui écoutent.\\n\\n' +
+        'Dans « Générateur et lampe », la lampe interrogeait le générateur à chaque Tick. Avec un **Event Dispatcher**, c’est le générateur qui **annonce** son changement, une seule fois, à tous ceux qui écoutent.\n\n' +
         'Dans BP_Generateur : My Blueprint › Event Dispatchers › **+**, nomme-le `OnEtatChange` et ajoute-lui un paramètre Boolean dans Details.',
     },
     {
@@ -139,7 +135,7 @@ export const lesson10: Lesson = {
     {
       title: 'Bind',
       body:
-        'Dans BP_Lampe, au **BeginPlay** : **Bind Event to OnEtatChange**, avec Target = `Generateur` (la référence est déjà réglée sur les trois lampes).\\n\\n' +
+        'Dans BP_Lampe, au **BeginPlay** : **Bind Event to OnEtatChange**, avec Target = `Generateur` (la référence est déjà réglée sur les trois lampes).\n\n' +
         'Tire un fil depuis la pin rouge **Event** et choisis **Add Custom Event for OnEtatChange** : ce Custom Event reçoit le paramètre et s’exécutera à chaque Call.',
     },
   ],
@@ -243,7 +239,7 @@ export const lesson11: Lesson = {
     {
       title: 'Un contrat commun',
       body:
-        'Une **Blueprint Interface** est une liste de fonctions sans contenu. Crée-la dans le **Content Browser** (☰ du menu ⋮ › + Interface) : `BPI_Interactif`, avec la fonction `Interagir`.\\n\\n' +
+        'Une **Blueprint Interface** est une liste de fonctions sans contenu. Crée-la dans le **Content Browser** (☰ du menu ⋮ › + Interface) : `BPI_Interactif`, avec la fonction `Interagir`.\n\n' +
         'Chaque Blueprint qui l’**implémente** (Class Settings › Implemented Interfaces) décide de ce que fait Interagir chez lui.',
     },
     {
@@ -254,7 +250,7 @@ export const lesson11: Lesson = {
     {
       title: 'Envoyer le message',
       body:
-        'Dans BP_Joueur, sur **E** : **Get Overlapping Actors** donne la liste des acteurs qui le touchent. **For Each Loop** les parcourt, et **Interagir (Message)** est envoyé à chacun.\\n\\n' +
+        'Dans BP_Joueur, sur **E** : **Get Overlapping Actors** donne la liste des acteurs qui le touchent. **For Each Loop** les parcourt, et **Interagir (Message)** est envoyé à chacun.\n\n' +
         'Un message envoyé à un acteur qui n’implémente pas l’interface ne fait **rien**, sans erreur. C’est ce qui évite tout Cast.',
     },
   ],

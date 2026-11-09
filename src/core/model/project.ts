@@ -65,8 +65,17 @@ export interface Variable {
   type: PinType;
   defaultValue: Value;
   instanceEditable: boolean;
+  /** Only this Blueprint may read or set it (UE's Private): other Blueprints get a compile error. */
+  private?: boolean;
+  /** Becomes an input pin of Spawn Actor, set before the new actor's BeginPlay. Needs Instance Editable, as in UE. */
+  exposeOnSpawn?: boolean;
   category: string;
   tooltip: string;
+}
+
+/** Variables shown as pins on Spawn Actor for this class. */
+export function spawnPins(cls: BlueprintClass): Variable[] {
+  return cls.variables.filter((v) => v.exposeOnSpawn && v.instanceEditable);
 }
 
 export type ComponentKind =

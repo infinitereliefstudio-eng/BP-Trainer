@@ -14,6 +14,7 @@ import { createStarterProject } from '@core/templates/starterProject';
 import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
 import { exportProject, pickProjectFile } from '@storage/persistence';
 import type { MenuItem, OpenOverlay } from './overlayTypes';
+import { playOrder, setPlayOrder } from './playSettings';
 
 export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => void): MenuItem[] {
   const ids = store.selection.has(nodeId) ? [...store.selection] : [nodeId];
@@ -198,6 +199,19 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
         }),
     });
   }
+  const fixed = playOrder() === 'level';
+  items.push({
+    label: fixed ? 'Ordre des BeginPlay : fixe' : 'Ordre des BeginPlay : mélangé',
+    hint: fixed ? 'toucher pour mélanger, comme dans UE' : 'toucher pour fixer (débogage)',
+    action: () => {
+      setPlayOrder(fixed ? 'shuffled' : 'level');
+      store.info(
+        fixed
+          ? 'Ordre mélangé : à chaque Play, les acteurs font leur BeginPlay dans un ordre différent, comme dans UE où il n’est pas garanti.'
+          : 'Ordre fixe : les acteurs font leur BeginPlay dans l’ordre du niveau. Pratique pour déboguer, mais une logique qui en dépend cassera dans UE.',
+      );
+    },
+  });
   items.push({ label: 'Plein écran', action: () => enterFullscreen() }, { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) });
   return items;
 }

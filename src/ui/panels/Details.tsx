@@ -184,6 +184,25 @@ function VariableDetails({ id, openOverlay }: { id: string; openOverlay: OpenOve
             onChange={(e) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { instanceEditable: (e.target as HTMLInputElement).checked }))}
           />
         </Field>
+        <Field label="Expose on Spawn">
+          <input
+            type="checkbox"
+            checked={!!v.exposeOnSpawn}
+            onChange={(e) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { exposeOnSpawn: (e.target as HTMLInputElement).checked }))}
+          />
+        </Field>
+        <Field label="Private">
+          <input
+            type="checkbox"
+            checked={!!v.private}
+            onChange={(e) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { private: (e.target as HTMLInputElement).checked }))}
+          />
+        </Field>
+        <p class="muted small">
+          Instance Editable règle la valeur acteur par acteur dans le niveau ; Private empêche les autres Blueprints de la lire ou de la modifier. Les deux sont
+          indépendants : sans Private, tout Blueprint qui a une référence vers celui-ci peut faire un Set dessus. Expose on Spawn en fait une pin de Spawn Actor,
+          donnée avant le BeginPlay.
+        </p>
         <Field label="Tooltip">
           <TextCommit value={v.tooltip} onCommit={(t) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { tooltip: t }))} />
         </Field>

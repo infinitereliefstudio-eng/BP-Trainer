@@ -80,10 +80,14 @@ export function setVariableType(cls: BlueprintClass, id: string, type: PinType):
 export function updateVariable(
   cls: BlueprintClass,
   id: string,
-  patch: Partial<Pick<Variable, 'defaultValue' | 'instanceEditable' | 'category' | 'tooltip'>>,
+  patch: Partial<Pick<Variable, 'defaultValue' | 'instanceEditable' | 'private' | 'exposeOnSpawn' | 'category' | 'tooltip'>>,
 ): void {
   const v = cls.variables.find((x) => x.id === id);
-  if (v) Object.assign(v, patch);
+  if (!v) return;
+  Object.assign(v, patch);
+  // Expose on Spawn needs Instance Editable: ticking it ticks Instance Editable (as UE does), untick goes the other way.
+  if (patch.exposeOnSpawn) v.instanceEditable = true;
+  if (patch.instanceEditable === false) v.exposeOnSpawn = false;
 }
 
 /** Deleting a variable also deletes its Get/Set nodes, as UE does. */

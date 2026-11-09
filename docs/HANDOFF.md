@@ -1,8 +1,8 @@
 # Reprise du projet
 
-Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V1.md](PLAN_V1.md) (le plan validé), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
+Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V2.md](PLAN_V2.md) (le plan en cours), [PLAN_V1.md](PLAN_V1.md) (le plan de la V1), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-07, après la revue de la V1 et ses trois lots de correction (V1 en attente de validation et d'APK).
+Dernière mise à jour : 2026-11-09, étape A de la V2 livrée (en attente de validation).
 
 ## Le projet
 
@@ -73,10 +73,24 @@ Restent pour la V2 (à décider avec lui) : héritage entre Blueprints, variable
   - Le mode Simulation était déjà libre pour placer les acteurs (+ Placer, glisser) ; l'étape 4 ajoute l'Outliner en direct pendant Play (☷).
   - La page de test claude.ai n'enregistre pas le service worker (dans un cadre) : le hors ligne ne se teste que sur GitHub Pages.
 
-## Suite possible (V2, à décider avec Tristan)
+## V2 (plan validé le 2026-11-09)
 
-- Points de [BACKLOG.md](BACKLOG.md) : qualité des solutions (ne pas les faire sans sa demande), variables locales, paramètres des fonctions d'interface.
-- Types et assets annoncés pour la V2 dans le plan : Text, Name, Struct, Map, Set, GameMode, GameInstance, Data Tables.
+Demande de Tristan : simuler précisément (il s'interrogeait sur le Set d'une variable d'un autre BP), plus de pédagogie mais seulement là où elle compte, plus de leçons à des niveaux différents. Plan : [PLAN_V2.md](PLAN_V2.md), étapes A à E, une validation entre chacune.
+
+| Étape | État |
+|---|---|
+| A — Réalisme | **Livrée le 2026-11-09, en attente de validation** |
+| B — Explications | À faire après son feu vert |
+| C — Débutant et Intermédiaire | — |
+| D — Confirmé et Avancé | — |
+| E — Héritage | — |
+
+Étape A, choix d'implémentation :
+- `Simulation` prend `order: 'level' | 'reversed' | 'shuffled'` (défaut `level` pour les tests). Il fixe l'ordre des acteurs de départ (niveau puis joueur) pour BeginPlay, Tick et les touches ; les acteurs créés par Spawn passent après, dans l'ordre de création. Play utilise `shuffled` (graine = l'heure) et écrit l'ordre tiré dans l'Output Log (`LogBlueprintTrainer:`) dès que deux acteurs ont un BeginPlay. Option « Ordre des BeginPlay : mélangé / fixe » dans le menu ⋮, gardée dans le navigateur (`ui/playSettings.ts`).
+- `runLesson` joue le scénario dans l'ordre du niveau puis, si tout passe, dans l'ordre inverse ; un échec dans le second ordre seulement renvoie ses résultats avec la note `ORDER_NOTE`. Les 12 leçons et 5 exercices passent dans les deux ordres.
+- `Variable.private` et `Variable.exposeOnSpawn` (champs optionnels : pas de changement de format). Private : Get/Set externes retirés de la palette des autres BP, erreur de compilation sur un nœud existant. Expose on Spawn exige Instance Editable (cocher l'une coche l'autre, décocher Instance Editable décoche Expose) ; les pins `expose:<varId>` n'apparaissent sur Spawn Actor que pour la classe choisie sur le nœud, comme dans UE, et sont appliquées avant le BeginPlay.
+
+Toujours au BACKLOG : qualité des solutions (ne pas faire sans sa demande), variables locales, paramètres des fonctions d'interface, Text, Name, Struct, Map, Set, GameMode, GameInstance, Data Tables.
 
 ## Méthode de travail
 

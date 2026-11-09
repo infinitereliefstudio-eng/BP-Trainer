@@ -24,6 +24,13 @@ export const STEP = 1 / 60;
 
 export type InputKey = 'E' | 'F' | 'SpaceBar';
 
+/**
+ * The order actors run their events in (BeginPlay, Tick, input). UE does not
+ * guarantee it, so Play shuffles it; lesson checks run 'level' then
+ * 'reversed' to catch solutions that only work by luck.
+ */
+export type ActorOrder = 'level' | 'reversed' | 'shuffled';
+
 /** One node run, for the Execution Trace and the animated wires. */
 export interface TraceEntry {
   id: number;
@@ -57,6 +64,9 @@ export class Simulation implements InterpreterHost {
   private interp: Interpreter;
   private site: NodeSite | undefined;
   private rng: number;
+  /** Position of each starting actor in the event order (spawned ones run after, in spawn order). */
+  private readonly rank = new Map<string, number>();
+  private readonly order: ActorOrder;
   private accumulator = 0;
   private started = false;
   private muted = false;
@@ -68,7 +78,7 @@ export class Simulation implements InterpreterHost {
 
   constructor(
     readonly project: Project,
-    opts: { seed?: number; breakpoints?: Set<string> } = {},
+    opts: { seed?: number; breakpoints?: Set<string>; order?: ActorOrder } = {},
   ) {
     this.rng = opts.seed ?? 12345;
     this.interp = new Interpreter(project, this, opts.breakpoints);
@@ -79,6 +89,8 @@ export class Simulation implements InterpreterHost {
     this.player.yaw = ps.yaw;
     if (this.player.classId) this.counters.set(this.player.classId, 1);
     this.spawnLevel();
+    this.order = opts.order ?? 'level';
+    this.rankActors(this.order);
   }
 
   // ------------------------------------------------------------- journal
@@ -116,10 +128,24 @@ export class Simulation implements InterpreterHost {
     }
   }
 
-  /** Actors that run Blueprint logic: the level, then the player if it is a Blueprint. */
+  /** Fix the event order of the starting actors (the level, then the player). */
+  private rankActors(order: ActorOrder): void {
+    const ids = [...this.actors.map((a) => a.id), this.player.id];
+    if (order === 'reversed') ids.reverse();
+    if (order === 'shuffled') {
+      for (let i = ids.length - 1; i > 0; i--) {
+        const j = Math.floor(this.random() * (i + 1));
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+      }
+    }
+    for (const [i, id] of ids.entries()) this.rank.set(id, i);
+  }
+
+  /** Actors that run Blueprint logic (the player only if it is a Blueprint), in event order. */
   private scripted(): ActorRT[] {
-    const list = this.actors.filter((a) => !a.destroyed);
-    return this.player.classId ? [...list, this.player] : list;
+    const list = [...this.actors.filter((a) => !a.destroyed), ...(this.player.classId ? [this.player] : [])];
+    const rank = (a: ActorRT) => this.rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
+    return list.sort((a, b) => rank(a) - rank(b));
   }
 
   private fireAll(match: (n: NodeInstance) => boolean, pin: string, outputs?: Record<string, RValue>): void {
@@ -128,11 +154,19 @@ export class Simulation implements InterpreterHost {
 
   // ---------------------------------------------------------------- time
 
-  /** Fire BeginPlay on every actor, in level order. */
+  /** Fire BeginPlay on every actor, in event order. */
   start(): void {
     if (this.started) return;
     this.started = true;
-    this.fireAll((n) => n.def === 'event.beginPlay', 'then');
+    const isBeginPlay = (n: NodeInstance) => n.def === 'event.beginPlay';
+    const first = this.scripted().filter((a) => this.interp.hasEvent(a, isBeginPlay));
+    if (this.order === 'shuffled' && first.length > 1) {
+      this.journal.info(
+        this.time,
+        `Ordre des BeginPlay pour cette partie : ${first.map((a) => a.label).join(', ')}. Il change à chaque Play : UE ne garantit pas l'ordre entre acteurs.`,
+      );
+    }
+    this.fireAll(isBeginPlay, 'then');
     this.runPhases();
   }
 

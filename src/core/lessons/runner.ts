@@ -1,10 +1,14 @@
 /**
  * Runs a lesson's scenario on the learner's project, headless and fast,
  * then evaluates the checks. Same interpreter as Play.
+ *
+ * UE does not guarantee the order actors run BeginPlay (or Tick) in, so a
+ * passing run is replayed with the order reversed: a solution that only works
+ * in one order fails, with the reason.
  */
 import { compileClass, type CompileMessage } from '../compiler/validate';
 import type { Project } from '../model/project';
-import { Simulation, STEP } from '../runtime/simulation';
+import { type ActorOrder, Simulation, STEP } from '../runtime/simulation';
 import type { Check, CheckContext, Lesson } from './types';
 
 export interface CheckResult {
@@ -33,7 +37,20 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
   }
   if (compileErrors.length) return { compileErrors, results: [], passed: false, runtimeErrors: [], notes: [], prints: [] };
 
-  const sim = new Simulation(project);
+  const inOrder = playScenario(lesson, project, 'level');
+  if (!inOrder.passed) return inOrder;
+  const reversed = playScenario(lesson, project, 'reversed');
+  if (reversed.passed) return inOrder;
+  return { ...reversed, notes: [ORDER_NOTE, ...reversed.notes] };
+}
+
+/** Shown when a solution passes in level order only. */
+export const ORDER_NOTE =
+  'Ta solution marche quand les acteurs font leur BeginPlay dans l’ordre du niveau, mais pas dans l’ordre inverse. Dans UE cet ordre n’est pas garanti : un Blueprint ne doit pas compter sur le fait qu’un autre a déjà fait son BeginPlay.';
+
+function playScenario(lesson: Lesson, source: Project, order: ActorOrder): LessonRun {
+  const project = structuredClone(source);
+  const sim = new Simulation(project, { order });
   const cx: CheckContext = {
     sim,
     project,
@@ -92,7 +109,7 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
   const ordered = lesson.checks.map((c) => results.get(c.id) ?? { check: c, ok: false, reason: 'Non vérifié.' });
   const runtimeErrors = sim.log.filter((l) => l.level === 'error').map((l) => l.text);
   return {
-    compileErrors,
+    compileErrors: [],
     results: ordered,
     passed: ordered.every((r) => r.ok),
     runtimeErrors,

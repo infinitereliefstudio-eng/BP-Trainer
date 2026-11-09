@@ -1,5 +1,6 @@
 /** Actor functions: destroy and spawn, find by class, location and rotation. */
-import { toVec } from '../values';
+import { spawnPins } from '../../model/project';
+import { copyValue, toVec } from '../values';
 import type { ActorRT, RValue } from '../world';
 import { RESUME, type Behavior, type ValueCx } from './types';
 
@@ -48,6 +49,9 @@ export const actorBehaviors: Record<string, Behavior> = {
       const loc = toVec(cx.in('location'));
       const rot = toVec(cx.in('rotation'));
       const a = cx.world.spawn(id, loc.x, loc.y, rot.z);
+      // Expose on Spawn pins exist only for the class picked on the node itself.
+      const cls = a && cx.node.defaults.class === id ? cx.world.classOf(a) : undefined;
+      if (a && cls) for (const v of spawnPins(cls)) a.vars[v.id] = copyValue(cx.in(`expose:${v.id}`));
       cx.out('result', a ? ref(a) : null);
       if (a) cx.callEvents(a, (n) => n.def === 'event.beginPlay', {});
       return ['then'];

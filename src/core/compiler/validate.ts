@@ -172,7 +172,10 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
     case 'var.setExternal': {
       const o = owner();
       if (!o) return "le Blueprint propriétaire n'existe plus.";
-      return findVariable(o, String(c.variable)) ? undefined : `la variable n'existe plus dans ${o.name}.`;
+      const v = findVariable(o, String(c.variable));
+      if (!v) return `la variable n'existe plus dans ${o.name}.`;
+      if (v.private && o.id !== cls.id) return `${v.name} est Private : seul ${o.name} peut la lire ou la modifier. Décoche Private dans ${o.name}, ou passe par une fonction de ${o.name}.`;
+      return undefined;
     }
     case 'dispatcher.call':
     case 'dispatcher.bind':

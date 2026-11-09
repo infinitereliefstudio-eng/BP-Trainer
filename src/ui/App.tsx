@@ -27,6 +27,7 @@ import { MyBlueprint } from './panels/MyBlueprint';
 import { DebugBar } from './play/DebugBar';
 import { LiveOutliner } from './play/LiveOutliner';
 import { PlayOverlay } from './play/PlayOverlay';
+import { playOrder } from './playSettings';
 import { Toolbar, type MainView } from './Toolbar';
 import { Toasts } from './widgets/Toasts';
 import { resetLesson, type Workspace, type WorkspaceRef } from './workspace';
@@ -142,7 +143,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
       }
     }
     store.compile(true);
-    const s = new PlaySession(store.project, store.breakpoints);
+    const s = new PlaySession(store.project, store.breakpoints, playOrder());
     for (const a of s.sim.deafActors()) {
       store.warn(`${a.label} a un événement de touche, mais Auto Receive Input est sur Disabled : il ne recevra pas les touches.`);
     }

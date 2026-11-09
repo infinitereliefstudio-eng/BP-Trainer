@@ -91,6 +91,8 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - Une fonction pure est exécutée jusqu'au bout à chaque lecture de ses sorties.
 - Au-delà de 100 000 nœuds pour un seul événement : « Infinite loop detected ».
 - Set Timer by Event garde un timer par événement (`Simulation.timers`), décompté après les actions latentes ; relancer le même événement remplace son timer, Time à 0 l'arrête. Un timer en Looping peut se déclencher plusieurs fois dans une longue frame.
+- L'ordre des acteurs pour BeginPlay, Tick et les touches n'est pas garanti dans UE : `Simulation` le prend en option (`level`, `reversed`, `shuffled`). Play le mélange ; `runLesson` vérifie chaque leçon dans l'ordre du niveau puis l'ordre inverse.
+- Une variable Private n'est accessible que depuis son Blueprint (palette et compilation). Une variable Expose on Spawn (et Instance Editable) devient une pin `expose:<varId>` de Spawn Actor quand la classe est choisie sur le nœud ; sa valeur est posée avant le BeginPlay.
 - Spawn Actor exécute le BeginPlay du nouvel acteur avant que la chaîne continue ; Destroy Actor exécute d'abord son Event Destroyed.
 - Collision Enabled (ECollisionEnabled) : Query déclenche les overlaps (Box Collision), Physics bloque le joueur (Static Mesh). Set Actor Hidden In Game ne touche pas la collision, comme dans UE.
 - Une Point Light n'a pas d'icône en jeu : seul son halo est dessiné.

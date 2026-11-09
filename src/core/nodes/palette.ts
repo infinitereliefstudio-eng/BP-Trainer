@@ -121,6 +121,7 @@ function communicationEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEn
   // Variables of other Blueprints, read or written through a reference.
   for (const c of others) {
     for (const v of c.variables) {
+      if (v.private) continue; // Private: invisible from other Blueprints, as in UE.
       const kw = ['get', 'set', 'variable', v.name.toLowerCase(), c.name.toLowerCase()];
       const category = `Class|${c.name}`;
       out.push(entry(ctx, `xget:${c.id}:${v.id}`, 'var.getExternal', { owner: c.id, variable: v.id }, { category, keywords: kw, contextOnly: true }));

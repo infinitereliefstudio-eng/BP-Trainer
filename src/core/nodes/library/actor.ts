@@ -1,4 +1,4 @@
-import { findClass } from '../../model/project';
+import { findClass, spawnPins } from '../../model/project';
 import { T } from '../../types/pins';
 import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition } from '../definition';
 
@@ -41,16 +41,21 @@ export const actorNodes: NodeDefinition[] = [
     category: 'Game',
     kind: 'function',
     description:
-      "Crée un nouvel acteur de la classe choisie à la position donnée. Son BeginPlay s'exécute tout de suite, avant que la suite continue. Return Value est la référence vers lui.",
+      "Crée un nouvel acteur de la classe choisie à la position donnée. Son BeginPlay s'exécute tout de suite, avant que la suite continue. Return Value est la référence vers lui. Les variables cochées Expose on Spawn deviennent des pins : leur valeur est donnée avant le BeginPlay.",
     keywords: ['spawn', 'creer', 'faire apparaitre', 'instancier', 'ajouter'],
-    pins: (n, ctx) => [
-      execIn(),
-      dataIn('class', 'Class', T.class('Actor')),
-      dataIn('location', 'Spawn Transform Location', T.vector),
-      dataIn('rotation', 'Spawn Transform Rotation', T.rotator),
-      execOut(),
-      dataOut('result', 'Return Value', T.object(pickedClass(n, ctx))),
-    ],
+    pins: (n, ctx) => {
+      const id = n.defaults.class;
+      const cls = typeof id === 'string' && ctx.project ? findClass(ctx.project, id) : undefined;
+      return [
+        execIn(),
+        dataIn('class', 'Class', T.class('Actor')),
+        dataIn('location', 'Spawn Transform Location', T.vector),
+        dataIn('rotation', 'Spawn Transform Rotation', T.rotator),
+        ...(cls ? spawnPins(cls).map((v) => dataIn(`expose:${v.id}`, v.name, v.type, { default: v.defaultValue })) : []),
+        execOut(),
+        dataOut('result', 'Return Value', T.object(pickedClass(n, ctx))),
+      ];
+    },
   },
   {
     id: 'actor.getAllOfClass',

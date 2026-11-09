@@ -3,7 +3,7 @@
  * and a light notification channel for the overlay (≈10 updates/s).
  */
 import type { Project } from '@core/model/project';
-import { Simulation, STEP } from '@core/runtime/simulation';
+import { type ActorOrder, Simulation, STEP } from '@core/runtime/simulation';
 import { ExecHeat } from '../debug/execHeat';
 
 export type Speed = 0.25 | 1 | 4;
@@ -29,11 +29,11 @@ export class PlaySession {
 
   /**
    * `breakpoints` is the editor's own set: adding one during Play takes
-   * effect at once.
+   * effect at once. `order` is the actors' event order (shuffled by default).
    */
-  constructor(project: Project, breakpoints?: Set<string>) {
+  constructor(project: Project, breakpoints?: Set<string>, order: ActorOrder = 'shuffled') {
     // Play runs on a snapshot: editing the project later does not affect it.
-    this.sim = new Simulation(structuredClone(project), { seed: Date.now() & 0xffff, breakpoints });
+    this.sim = new Simulation(structuredClone(project), { seed: Date.now() & 0xffff, breakpoints, order });
     this.sim.start();
     this.raf = requestAnimationFrame(this.loop);
   }

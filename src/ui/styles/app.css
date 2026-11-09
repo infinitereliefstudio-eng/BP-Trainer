@@ -137,6 +137,21 @@ select.field { padding-right: 4px; }
 .msg.warning { color: #ffd76a; }
 .msg-icon { width: 16px; flex: none; font-weight: 700; }
 .msg-time { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+.why { padding: 0 12px 6px 36px; }
+.why-btn { color: #8fb8f0; font-size: 13px; padding: 4px 0; min-height: 30px; }
+.why-body { font-size: 13px; line-height: 1.45; color: #d4d4d4; border-left: 2px solid var(--accent); padding: 2px 0 2px 10px; }
+.why-body p { margin: 0 0 4px; }
+.why-body ul { margin: 0; padding-left: 18px; }
+.why-body li { margin: 2px 0; }
+.dnote { margin: 6px 0; padding: 6px 8px; font-size: 13px; line-height: 1.45; border-radius: 6px; color: #e2e2e2; }
+.note-tag { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; font-weight: 700; }
+.dnote.trap-note { background: rgba(242, 192, 20, 0.12); border-left: 3px solid var(--warn); }
+.note-tag.trap { color: var(--warn); }
+.dnote.in-ue-note { background: var(--accent-soft); border-left: 3px solid var(--accent); }
+.note-tag.in-ue { color: #8fb8f0; }
+.diag { margin: 8px 0 4px; padding-left: 20px; font-size: 13px; line-height: 1.45; color: #e2e2e2; }
+.diag li { margin: 0 0 6px; }
+.link { color: #8fb8f0; text-decoration: underline; margin-left: 6px; font-size: 12px; padding: 2px 0; min-height: 0; display: inline; }
 .pill { padding: 1px 8px; border-radius: 10px; font-size: 11px; }
 .pill.error { background: var(--error); color: #fff; }
 

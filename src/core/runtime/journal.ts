@@ -3,6 +3,8 @@
  * Errors, each repeated error shown three times then folded) and the
  * messages Print String puts on screen.
  */
+import type { Explanation } from '../explain/types';
+
 export interface ScreenMessage {
   id: number;
   text: string;
@@ -19,6 +21,8 @@ export interface SimLogEntry {
   /** For prints: the actor and the raw text, used by lesson checks. */
   actor?: string;
   message?: string;
+  /** For errors: the "Pourquoi ?" shown under the line. */
+  explain?: Explanation;
 }
 
 let seq = 0;
@@ -41,11 +45,11 @@ export class Journal {
     }
   }
 
-  error(time: number, text: string): void {
+  error(time: number, text: string, explain?: Explanation): void {
     const count = (this.errorCounts.get(text) ?? 0) + 1;
     this.errorCounts.set(text, count);
     this.runtimeErrors++;
-    if (count <= 3) this.log.push({ id: nextId(), time, level: 'error', text });
+    if (count <= 3) this.log.push({ id: nextId(), time, level: 'error', text, explain });
     else if (count === 4) this.log.push({ id: nextId(), time, level: 'warning', text: `(erreur répétée, masquée) ${text}` });
   }
 

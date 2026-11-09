@@ -6,6 +6,7 @@
  */
 import type { BlueprintClass, NodeInstance, Project } from '../../model/project';
 import type { NodeContext } from '../../nodes/definition';
+import type { NoteCode } from '../runRecord';
 import type { ActorRT, ComponentRT, ObjRef, RValue, TimerRT } from '../world';
 
 /** Entry pin used when a node asked to be resumed (loops). */
@@ -44,6 +45,11 @@ export interface WorldApi {
   /** The timer behind a handle, if it is still running. */
   timer(handle: RValue): TimerRT | undefined;
   clearTimer(handle: RValue): void;
+  /** Record a silent event at the current node (a Delay ignoring a call…), for diagnostics. */
+  note(code: NoteCode, detail?: string): void;
+  /** A Blueprint read, or a Set on another Blueprint wrote, a variable of `actor`. */
+  varRead(actor: ActorRT, variable: string): void;
+  varWritten(actor: ActorRT, variable: string): void;
 }
 
 export interface ValueCx {

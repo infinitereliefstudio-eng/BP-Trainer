@@ -129,6 +129,44 @@ async def main():
         await page.locator('.outliner-row', has_text='BP_Generateur').tap()
         await page.wait_for_timeout(300)
         await shot('14_l12_outliner')
+
+        # Step B of V2: "why did this node not run?" after Play, then "Pourquoi ?" in the Output Log
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate("""() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Generateur'); s.openClass(c.id); s.openGraph(c.graphs[0].id); const n = Object.values(c.graphs[0].nodes).find(n => n.def === 'time.clearTimer'); s.selectNodes([n.id]); }""")
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.details .btn', has_text='Pourquoi ce nœud').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.details .diag').scroll_into_view_if_needed()
+        await shot('15_diagnose')
+        if await page.locator('.details .diag li').count() < 2:
+            errs.append('Diagnostic : moins de 2 étapes')
+
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Accessed None').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(400)
+        await page.locator('.key', has_text='E').first.dispatch_event('pointerdown')
+        await page.wait_for_timeout(300)
+        await page.locator('.key', has_text='E').first.dispatch_event('pointerup')
+        await page.wait_for_timeout(300)
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.bottom-handle').tap()
+        await page.locator('.bottom-tabs button', has_text='Output Log').tap()
+        await page.wait_for_timeout(200)
+        if not await page.locator('.why-btn').count():
+            errs.append('Output Log : aucun « Pourquoi ? » sur les erreurs')
+        else:
+            await page.locator('.why-btn').first.tap()
+            await page.wait_for_timeout(200)
+        await shot('16_log_why')
         print('errors', errs)
         await b.close()
         return errs

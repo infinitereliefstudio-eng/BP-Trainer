@@ -76,6 +76,7 @@ export const communicationBehaviors: Record<string, Behavior> = {
   'var.getExternal': {
     pure: (cx) => {
       const a = cx.world.actor(cx.in('target'), 'Target');
+      if (a) cx.world.varRead(a, String(cx.node.config.variable));
       return { value: a ? (a.vars[String(cx.node.config.variable)] ?? null) : null };
     },
   },
@@ -84,7 +85,10 @@ export const communicationBehaviors: Record<string, Behavior> = {
     exec: (cx) => {
       const a = cx.world.actor(cx.in('target'), 'Target');
       const v = copyValue(cx.in('value'));
-      if (a) a.vars[String(cx.node.config.variable)] = v;
+      if (a) {
+        a.vars[String(cx.node.config.variable)] = v;
+        cx.world.varWritten(a, String(cx.node.config.variable));
+      }
       cx.out('out', v);
       return ['then'];
     },
@@ -137,6 +141,7 @@ export const communicationBehaviors: Record<string, Behavior> = {
       if (!owner) return ['then'];
       const params = cx.params();
       const list = owner.bindings[String(cx.node.config.dispatcher)] ?? [];
+      if (!list.length) cx.world.note('dispatcher.noListener', owner.label);
       for (const b of [...list]) {
         const listener = cx.world.tryActor({ ref: 'actor', id: b.actor });
         if (listener) cx.callEvents(listener, (n) => n.id === b.node, params);
@@ -150,7 +155,7 @@ export const communicationBehaviors: Record<string, Behavior> = {
   'call.custom': {
     exec: (cx) => {
       const target = cx.world.actor(cx.in('target'), 'Target');
-      if (target) cx.callEvents(target, isCustom(String(cx.node.config.event)), cx.params());
+      if (target && !cx.callEvents(target, isCustom(String(cx.node.config.event)), cx.params())) cx.world.note('call.noTarget', target.label);
       return ['then'];
     },
   },
@@ -174,7 +179,8 @@ export const communicationBehaviors: Record<string, Behavior> = {
       const { interface: iface, fn } = cx.node.config;
       if (target && cls?.interfaces.includes(String(iface))) {
         cx.callEvents(target, (n) => n.def === 'event.interface' && n.config.interface === iface && n.config.fn === fn, {});
-      }
+      } else if (target) cx.world.note('iface.notImplemented', target.label);
+      else cx.world.note('iface.noTarget');
       return ['then'];
     },
   },

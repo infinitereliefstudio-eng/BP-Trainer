@@ -61,6 +61,7 @@ export const lesson9: Lesson = {
   title: 'Générateur et lampe',
   situation: 'La première lampe ne s’allume que si le générateur tourne. La seconde n’est reliée à rien : elle reste éteinte, sans erreur.',
   notions: ['Variable Object Reference', 'Instance Editable', 'Is Valid'],
+  remember: 'Une variable de référence est vide (None) tant qu’on ne lui donne pas d’acteur. Is Valid évite Accessed None quand elle peut l’être.',
   cards: [
     {
       title: 'Une référence',
@@ -120,6 +121,7 @@ export const lesson10: Lesson = {
   title: 'Le générateur prévient',
   situation: 'Démarrer le générateur allume les trois lampes d’un coup, sans qu’aucune lampe ne surveille le générateur à chaque frame.',
   notions: ['Event Dispatcher', 'Call', 'Bind Event', 'Paramètre'],
+  remember: 'Celui qui change annonce (Call) ; ceux que ça intéresse s’abonnent (Bind), avant l’annonce. Le générateur n’a pas besoin de connaître les lampes.',
   cards: [
     {
       title: 'Annoncer plutôt que surveiller',
@@ -233,6 +235,7 @@ export const lesson11: Lesson = {
   title: 'Interagir avec tout',
   situation: 'La touche E agit sur l’objet à portée, quel qu’il soit : la porte s’ouvre, la lampe bascule, le générateur démarre. Sans aucun Cast.',
   notions: ['Blueprint Interface', 'Interface Message', 'Get Overlapping Actors', 'For Each Loop'],
+  remember: 'Un message d’interface part vers n’importe quel acteur : seuls ceux qui implémentent l’interface réagissent, les autres l’ignorent sans erreur.',
   cards: [
     {
       title: 'Un contrat commun',

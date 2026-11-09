@@ -8,11 +8,13 @@
  * overlaps (physics events), timers, journal (Output Log and screen). This
  * class orders them and answers the interpreter (WorldApi).
  */
+import { explainRuntime } from '../explain/runtime';
 import { findClass, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import type { PrintOptions } from './behaviors/types';
 import { createActor, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
+import { RunRecord, type NoteCode } from './runRecord';
 import { movePlayer } from './movement';
 import { endOverlapsWith, updateOverlaps, type Fire } from './overlaps';
 import { TimerSet } from './timers';
@@ -59,6 +61,8 @@ export class Simulation implements InterpreterHost {
   move = { x: 0, y: 0 };
   /** Running timers (Set Timer by Event). */
   readonly timers = new TimerSet();
+  /** Everything that ran, for "why did this node not run?". */
+  readonly record = new RunRecord();
 
   private readonly journal = new Journal();
   private interp: Interpreter;
@@ -125,7 +129,9 @@ export class Simulation implements InterpreterHost {
       a.y = la.y;
       a.yaw = la.yaw;
       this.actors.push(a);
+      this.record.classes.add(cls.id);
     }
+    if (this.player.classId) this.record.classes.add(this.player.classId);
   }
 
   /** Fix the event order of the starting actors (the level, then the player). */
@@ -199,6 +205,7 @@ export class Simulation implements InterpreterHost {
       },
       () => {
         this.time += dt;
+        this.record.time = this.time;
         this.frame++;
         this.journal.expire(this.time);
         this.removeDestroyed();
@@ -277,6 +284,7 @@ export class Simulation implements InterpreterHost {
   private dispatchKey(key: InputKey, pin: 'pressed' | 'released'): void {
     if (!this.started) this.start();
     if (this.paused) return;
+    this.record.keys.add(key);
     for (const a of this.scripted()) {
       if (a.receivesInput) this.fire(a, (n) => n.def === 'event.inputKey' && n.config.key === key, pin);
     }
@@ -293,6 +301,7 @@ export class Simulation implements InterpreterHost {
   click(actorId: string): void {
     const a = this.actors.find((x) => x.id === actorId);
     if (!a || this.paused) return;
+    this.record.clicked.add(a.id);
     this.fire(a, (n) => n.def === 'event.actorOnClicked', 'then');
     this.runPhases();
   }
@@ -384,6 +393,7 @@ export class Simulation implements InterpreterHost {
     a.y = y;
     a.yaw = yaw;
     this.actors.push(a);
+    this.record.classes.add(cls.id);
     return a;
   }
 
@@ -406,6 +416,7 @@ export class Simulation implements InterpreterHost {
     }
     actor.destroyed = true;
     actor.latent = {};
+    this.record.destroyed.add(actor.id);
   }
 
   displayName(ref: RValue): string {
@@ -419,6 +430,7 @@ export class Simulation implements InterpreterHost {
 
   enterNode(site: NodeSite): void {
     this.site = site;
+    this.record.ran(site.graphId, site.nodeId);
     this.trace.push({
       id: nextId(),
       time: this.time,
@@ -437,12 +449,26 @@ export class Simulation implements InterpreterHost {
 
   mute(on: boolean): void {
     this.muted = on;
+    this.record.muted = on;
+  }
+
+  note(code: NoteCode, detail?: string): void {
+    if (this.site) this.record.note(this.site.graphId, this.site.nodeId, code, detail);
+  }
+
+  varRead(actor: ActorRT, variable: string): void {
+    this.record.read(actor.id, variable);
+  }
+
+  varWritten(actor: ActorRT, variable: string): void {
+    if (this.site) this.record.wrote(this.site.graphId, this.site.nodeId, actor.id, variable);
   }
 
   runtimeError(message: string): void {
     if (this.muted) return;
     const s = this.site;
     const where = s ? ` Node: ${s.nodeTitle} Graph: ${s.graphName} Blueprint: ${s.className}` : '';
-    this.journal.error(this.time, `Blueprint Runtime Error: "${message}".${where}`);
+    const explain = explainRuntime(message, s && { project: this.project, graphId: s.graphId, nodeId: s.nodeId });
+    this.journal.error(this.time, `Blueprint Runtime Error: "${message}".${where}`, explain);
   }
 }

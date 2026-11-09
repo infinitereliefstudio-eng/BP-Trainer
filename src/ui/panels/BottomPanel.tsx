@@ -1,8 +1,10 @@
 /** Bottom panel: Compiler Results, Output Log and Debug, like UE's tabs. */
 import { useEffect, useReducer, useState } from 'preact/hooks';
+import { explainCompile } from '@core/explain/compile';
 import type { SimLogEntry } from '@core/runtime/simulation';
 import type { PlaySession } from '@editor/world/playSession';
 import { useStore } from '../hooks';
+import { Why } from '../widgets/Why';
 import { DebugPanel } from './DebugPanel';
 
 export type BottomTab = 'compiler' | 'log' | 'debug';
@@ -43,26 +45,30 @@ export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compil
           store.compileMessages.length === 0 ? (
             <p class="hint">Touche « Compile » pour vérifier ton Blueprint.</p>
           ) : (
-            store.compileMessages.map((m, i) => (
-              <button
-                key={i}
-                class={`msg ${m.severity}`}
-                disabled={!m.nodeId}
-                onClick={() => m.nodeId && m.graphId && onFocusNode(m.graphId, m.nodeId)}
-              >
-                <span class="msg-icon">{ICON[m.severity]}</span>
-                {m.text}
-              </button>
-            ))
+            store.compileMessages.map((m, i) => {
+              const explain = explainCompile(m.code);
+              return (
+                <div key={i} class="msg-block">
+                  <button class={`msg ${m.severity}`} disabled={!m.nodeId} onClick={() => m.nodeId && m.graphId && onFocusNode(m.graphId, m.nodeId)}>
+                    <span class="msg-icon">{ICON[m.severity]}</span>
+                    {m.text}
+                  </button>
+                  {explain && <Why explain={explain} />}
+                </div>
+              );
+            })
           )
         ) : playLog ? (
           playLog.length === 0 ? (
             <p class="hint">Rien pour l’instant : les Print String et les erreurs d’exécution s’affichent ici.</p>
           ) : (
             [...playLog].reverse().map((e) => (
-              <div key={e.id} class={`msg ${e.level === 'log' ? 'info' : e.level}`}>
-                <span class="msg-time">{e.time.toFixed(2)} s</span>
-                {e.text}
+              <div key={e.id} class="msg-block">
+                <div class={`msg ${e.level === 'log' ? 'info' : e.level}`}>
+                  <span class="msg-time">{e.time.toFixed(2)} s</span>
+                  {e.text}
+                </div>
+                {e.explain && <Why explain={e.explain} />}
               </div>
             ))
           )

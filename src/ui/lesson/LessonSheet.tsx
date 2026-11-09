@@ -16,6 +16,8 @@ interface Props {
   done: boolean;
   onClose: () => void;
   onPassed: () => void;
+  /** The check's simulation, kept for the node diagnostics in Details. */
+  onChecked: (run: LessonRun) => void;
   onNext: () => void;
   onReset: () => void;
   openOverlay: OpenOverlay;
@@ -23,7 +25,7 @@ interface Props {
 
 type Tab = 'learn' | 'goals' | 'help';
 
-export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onReset, openOverlay }: Props) {
+export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, onNext, onReset, openOverlay }: Props) {
   const store = useStore();
   const tap = useOwnTap();
   const [tab, setTab] = useState<Tab>('learn');
@@ -34,6 +36,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
     store.commit();
     const res = runLesson(lesson, structuredClone(store.project));
     setRun(res);
+    onChecked(res);
     if (res.passed) onPassed();
   };
 
@@ -81,7 +84,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
             </>
           )}
 
-          {tab === 'goals' && lesson.predict && <PredictPanel p={lesson.predict} next={next} onPassed={onPassed} onNext={onNext} onClose={onClose} />}
+          {tab === 'goals' && lesson.predict && <PredictPanel p={lesson.predict} remember={lesson.remember} next={next} onPassed={onPassed} onNext={onNext} onClose={onClose} />}
 
           {tab === 'goals' && !lesson.predict && (
             <>
@@ -98,6 +101,9 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
               {run?.passed && (
                 <div class="success">
                   <strong>{lesson.kind === 'debug' ? 'Réparé !' : 'Leçon réussie.'}</strong>
+                  <p>
+                    <span class="eyebrow">À retenir</span> {lesson.remember}
+                  </p>
                   {lesson.challenge && (
                     <p>
                       <span class="eyebrow">Défi</span> {lesson.challenge}
@@ -151,7 +157,14 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onNext, onR
 }
 
 /** "Prédis" exercises: choose an answer, then see the explanation. */
-function PredictPanel({ p, next, onPassed, onNext, onClose }: { p: Prediction; next?: Lesson; onPassed: () => void; onNext: () => void; onClose: () => void }) {
+function PredictPanel({
+  p,
+  remember,
+  next,
+  onPassed,
+  onNext,
+  onClose,
+}: { p: Prediction; remember: string; next?: Lesson; onPassed: () => void; onNext: () => void; onClose: () => void }) {
   const [choice, setChoice] = useState<number | null>(null);
   const right = choice === p.answer;
   return (
@@ -177,6 +190,9 @@ function PredictPanel({ p, next, onPassed, onNext, onClose }: { p: Prediction; n
         <div class="success">
           <strong>Bien vu.</strong>
           <p>{p.explanation}</p>
+          <p>
+            <span class="eyebrow">À retenir</span> {remember}
+          </p>
           <p class="muted small">Ferme ce panneau et lance ▶ Play : l’Output Log montre l’ordre réel.</p>
           <div class="row-buttons flush">
             <button class="btn" onClick={onClose}>
@@ -224,6 +240,12 @@ function RunResult({ run }: { run: LessonRun }) {
           {n}
         </p>
       ))}
+      {!run.passed && run.results.some((r) => !r.ok) && (
+        <p class="muted small">
+          Pour comprendre un échec, ferme ce panneau, touche le nœud qui aurait dû agir, puis Details › « Pourquoi ce nœud ne s’est pas exécuté ? » : la
+          réponse s’appuie sur cette vérification.
+        </p>
+      )}
     </div>
   );
 }

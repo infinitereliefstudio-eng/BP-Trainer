@@ -132,13 +132,18 @@ const checks: Check[] = [
     label: 'Réservoir vide : Carburant reste à 0, jamais en dessous',
     test: (cx) => {
       const f = Number(cx.variable('BP_Generateur', 'Carburant'));
-      return near(f, 0) ? true : `Carburant vaut ${f.toFixed(1)} à la fin : utilise Clamp pour le garder entre 0 et 100.`;
+      if (near(f, 0)) return true;
+      if (f < 0) return `Carburant est descendu à ${f.toFixed(1).replace('.', ',')} : utilise Clamp pour le garder entre 0 et 100.`;
+      if (near(f, 100)) return 'Carburant n’a jamais baissé : la consommation n’a pas démarré (timer lancé au démarrage, en Looping ?).';
+      return `Carburant vaut ${f.toFixed(1).replace('.', ',')} à la fin : il n’est pas descendu jusqu’à 0.`;
     },
   },
   {
     id: 'stop',
     label: 'À sec, le générateur s’arrête : lampes éteintes, porte refermée',
     test: (cx) => {
+      const f = Number(cx.variable('BP_Generateur', 'Carburant'));
+      if (generatorRunning(cx) && f > 0.5) return `Le réservoir ne s’est pas vidé (Carburant vaut ${f.toFixed(1).replace('.', ',')} à la fin) : la panne n’a pas pu avoir lieu.`;
       if (generatorRunning(cx)) return 'Le générateur tourne encore avec un réservoir vide.';
       const lamps = lampsAre(false, cx);
       if (lamps !== true) return lamps;
@@ -150,7 +155,10 @@ const checks: Check[] = [
     label: 'Le carburant est consommé par un timer, arrêté à la panne',
     test: (cx) => {
       if (!cx.nodes('BP_Generateur').some((n) => n.def === 'time.setTimerByEvent')) return 'BP_Generateur doit utiliser Set Timer by Event.';
-      return cx.sim.timers.size === 0 ? true : 'Le timer tourne encore après la panne : arrête-le avec Clear and Invalidate Timer by Handle.';
+      if (cx.sim.timers.size === 0) return true;
+      const f = Number(cx.variable('BP_Generateur', 'Carburant'));
+      if (f > 0.5) return `Le timer tourne encore, mais la panne n’a pas eu lieu (Carburant vaut ${f.toFixed(1).replace('.', ',')} à la fin) : vérifie d’abord que le carburant baisse.`;
+      return 'Le timer tourne encore après la panne : arrête-le avec Clear and Invalidate Timer by Handle.';
     },
   },
   usesNode('clamp', 'BP_Generateur', ['math.clampFloat', 'math.clampInt'], 'Le carburant passe par Clamp', 'Utilise Clamp pour borner le carburant entre 0 et 100.'),
@@ -175,6 +183,7 @@ export const lesson12: Lesson = {
   situation:
     'Le courant est coupé. Ramasse les 3 fusibles, répare le générateur, et il rallume les lampes et ouvre la porte. Mais son carburant s’épuise : à sec, tout s’éteint.',
   notions: ['Increment Int', 'Set Timer by Event', 'Clamp', 'Interface', 'Event Dispatcher'],
+  remember: 'Un projet complet combine ces outils : une variable pour l’état, un timer pour le temps, une interface pour agir, un Dispatcher pour prévenir.',
   cards: [
     {
       title: 'Ce qui est prêt',

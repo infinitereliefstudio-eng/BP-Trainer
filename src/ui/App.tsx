@@ -7,7 +7,7 @@ import { compileClass } from '@core/compiler/validate';
 import { LESSONS } from '@core/lessons';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
 import { addNode } from '@core/operations/graphOps';
-import type { SimLogEntry } from '@core/runtime/simulation';
+import type { Simulation } from '@core/runtime/simulation';
 import type { Value } from '@core/types/values';
 import { GraphCanvas, type CanvasRequests, type GraphCanvasHandle } from '@editor/GraphCanvas';
 import { PlaySession } from '@editor/world/playSession';
@@ -59,7 +59,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
   const [selectionMode, setSelectionMode] = useState(false);
   const [overlay, setOverlay] = useState<Overlay | null>(null);
   const [session, setSession] = useState<PlaySession | null>(null);
-  const [lastLog, setLastLog] = useState<SimLogEntry[] | undefined>(undefined);
+  const [lastRun, setLastRun] = useState<Simulation | undefined>(undefined);
 
   useEffect(() => {
     if (lesson && workspace.fresh) setOverlay({ kind: 'lesson' });
@@ -150,14 +150,14 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
     setLeft(false);
     setDetails(false);
     setBottom(false);
-    setLastLog(undefined);
+    setLastRun(undefined);
     setSession(s);
     setView('level');
   };
 
   const stop = () => {
     if (!session) return;
-    setLastLog(session.sim.log);
+    setLastRun(session.sim);
     session.dispose();
     setSession(null);
     if (session.sim.runtimeErrors) {
@@ -316,7 +316,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
               ✕
             </button>
           </div>
-          <Details openOverlay={setOverlay} onOpenClass={openClass} />
+          <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} />
         </aside>
 
         <div class={`bottom-wrap${bottom ? ' open' : ''}${playing ? ' playing' : ''}`}>
@@ -330,7 +330,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
               initialTab={bottom}
               onFocusNode={focusNode}
               session={session ?? undefined}
-              simLog={lastLog}
+              simLog={lastRun?.log}
             />
           )}
         </div>
@@ -356,6 +356,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
           done={lessonDone}
           onClose={close}
           onPassed={onLessonPassed}
+          onChecked={(r) => r.sim && setLastRun(r.sim)}
           onNext={() => nextLesson && onOpen({ kind: 'lesson', lessonId: nextLesson.id })}
           onReset={() => {
             stop();

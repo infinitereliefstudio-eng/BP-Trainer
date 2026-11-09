@@ -12,6 +12,8 @@ import {
 } from '@core/operations/classOps';
 import { removeNodes, setNodeConfig, setPinDefault } from '@core/operations/graphOps';
 import { renameCustomEvent } from '@core/operations/projectOps';
+import { inUeFor, trapFor } from '@core/explain/notes';
+import type { Simulation } from '@core/runtime/simulation';
 import { hasInlineValue } from '@editor/layout';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
@@ -23,13 +25,22 @@ import { EnumDetails } from './EnumDetails';
 import { Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
+import { NodeDiagnosis } from './NodeDiagnosis';
 import { DispatcherDetails, FunctionDetails, InterfaceDetails } from './SignatureDetails';
 
-export function Details({ openOverlay, onOpenClass }: { openOverlay: OpenOverlay; onOpenClass: (classId: string) => void }) {
+interface DetailsProps {
+  openOverlay: OpenOverlay;
+  onOpenClass: (classId: string) => void;
+  /** The running play session, or the last one: for "why did this node not run?". */
+  run?: Simulation;
+  onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
+}
+
+export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsProps) {
   const store = useStore();
   const f = store.focus;
   let body: ComponentChildren;
-  if (f.kind === 'nodes') body = <NodeDetails />;
+  if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} />;
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
@@ -52,7 +63,7 @@ export function Details({ openOverlay, onOpenClass }: { openOverlay: OpenOverlay
 
 // -------------------------------------------------------------------- nodes
 
-function NodeDetails() {
+function NodeDetails({ run, onFocusNode }: Pick<DetailsProps, 'run' | 'onFocusNode'>) {
   const store = useStore();
   const ids = [...store.selection];
   if (ids.length > 1) {
@@ -68,6 +79,8 @@ function NodeDetails() {
   if (!node) return null;
   const def = getDefinition(node.def);
   const ctx = store.ctx;
+  const trap = trapFor(node, ctx);
+  const inUe = inUeFor(node);
   const linked = new Set(Object.values(store.graph.links).map((l) => `${l.to.node}:${l.to.pin}`));
   const inputs = resolvePins(node, ctx).filter(
     (p) => p.dir === 'in' && (hasInlineValue(p) || ((p.type.category === 'vector' || p.type.category === 'rotator') && !p.type.container)),
@@ -77,6 +90,16 @@ function NodeDetails() {
     <>
       <Group title={nodeTitle(node, ctx)}>
         <p class="desc">{def?.description}</p>
+        {trap && (
+          <p class="dnote trap-note">
+            <span class="note-tag trap">Piège</span> {trap}
+          </p>
+        )}
+        {inUe && (
+          <p class="dnote in-ue-note">
+            <span class="note-tag in-ue">Dans UE</span> {inUe}
+          </p>
+        )}
         <p class="muted small">Catégorie : {def?.category.replace(/\|/g, ' › ')}</p>
         {(node.def === 'var.get' || node.def === 'var.set') && (
           <button class="btn" onClick={() => store.setFocus({ kind: 'variable', id: String(node.config.variable) })}>
@@ -84,6 +107,9 @@ function NodeDetails() {
           </button>
         )}
       </Group>
+      {node.def !== 'util.comment' && node.def !== 'util.reroute' && (
+        <NodeDiagnosis run={run} graphId={store.graph.id} nodeId={node.id} onFocusNode={onFocusNode} />
+      )}
       {def?.config && (
         <Group title="Réglages">
           {def.config.map((c) => (

@@ -22,8 +22,29 @@ import { isAssignable } from '../types/pins';
 
 export type Severity = 'error' | 'warning' | 'info';
 
+export type CompileCode =
+  | 'unknownNode'
+  | 'variableGone'
+  | 'componentGone'
+  | 'ownerGone'
+  | 'memberGone'
+  | 'private'
+  | 'notImplemented'
+  | 'duplicateEvent'
+  | 'latentInFunction'
+  | 'byRef'
+  | 'wildcard'
+  | 'pickClass'
+  | 'pickEnum'
+  | 'targetRequired'
+  | 'badLink'
+  | 'unreachable'
+  | 'duplicateCustomEvent';
+
 export interface CompileMessage {
   severity: Severity;
+  /** What kind of problem, for its "Pourquoi ?" (core/explain/compile.ts). */
+  code?: CompileCode;
   text: string;
   graphId?: string;
   nodeId?: string;
@@ -60,38 +81,40 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     const def = getDefinition(n.def);
     const at = { graphId: g.id, nodeId: n.id };
     if (!def) {
-      out.push({ severity: 'error', text: `Nœud inconnu « ${n.def} ».`, ...at });
+      out.push({ severity: 'error', code: 'unknownNode', text: `Nœud inconnu « ${n.def} ».`, ...at });
       continue;
     }
     const title = nodeTitle(n, ctx);
 
     if ((n.def === 'var.get' || n.def === 'var.set') && !findVariable(cls, String(n.config.variable))) {
-      out.push({ severity: 'error', text: `${title} : la variable n'existe plus.`, ...at });
+      out.push({ severity: 'error', code: 'variableGone', text: `${title} : la variable n'existe plus.`, ...at });
     }
     if (n.def.startsWith('event.component') && !findComponent(cls, String(n.config.component))) {
-      out.push({ severity: 'error', text: `${title} : le composant n'existe plus.`, ...at });
+      out.push({ severity: 'error', code: 'componentGone', text: `${title} : le composant n'existe plus.`, ...at });
     }
     if (n.def === 'var.component' && !findComponent(cls, String(n.config.component))) {
-      out.push({ severity: 'error', text: `${title} : le composant n'existe plus.`, ...at });
+      out.push({ severity: 'error', code: 'componentGone', text: `${title} : le composant n'existe plus.`, ...at });
     }
     const broken = brokenReference(n, cls, ctx);
-    if (broken) out.push({ severity: 'error', text: `${title} : ${broken}`, ...at });
+    if (broken) out.push({ severity: 'error', code: broken[0], text: `${title} : ${broken[1]}`, ...at });
     if (def.unique) {
-      if (seenUnique.has(n.def)) out.push({ severity: 'error', text: `${title} est présent deux fois.`, ...at });
+      if (seenUnique.has(n.def)) out.push({ severity: 'error', code: 'duplicateEvent', text: `${title} est présent deux fois.`, ...at });
       seenUnique.set(n.def, n.id);
     }
     if (def.allowedIn && !def.allowedIn.includes(g.kind)) {
       out.push({
         severity: 'error',
+        code: 'latentInFunction',
         text: `${title} contient un appel latent, interdit hors de l'Event Graph (latent call outside of the event graph).`,
         ...at,
       });
     }
-    for (const msg of nodeChecks(n, g, ctx)) out.push({ severity: 'error', text: `${title} : ${msg}`, ...at });
+    for (const [code, msg] of nodeChecks(n, g, ctx)) out.push({ severity: 'error', code, text: `${title} : ${msg}`, ...at });
     for (const p of resolvePins(n, ctx)) {
       if (p.dir === 'in' && p.required && !linkedInputs.has(`${n.id}:${p.id}`)) {
         out.push({
           severity: 'error',
+          code: 'targetRequired',
           text: `${title} : la pin ${p.name} doit être reliée (self n'est pas un ${p.type.subtype ?? 'objet'} — « Target must have a connection »).`,
           ...at,
         });
@@ -105,7 +128,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     const pa = a && resolvePins(a, ctx).find((p) => p.id === l.from.pin);
     const pb = b && resolvePins(b, ctx).find((p) => p.id === l.to.pin);
     if (!pa || !pb || !isAssignable(pa.type, pb.type, ctx.hierarchy)) {
-      out.push({ severity: 'error', text: 'Un fil relie deux pins incompatibles ou disparues.', graphId: g.id, nodeId: b?.id });
+      out.push({ severity: 'error', code: 'badLink', text: 'Un fil relie deux pins incompatibles ou disparues.', graphId: g.id, nodeId: b?.id });
     }
   }
 
@@ -118,6 +141,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
   for (const n of unreachable) {
     out.push({
       severity: 'warning',
+      code: 'unreachable',
       text: `${nodeTitle(n, ctx)} n'est relié à aucun fil d'exécution : il ne s'exécutera jamais.`,
       graphId: g.id,
       nodeId: n.id,
@@ -138,43 +162,43 @@ function refSource(g: Graph, nodeId: string, pin: string): NodeInstance | undefi
 }
 
 /** Checks of the step-4 library: references, generic pins, class and enum choices. */
-function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): string[] {
-  const out: string[] = [];
+function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, string][] {
+  const out: [CompileCode, string][] = [];
   const linked = (pin: string) => Object.values(g.links).some((l) => (l.to.node === n.id && l.to.pin === pin) || (l.from.node === n.id && l.from.pin === pin));
   for (const p of resolvePins(n, ctx)) {
     if (p.dir === 'in' && p.byRef) {
       const src = refSource(g, n.id, p.id);
       if (src?.def !== 'var.get' && src?.def !== 'var.getExternal') {
-        out.push(`la pin ${p.name} est passée par référence : relie-y un Get de la variable à modifier.`);
+        out.push(['byRef', `la pin ${p.name} est passée par référence : relie-y un Get de la variable à modifier.`]);
       }
     }
   }
   if (n.def !== 'util.reroute' && n.def !== 'util.comment') {
     const open = resolvePins(n, ctx).filter((p) => p.wild && p.type.category === 'wildcard');
-    if (open.length) out.push(`le type de ${open.map((p) => p.name || p.id).join(', ')} n'est pas déterminé : relie-y un fil (Wildcard).`);
+    if (open.length) out.push(['wildcard', `le type de ${open.map((p) => p.name || p.id).join(', ')} n'est pas déterminé : relie-y un fil (Wildcard).`]);
   }
   if ((n.def === 'actor.spawn' || n.def === 'actor.getAllOfClass' || n.def === 'actor.getOfClass') && !linked('class')) {
     const id = n.defaults.class;
-    if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id)) out.push('choisis une classe sur la pin Class.');
+    if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id)) out.push(['pickClass', 'choisis une classe sur la pin Class.']);
   }
-  if (n.def === 'flow.switchEnum' && !enumEntries(String(n.config.enum ?? ''), ctx.project)) out.push("choisis l'Enum dans Details.");
+  if (n.def === 'flow.switchEnum' && !enumEntries(String(n.config.enum ?? ''), ctx.project)) out.push(['pickEnum', "choisis l'Enum dans Details."]);
   return out;
 }
 
 /** Why a node pointing at another Blueprint, dispatcher or interface is broken. */
-function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext): string | undefined {
+function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext): [CompileCode, string] | undefined {
   const c = n.config;
   const owner = () => classById(ctx, c.owner);
   switch (n.def) {
     case 'cast.to':
-      return classById(ctx, c.class) ? undefined : "le Blueprint ciblé n'existe plus.";
+      return classById(ctx, c.class) ? undefined : ['ownerGone', "le Blueprint ciblé n'existe plus."];
     case 'var.getExternal':
     case 'var.setExternal': {
       const o = owner();
-      if (!o) return "le Blueprint propriétaire n'existe plus.";
+      if (!o) return ['ownerGone', "le Blueprint propriétaire n'existe plus."];
       const v = findVariable(o, String(c.variable));
-      if (!v) return `la variable n'existe plus dans ${o.name}.`;
-      if (v.private && o.id !== cls.id) return `${v.name} est Private : seul ${o.name} peut la lire ou la modifier. Décoche Private dans ${o.name}, ou passe par une fonction de ${o.name}.`;
+      if (!v) return ['memberGone', `la variable n'existe plus dans ${o.name}.`];
+      if (v.private && o.id !== cls.id) return ['private', `${v.name} est Private : seul ${o.name} peut la lire ou la modifier.`];
       return undefined;
     }
     case 'dispatcher.call':
@@ -182,26 +206,26 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
     case 'dispatcher.unbind':
     case 'dispatcher.unbindAll': {
       const o = owner();
-      if (!o) return "le Blueprint propriétaire n'existe plus.";
-      return findDispatcher(o, String(c.dispatcher)) ? undefined : `l'Event Dispatcher n'existe plus dans ${o.name}.`;
+      if (!o) return ['ownerGone', "le Blueprint propriétaire n'existe plus."];
+      return findDispatcher(o, String(c.dispatcher)) ? undefined : ['memberGone', `l'Event Dispatcher n'existe plus dans ${o.name}.`];
     }
     case 'call.function':
     case 'call.pureFunction': {
-      if (c.owner && !owner()) return "le Blueprint propriétaire n'existe plus.";
-      return functionGraph(ctx, n) ? undefined : "la fonction n'existe plus.";
+      if (c.owner && !owner()) return ['ownerGone', "le Blueprint propriétaire n'existe plus."];
+      return functionGraph(ctx, n) ? undefined : ['memberGone', "la fonction n'existe plus."];
     }
     case 'call.custom': {
       const o = owner() ?? cls;
-      return findCustomEvent(o, String(c.event)) ? undefined : `aucun Custom Event « ${c.event} » dans ${o.name}.`;
+      return findCustomEvent(o, String(c.event)) ? undefined : ['memberGone', `aucun Custom Event « ${c.event} » dans ${o.name}.`];
     }
     case 'event.interface':
     case 'iface.message':
     case 'iface.doesImplement': {
       const iface = ctx.project && findInterface(ctx.project, String(c.interface));
-      if (!iface) return "l'interface n'existe plus.";
-      if (n.def !== 'iface.doesImplement' && !iface.functions.some((f) => f.id === c.fn)) return `la fonction n'existe plus dans ${iface.name}.`;
+      if (!iface) return ['memberGone', "l'interface n'existe plus."];
+      if (n.def !== 'iface.doesImplement' && !iface.functions.some((f) => f.id === c.fn)) return ['memberGone', `la fonction n'existe plus dans ${iface.name}.`];
       if (n.def === 'event.interface' && !cls.interfaces.includes(iface.id)) {
-        return `${cls.name} n'implémente pas ${iface.name} (Class Settings › Implemented Interfaces).`;
+        return ['notImplemented', `${cls.name} n'implémente pas ${iface.name} (Class Settings › Implemented Interfaces).`];
       }
       return undefined;
     }
@@ -216,7 +240,7 @@ function checkCustomEventNames(cls: BlueprintClass, out: CompileMessage[]): void
       if (n.def !== 'event.custom') continue;
       const name = String(n.config.name ?? '').trim().toLowerCase();
       if (seen.has(name)) {
-        out.push({ severity: 'error', text: `Deux Custom Events portent le nom « ${n.config.name} ».`, graphId: g.id, nodeId: n.id });
+        out.push({ severity: 'error', code: 'duplicateCustomEvent', text: `Deux Custom Events portent le nom « ${n.config.name} ».`, graphId: g.id, nodeId: n.id });
       }
       seen.set(name, true);
     }

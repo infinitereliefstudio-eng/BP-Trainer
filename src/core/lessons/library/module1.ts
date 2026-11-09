@@ -26,6 +26,7 @@ export const lesson1: Lesson = {
   title: 'Prise en main',
   situation: 'Afficher « Bonjour » au lancement du jeu.',
   notions: ['Event BeginPlay', 'Print String', 'Compile', 'Play'],
+  remember: 'Rien ne s’exécute sans événement : le fil blanc part d’un événement (BeginPlay, une touche, un overlap…) et passe de nœud en nœud, dans l’ordre.',
   cards: [
     {
       title: 'L’éditeur',
@@ -83,6 +84,7 @@ export const lesson2: Lesson = {
   title: 'Allumer une lampe',
   situation: 'La lampe est éteinte. Elle doit s’allumer au démarrage du jeu.',
   notions: ['Composants', 'Point Light', 'Set Visibility', 'Target'],
+  remember: 'Un nœud agit sur ce qui est branché sur Target : pour agir sur un composant, place sa référence dans le graphe et relie-la à Target.',
   cards: [
     {
       title: 'Les composants',
@@ -137,6 +139,7 @@ export const lesson3: Lesson = {
   title: 'L’interrupteur',
   situation: 'La lampe s’allume quand le joueur entre dans sa zone, et s’éteint quand il en sort.',
   notions: ['Box Collision', 'Begin / End Overlap', 'Other Actor'],
+  remember: 'Un overlap ne se déclenche qu’avec une collision qui fait des requêtes (Query) : Begin quand on entre, End quand on sort, et Other Actor dit qui.',
   cards: [
     {
       title: 'Les zones de collision',
@@ -197,6 +200,7 @@ export const lesson4: Lesson = {
   title: 'Interrupteur à touche',
   situation: 'La touche E allume la lampe, puis l’éteint, puis la rallume…',
   notions: ['Input E', 'Variable Boolean', 'Branch', 'FlipFlop'],
+  remember: 'Une variable garde un état d’un événement à l’autre ; Branch choisit le chemin selon un Boolean. Sans Auto Receive Input, un Blueprint n’entend pas les touches.',
   cards: [
     {
       title: 'Les touches',

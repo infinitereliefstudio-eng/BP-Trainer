@@ -66,6 +66,8 @@ export interface Lesson {
   title: string;
   situation: string;
   notions: string[];
+  /** The one line to keep, shown once the lesson is passed. */
+  remember: string;
   cards: LessonCard[];
   objectives: string[];
   /** Three levels of help: a hint, the nodes to use, the solution. */

@@ -17,6 +17,13 @@ function doorYaw(cx: CheckContext): number {
  * replaces "it did not move" when the door is expected open but found closed
  * after having opened earlier in the scenario.
  */
+/** Did any rotation node of BP_Porte run during the scenario? */
+function doorEverTurned(cx: CheckContext): boolean {
+  const cls = cx.project.classes.find((c) => c.name === 'BP_Porte');
+  const turns = new Set(['component.setRelativeRotation', 'component.addRelativeRotation', 'actor.setRotation']);
+  return !!cls?.graphs.some((g) => Object.values(g.nodes).some((n) => turns.has(n.def) && cx.sim.record.runsOf(g.id, n.id)));
+}
+
 function doorOpen(id: string, open: boolean, label: string, at?: string, closedReason?: string): Check {
   return {
     id,
@@ -27,7 +34,7 @@ function doorOpen(id: string, open: boolean, label: string, at?: string, closedR
       const isOpen = Math.abs(Math.abs(yaw) - 90) < 1;
       if (open) {
         if (isOpen) return true;
-        if (yaw === 0) return closedReason ?? 'La porte n’a pas bougé.';
+        if (yaw === 0) return closedReason && doorEverTurned(cx) ? closedReason : 'La porte n’a pas bougé.';
         return `La porte a tourné de ${yaw}° au lieu de 90°.`;
       }
       return Math.abs(yaw) < 1 ? true : 'La porte est ouverte à ce moment-là.';
@@ -50,6 +57,7 @@ export const lesson5: Lesson = {
   title: 'Ouvrir une porte',
   situation: 'La porte pivote de 90° quand le joueur s’approche, une seule fois, et le laisse passer.',
   notions: ['Set Relative Rotation', 'Rotator', 'DoOnce'],
+  remember: 'Do Once laisse passer le premier passage, puis plus rien jusqu’à Reset : c’est le moyen simple d’empêcher une action de se répéter.',
   cards: [
     {
       title: 'Tourner un composant',
@@ -120,6 +128,7 @@ export const lesson6: Lesson = {
   title: 'Ramasser un objet',
   situation: 'La clé disparaît quand le joueur la touche, et le joueur la possède. La caisse posée à côté, elle, ne doit pas la ramasser.',
   notions: ['Cast To', 'Variable d’un autre Blueprint', 'Destroy Actor'],
+  remember: 'Other Actor est un simple Actor : Cast To vérifie que c’est bien le joueur et donne accès à ses variables. Un Cast raté part par Cast Failed, sans erreur.',
   cards: [
     {
       title: 'Qui me touche ?',
@@ -198,6 +207,7 @@ export const lesson7: Lesson = {
   title: 'La porte verrouillée',
   situation: 'La porte ne s’ouvre que si le joueur a la clé. Sinon, un message le prévient.',
   notions: ['Lire la variable d’un autre Blueprint', 'Branch'],
+  remember: 'Lire la variable d’un autre Blueprint demande une référence vers lui. La lecture se fait au moment où le nœud qui l’utilise s’exécute.',
   cards: [
     {
       title: 'Demander au joueur',
@@ -282,6 +292,7 @@ export const lesson8: Lesson = {
   title: 'La porte qui se referme',
   situation: 'La porte se referme 3 secondes après le départ du joueur. S’il repasse entre-temps, le compte repart de zéro.',
   notions: ['Event ActorEndOverlap', 'Delay', 'Retriggerable Delay'],
+  remember: 'Un Delay en cours ignore les nouveaux appels ; Retriggerable Delay recommence l’attente à chaque appel.',
   cards: [
     {
       title: 'Attendre',

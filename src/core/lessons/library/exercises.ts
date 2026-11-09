@@ -35,6 +35,7 @@ export const predict1: Lesson = predictLesson({
   title: 'Sequence et Delay',
   situation: 'Un Sequence lance deux chaînes. La première contient un Delay. Dans quel ordre les messages s’affichent-ils ?',
   notions: ['Sequence', 'Delay (latent)'],
+  remember: 'Sequence lance ses sorties l’une après l’autre sans attendre : un Delay ne bloque que la chaîne où il se trouve.',
   cards: [
     {
       title: 'À lire',
@@ -84,6 +85,7 @@ export const predict2: Lesson = predictLesson({
   title: 'For Loop et Delay',
   situation: 'Une boucle de 0 à 2 avec un Delay dans son corps. Que s’affiche-t-il ?',
   notions: ['For Loop', 'Delay', 'Sortie Index'],
+  remember: 'Une boucle tourne d’un coup, dans la même image : elle n’attend pas un Delay placé dans son corps.',
   cards: [
     {
       title: 'À lire',
@@ -132,6 +134,7 @@ export const predict3: Lesson = predictLesson({
   title: 'Un nœud pur lu deux fois',
   situation: 'Un seul Random Integer in Range est relié à deux Print String. Les deux nombres affichés seront-ils les mêmes ?',
   notions: ['Nœud pur', 'Random Integer in Range'],
+  remember: 'Un nœud pur est recalculé à chaque lecture : pour réutiliser la même valeur, stocke-la dans une variable.',
   cards: [
     {
       title: 'À lire',
@@ -179,6 +182,7 @@ export const debug1: Lesson = {
   title: 'Accessed None',
   situation: 'Les deux lampes devraient suivre le générateur. L’une d’elles reste éteinte et l’Output Log se remplit d’erreurs.',
   notions: ['Accessed None', 'Output Log', 'Details d’une instance'],
+  remember: 'Accessed None nomme le nœud et la pin vides : remonte jusqu’à la référence, puis vérifie le niveau (Instance Editable) ou le Set qui devait la remplir.',
   cards: [
     {
       title: 'Enquêter',
@@ -231,6 +235,7 @@ export const debug2: Lesson = {
   title: 'Le message qui se perd',
   situation: 'E ouvre la porte et allume la lampe, mais le générateur ne réagit pas. Et l’Output Log ne signale aucune erreur.',
   notions: ['Implemented Interfaces', 'Event d’interface ≠ Custom Event'],
+  remember: 'Un message d’interface vers un Blueprint qui n’a pas l’interface dans Class Settings est ignoré sans erreur : c’est la première chose à vérifier.',
   cards: [
     {
       title: 'Une panne silencieuse',

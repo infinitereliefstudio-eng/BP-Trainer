@@ -25,7 +25,10 @@ export const flowBehaviors: Record<string, Behavior> = {
         st.closed = false;
         return [];
       }
-      if (st.closed) return [];
+      if (st.closed) {
+        cx.world.note('doOnce.closed');
+        return [];
+      }
       st.closed = true;
       return ['completed'];
     },
@@ -59,6 +62,7 @@ export const flowBehaviors: Record<string, Behavior> = {
           st.open = !st.open;
           return [];
         default:
+          if (!st.open) cx.world.note('gate.closed');
           return st.open ? ['exit'] : [];
       }
     },
@@ -196,6 +200,7 @@ export const flowBehaviors: Record<string, Behavior> = {
     // A Delay already counting ignores new calls.
     exec: (cx) => {
       if (!cx.latentActive()) cx.startLatent(Math.max(0, cx.num('duration')), 'completed');
+      else cx.world.note('delay.ignored');
       return [];
     },
   },
@@ -203,6 +208,7 @@ export const flowBehaviors: Record<string, Behavior> = {
   'time.retriggerableDelay': {
     // Each new call restarts the countdown.
     exec: (cx) => {
+      if (cx.latentActive()) cx.world.note('delay.restarted');
       cx.startLatent(Math.max(0, cx.num('duration')), 'completed');
       return [];
     },

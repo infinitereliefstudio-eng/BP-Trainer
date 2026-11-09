@@ -26,6 +26,8 @@ export interface LessonRun {
   notes: string[];
   /** Everything printed during the scenario. */
   prints: string[];
+  /** The run reported, for "why did this node not run?" after a check. */
+  sim?: Simulation;
 }
 
 export function runLesson(lesson: Lesson, project: Project): LessonRun {
@@ -115,5 +117,6 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
     runtimeErrors,
     notes,
     prints: cx.prints(),
+    sim,
   };
 }

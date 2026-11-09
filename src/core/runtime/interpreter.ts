@@ -18,6 +18,7 @@ import { contextFor, findPin, getDefinition, nodeTitle, pinValue, resolvePins } 
 import { defaultValueFor } from '../types/values';
 import { getBehavior } from './behaviors';
 import { RESUME, type ExecCx, type ValueCx, type WorldApi } from './behaviors/types';
+import type { RunRecord } from './runRecord';
 import type { ActorRT, RValue } from './world';
 
 /** Where execution currently is: used for error messages and the trace. */
@@ -39,6 +40,8 @@ export interface InterpreterHost extends WorldApi {
   runtimeError(message: string): void;
   /** While muted, reads made by the debugger do not log errors. */
   mute(on: boolean): void;
+  /** What ran, for diagnostics. */
+  readonly record: RunRecord;
 }
 
 interface GraphIndex {
@@ -327,6 +330,7 @@ export class Interpreter {
   }
 
   private pushTargets(actor: ActorRT, scope: Scope, gi: GraphIndex, node: string, pin: string): void {
+    this.host.record.took(gi.graph.id, node, pin);
     const targets = gi.execOut.get(`${node}:${pin}`) ?? [];
     for (let i = targets.length - 1; i >= 0; i--) {
       this.stack.push({ actor, scope, gi, node: targets[i].to.node, mode: 'in', pin: targets[i].to.pin, via: targets[i].link });
@@ -553,6 +557,7 @@ export class Interpreter {
     const def = getDefinition(src.def);
     switch (src.def) {
       case 'var.get':
+        this.host.record.read(actor.id, String(src.config.variable));
         return actor.vars[String(src.config.variable)] ?? null;
       case 'var.component':
         return { ref: 'component', actor: actor.id, id: String(src.config.component) };

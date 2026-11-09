@@ -63,6 +63,19 @@ export function drawPin(
   } else if (t.container === 'array') {
     const s = 3;
     for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) c.fillRect(x + i * 4 - s / 2, y + j * 4 - s / 2, s, s);
+  } else if (t.container === 'set' || t.container === 'map') {
+    // UE draws Sets and Maps with braces; a Map's right brace takes its value's colour.
+    c.lineWidth = 1.8;
+    for (const side of [-1, 1]) {
+      if (side === 1 && t.container === 'map' && t.value) c.strokeStyle = pinColor(t.value);
+      c.beginPath();
+      c.moveTo(x + side * 2, y - 6);
+      c.quadraticCurveTo(x + side * 5, y - 6, x + side * 4, y - 2);
+      c.lineTo(x + side * 6, y);
+      c.lineTo(x + side * 4, y + 2);
+      c.quadraticCurveTo(x + side * 5, y + 6, x + side * 2, y + 6);
+      c.stroke();
+    }
   } else {
     c.beginPath();
     c.arc(x, y, METRICS.pinR, 0, Math.PI * 2);

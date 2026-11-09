@@ -11,10 +11,14 @@ export function toVec(v: unknown): Vec3 {
   return { x: Number(p.x) || 0, y: Number(p.y) || 0, z: Number(p.z) || 0 };
 }
 
-/** A deep copy for arrays and vectors, as UE copies on Set; references stay shared. */
+/** A deep copy for containers, vectors and structures, as UE copies on Set; references stay shared. */
 export function copyValue(v: RValue): RValue {
   if (Array.isArray(v)) return v.map(copyValue);
-  if (v && typeof v === 'object' && !isRef(v)) return { ...(v as object) } as RValue;
+  if (v && typeof v === 'object' && !isRef(v)) {
+    const out: Record<string, RValue> = {};
+    for (const [k, x] of Object.entries(v as Record<string, RValue>)) out[k] = copyValue(x);
+    return out as RValue;
+  }
   return v;
 }
 

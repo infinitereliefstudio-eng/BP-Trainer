@@ -2,7 +2,7 @@
 
 Apprendre les Blueprints d'Unreal Engine 5 sur téléphone : un éditeur de nœuds tactile fidèle à UE, une simulation de la logique et un parcours d'exercices.
 
-**État : V1 et V2 livrées ; V3 en cours ([docs/PLAN_V3.md](docs/PLAN_V3.md)), étape A (variables locales, interfaces avec entrées et sorties) livrée, en attente de validation. 39 leçons et exercices sur 4 niveaux.** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps), la communication entre Blueprints (références, Cast, Event Dispatchers, Blueprint Interfaces, fonctions), le débogage (breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés), les 12 leçons avec les exercices « Prédis » et « Débogue », une bibliothèque de plus de 150 nœuds (timers, tableaux, Spawn, Switch, Enums…), l'Outliner en direct pendant Play, et le mode hors ligne prêt pour l'APK ([docs/APK.md](docs/APK.md)).
+**État : V1 et V2 livrées ; V3 en cours ([docs/PLAN_V3.md](docs/PLAN_V3.md)), étapes A (variables locales, interfaces avec entrées et sorties) et B (structures, Set, Map, Text, Name) livrées, B en attente de validation. 43 leçons et exercices sur 4 niveaux.** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps), la communication entre Blueprints (références, Cast, Event Dispatchers, Blueprint Interfaces, fonctions), le débogage (breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés), les 12 leçons avec les exercices « Prédis » et « Débogue », une bibliothèque de plus de 150 nœuds (timers, tableaux, Spawn, Switch, Enums…), l'Outliner en direct pendant Play, et le mode hors ligne prêt pour l'APK ([docs/APK.md](docs/APK.md)).
 
 ## Utiliser l'appli
 

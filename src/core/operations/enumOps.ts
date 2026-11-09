@@ -11,7 +11,13 @@ import { validateName } from './classOps';
 import type { OpResult } from './graphOps';
 
 /** Every pin type the project stores: variables, locals, function, interface and dispatcher parameters. */
-function eachType(p: Project, fn: (t: PinType) => PinType): void {
+export function eachType(p: Project, visit: (t: PinType) => PinType): void {
+  // A Map's value type is a type too.
+  const fn = (t: PinType): PinType => {
+    const r = visit(t);
+    return r.value ? { ...r, value: visit(r.value) } : r;
+  };
+  for (const st of p.structs ?? []) for (const m of st.members) m.type = fn(m.type);
   for (const i of p.interfaces) {
     for (const f of i.functions) for (const prm of [...(f.inputs ?? []), ...(f.outputs ?? [])]) prm.type = fn(prm.type);
   }
@@ -48,9 +54,11 @@ export function enumUsage(p: Project, name: string): number {
   return count;
 }
 
-function takenNames(p: Project, except?: string): string[] {
+/** Names of every asset type: Enums, Structures, Blueprints and Interfaces share one namespace, as in UE. */
+export function takenNames(p: Project, except?: string): string[] {
   return [
     ...p.enums.filter((e) => e.id !== except).map((e) => e.name),
+    ...(p.structs ?? []).filter((x) => x.id !== except).map((x) => x.name),
     ...p.classes.map((c) => c.name),
     ...p.interfaces.map((i) => i.name),
     ...Object.keys(BUILTIN_ENUMS),

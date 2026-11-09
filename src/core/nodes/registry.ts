@@ -7,7 +7,7 @@
 import { inheritedView } from '../model/inheritance';
 import { findVariable, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import { makeHierarchy } from '../types/pins';
-import { adoptedBy, adoptedType } from '../types/wildcard';
+import { adoptedBy, adoptedType, decodeType } from '../types/wildcard';
 import { defaultValueFor, type Value } from '../types/values';
 import type { NodeContext, NodeDefinition, PinSpec } from './definition';
 import { actorNodes } from './library/actor';
@@ -25,6 +25,8 @@ import { arrayNodes } from './library/arrays';
 import { organizationNodes } from './library/organization';
 import { switchNodes } from './library/switch';
 import { textNodes } from './library/text';
+import { structNodes } from './library/structs';
+import { containerNodes } from './library/containers';
 
 const ALL: NodeDefinition[] = [
   ...eventNodes,
@@ -38,6 +40,8 @@ const ALL: NodeDefinition[] = [
   ...functionNodes,
   ...mathNodes,
   ...textNodes,
+  ...structNodes,
+  ...containerNodes,
   ...arrayNodes,
   ...conversionNodes,
   ...debugNodes,
@@ -82,7 +86,13 @@ export function resolvePins(node: NodeInstance, ctx: NodeContext): PinSpec[] {
   return declaredPins(node, ctx).map((p) => {
     if (p.type.category !== 'wildcard') return p;
     const wild = adoptedBy(node, p.wildGroup);
-    return wild ? { ...p, type: adoptedType(p.type, wild), wild: true } : { ...p, wild: true };
+    let type = wild ? adoptedType(p.type, wild) : p.type;
+    // A generic Map pin: its values have a group of their own.
+    if (p.valueGroup) {
+      const v = adoptedBy(node, p.valueGroup);
+      type = { ...type, value: v ? decodeType(v) : { category: 'wildcard' } };
+    }
+    return { ...p, type, wild: true };
   });
 }
 

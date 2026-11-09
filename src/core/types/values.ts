@@ -2,12 +2,18 @@ import type { PinType } from './pins';
 import type { Project } from '../model/project';
 import { enumLabel } from './enums';
 
-/** A literal value stored on an unconnected input pin or a variable default. */
+/**
+ * A literal value stored on an unconnected input pin or a variable default.
+ * Containers are arrays: an Array or a Set lists its items, a Map lists its
+ * [key, value] pairs. A project structure is an object keyed by member id;
+ * a missing member has its default value.
+ */
 export type Vec3 = { x: number; y: number; z: number };
-export type Value = boolean | number | string | null | Vec3 | Value[];
+export type StructValue = { [memberId: string]: Value };
+export type Value = boolean | number | string | null | Vec3 | StructValue | Value[];
 
 export function defaultValueFor(t: PinType): Value {
-  if (t.container === 'array') return [];
+  if (t.container) return [];
   switch (t.category) {
     case 'bool':
       return false;
@@ -15,6 +21,8 @@ export function defaultValueFor(t: PinType): Value {
     case 'float':
       return 0;
     case 'string':
+    case 'text':
+    case 'name':
       return '';
     case 'vector':
     case 'rotator':
@@ -22,7 +30,9 @@ export function defaultValueFor(t: PinType): Value {
     case 'enum':
       return 0;
     case 'struct':
-      return t.subtype === 'LinearColor' ? '#ffffff' : null; // an unset Timer Handle is invalid
+      if (t.subtype === 'LinearColor') return '#ffffff';
+      if (t.subtype === 'TimerHandle') return null; // an unset Timer Handle is invalid
+      return {}; // a project structure: every member at its default
     default:
       return null; // object / class references default to None
   }
@@ -31,6 +41,7 @@ export function defaultValueFor(t: PinType): Value {
 /** Short text used to show a value inline on a pin or in a list. */
 export function formatValue(v: Value, t: PinType, project?: Project): string {
   if (t.container === 'array') return `[${Array.isArray(v) ? v.length : 0}]`;
+  if (t.container) return `{${Array.isArray(v) ? v.length : 0}}`;
   switch (t.category) {
     case 'bool':
       return v ? 'true' : 'false';
@@ -41,6 +52,8 @@ export function formatValue(v: Value, t: PinType, project?: Project): string {
       return Number.isInteger(n) ? n.toFixed(1) : String(+n.toFixed(4));
     }
     case 'string':
+    case 'text':
+    case 'name':
       return String(v ?? '');
     case 'vector':
     case 'rotator': {
@@ -51,7 +64,8 @@ export function formatValue(v: Value, t: PinType, project?: Project): string {
       return enumLabel(t.subtype, Number(v) || 0, project);
     case 'struct':
       if (t.subtype === 'TimerHandle') return v ? 'Timer Handle' : 'Invalid';
-      return String(v ?? '');
+      if (t.subtype === 'LinearColor') return String(v ?? '');
+      return t.subtype ?? 'Structure';
     default:
       return v === null ? 'None' : String(v);
   }

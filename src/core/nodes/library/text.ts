@@ -100,4 +100,60 @@ export const textNodes: NodeDefinition[] = [
     keywords: ['upper', 'majuscules'],
     pins: [dataIn('in', 'Source String', T.string, { default: '' }), dataOut('result', 'Return Value', T.string)],
   },
+  {
+    id: 'text.format',
+    title: 'Format Text',
+    category: 'Utilities|Text',
+    kind: 'pure',
+    description:
+      'Remplace chaque {Nom} du texte Format par la pin du même nom : tape par exemple « {Objet} ramassé » et une pin Objet apparaît.',
+    keywords: ['format', 'text', 'texte', 'remplacer', 'argument'],
+    pins: (n) => [dataIn('format', 'Format', T.text, { default: '' }), ...formatArgs(n.defaults.format).map((a) => dataIn(`arg:${a}`, a, T.text, { default: '' })), dataOut('result', 'Return Value', T.text)],
+  },
+  {
+    id: 'text.equal',
+    title: 'Equal (Text)',
+    symbol: '==',
+    category: 'Utilities|Text',
+    kind: 'pure',
+    style: 'compact',
+    description: 'Vrai si les deux Text sont identiques, majuscules comprises (contrairement au == des String).',
+    keywords: ['equal', 'egal', 'text', '=='],
+    pins: [
+      dataIn('a', 'A', T.text, { default: '', hideName: true }),
+      dataIn('b', 'B', T.text, { default: '', hideName: true }),
+      dataOut('result', 'Return Value', T.bool, { hideName: true }),
+    ],
+  },
+  {
+    id: 'name.equal',
+    title: 'Equal (Name)',
+    symbol: '==',
+    category: 'Utilities|Name',
+    kind: 'pure',
+    style: 'compact',
+    description: 'Vrai si les deux Name sont égaux. Un Name ignore les majuscules : « Rouge » et « rouge » sont le même Name.',
+    keywords: ['equal', 'egal', 'name', 'nom', '=='],
+    pins: [
+      dataIn('a', 'A', T.name, { default: '', hideName: true }),
+      dataIn('b', 'B', T.name, { default: '', hideName: true }),
+      dataOut('result', 'Return Value', T.bool, { hideName: true }),
+    ],
+  },
+  {
+    id: 'name.isNone',
+    title: 'Is None (Name)',
+    category: 'Utilities|Name',
+    kind: 'pure',
+    description: 'Vrai si le Name est vide (None).',
+    keywords: ['none', 'vide', 'name'],
+    pins: [dataIn('in', 'A', T.name, { default: '' }), dataOut('result', 'Return Value', T.bool)],
+  },
 ];
+
+/** Argument names of a Format Text pattern: each distinct {Name}, in order. */
+export function formatArgs(format: unknown): string[] {
+  const out: string[] = [];
+  for (const m of String(format ?? '').matchAll(/\{([A-Za-z0-9_]+)\}/g)) if (!out.includes(m[1])) out.push(m[1]);
+  return out;
+}

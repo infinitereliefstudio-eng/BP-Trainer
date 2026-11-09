@@ -21,6 +21,7 @@ import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor, getDefinition, nodeTitle, resolvePins } from '../nodes/registry';
 import { enumEntries } from '../types/enums';
+import { findStruct } from '../types/structs';
 import { isAssignable } from '../types/pins';
 
 export type Severity = 'error' | 'warning' | 'info';
@@ -185,6 +186,9 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
   }
 }
 
+/** Nodes a pass-by-reference pin may be wired to: variables, and an array element by reference. */
+const REF_SOURCES = ['var.get', 'var.getExternal', 'var.getLocal', 'array.getRef'];
+
 /** Variable getters a pass-by-reference pin may be wired to (through Reroutes). */
 function refSource(g: Graph, nodeId: string, pin: string): NodeInstance | undefined {
   let cur = { node: nodeId, pin };
@@ -202,9 +206,10 @@ function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, 
   const out: [CompileCode, string][] = [];
   const linked = (pin: string) => Object.values(g.links).some((l) => (l.to.node === n.id && l.to.pin === pin) || (l.from.node === n.id && l.from.pin === pin));
   for (const p of resolvePins(n, ctx)) {
-    if (p.dir === 'in' && p.byRef) {
+    // Set Members in compiles on a copy too: UE accepts it, and only the copy changes (a classic trap).
+    if (p.dir === 'in' && p.byRef && n.def !== 'struct.setMembers') {
       const src = refSource(g, n.id, p.id);
-      if (src?.def !== 'var.get' && src?.def !== 'var.getExternal' && src?.def !== 'var.getLocal') {
+      if (!src || !REF_SOURCES.includes(src.def)) {
         out.push(['byRef', `la pin ${p.name} est passée par référence : relie-y un Get de la variable à modifier.`]);
       }
     }
@@ -228,6 +233,10 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
   switch (n.def) {
     case 'cast.to':
       return classById(ctx, c.class) ? undefined : ['ownerGone', "le Blueprint ciblé n'existe plus."];
+    case 'struct.make':
+    case 'struct.break':
+    case 'struct.setMembers':
+      return findStruct(ctx.project, String(c.struct ?? '')) ? undefined : ['memberGone', "la structure n'existe plus."];
     case 'var.getExternal':
     case 'var.setExternal': {
       const o = owner();

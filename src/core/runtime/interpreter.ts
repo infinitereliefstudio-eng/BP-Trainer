@@ -564,6 +564,13 @@ export class Interpreter {
       scope.locals[String(src.config.variable)] = value;
       return true;
     }
+    if (src?.def === 'array.getRef') {
+      // The array is the variable's own (a Get hands it over as is): change the element in place.
+      const arr = this.readInput(actor, scope, gi, src, 'array', 0);
+      const i = Math.trunc(Number(this.readInput(actor, scope, gi, src, 'index', 0)) || 0);
+      if (Array.isArray(arr) && i >= 0 && i < arr.length) arr[i] = value;
+      return true;
+    }
     if (src?.def === 'var.getExternal') {
       const target = this.host.actor(this.readInput(actor, scope, gi, src, 'target', 0), 'Target');
       if (target) target.vars[String(src.config.variable)] = value;

@@ -119,6 +119,12 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       keywords: ['component', 'composant', c.name.toLowerCase()],
     });
   }
+  for (const st of ctx.project?.structs ?? []) {
+    const kw = ['struct', 'structure', st.name.toLowerCase()];
+    out.push(entry(ctx, `smake:${st.id}`, 'struct.make', { struct: st.name }, { category: `Structures|${st.name}`, keywords: ['make', 'construire', ...kw] }));
+    out.push(entry(ctx, `sbreak:${st.id}`, 'struct.break', { struct: st.name }, { category: `Structures|${st.name}`, keywords: ['break', 'separer', ...kw] }));
+    out.push(entry(ctx, `sset:${st.id}`, 'struct.setMembers', { struct: st.name }, { category: `Structures|${st.name}`, keywords: ['set members', 'modifier', 'membre', ...kw] }));
+  }
   if (ctx.project) out.push(...communicationEntries(ctx, graphKind), ...parentEntries(ctx, graphKind));
   return out;
 }

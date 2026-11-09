@@ -2,6 +2,7 @@
 import type { ComponentChildren } from 'preact';
 import { findVariable, type Project, type Variable } from '@core/model/project';
 import { BUILTIN_ENUMS } from '@core/types/enums';
+import { findStruct } from '@core/types/structs';
 import { getDefinition, nodeTitle, pinValue, resolvePins } from '@core/nodes/registry';
 import {
   removeVariable,
@@ -22,6 +23,7 @@ import { ValueInput } from '../widgets/ValueInput';
 import { NameField } from '../widgets/NameField';
 import { ComponentDetails } from './ComponentDetails';
 import { EnumDetails } from './EnumDetails';
+import { StructDetails } from './StructDetails';
 import { Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
@@ -53,6 +55,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   else if (f.kind === 'dispatcher') body = <DispatcherDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'interface') body = <InterfaceDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'enum') body = <EnumDetails id={f.id} />;
+  else if (f.kind === 'struct') body = <StructDetails id={f.id} />;
   else
     body = (
       <p class="hint">
@@ -159,6 +162,7 @@ function NodeDetails({ run, onFocusNode }: Pick<DetailsProps, 'run' | 'onFocusNo
           ))}
         </Group>
       )}
+      {node.def === 'struct.setMembers' && <SetMembersFields nodeId={node.id} />}
       {node.def === 'util.comment' && (
         <Group title="Apparence">
           <Field label="Comment Color">
@@ -276,4 +280,29 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
 function projectChoices(from: 'enums' | 'classes', p: Project): { value: string; label: string }[] {
   if (from === 'classes') return [{ value: '', label: '—' }, ...p.classes.map((c) => ({ value: c.id, label: c.name }))];
   return [{ value: '', label: '—' }, ...Object.keys(BUILTIN_ENUMS).map((n) => ({ value: n, label: n })), ...p.enums.map((e) => ({ value: e.name, label: e.name }))];
+}
+
+/** Set Members in: the members it changes, ticked one by one as in UE's Details. */
+function SetMembersFields({ nodeId }: { nodeId: string }) {
+  const store = useStore();
+  const node = store.graph.nodes[nodeId];
+  const s = node && findStruct(store.project, String(node.config.struct ?? ''));
+  if (!node || !s) return null;
+  const shown = String(node.config.fields ?? '')
+    .split(',')
+    .filter(Boolean);
+  const toggle = (id: string, on: boolean) => {
+    const next = s.members.map((m) => m.id).filter((m) => (m === id ? on : shown.includes(m)));
+    store.apply('Membres à changer', (_c, g) => setNodeConfig(g, nodeId, 'fields', next.join(','), store.ctx));
+  };
+  return (
+    <Group title="Membres à changer">
+      {s.members.map((m) => (
+        <Field key={m.id} label={m.name}>
+          <input type="checkbox" checked={shown.includes(m.id)} onChange={(e) => toggle(m.id, (e.target as HTMLInputElement).checked)} />
+        </Field>
+      ))}
+      <p class="muted small">Seuls les membres cochés ont une pin et changent ; les autres gardent leur valeur.</p>
+    </Group>
+  );
 }

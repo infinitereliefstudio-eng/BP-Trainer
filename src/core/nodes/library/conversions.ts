@@ -31,6 +31,14 @@ export const conversionNodes: NodeDefinition[] = [
   conv('conv.stringToInt', 'String to Int', T.string, T.int, 'Lit un entier dans un texte ("12" donne 12, un texte non numérique donne 0).'),
   conv('conv.stringToFloat', 'String to Float', T.string, T.float, 'Lit un nombre décimal dans un texte ("1.5" donne 1,5).'),
   conv('conv.boolToInt', 'To Integer (Boolean)', T.bool, T.int, 'true donne 1, false donne 0.'),
+  conv('conv.stringToText', 'To Text (String)', T.string, T.text, 'Convertit un String en Text, le type des textes affichés au joueur.'),
+  conv('conv.textToString', 'To String (Text)', T.text, T.string, 'Convertit un Text en String.'),
+  conv('conv.intToText', 'To Text (Integer)', T.int, T.text, 'Convertit un entier en Text.'),
+  conv('conv.floatToText', 'To Text (Float)', T.float, T.text, 'Convertit un nombre décimal en Text.'),
+  conv('conv.boolToText', 'To Text (Boolean)', T.bool, T.text, 'Convertit un booléen en Text : true ou false.'),
+  conv('conv.stringToName', 'String to Name', T.string, T.name, 'Convertit un String en Name, un identifiant (majuscules ignorées).'),
+  conv('conv.nameToString', 'To String (Name)', T.name, T.string, 'Convertit un Name en String.'),
+  conv('conv.nameToText', 'To Text (Name)', T.name, T.text, 'Convertit un Name en Text.'),
   { ...conv('conv.enumToString', 'To String (Enum)', T.wildcard, T.string, "Le nom de la valeur d'Enum."), pins: [dataIn('in', 'In', T.wildcard, { hideName: true, accepts: ['enum'] }), dataOut('result', 'Return Value', T.string, { hideName: true })] },
 ];
 
@@ -50,6 +58,14 @@ export function conversionFor(from: PinType, to: PinType): string | undefined {
       'rotator>string': 'conv.rotatorToString',
       'bool>int': 'conv.boolToInt',
       'enum>string': 'conv.enumToString',
+      'string>text': 'conv.stringToText',
+      'text>string': 'conv.textToString',
+      'int>text': 'conv.intToText',
+      'float>text': 'conv.floatToText',
+      'bool>text': 'conv.boolToText',
+      'string>name': 'conv.stringToName',
+      'name>string': 'conv.nameToString',
+      'name>text': 'conv.nameToText',
     } as Record<string, string>
   )[key];
 }

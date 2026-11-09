@@ -84,6 +84,11 @@ function migrate(p: Project, from: number): Project {
     }
     cur = 5;
   }
+  if (cur === 5) {
+    // v6: Structure assets.
+    p.structs ??= [];
+    cur = 6;
+  }
   p.format = cur;
   return p;
 }

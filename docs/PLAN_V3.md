@@ -44,7 +44,7 @@ Objectif « notion » séparé (non bloquant), scénarios de robustesse, conseil
 | Niveau | Avant | Nouveau | Étape |
 |---|---|---|---|
 | Débutant | 7 | — | — |
-| Intermédiaire | 11 | La porte qui glisse ; Le trousseau ; C3 | B, C |
+| Intermédiaire | 11 | La porte qui glisse ; Les codes des portes (livrée à la place du « trousseau ») ; C3 | B, C |
 | Confirmé | 11 | Les locales (livrée sous le titre « Le ticket de caisse ») ; La fiche de l'objet ; Les badges ; La rangée de lampes ; P4 ; D5 | A, B, C |
 | Avancé | 7 | Le terminal ; Regarder et interagir ; La caisse qu'on pousse ; R3 | A, D |
 
@@ -53,7 +53,7 @@ Objectif « notion » séparé (non bloquant), scénarios de robustesse, conseil
 | Étape | Contenu | Leçons et exercices |
 |---|---|---|
 | A — Fonctions | Variables locales, paramètres et sorties d'interface, conversion d'un Custom Event | Le ticket de caisse, Le terminal, P4 ; « Fonctions pures et impures » réécrite |
-| B — Données | Asset Structure, Make / Break / Set Members, Map, Set, Text, Name | Le trousseau, La fiche de l'objet, Les badges, D5 |
+| B — Données | Asset Structure, Make / Break / Set Members, Map, Set, Text, Name | Les codes des portes, La fiche de l'objet, Les badges, D5 |
 | C — Mouvement | Timeline, Lerp, Map Range Clamped, Construction Script, flèches de références | La porte qui glisse, La rangée de lampes, C3 |
 | D — Interaction | Line Trace By Channel, Out Hit, Draw Debug, Event Hit | Regarder et interagir, La caisse qu'on pousse, R3 |
 | E — Qualité | Notion visée, robustesse, conseils, autres façons de faire | Leçons existantes |

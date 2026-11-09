@@ -13,6 +13,8 @@ export type PinCategory =
   | 'int'
   | 'float'
   | 'string'
+  | 'text'
+  | 'name'
   | 'vector'
   | 'rotator'
   | 'object'
@@ -24,12 +26,20 @@ export type PinCategory =
 
 export type PinDirection = 'in' | 'out';
 
+export type Container = 'array' | 'set' | 'map';
+
 export interface PinType {
   category: PinCategory;
   /** Class name for object/class pins, enum name for enum pins, struct name for structs. */
   subtype?: string;
-  container?: 'array';
+  /** Array, Set or Map of this type. For a Map, this type is the key's. */
+  container?: Container;
+  /** A Map's value type (never a container itself). */
+  value?: PinType;
 }
+
+/** Types a Set or a Map key may hold: UE needs them hashable. */
+export const KEY_CATEGORIES: PinCategory[] = ['int', 'string', 'name', 'enum', 'object', 'class'];
 
 export const T = {
   exec: { category: 'exec' } as PinType,
@@ -37,14 +47,18 @@ export const T = {
   int: { category: 'int' } as PinType,
   float: { category: 'float' } as PinType,
   string: { category: 'string' } as PinType,
+  text: { category: 'text' } as PinType,
+  name: { category: 'name' } as PinType,
   vector: { category: 'vector' } as PinType,
   rotator: { category: 'rotator' } as PinType,
   wildcard: { category: 'wildcard' } as PinType,
   object: (subtype = 'Object'): PinType => ({ category: 'object', subtype }),
   class: (subtype = 'Object'): PinType => ({ category: 'class', subtype }),
   enum: (subtype: string): PinType => ({ category: 'enum', subtype }),
-  struct: (subtype: StructName): PinType => ({ category: 'struct', subtype }),
+  struct: (subtype: string): PinType => ({ category: 'struct', subtype }),
   array: (inner: PinType): PinType => ({ ...inner, container: 'array' }),
+  set: (inner: PinType): PinType => ({ ...inner, container: 'set' }),
+  map: (key: PinType, value: PinType): PinType => ({ ...key, container: 'map', value: { category: value.category, subtype: value.subtype } }),
 } as const;
 
 /** Display names, as shown in UE's type picker. */
@@ -54,6 +68,8 @@ export const CATEGORY_LABEL: Record<PinCategory, string> = {
   int: 'Integer',
   float: 'Float',
   string: 'String',
+  text: 'Text',
+  name: 'Name',
   vector: 'Vector',
   rotator: 'Rotator',
   object: 'Object Reference',
@@ -70,6 +86,8 @@ export const VARIABLE_CATEGORIES: PinCategory[] = [
   'int',
   'float',
   'string',
+  'text',
+  'name',
   'vector',
   'rotator',
   'object',
@@ -78,28 +96,40 @@ export const VARIABLE_CATEGORIES: PinCategory[] = [
   'struct',
 ];
 
-/** Engine structures V1 knows, with their UE display names. */
+/** Engine structures the app knows, with their UE display names. Project structures go by their own name. */
 export type StructName = 'TimerHandle' | 'LinearColor';
 export const STRUCT_LABEL: Record<StructName, string> = {
   TimerHandle: 'Timer Handle',
   LinearColor: 'Linear Color',
 };
 
-export function typeLabel(t: PinType): string {
-  let base = CATEGORY_LABEL[t.category];
+function baseLabel(t: PinType): string {
   if ((t.category === 'object' || t.category === 'class') && t.subtype) {
-    base = `${t.subtype} ${t.category === 'object' ? 'Object Reference' : 'Class Reference'}`;
+    return `${t.subtype} ${t.category === 'object' ? 'Object Reference' : 'Class Reference'}`;
   }
-  if (t.category === 'enum' && t.subtype) base = t.subtype;
-  if (t.category === 'struct' && t.subtype) base = STRUCT_LABEL[t.subtype as StructName] ?? t.subtype;
-  return t.container === 'array' ? `Array of ${base}` : base;
+  if (t.category === 'enum' && t.subtype) return t.subtype;
+  if (t.category === 'struct' && t.subtype) return STRUCT_LABEL[t.subtype as StructName] ?? t.subtype;
+  return CATEGORY_LABEL[t.category];
+}
+
+export function typeLabel(t: PinType): string {
+  const base = baseLabel(t);
+  if (t.container === 'array') return `Array of ${base}`;
+  if (t.container === 'set') return `Set of ${base}`;
+  if (t.container === 'map') return `Map of ${base} to ${t.value ? baseLabel(t.value) : 'Wildcard'}`;
+  return base;
+}
+
+export function isBuiltinStruct(name: string | undefined): boolean {
+  return !!name && name in STRUCT_LABEL;
 }
 
 export function sameType(a: PinType, b: PinType): boolean {
   return (
     a.category === b.category &&
     (a.subtype ?? '') === (b.subtype ?? '') &&
-    (a.container ?? '') === (b.container ?? '')
+    (a.container ?? '') === (b.container ?? '') &&
+    (a.container !== 'map' || (!!a.value && !!b.value && sameType(a.value, b.value)))
   );
 }
 
@@ -153,6 +183,10 @@ export function isAssignable(from: PinType, to: PinType, h: ClassHierarchy): boo
     return (from.container ?? '') === (to.container ?? '');
   }
   if ((from.container ?? '') !== (to.container ?? '')) return false;
+  // A Map's values must match too; a generic value (Map functions not yet typed) accepts any.
+  if (from.container === 'map' && from.value && to.value && from.value.category !== 'wildcard' && to.value.category !== 'wildcard') {
+    if (!isAssignable(from.value, to.value, h) || !isAssignable(to.value, from.value, h)) return false;
+  }
   if (from.category !== to.category) return false;
   if (from.category === 'object' || from.category === 'class') {
     return h.isA(from.subtype ?? 'Object', to.subtype ?? 'Object');

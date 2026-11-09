@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 39:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 39")
+        if await page.locator('.lesson-item').count() != 43:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 43")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -258,6 +258,60 @@ async def main():
         await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'interface', id: s.project.interfaces[0].id }); }""")
         await page.wait_for_timeout(300)
         await shot('30_interface_details')
+
+        # Step B of V3: a Map default in Details, a Structure asset, Set Members, a Set variable
+        for lid in ['l-codes', 'l-fiche', 'l-badges']:
+            await page.evaluate(PUT, [f'project:lesson:{lid}', (HERE / 'out' / f'{lid}.json').read_text()])
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Les codes des portes').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('31_map_find_graph')
+        await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'variable', id: s.cls.variables.find(v => v.name === 'Codes').id }); }""")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('32_map_variable_details')
+        if await page.locator('.drawer.right .container-row').count() != 2:
+            errs.append('Details : les deux paires de la Map Codes ne sont pas affichées')
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La fiche de l’objet').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('33_struct_graph')
+        await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'struct', id: s.project.structs[0].id }); }""")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('34_struct_details')
+        if await page.locator('.drawer.right', has_text='Charge').count() == 0:
+            errs.append('Details : le membre Charge de S_Objet n’apparaît pas')
+        await page.evaluate("""() => { const s = window.bpStore; const n = Object.values(s.graph.nodes).find(n => n.def === 'struct.setMembers'); s.selectNodes([n.id]); s.setFocus({ kind: 'nodes' }); }""")
+        await page.wait_for_timeout(300)
+        await shot('35_set_members_details')
+        if await page.locator('.drawer.right', has_text='Membres à changer').count() == 0:
+            errs.append('Details : Set Members in n’affiche pas les membres à changer')
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Les badges').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.evaluate(OPEN, 'BP_Joueur')
+        await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'variable', id: s.cls.variables.find(v => v.name === 'Badges').id }); }""")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('36_set_variable_details')
+        await page.locator('.drawer.right .drawer-head .btn').tap()
+        await page.locator('.tb.class-name').tap()
+        await page.wait_for_timeout(300)
+        await shot('37_content_browser')
         print('errors', errs)
         await b.close()
         return errs

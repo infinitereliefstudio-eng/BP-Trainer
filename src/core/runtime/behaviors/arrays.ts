@@ -4,7 +4,8 @@
  * variable, like UE's by-ref array pins.
  */
 import type { RValue } from '../world';
-import { copyValue, sameValue } from '../values';
+import { copyValue } from '../values';
+import { keyEq } from './equality';
 import type { Behavior, ExecCx, ValueCx } from './types';
 
 const list = (cx: ValueCx): RValue[] | null => {
@@ -34,7 +35,8 @@ export const arrayBehaviors: Record<string, Behavior> = {
   }),
   'array.addUnique': change((arr, cx) => {
     const item = cx.in('item');
-    if (arr.some((x) => sameValue(x, item))) cx.out('index', -1);
+    const eq = keyEq(cx, 'item');
+    if (arr.some((x) => eq(x, item))) cx.out('index', -1);
     else {
       arr.push(copyValue(item));
       cx.out('index', arr.length - 1);
@@ -53,7 +55,8 @@ export const arrayBehaviors: Record<string, Behavior> = {
   'array.removeItem': change((arr, cx) => {
     const item = cx.in('item');
     const before = arr.length;
-    for (let i = arr.length - 1; i >= 0; i--) if (sameValue(arr[i], item)) arr.splice(i, 1);
+    const eq = keyEq(cx, 'item');
+    for (let i = arr.length - 1; i >= 0; i--) if (eq(arr[i], item)) arr.splice(i, 1);
     cx.out('result', arr.length !== before);
   }),
   'array.set': change((arr, cx) => {
@@ -79,16 +82,30 @@ export const arrayBehaviors: Record<string, Behavior> = {
       return { item: copyValue(arr[i]) };
     },
   },
+  // The element itself: the interpreter writes through it for a by-ref pin (Set Members in).
+  'array.getRef': {
+    pure: (cx) => {
+      const arr = list(cx) ?? [];
+      const i = Math.trunc(cx.num('index'));
+      if (i < 0 || i >= arr.length) {
+        outOfBounds(cx, i, arr.length);
+        return { item: null };
+      }
+      return { item: arr[i] };
+    },
+  },
   'array.contains': {
     pure: (cx) => {
       const item = cx.in('item');
-      return { result: (list(cx) ?? []).some((x) => sameValue(x, item)) };
+      const eq = keyEq(cx, 'item');
+      return { result: (list(cx) ?? []).some((x) => eq(x, item)) };
     },
   },
   'array.find': {
     pure: (cx) => {
       const item = cx.in('item');
-      return { index: (list(cx) ?? []).findIndex((x) => sameValue(x, item)) };
+      const eq = keyEq(cx, 'item');
+      return { index: (list(cx) ?? []).findIndex((x) => eq(x, item)) };
     },
   },
   'array.lastIndex': { pure: (cx) => ({ result: (list(cx) ?? []).length - 1 }) },

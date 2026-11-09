@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-09, étape A de la V3 livrée (en attente de validation). La V2 est validée.
+Dernière mise à jour : 2026-11-09, étape B de la V3 livrée (en attente de validation). L'étape A est validée.
 
 ## Le projet
 
@@ -131,8 +131,8 @@ Tristan a demandé un plan V3 (« prépare moi un plan pour la v3 »), puis l'a 
 
 | Étape | État |
 |---|---|
-| A — Fonctions | **Livrée le 2026-11-09, en attente de validation** |
-| B — Données | À faire |
+| A — Fonctions | Livrée le 2026-11-09, validée (« tu peux passer à la suite ») |
+| B — Données | **Livrée le 2026-11-09, en attente de validation** |
 | C — Mouvement | À faire |
 | D — Interaction | À faire |
 | E — Qualité | À faire |
@@ -145,6 +145,15 @@ Tristan a demandé un plan V3 (« prépare moi un plan pour la v3 »), puis l'a 
 - Message : ses sorties repartent de leur valeur par défaut à chaque envoi (sinon un acteur qui n'implémente pas l'interface laissait la réponse du précédent) ; il appelle la fonction d'implémentation de la cible (`interfaceImplementation`, la plus proche dans la lignée, une redéfinition de l'enfant gagne) ou ses Events.
 - Interface : My Blueprint › Local Variables (fonction ouverte), Interfaces (« · fonction » ouvre le graphe d'implémentation, absent de Functions et de la palette des appels) ; Details de la locale (`LocalDetails.tsx`), de l'interface avec Inputs / Outputs par fonction (`InterfaceDetails.tsx`, séparé de SignatureDetails), d'une implémentation (lecture seule) ; appui long sur un Custom Event › « Convertir en événement d'interface ». Notes Piège sur Get local et sur le Message.
 - Leçons : « Le ticket de caisse » (Confirmé, après « Qui modifie quoi » : sous-total en locale, total du ticket en variable du Blueprint ; piège : total en locale → 10, 10, 8, 8), « Prédis P4 — Locale ou pas » (Increment Int sur une locale), « Le terminal » (Avancé, après C2 : Interagir gagne Niveau et Reponse, implémentation en fonction, réponse vide du rocher). Le plan nommait la première « Les locales » ; le titre a changé pour dire la situation. « Fonctions pures et impures » ajoute à Soigner une sortie Soin et une locale Avant (80, 15, 5, 100). Tests : `tests/functionsV3.test.ts`, `tests/lessonVariantsV3.test.ts` ; smoke : captures 24 à 30.
+
+Étape B, choix d'implémentation :
+- Types : catégories `text` et `name` ; `PinType.container` vaut `array`, `set` ou `map`, et `PinType.value` est le type des valeurs d'une Map (la clé est le type lui-même). Set et clé de Map limités aux types hachables (`KEY_CATEGORIES` : Integer, String, Name, Enum, références). Valeurs : un Set est un tableau sans doublon, une Map un tableau de paires `[clé, valeur]`.
+- Structures : `Project.structs` (format 6, migration qui ajoute `[]`). Un membre a un id, un nom, un type et une valeur par défaut ; une valeur de structure est un objet indexé par id de membre, où un membre absent a sa valeur par défaut (`types/structs.ts` : `memberValue`, `fullStruct`). Le type nomme la structure (`struct:S_Objet`), comme un Enum ; un renommage suit partout (`renameTypeRefs`, qui parcourt aussi les membres et les valeurs de Map). Une structure ne peut pas se contenir ; une structure utilisée ne se supprime pas. Opérations dans `operations/structOps.ts`.
+- Nœuds (`nodes/library/structs.ts`) : Make, Break, Set Members in (les membres changés sont ceux cochés dans Details, `config.fields`, comme les pins qu'on affiche dans UE). Set Members travaille sur une copie puis l'écrit par sa pin en losange ; relié à une copie (Get (a copy), Array Element de For Each), seule la copie change, sans erreur, comme dans UE : le compilateur ne l'exige donc pas relié à une variable. Nouveau nœud Get (a ref) : l'interpréteur écrit l'élément du tableau à travers lui (`writeRef`).
+- Set et Map (`nodes/library/containers.ts`, comportements dans `runtime/behaviors/data.ts`) : pins génériques ; une pin Map a deux groupes (`wildGroup` pour la clé, `valueGroup` pour les valeurs), adoptés ensemble quand on relie une Map typée (`adoptMap`). Les clés String et Name ignorent la casse, comme le hachage d'UE ; les fonctions de tableau (Contains, Find, Remove Item, Add Unique) aussi (`behaviors/equality.ts`). Find sur une clé absente : Return Value faux, Value à sa valeur par défaut, sans erreur.
+- Text et Name : conversions automatiques (String ↔ Text, Integer / Float / Boolean / Name → Text, String ↔ Name), Format Text (une pin par `{Nom}` du texte tapé dans Format), Equal (Text) sensible à la casse, Equal (Name) qui l'ignore, Is None (Name). Set Text reste en String (écart noté).
+- Interface : sélecteur de type avec le conteneur (Single, Array, Set, Map) et, pour une Map, le type des valeurs ; éditeur des valeurs par défaut des tableaux, Sets, Maps (paires) et structures (un champ par membre) ; Content Browser › + Structure, `StructDetails.tsx` ; Details de Set Members (membres à changer). Pins Set et Map dessinées en accolades. Notes Piège : Find (Map), To Array (Set), Set Members, Equal (Text) ; Dans UE : Format Text.
+- Leçons : « Les codes des portes » (Intermédiaire, après L'inventaire : Find sans tester Return Value ouvre la Cave), « La fiche de l'objet » (Confirmé : ajouter le membre Charge, Set Members in ; piège : un Make qui ne relie que Charge vide le Nom), « Débogue D5 — Le chargeur qui ne charge pas » (Set Members sur Array Element), « Les badges » (Confirmé : passer Badges d'Array à Set of Name ; le second badge « rouge » ne compte plus). Le plan nommait la première « Le trousseau » ; elle porte sur une Map de codes. Plus de « Le trousseau » distinct. Tests : `tests/dataV3.test.ts`, suite de `tests/lessonVariantsV3.test.ts` ; smoke : captures 31 à 37. 43 leçons et exercices.
 
 ## Méthode de travail
 

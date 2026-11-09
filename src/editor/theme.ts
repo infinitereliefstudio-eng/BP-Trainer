@@ -8,12 +8,14 @@ export const PIN_COLOR: Record<PinCategory, string> = {
   int: '#1fe0a8', // sea green
   float: '#9cf23a', // yellow-green
   string: '#ff19c8', // magenta
+  text: '#e480a2', // pink
+  name: '#c88bff', // lilac
   vector: '#ffc81e', // gold
   rotator: '#9fb6ff', // light blue
   object: '#1aa6f2', // blue
   class: '#7a2ad4', // purple
   enum: '#0b6e5e', // dark teal
-  struct: '#0a5bd1', // structures (Timer Handle, Linear Color)
+  struct: '#0a5bd1', // structures
   delegate: '#ff3b3b', // event / dispatcher (red square)
   wildcard: '#808080',
 };

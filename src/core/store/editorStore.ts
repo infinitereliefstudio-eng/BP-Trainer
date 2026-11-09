@@ -32,6 +32,7 @@ export type Focus =
   | { kind: 'dispatcher'; id: string }
   | { kind: 'interface'; id: string }
   | { kind: 'enum'; id: string }
+  | { kind: 'struct'; id: string }
   | { kind: 'actor'; id: string }
   | { kind: 'playerStart' };
 
@@ -211,6 +212,7 @@ export class EditorStore {
     if (f.kind === 'actor' && !this.project.level.actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'function' && !this.cls.graphs.some((g) => g.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'dispatcher' && !this.cls.dispatchers.some((d) => d.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'struct' && !this.project.structs.some((x) => x.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'interface' && !this.project.interfaces.some((i) => i.id === f.id)) this.focus = { kind: 'none' };
   }
 

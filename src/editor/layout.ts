@@ -50,9 +50,9 @@ export const COMMENT_HEADER = 30;
 
 /** Inputs whose literal can be typed on the node. */
 export function hasInlineValue(p: PinSpec): boolean {
-  if (p.dir !== 'in' || p.byRef || p.type.container === 'array') return false;
+  if (p.dir !== 'in' || p.byRef || p.type.container) return false;
   if (p.type.category === 'struct') return p.type.subtype === 'LinearColor';
-  return ['bool', 'int', 'float', 'string', 'enum', 'class'].includes(p.type.category);
+  return ['bool', 'int', 'float', 'string', 'text', 'name', 'enum', 'class'].includes(p.type.category);
 }
 
 /** Text shown in an inline value box: enum entries and classes by name. */
@@ -69,7 +69,7 @@ export function inlineText(node: NodeInstance, p: PinSpec, ctx: NodeContext): st
 function valueWidth(p: PinSpec, text: string, measure: Measure): number {
   if (p.type.category === 'bool') return 16;
   if (p.type.category === 'struct') return 34;
-  if (p.type.category === 'string') return Math.min(140, Math.max(44, measure(text, METRICS.labelFont) + 14));
+  if (p.type.category === 'string' || p.type.category === 'text' || p.type.category === 'name') return Math.min(140, Math.max(44, measure(text, METRICS.labelFont) + 14));
   return Math.min(80, Math.max(40, measure(text, METRICS.labelFont) + 14));
 }
 

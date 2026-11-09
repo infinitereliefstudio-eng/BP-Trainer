@@ -46,6 +46,8 @@ export interface PinSpec {
   wildGroup?: string;
   /** True on a generic pin, resolved or not. */
   wild?: boolean;
+  /** On a generic Map pin: the wildcard group that types its values (its key is `wildGroup`). */
+  valueGroup?: string;
   /** For a wildcard pin: the only categories it may adopt. */
   accepts?: PinType['category'][];
   /**

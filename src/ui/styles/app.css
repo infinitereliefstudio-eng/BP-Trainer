@@ -338,3 +338,17 @@ select.field { padding-right: 4px; }
 .outliner-back{align-items:center;gap:8px;padding:8px 12px;margin:0;display:flex}
 .outliner-back strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .outliner-drawer{z-index:9}
+
+/* V3 step B: containers in the type picker, structure and container values */
+.type-select { flex-wrap: wrap; }
+.type-select .container-field { flex: 0 0 auto; width: auto; }
+.map-value { display: flex; align-items: center; gap: 6px; width: 100%; }
+.map-value select { flex: 1; min-width: 0; }
+.struct-value, .container-value { display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.struct-member { display: flex; flex-direction: column; gap: 2px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.struct-member > legend { padding: 0; }
+.container-row { display: flex; align-items: center; gap: 6px; }
+.container-row > .field, .container-row > .check, .container-row > .struct-value { flex: 1; min-width: 0; }
+.container-value > .chip { align-self: flex-start; }
+.d-field:has(> .d-value > .container-value), .d-field:has(> .d-value > .struct-value) { flex-direction: column; align-items: stretch; padding: 4px 0; }
+.d-field:has(> .d-value > .container-value) > .d-label, .d-field:has(> .d-value > .struct-value) > .d-label { flex: none; }

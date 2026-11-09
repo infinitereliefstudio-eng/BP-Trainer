@@ -28,12 +28,17 @@ const TRAPS: Record<string, string> = {
   'time.setTimerByEvent': 'Relancer le même événement remplace son timer au lieu d’en ajouter un. Garde le Return Value (Timer Handle) pour l’arrêter avec Clear Timer.',
   'dispatcher.bind': 'Seuls les appels faits après le Bind sont reçus : fais le Bind tôt, au BeginPlay, avant le premier Call.',
   'var.getLocal': 'Chaque appel de la fonction repart de la valeur par défaut : une variable locale ne garde rien d’un appel à l’autre. Pour compter entre deux appels, utilise une variable du Blueprint.',
+  'map.find': 'Si la clé n’y est pas, il n’y a pas d’erreur : Value vaut la valeur par défaut (0, vide, None). Teste Return Value avant de te servir de Value.',
+  'set.toArray': 'L’ordre des éléments d’un Set n’est pas garanti : ne compte pas sur la position d’un élément dans le tableau obtenu.',
+  'struct.setMembers': 'Relié à Get (a copy) d’un tableau, il ne change que la copie : le tableau reste intact, sans erreur. Utilise Get (a ref), ou Set Array Elem avec la structure modifiée.',
+  'text.equal': 'Contrairement au == des String, il tient compte des majuscules. Pour comparer des identifiants, préfère des Name.',
   'iface.message': 'Si la cible n’implémente pas l’interface, rien ne se passe et les sorties gardent leur valeur par défaut (0, vide, None) : aucune erreur ne le signale.',
 };
 
 const COPY_TRAP = 'Copie toute la valeur : deux variables qui contiennent le même tableau ou la même structure ne partagent rien, modifier l’une ne change pas l’autre.';
 
 const IN_UE: Record<string, string> = {
+  'text.format': 'Dans UE, les arguments de Format Text acceptent aussi des nombres directement, et le Text se traduit selon la langue du jeu. Ici, ils sont convertis en Text et rien n’est traduit.',
   'event.tick': 'Ici le jeu tourne toujours à 60 images par seconde. Dans UE, le nombre d’images varie d’un appareil à l’autre : Delta Seconds change à chaque Tick.',
   'event.actorOnClicked': 'Ici, il suffit de toucher l’acteur pendant Play. Dans UE, il faut aussi activer Enable Click Events sur le Player Controller et que l’acteur bloque le canal Visibility.',
   'event.inputKey': 'Dans un projet UE5, on passe en général par Enhanced Input (Input Actions). Ces événements de touche restent utiles pour apprendre et prototyper.',

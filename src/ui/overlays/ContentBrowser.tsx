@@ -1,5 +1,7 @@
-/** The project's assets: Blueprints, Blueprint Interfaces and Enums. */
+/** The project's assets: Blueprints, Blueprint Interfaces, Enums and Structures. */
 import { addEnum } from '@core/operations/enumOps';
+import { addStruct } from '@core/operations/structOps';
+import { typeLabel } from '@core/types/pins';
 import { addClass, addInterface, addInterfaceFunction } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
@@ -62,6 +64,21 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
         return null;
       },
     });
+  const createStruct = () =>
+    openOverlay({
+      kind: 'prompt',
+      title: 'Nouvelle Structure',
+      initial: 'S_Objet',
+      confirmLabel: 'Créer',
+      onSubmit: (name) => {
+        if (/\s/.test(name.trim())) return "Un nom de structure ne peut pas contenir d'espace.";
+        const res = store.applyProject('Créer une structure', (p) => addStruct(p, name));
+        if (!res.ok) return res.reason;
+        store.setFocus({ kind: 'struct', id: res.value.id });
+        onOpenDetails();
+        return null;
+      },
+    });
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
       <div class="sheet content" onClick={(e) => e.stopPropagation()}>
@@ -76,6 +93,9 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
           </button>
           <button class="btn" onClick={createEnum}>
             + Enum
+          </button>
+          <button class="btn" onClick={createStruct}>
+            + Structure
           </button>
           <button class="btn" onClick={onClose}>
             Fermer
@@ -128,6 +148,21 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
             >
               <span class="pi-title">{e.name}</span>
               <span class="pi-desc">{e.entries.join(', ')}</span>
+            </button>
+          ))}
+          {store.project.structs.length > 0 && <div class="palette-cat">Structures</div>}
+          {store.project.structs.map((s) => (
+            <button
+              key={s.id}
+              class="palette-item"
+              onClick={() => {
+                store.setFocus({ kind: 'struct', id: s.id });
+                onClose();
+                onOpenDetails();
+              }}
+            >
+              <span class="pi-title">{s.name}</span>
+              <span class="pi-desc">{s.members.map((m) => `${m.name} (${typeLabel(m.type)})`).join(', ')}</span>
             </button>
           ))}
         </div>

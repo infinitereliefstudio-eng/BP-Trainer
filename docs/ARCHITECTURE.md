@@ -15,7 +15,7 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 
 | Dossier | Rôle |
 | --- | --- |
-| `types/` | Système de types des pins (`PinType`, compatibilité, héritage des classes), valeurs littérales, Enums (`enums.ts` : ECollisionEnabled et ceux du projet), pins génériques (`wildcard.ts`) |
+| `types/` | Système de types des pins (`PinType` : catégorie, conteneur Array / Set / Map et type des valeurs d'une Map ; compatibilité, héritage des classes), valeurs littérales, Enums (`enums.ts` : ECollisionEnabled et ceux du projet), Structures du projet (`structs.ts` : valeur indexée par membre, membre absent = sa valeur par défaut), pins génériques (`wildcard.ts`) |
 | `model/` | Les données du projet : `Project` → `BlueprintClass` → `Graph` → `NodeInstance` / `Link`, plus variables et composants. Du JSON pur |
 | `nodes/` | La bibliothèque de nœuds : une **définition** par nœud (titre, pins, réglages, aide), rangée par catégorie dans `library/`, indexée par `registry.ts`. `palette.ts` génère les entrées de recherche (dont Get/Set par variable) |
 | `graph/rules.ts` | Les règles de connexion d'UE (une source par entrée de données, une cible par sortie exec, types compatibles) |
@@ -88,6 +88,8 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - Une référence vide produit « Accessed None trying to read property… » dans l'Output Log, le nœud est sauté et la suite continue.
 - Appeler un Custom Event, un Event Dispatcher ou une fonction exécute la chaîne appelée tout de suite, puis l'appelant continue (les frames appelées sont empilées au-dessus).
 - Chaque frame porte une portée (`Scope`) : sorties des nœuds, mémoire des macros et variables locales. Un Event Graph utilise celle de l'acteur, gardée d'un événement à l'autre ; chaque appel de fonction en reçoit une neuve, avec ses Local Variables à leur valeur par défaut. Une fonction peut donc s'appeler elle-même, et un DoOnce dans une fonction repart à zéro à chaque appel.
+- Un Set est un tableau sans doublon, une Map un tableau de paires `[clé, valeur]` ; leurs fonctions modifient le conteneur de la variable en place, comme celles des tableaux. Les clés String et Name ignorent la casse. Find sur une clé absente renvoie la valeur par défaut, sans erreur.
+- Set Members in modifie une copie puis l'écrit par sa pin en losange : reliée à une variable, à une locale ou à Get (a ref), la valeur change ; reliée à une copie (Get (a copy), Array Element), rien d'autre ne change, comme dans UE.
 - Une fonction d'interface sans sortie s'implémente par un Event, avec sortie par un graphe fonction (`Graph.iface`, signature recopiée de l'interface par `operations/interfaceOps.ts`). Le Message remet ses sorties à leur valeur par défaut, puis appelle l'implémentation de la cible ; une cible qui n'implémente pas l'interface les laisse ainsi, sans erreur.
 - Equal (Float) est exact, comme le == d'UE ; Nearly Equal (Float) prend une tolérance.
 - Les composants d'un joueur Blueprint comptent comme ceux de tout acteur : ses Box Collision déclenchent des overlaps, ses meshes, lumières et textes sont dessinés sous sa capsule. Un Interface Message vers un acteur qui n'implémente pas l'interface ne fait rien, sans erreur ; Cast Failed n'est pas une erreur non plus.
@@ -102,7 +104,7 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 
 ## Format de sauvegarde
 
-Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 5 (le type adopté par les nœuds génériques passe de `config` à `node.wild`). Le format 4 avait ajouté les Enums du projet, Collision Enabled des composants et le type adopté par les nœuds génériques. Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
+Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 6 (les Structures du projet, `project.structs`). Le format 5 avait déplacé le type adopté par les nœuds génériques de `config` vers `node.wild`. Le format 4 avait ajouté les Enums du projet, Collision Enabled des composants et le type adopté par les nœuds génériques. Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
 
 ## Outils
 

@@ -10,6 +10,7 @@ import { timeBehaviors } from './time';
 import { communicationBehaviors } from './communication';
 import { flowBehaviors } from './flow';
 import { pureBehaviors } from './pure';
+import { dataBehaviors } from './data';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
@@ -21,6 +22,7 @@ const ALL: Record<string, Behavior> = {
   ...pureBehaviors,
   ...timeBehaviors,
   ...communicationBehaviors,
+  ...dataBehaviors,
 };
 
 export function getBehavior(defId: string): Behavior | undefined {

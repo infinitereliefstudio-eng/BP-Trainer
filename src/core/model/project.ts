@@ -214,6 +214,21 @@ export interface UserEnum {
   entries: string[];
 }
 
+/** A member of a Structure asset. */
+export interface StructMember {
+  id: string;
+  name: string;
+  type: PinType;
+  defaultValue: Value;
+}
+
+/** A Structure asset (Content Browser › Structure): named members, no logic. */
+export interface UserStruct {
+  id: string;
+  name: string;
+  members: StructMember[];
+}
+
 export interface Project {
   /** Format version of the saved file, see serialization/migrate. */
   format: number;
@@ -222,6 +237,7 @@ export interface Project {
   classes: BlueprintClass[];
   interfaces: BlueprintInterface[];
   enums: UserEnum[];
+  structs: UserStruct[];
   /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
   playerClassId?: string;
   level: Level;
@@ -229,7 +245,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 5;
+export const PROJECT_FORMAT = 6;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -310,6 +326,7 @@ export function createProject(name = 'Mon projet'): Project {
     classes: [],
     interfaces: [],
     enums: [],
+    structs: [],
     level: createLevel(),
     createdAt: now,
     updatedAt: now,

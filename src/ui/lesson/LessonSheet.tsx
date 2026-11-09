@@ -100,7 +100,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, 
               {run && <RunResult run={run} />}
               {run?.passed && (
                 <div class="success">
-                  <strong>{lesson.kind === 'debug' ? 'Réparé !' : 'Leçon réussie.'}</strong>
+                  <strong>{lesson.kind === 'debug' ? 'Réparé !' : lesson.kind === 'complete' || lesson.kind === 'refactor' ? 'Exercice réussi.' : 'Leçon réussie.'}</strong>
                   <p>
                     <span class="eyebrow">À retenir</span> {lesson.remember}
                   </p>

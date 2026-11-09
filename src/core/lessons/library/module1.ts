@@ -22,6 +22,7 @@ function lampProject(name: string, withZone: boolean, input = false) {
 export const lesson1: Lesson = {
   id: 'l01-bonjour',
   module: MODULE,
+  level: 'debutant',
   number: 1,
   title: 'Prise en main',
   situation: 'Afficher « Bonjour » au lancement du jeu.',
@@ -80,6 +81,7 @@ export const lesson1: Lesson = {
 export const lesson2: Lesson = {
   id: 'l02-lampe',
   module: MODULE,
+  level: 'debutant',
   number: 2,
   title: 'Allumer une lampe',
   situation: 'La lampe est éteinte. Elle doit s’allumer au démarrage du jeu.',
@@ -135,6 +137,7 @@ export const lesson2: Lesson = {
 export const lesson3: Lesson = {
   id: 'l03-interrupteur',
   module: MODULE,
+  level: 'debutant',
   number: 3,
   title: 'L’interrupteur',
   situation: 'La lampe s’allume quand le joueur entre dans sa zone, et s’éteint quand il en sort.',
@@ -196,6 +199,7 @@ export const lesson3: Lesson = {
 export const lesson4: Lesson = {
   id: 'l04-touche',
   module: MODULE,
+  level: 'debutant',
   number: 4,
   title: 'Interrupteur à touche',
   situation: 'La touche E allume la lampe, puis l’éteint, puis la rallume…',

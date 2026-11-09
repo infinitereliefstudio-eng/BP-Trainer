@@ -1,5 +1,6 @@
 /** Lesson format: explanations, a starting project, a scenario and checks. */
 import type { NodeInstance, Project } from '../model/project';
+import type { Level } from './levels';
 import type { InputKey, Simulation } from '../runtime/simulation';
 import type { ActorRT, ComponentRT, RValue } from '../runtime/world';
 
@@ -43,8 +44,10 @@ export interface Check {
 /**
  * build: make something work. predict: read a Blueprint and choose what it
  * will print, then check with Play. debug: a broken Blueprint to repair.
+ * complete: a graph with gaps, the nodes to place are named. refactor: a
+ * working but clumsy graph to rewrite, same behaviour plus a constraint.
  */
-export type LessonKind = 'build' | 'predict' | 'debug';
+export type LessonKind = 'build' | 'predict' | 'debug' | 'complete' | 'refactor';
 
 export interface Prediction {
   question: string;
@@ -61,7 +64,10 @@ export interface Lesson {
   kind?: LessonKind;
   /** Short label for exercises ("P1", "D1"); lessons show their number. */
   code?: string;
+  /** The theme, shown beside the label ("Premiers pas"). */
   module: string;
+  level: Level;
+  /** Position among the lessons of the path, set by core/lessons/index.ts. */
   number: number;
   title: string;
   situation: string;
@@ -82,9 +88,11 @@ export interface Lesson {
   predict?: Prediction;
 }
 
-/** "Leçon 4", "Prédis P1", "Débogue D1". */
+/** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */
 export function lessonLabel(l: Lesson): string {
   if (l.kind === 'predict') return `Prédis ${l.code ?? ''}`.trim();
   if (l.kind === 'debug') return `Débogue ${l.code ?? ''}`.trim();
+  if (l.kind === 'complete') return `Complète ${l.code ?? ''}`.trim();
+  if (l.kind === 'refactor') return `Refactor ${l.code ?? ''}`.trim();
   return `Leçon ${l.number}`;
 }

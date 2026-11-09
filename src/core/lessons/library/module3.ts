@@ -57,6 +57,7 @@ function generatorAndLamps(name: string, lamps: number) {
 export const lesson9: Lesson = {
   id: 'l09-generateur',
   module: MODULE,
+  level: 'confirme',
   number: 9,
   title: 'Générateur et lampe',
   situation: 'La première lampe ne s’allume que si le générateur tourne. La seconde n’est reliée à rien : elle reste éteinte, sans erreur.',
@@ -92,7 +93,7 @@ export const lesson9: Lesson = {
     'Nœuds : Event Tick, Is Valid, Get Generateur, Get bEnMarche (depuis Generateur), Set Visibility (Lumiere).',
     'Solution : Tick → Is Valid (Generateur) → Set Visibility (Target Lumiere, New Visibility = Generateur › bEnMarche).',
   ],
-  challenge: 'Le Tick vérifie le générateur 60 fois par seconde, même quand rien ne change. La leçon 10 montre mieux.',
+  challenge: 'Le Tick vérifie le générateur 60 fois par seconde, même quand rien ne change. La leçon « Le générateur prévient » montre mieux.',
   setup: () => generatorAndLamps('Leçon 9', 2).pb.project,
   scenario: [{ wait: 0.5 }, { checkpoint: 'arret' }, { press: 'E' }, { release: 'E' }, { wait: 0.1 }, { checkpoint: 'marche' }, { press: 'E' }, { release: 'E' }, { wait: 0.1 }],
   checks: [
@@ -117,6 +118,7 @@ export const lesson9: Lesson = {
 export const lesson10: Lesson = {
   id: 'l10-dispatcher',
   module: MODULE,
+  level: 'confirme',
   number: 10,
   title: 'Le générateur prévient',
   situation: 'Démarrer le générateur allume les trois lampes d’un coup, sans qu’aucune lampe ne surveille le générateur à chaque frame.',
@@ -126,7 +128,7 @@ export const lesson10: Lesson = {
     {
       title: 'Annoncer plutôt que surveiller',
       body:
-        'À la leçon 9, la lampe interrogeait le générateur à chaque Tick. Avec un **Event Dispatcher**, c’est le générateur qui **annonce** son changement, une seule fois, à tous ceux qui écoutent.\\n\\n' +
+        'Dans « Générateur et lampe », la lampe interrogeait le générateur à chaque Tick. Avec un **Event Dispatcher**, c’est le générateur qui **annonce** son changement, une seule fois, à tous ceux qui écoutent.\\n\\n' +
         'Dans BP_Generateur : My Blueprint › Event Dispatchers › **+**, nomme-le `OnEtatChange` et ajoute-lui un paramètre Boolean dans Details.',
     },
     {
@@ -231,6 +233,7 @@ function interfaceEvent(b: ClassBuilder, ifaceId: string, fnId: string): string 
 export const lesson11: Lesson = {
   id: 'l11-interface',
   module: MODULE,
+  level: 'confirme',
   number: 11,
   title: 'Interagir avec tout',
   situation: 'La touche E agit sur l’objet à portée, quel qu’il soit : la porte s’ouvre, la lampe bascule, le générateur démarre. Sans aucun Cast.',

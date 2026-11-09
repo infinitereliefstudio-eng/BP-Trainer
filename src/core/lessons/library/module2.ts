@@ -53,6 +53,7 @@ function openOnOverlap(p: Parameters<typeof edit>[0]): void {
 export const lesson5: Lesson = {
   id: 'l05-porte',
   module: MODULE,
+  level: 'intermediaire',
   number: 5,
   title: 'Ouvrir une porte',
   situation: 'La porte pivote de 90° quand le joueur s’approche, une seule fois, et le laisse passer.',
@@ -78,7 +79,7 @@ export const lesson5: Lesson = {
     'Vérifie que le joueur peut traverser.',
   ],
   hints: [
-    'La porte réagit au même genre d’événement que l’interrupteur de la leçon 3.',
+    'La porte réagit au même genre d’événement que l’interrupteur de la leçon « L’interrupteur ».',
     'Nœuds : Event ActorBeginOverlap, DoOnce, Set Relative Rotation (Target = Porte, New Rotation Yaw = 90).',
     'Solution : ActorBeginOverlap → DoOnce → Set Relative Rotation (Porte, 0 / 0 / 90).',
   ],
@@ -124,6 +125,7 @@ export const lesson5: Lesson = {
 export const lesson6: Lesson = {
   id: 'l06-cle',
   module: MODULE,
+  level: 'intermediaire',
   number: 6,
   title: 'Ramasser un objet',
   situation: 'La clé disparaît quand le joueur la touche, et le joueur la possède. La caisse posée à côté, elle, ne doit pas la ramasser.',
@@ -203,6 +205,7 @@ export const lesson6: Lesson = {
 export const lesson7: Lesson = {
   id: 'l07-verrou',
   module: MODULE,
+  level: 'intermediaire',
   number: 7,
   title: 'La porte verrouillée',
   situation: 'La porte ne s’ouvre que si le joueur a la clé. Sinon, un message le prévient.',
@@ -219,7 +222,7 @@ export const lesson7: Lesson = {
       title: 'Deux chemins',
       body:
         '**Branch** envoie l’exécution vers **True** ou **False** selon la condition. True : la porte tourne. False : un **Print String** dit qu’il faut une clé.\n\n' +
-        'La clé de la leçon 6 est déjà en place et fonctionne.',
+        'La clé de « Ramasser un objet » est déjà en place et fonctionne.',
     },
   ],
   objectives: [
@@ -228,7 +231,7 @@ export const lesson7: Lesson = {
     'Le test passe d’abord sans clé, puis avec.',
   ],
   hints: [
-    'C’est un mélange de la leçon 5 (ouvrir la porte) et de la leçon 6 (Cast vers le joueur).',
+    'C’est un mélange de « Ouvrir une porte » et de « Ramasser un objet » (Cast vers le joueur).',
     'Nœuds : Event ActorBeginOverlap, Cast To BP_Joueur, Get bHasKey, Branch, Set Relative Rotation, Print String.',
     'Solution : Overlap → Cast To BP_Joueur → Branch (Get bHasKey depuis As BP_Joueur). True → Set Relative Rotation (Porte, Yaw 90). False → Print « Il faut une clé ».',
   ],
@@ -288,6 +291,7 @@ export const lesson7: Lesson = {
 export const lesson8: Lesson = {
   id: 'l08-refermer',
   module: MODULE,
+  level: 'intermediaire',
   number: 8,
   title: 'La porte qui se referme',
   situation: 'La porte se referme 3 secondes après le départ du joueur. S’il repasse entre-temps, le compte repart de zéro.',

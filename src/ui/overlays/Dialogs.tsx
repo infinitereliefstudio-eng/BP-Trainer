@@ -121,7 +121,6 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
         <li>Deux doigts : zoom et déplacement.</li>
         <li>Appui long sur un nœud › Ajouter un breakpoint : Play s’arrête juste avant lui.</li>
       </ul>
-      <p class="muted small">La leçon 12, le mode Simulation complet et l’installation hors ligne arrivent à l’étape 4.</p>
       <div class="dialog-actions">
         <button class="btn primary" onClick={onClose}>
           Compris

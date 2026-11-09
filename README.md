@@ -2,7 +2,7 @@
 
 Apprendre les Blueprints d'Unreal Engine 5 sur téléphone : un éditeur de nœuds tactile fidèle à UE, une simulation de la logique et un parcours d'exercices.
 
-**État : V1 livrée ; V2 en cours, étapes A (réalisme) et B (explications) livrées, B en attente de validation ([docs/PLAN_V2.md](docs/PLAN_V2.md)).** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps), la communication entre Blueprints (références, Cast, Event Dispatchers, Blueprint Interfaces, fonctions), le débogage (breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés), les 12 leçons avec les exercices « Prédis » et « Débogue », une bibliothèque de plus de 150 nœuds (timers, tableaux, Spawn, Switch, Enums…), l'Outliner en direct pendant Play, et le mode hors ligne prêt pour l'APK ([docs/APK.md](docs/APK.md)).
+**État : V1 livrée ; V2 en cours, étapes A (réalisme), B (explications) et C (leçons Débutant et Intermédiaire) livrées, C en attente de validation ([docs/PLAN_V2.md](docs/PLAN_V2.md)).** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps), la communication entre Blueprints (références, Cast, Event Dispatchers, Blueprint Interfaces, fonctions), le débogage (breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés), les 12 leçons avec les exercices « Prédis » et « Débogue », une bibliothèque de plus de 150 nœuds (timers, tableaux, Spawn, Switch, Enums…), l'Outliner en direct pendant Play, et le mode hors ligne prêt pour l'APK ([docs/APK.md](docs/APK.md)).
 
 ## Utiliser l'appli
 

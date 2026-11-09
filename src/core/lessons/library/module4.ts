@@ -178,6 +178,7 @@ const checks: Check[] = [
 export const lesson12: Lesson = {
   id: 'l12-station',
   module: MODULE,
+  level: 'avance',
   number: 12,
   title: 'Remettre la station en route',
   situation:
@@ -188,7 +189,7 @@ export const lesson12: Lesson = {
     {
       title: 'Ce qui est prêt',
       body:
-        'Le joueur envoie déjà **Interagir (Message)** de `BPI_Interactif` sur **E**, comme à la leçon 11. Le générateur **implémente** l’interface et déclare l’Event Dispatcher `OnEtatChange` (paramètre `bEnMarche`).\n\n' +
+        'Le joueur envoie déjà **Interagir (Message)** de `BPI_Interactif` sur **E**, comme dans « Interagir avec tout ». Le générateur **implémente** l’interface et déclare l’Event Dispatcher `OnEtatChange` (paramètre `bEnMarche`).\n\n' +
         'Les lampes et la porte ont une variable `Generateur` déjà réglée dans le niveau. Le joueur a `Fusibles` (Integer), le générateur `Carburant` (Float) et `TimerCarburant` (Timer Handle).',
     },
     {
@@ -212,7 +213,7 @@ export const lesson12: Lesson = {
     {
       title: 'Lampes et porte',
       body:
-        'Dans **BP_Lampe** et **BP_Porte**, au **BeginPlay** : **Bind Event to OnEtatChange** (Target `Generateur`) avec un Custom Event, comme à la leçon 10.\n\n' +
+        'Dans **BP_Lampe** et **BP_Porte**, au **BeginPlay** : **Bind Event to OnEtatChange** (Target `Generateur`) avec un Custom Event, comme dans « Le générateur prévient ».\n\n' +
         'La lampe règle **Set Visibility** de sa Lumière avec le paramètre. La porte prend 90° ou 0° : **Select** (Index = bEnMarche) dans un **Make Rotator**, puis **Set Relative Rotation**.',
     },
   ],

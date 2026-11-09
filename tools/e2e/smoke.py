@@ -167,6 +167,20 @@ async def main():
             await page.locator('.why-btn').first.tap()
             await page.wait_for_timeout(200)
         await shot('16_log_why')
+
+        # Step C of V2: the home by level, and a "Complète" exercise with its gaps
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.module h2', has_text='Intermédiaire').scroll_into_view_if_needed()
+        await shot('17_home_levels')
+        await page.locator('.lesson-item', has_text='La lampe torche').tap()
+        await page.wait_for_timeout(500)
+        await shot('18_complete_sheet')
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('19_complete_graph')
         print('errors', errs)
         await b.close()
         return errs

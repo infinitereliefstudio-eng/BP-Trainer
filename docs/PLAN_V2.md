@@ -41,8 +41,8 @@ Les 12 leçons et 5 exercices actuels restent ; 12 leçons et 6 exercices s'ajou
 | Niveau | Existant | Nouveau (piège expliqué) |
 |---|---|---|
 | Débutant | L1–L4 | Le compteur (Set sans fil d'exécution) ; Visible, caché, traversable (cacher ne coupe pas la collision) ; C1 Complète |
-| Intermédiaire | L5–L8, P1–P3, D1 | Le digicode (Default) ; Les états de la porte (Enum, Default) ; L'inventaire (Get a copy, retirer pendant For Each) ; R2 Refactor (Branch → Switch on Enum) |
-| Confirmé | L9–L11, D2 | Qui modifie quoi (Set direct / fonction / Dispatcher, Private) ; L'ordre des BeginPlay ; Les vagues (Expose on Spawn) ; L'ascenseur (Delta Seconds) ; D3 (Accessed None après Destroy) ; D4 (dépendance à l'ordre) |
+| Intermédiaire | L5–L8, P1–P3 | Le digicode (Default) ; Les états de la porte (Enum, Default) ; L'inventaire (Get a copy, retirer pendant For Each) ; R2 Refactor (Branch → Switch on Enum) |
+| Confirmé | L9–L11, D1, D2 (D1 déplacé ici à l'étape C : il suppose les références) | Qui modifie quoi (Set direct / fonction / Dispatcher, Private) ; L'ordre des BeginPlay ; Les vagues (Expose on Spawn) ; L'ascenseur (Delta Seconds) ; D3 (Accessed None après Destroy) ; D4 (dépendance à l'ordre) |
 | Avancé | L12 | Fonctions pures et impures ; Détruire proprement ; La salle de contrôle ; R1 Refactor (Get All Actors dans Tick) ; C2 Complète (récursion) |
 
 ## Étapes

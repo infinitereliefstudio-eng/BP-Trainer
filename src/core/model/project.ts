@@ -49,6 +49,12 @@ export interface Graph {
   links: Record<string, Link>;
   /** Signature of a function graph. */
   fn?: FunctionSignature;
+  /**
+   * Set on the function graph that implements an interface function with
+   * outputs (UE implements those as functions, not events). Its signature
+   * is kept equal to the interface's by operations/interfaceOps.
+   */
+  iface?: { interface: string; fn: string };
 }
 
 export interface FunctionSignature {
@@ -57,6 +63,16 @@ export interface FunctionSignature {
   /** Pure functions have no exec pins and run each time a value is read. */
   pure: boolean;
   description: string;
+  /** Local Variables: reset to their default value at each call, as in UE. */
+  locals?: LocalVariable[];
+}
+
+/** A variable that lives only during one call of a function. */
+export interface LocalVariable {
+  id: string;
+  name: string;
+  type: PinType;
+  defaultValue: Value;
 }
 
 export interface Variable {
@@ -141,9 +157,16 @@ export interface Dispatcher {
 export interface InterfaceFunction {
   id: string;
   name: string;
+  /** Inputs, given by the message and received by the implementation. */
+  inputs?: Param[];
+  /**
+   * Outputs, returned to the message. A function with outputs is implemented
+   * as a function graph (Graph.iface), one without as an event, like UE.
+   */
+  outputs?: Param[];
 }
 
-/** A Blueprint Interface asset: function names only, no implementation. */
+/** A Blueprint Interface asset: function signatures only, no implementation. */
 export interface BlueprintInterface {
   id: string;
   name: string;
@@ -305,6 +328,15 @@ export function findGraph(c: BlueprintClass, id: string): Graph | undefined {
 
 export function findVariable(c: BlueprintClass, id: string): Variable | undefined {
   return c.variables.find((v) => v.id === id);
+}
+
+/** A local variable of one of the class's functions, with its graph. */
+export function findLocal(c: BlueprintClass, id: string): { graph: Graph; local: LocalVariable } | undefined {
+  for (const graph of c.graphs) {
+    const local = graph.fn?.locals?.find((l) => l.id === id);
+    if (local) return { graph, local };
+  }
+  return undefined;
 }
 
 export function findDispatcher(c: BlueprintClass, id: string): Dispatcher | undefined {

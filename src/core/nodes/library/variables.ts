@@ -1,4 +1,4 @@
-import { COMPONENT_CLASS, findComponent, findVariable } from '../../model/project';
+import { COMPONENT_CLASS, findComponent, findLocal, findVariable } from '../../model/project';
 import { T } from '../../types/pins';
 import { defaultValueFor } from '../../types/values';
 import { dataIn, dataOut, execIn, execOut, type NodeDefinition } from '../definition';
@@ -34,6 +34,40 @@ export const variableNodes: NodeDefinition[] = [
       return [
         execIn(),
         dataIn('value', v?.name ?? '?', type, { default: defaultValueFor(type) }),
+        execOut(),
+        dataOut('out', '', type, { hideName: true }),
+      ];
+    },
+  },
+  {
+    id: 'var.getLocal',
+    title: (n, ctx) => findLocal(ctx.cls, String(n.config.variable))?.local.name ?? '(variable locale supprimée)',
+    category: 'Variables|Local',
+    kind: 'variable',
+    style: 'getter',
+    hiddenFromPalette: true,
+    allowedIn: ['function'],
+    description:
+      "Lit une variable locale de la fonction. Elle n'existe que pendant un appel : chaque appel repart de sa valeur par défaut.",
+    pins: (n, ctx) => {
+      const l = findLocal(ctx.cls, String(n.config.variable))?.local;
+      return [dataOut('value', l?.name ?? '?', l?.type ?? T.wildcard, { hideName: true })];
+    },
+  },
+  {
+    id: 'var.setLocal',
+    title: 'SET',
+    category: 'Variables|Local',
+    kind: 'variable',
+    hiddenFromPalette: true,
+    allowedIn: ['function'],
+    description: "Donne une valeur à une variable locale, pour la suite de cet appel de la fonction seulement.",
+    pins: (n, ctx) => {
+      const type = findLocal(ctx.cls, String(n.config.variable))?.local.type ?? T.wildcard;
+      const name = findLocal(ctx.cls, String(n.config.variable))?.local.name ?? '?';
+      return [
+        execIn(),
+        dataIn('value', name, type, { default: defaultValueFor(type) }),
         execOut(),
         dataOut('out', '', type, { hideName: true }),
       ];

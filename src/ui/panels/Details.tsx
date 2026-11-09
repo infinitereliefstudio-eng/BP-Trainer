@@ -26,7 +26,9 @@ import { Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
 import { NodeDiagnosis } from './NodeDiagnosis';
-import { DispatcherDetails, FunctionDetails, InterfaceDetails } from './SignatureDetails';
+import { DispatcherDetails, FunctionDetails } from './SignatureDetails';
+import { InterfaceDetails } from './InterfaceDetails';
+import { LocalDetails } from './LocalDetails';
 
 interface DetailsProps {
   openOverlay: OpenOverlay;
@@ -42,6 +44,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   let body: ComponentChildren;
   if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} />;
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} />;
+  else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;
@@ -104,6 +107,11 @@ function NodeDetails({ run, onFocusNode }: Pick<DetailsProps, 'run' | 'onFocusNo
         {(node.def === 'var.get' || node.def === 'var.set') && (
           <button class="btn" onClick={() => store.setFocus({ kind: 'variable', id: String(node.config.variable) })}>
             Voir la variable
+          </button>
+        )}
+        {(node.def === 'var.getLocal' || node.def === 'var.setLocal') && (
+          <button class="btn" onClick={() => store.setFocus({ kind: 'local', graph: store.graph.id, id: String(node.config.variable) })}>
+            Voir la variable locale
           </button>
         )}
       </Group>

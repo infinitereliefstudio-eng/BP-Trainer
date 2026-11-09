@@ -8,6 +8,7 @@ import {
   findComponent,
   findDispatcher,
   findInterface,
+  findLocal,
   findVariable,
   type BlueprintClass,
   type Graph,
@@ -15,6 +16,7 @@ import {
   type Project,
 } from '../model/project';
 import { classById, findCustomEvent } from '../nodes/library/communication';
+import { interfaceMatch } from '../operations/interfaceOps';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor, getDefinition, nodeTitle, resolvePins } from '../nodes/registry';
@@ -43,7 +45,10 @@ export type CompileCode =
   | 'duplicateCustomEvent'
   | 'inheritedName'
   | 'overrideSignature'
-  | 'noParentEvent';
+  | 'noParentEvent'
+  | 'localScope'
+  | 'interfaceFunction'
+  | 'interfaceName';
 
 export interface CompileMessage {
   severity: Severity;
@@ -97,6 +102,29 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       if (hidden) out.push({ severity: 'error', code: 'private', text: `${hidden.name} est Private dans la classe parente : un Blueprint enfant ne peut pas l'utiliser.`, ...at });
       else out.push({ severity: 'error', code: 'variableGone', text: `${title} : la variable n'existe plus.`, ...at });
     }
+    if (n.def === 'var.getLocal' || n.def === 'var.setLocal') {
+      const found = findLocal(ctx.cls, String(n.config.variable));
+      if (!found) out.push({ severity: 'error', code: 'variableGone', text: `${title} : la variable locale n'existe plus.`, ...at });
+      else if (found.graph.id !== g.id) {
+        out.push({
+          severity: 'error',
+          code: 'localScope',
+          text: `${found.local.name} est une variable locale de ${found.graph.name} : elle n'existe pas dans ${g.name}.`,
+          ...at,
+        });
+      }
+    }
+    if (n.def === 'event.custom' && ctx.project) {
+      const match = interfaceMatch(ctx.project, ctx.cls, String(n.config.name));
+      if (match && !match.fn.outputs?.length) {
+        out.push({
+          severity: 'warning',
+          code: 'interfaceName',
+          text: `${title} porte le nom de la fonction d'interface ${match.fn.name}, mais ce n'est pas elle : le message ${match.fn.name} ne le déclenche pas.`,
+          ...at,
+        });
+      }
+    }
     if (n.def.startsWith('event.component') && !findComponent(cls, String(n.config.component))) {
       out.push({ severity: 'error', code: 'componentGone', text: `${title} : le composant n'existe plus.`, ...at });
     }
@@ -109,7 +137,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       if (seenUnique.has(n.def)) out.push({ severity: 'error', code: 'duplicateEvent', text: `${title} est présent deux fois.`, ...at });
       seenUnique.set(n.def, n.id);
     }
-    if (def.allowedIn && !def.allowedIn.includes(g.kind)) {
+    if (def.allowedIn && !def.allowedIn.includes(g.kind) && n.def !== 'var.getLocal' && n.def !== 'var.setLocal') {
       out.push({
         severity: 'error',
         code: 'latentInFunction',
@@ -176,7 +204,7 @@ function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, 
   for (const p of resolvePins(n, ctx)) {
     if (p.dir === 'in' && p.byRef) {
       const src = refSource(g, n.id, p.id);
-      if (src?.def !== 'var.get' && src?.def !== 'var.getExternal') {
+      if (src?.def !== 'var.get' && src?.def !== 'var.getExternal' && src?.def !== 'var.getLocal') {
         out.push(['byRef', `la pin ${p.name} est passée par référence : relie-y un Get de la variable à modifier.`]);
       }
     }
@@ -234,6 +262,10 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
       if (n.def !== 'iface.doesImplement' && !iface.functions.some((f) => f.id === c.fn)) return ['memberGone', `la fonction n'existe plus dans ${iface.name}.`];
       if (n.def === 'event.interface' && !cls.interfaces.includes(iface.id)) {
         return ['notImplemented', `${cls.name} n'implémente pas ${iface.name} (Class Settings › Implemented Interfaces).`];
+      }
+      const fn = iface.functions.find((f) => f.id === c.fn);
+      if (n.def === 'event.interface' && fn?.outputs?.length) {
+        return ['interfaceFunction', `${fn.name} a une sortie : elle s'implémente comme une fonction (My Blueprint › Interfaces), pas comme un événement.`];
       }
       return undefined;
     }

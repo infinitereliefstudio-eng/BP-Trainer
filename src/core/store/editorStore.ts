@@ -15,6 +15,7 @@ import { findGraph, type BlueprintClass, type Graph, type Project } from '../mod
 import type { NodeContext } from '../nodes/definition';
 import { contextFor } from '../nodes/registry';
 import { releaseClassWildcards } from '../operations/wildcardOps';
+import { syncInterfaceGraphs } from '../operations/interfaceOps';
 
 export type ChangeKind = 'model' | 'view';
 export type Listener = (kind: ChangeKind) => void;
@@ -23,6 +24,8 @@ export type Focus =
   | { kind: 'none' }
   | { kind: 'nodes' }
   | { kind: 'variable'; id: string }
+  /** A Local Variable of the function graph `graph`. */
+  | { kind: 'local'; graph: string; id: string }
   | { kind: 'component'; id: string }
   | { kind: 'class' }
   | { kind: 'function'; id: string }
@@ -122,9 +125,12 @@ export class EditorStore {
     const tx = this.tx;
     if (!tx) return;
     this.tx = null;
-    // Generic nodes whose last wire went become generic again.
     for (const c of this.project.classes) {
-      if (tx.scope.kind === 'project' || c.id === tx.scope.id) releaseClassWildcards(c, this.project);
+      if (tx.scope.kind !== 'project' && c.id !== tx.scope.id) continue;
+      // Interface functions with outputs keep their implementation graph in step.
+      syncInterfaceGraphs(this.project, c);
+      // Generic nodes whose last wire went become generic again.
+      releaseClassWildcards(c, this.project);
     }
     const after = snapshot(this.project, tx.scope);
     if (after === tx.before) return;
@@ -199,6 +205,7 @@ export class EditorStore {
     for (const id of [...this.selection]) if (!nodes[id]) this.selection.delete(id);
     const f = this.focus;
     if (f.kind === 'variable' && !this.cls.variables.some((v) => v.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'local' && !findGraph(this.cls, f.graph)?.fn?.locals?.some((l) => l.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'component' && !this.cls.components.some((c) => c.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'nodes' && this.selection.size === 0) this.focus = { kind: 'none' };
     if (f.kind === 'actor' && !this.project.level.actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };

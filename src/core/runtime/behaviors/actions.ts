@@ -23,6 +23,15 @@ export const actionBehaviors: Record<string, Behavior> = {
     },
   },
 
+  'var.setLocal': {
+    exec: (cx) => {
+      const v = copyValue(cx.in('value'));
+      cx.setLocal(String(cx.node.config.variable), v);
+      cx.out('out', v);
+      return ['then'];
+    },
+  },
+
   'debug.printString': {
     exec: (cx) => {
       cx.world.print(cx.actor, cx.str('text'), {

@@ -5,6 +5,7 @@
  */
 import { addFunction, addFunctionParam, setFunctionPure } from '../../operations/functionOps';
 import { disconnectPin } from '../../operations/graphOps';
+import { addLocalVariable } from '../../operations/localOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, printedNumbers, usesNode } from '../checks';
@@ -31,9 +32,11 @@ export const lessonPureFunctions: Lesson = {
   level: 'avance',
   number: 0,
   title: 'Fonctions pures et impures',
-  situation: 'Le personnage (100 PV) prend un coup critique de base 10, puis se soigne de 15. Le calcul des dégâts est une fonction pure ; le soin, une fonction impure qui modifie PV.',
-  notions: ['Fonction', 'Pure', 'Entrées et sorties', 'Return Node'],
-  remember: 'Une fonction pure calcule et rend un résultat, sans rien modifier ; elle s’exécute à chaque lecture de sa sortie. Une fonction impure agit (Set, Spawn…) et s’exécute une fois, quand le fil blanc passe.',
+  situation:
+    'Le personnage (100 PV) prend un coup critique de base 10, puis se soigne deux fois de 15. Le calcul des dégâts est une fonction pure ; le soin, une fonction impure qui modifie PV et dit combien elle a vraiment soigné (PV ne dépasse pas 100).',
+  notions: ['Fonction', 'Pure', 'Entrées et sorties', 'Return Node', 'Variable locale'],
+  remember:
+    'Une fonction pure calcule et rend un résultat, sans rien modifier ; elle s’exécute à chaque lecture de sa sortie. Une fonction impure agit (Set, Spawn…) et s’exécute une fois, quand le fil blanc passe. Ce dont elle a besoin le temps d’un appel va dans une variable locale.',
   cards: [
     {
       title: 'Deux sortes de fonctions',
@@ -51,17 +54,23 @@ export const lessonPureFunctions: Lesson = {
       body:
         'Dans My Blueprint › Functions › +, crée la fonction puis, dans Details, ajoute ses **Inputs** et **Outputs**. Le **Return Node** rend les sorties ; une fonction peut en avoir plusieurs (un par chemin d’un Branch).',
     },
+    {
+      title: 'Se souvenir pendant un appel',
+      body:
+        'Pour dire combien Soigner a vraiment rendu, il faut PV **avant** le soin. Une **variable locale** (My Blueprint › Local Variables, fonction ouverte) le garde le temps de l’appel : `Avant`, réglée au début, puis Soin = PV − Avant à la fin.\n\n' +
+        'Elle repart de zéro à chaque appel : aucune valeur ne traîne d’un soin à l’autre.',
+    },
   ],
   objectives: [
     'Fonction pure CalculerDegats : entrées Base (Integer) et Critique (Boolean), sortie Degats (Integer) : Base × 2 si Critique, sinon Base.',
-    'Fonction impure Soigner : entrée Montant (Integer), ajoute Montant à PV sans dépasser 100.',
-    'Au BeginPlay : PV = PV − CalculerDegats (10, critique), affiche PV ; puis Soigner (15), affiche PV.',
-    'Touche Vérifier : il faut voir 80, puis 95.',
+    'Fonction impure Soigner : entrée Montant (Integer), sortie Soin (Integer). Elle ajoute Montant à PV sans dépasser 100 et renvoie ce que PV a vraiment gagné, grâce à une variable locale Avant.',
+    'Au BeginPlay : PV = PV − CalculerDegats (10, critique), affiche PV ; puis Soigner (15) deux fois, en affichant Soin ; enfin affiche PV.',
+    'Touche Vérifier : il faut voir 80, 15, 5, puis 100.',
   ],
   hints: [
-    'CalculerDegats ne touche pas à PV : elle rend un nombre. C’est le BeginPlay qui fait le Set.',
-    'Dans CalculerDegats : Branch (Critique) → deux Return Node (Base × 2, et Base). Dans Soigner : Set PV = Min (PV + Montant, 100). Au BeginPlay : Set PV (PV − CalculerDegats) → Print → Soigner → Print.',
-    'Solution : BeginPlay → Set PV = PV − CalculerDegats(10, true) → Print PV (80) → Soigner(15) → Print PV (95).',
+    'CalculerDegats ne touche pas à PV : elle rend un nombre. C’est le BeginPlay qui fait le Set. Soin n’est pas Montant : au second soin, PV est plafonné.',
+    'Dans CalculerDegats : Branch (Critique) → deux Return Node (Base × 2, et Base). Dans Soigner : Set Avant (PV) → Set PV = Min (PV + Montant, 100) → Return Node (Soin = PV − Avant).',
+    'Solution : BeginPlay → Set PV = PV − CalculerDegats(10, true) → Print PV (80) → Soigner(15) → Print Soin (15) → Soigner(15) → Print Soin (5) → Print PV (100).',
   ],
   challenge: 'Ajoute un Random Integer in Range à CalculerDegats et lis sa sortie dans deux Print String : deux nombres différents. Pourquoi ?',
   setup: characterProject,
@@ -91,12 +100,22 @@ export const lessonPureFunctions: Lesson = {
     },
     {
       id: 'values',
-      label: 'PV affiché : 80, puis 95',
+      label: 'Affiché : 80, 15, 5, puis 100',
       test: (cx) => {
         const n = printedNumbers(cx);
-        if (n.join() === '80,95') return true;
+        if (n.join() === '80,15,5,100') return true;
         if (n[0] === '90') return 'Le premier PV affiché est 90 : le coup est critique, Degats doit valoir Base × 2.';
-        return `Nombres affichés : ${n.join(', ') || 'aucun'}. Il fallait 80, puis 95.`;
+        if (n.join() === '80,15,15,100') return 'Le second soin affiche 15, alors que PV ne pouvait gagner que 5 (plafond 100) : Soin = PV après − PV avant, pas Montant.';
+        return `Nombres affichés : ${n.join(', ') || 'aucun'}. Il fallait 80, 15, 5, puis 100.`;
+      },
+    },
+    {
+      id: 'local',
+      label: 'Soigner garde PV avant le soin dans une variable locale',
+      test: (cx) => {
+        const g = fnGraph(cx, 'BP_Personnage', 'Soigner');
+        const ok = !!g?.fn?.locals?.length && Object.values(g.nodes).some((n) => n.def === 'var.setLocal');
+        return ok ? true : 'Garde PV avant le soin dans une variable locale de Soigner (My Blueprint › Local Variables, avec Soigner ouverte).';
       },
     },
     noRuntimeErrors(),
@@ -126,14 +145,23 @@ export const lessonPureFunctions: Lesson = {
     // Soigner (impure): PV = Min(PV + Montant, 100)
     const heal = addFunction(b.cls, 'Soigner');
     const amount = addFunctionParam(p, b.cls, heal.id, 'inputs', T.int)!;
+    const gain = addFunctionParam(p, b.cls, heal.id, 'outputs', T.int)!;
     amount.name = 'Montant';
+    gain.name = 'Soin';
+    const before = addLocalVariable(p, b.cls, heal.id, T.int, 'Avant')!;
     const h = b.inGraph(heal.id);
     const hEntry = Object.values(heal.nodes).find((n) => n.def === 'fn.entry')!.id;
-    const add = h.node('math.addInt', {}, {}, [300, 300]);
-    const min = h.node('math.minInt', {}, { b: 100 }, [500, 300]);
-    const set = h.node('var.set', { variable: pv }, {}, [400, 96]);
-    h.link(h.node('var.get', { variable: pv }, {}, [100, 300]), 'value', add, 'a').link(hEntry, amount.id, add, 'b').link(add, 'result', min, 'a');
-    h.link(hEntry, 'then', set, 'exec').link(min, 'result', set, 'value');
+    const hRet = Object.values(heal.nodes).find((n) => n.def === 'fn.return')!.id;
+    disconnectPin(heal, { node: hEntry, pin: 'then' });
+    const keep = h.node('var.setLocal', { variable: before.id }, {}, [300, 96]);
+    const add = h.node('math.addInt', {}, {}, [500, 300]);
+    const min = h.node('math.minInt', {}, { b: 100 }, [700, 300]);
+    const set = h.node('var.set', { variable: pv }, {}, [700, 96]);
+    const diff = h.node('math.subtractInt', {}, {}, [1000, 300]);
+    h.link(hEntry, 'then', keep, 'exec').link(h.node('var.get', { variable: pv }, {}, [100, 300]), 'value', keep, 'value');
+    h.link(h.node('var.get', { variable: pv }, {}, [300, 400]), 'value', add, 'a').link(hEntry, amount.id, add, 'b').link(add, 'result', min, 'a');
+    h.link(keep, 'then', set, 'exec').link(min, 'result', set, 'value').link(set, 'then', hRet, 'exec');
+    h.link(set, 'out', diff, 'a').link(h.node('var.getLocal', { variable: before.id }, {}, [800, 460]), 'value', diff, 'b').link(diff, 'result', hRet, gain.id);
     // BeginPlay
     const begin = b.node('event.beginPlay', {}, {}, [64, 96]);
     const calc = b.node('call.pureFunction', { graph: dmg.id }, { [base.id]: 10, [crit.id]: true }, [200, 360]);
@@ -142,9 +170,14 @@ export const lessonPureFunctions: Lesson = {
     const say1 = b.node('debug.printString', {}, {}, [700, 96]);
     const care = b.node('call.function', { graph: heal.id }, { [amount.id]: 15 }, [1000, 96]);
     const say2 = b.node('debug.printString', {}, {}, [1300, 96]);
+    const care2 = b.node('call.function', { graph: heal.id }, { [amount.id]: 15 }, [1600, 96]);
+    const say3 = b.node('debug.printString', {}, {}, [1900, 96]);
+    const say4 = b.node('debug.printString', {}, {}, [2200, 96]);
     b.link(b.node('var.get', { variable: pv }, {}, [200, 240]), 'value', minus, 'a').link(calc, out.id, minus, 'b').link(minus, 'result', hit, 'value');
     b.link(begin, 'then', hit, 'exec').link(hit, 'then', say1, 'exec').link(hit, 'out', say1, 'text');
-    b.link(say1, 'then', care, 'exec').link(care, 'then', say2, 'exec').link(b.node('var.get', { variable: pv }, {}, [1100, 300]), 'value', say2, 'text');
+    b.link(say1, 'then', care, 'exec').link(care, 'then', say2, 'exec').link(care, gain.id, say2, 'text');
+    b.link(say2, 'then', care2, 'exec').link(care2, 'then', say3, 'exec').link(care2, gain.id, say3, 'text');
+    b.link(say3, 'then', say4, 'exec').link(b.node('var.get', { variable: pv }, {}, [2100, 300]), 'value', say4, 'text');
   },
 };
 

@@ -8,6 +8,8 @@ import { lessonDoorStates, lessonKeypad, refactor2 } from './library/choices';
 import { lessonControlRoom, refactor1 } from './library/controlRoom';
 import { debug3, debug4, lessonBeginPlayOrder, lessonWhoChanges } from './library/confirmed';
 import { lessonInventory } from './library/inventory';
+import { lessonLocals, predict4 } from './library/locals';
+import { lessonTerminal } from './library/terminal';
 import { lesson1, lesson2, lesson3, lesson4 } from './library/module1';
 import { lesson5, lesson6, lesson7, lesson8 } from './library/module2';
 import { lesson10, lesson11, lesson9 } from './library/module3';
@@ -45,6 +47,8 @@ export const LESSONS: Lesson[] = [
   lesson11,
   debug2,
   lessonWhoChanges,
+  lessonLocals,
+  predict4,
   lessonBeginPlayOrder,
   debug4,
   lessonWaves,
@@ -53,6 +57,7 @@ export const LESSONS: Lesson[] = [
   // Avancé
   lessonPureFunctions,
   complete2,
+  lessonTerminal,
   lessonCleanDestroy,
   refactor1,
   lesson12,

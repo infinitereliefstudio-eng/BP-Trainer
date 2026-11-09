@@ -19,7 +19,7 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 | `model/` | Les données du projet : `Project` → `BlueprintClass` → `Graph` → `NodeInstance` / `Link`, plus variables et composants. Du JSON pur |
 | `nodes/` | La bibliothèque de nœuds : une **définition** par nœud (titre, pins, réglages, aide), rangée par catégorie dans `library/`, indexée par `registry.ts`. `palette.ts` génère les entrées de recherche (dont Get/Set par variable) |
 | `graph/rules.ts` | Les règles de connexion d'UE (une source par entrée de données, une cible par sortie exec, types compatibles) |
-| `operations/` | Les mutateurs : ajouter un nœud, relier, renommer une variable… Chaque fonction modifie le modèle, sans gérer l'annulation. `wildcardOps` type les nœuds génériques, `organizeOps` gère Reroute et Comment, `enumOps` les Enums et les renommages de types |
+| `operations/` | Les mutateurs : ajouter un nœud, relier, renommer une variable… Chaque fonction modifie le modèle, sans gérer l'annulation. `wildcardOps` type les nœuds génériques, `organizeOps` gère Reroute et Comment, `enumOps` les Enums et les renommages de types, `localOps` les variables locales, `interfaceOps` les entrées et sorties des fonctions d'interface et leurs graphes d'implémentation |
 | `history/` | Annuler / rétablir par instantanés JSON du Blueprint touché (ou du projet) |
 | `compiler/` | Le bouton Compile : vérifications façon UE et messages pour Compiler Results |
 | `store/` | `EditorStore`, la source de vérité de la session : projet, historique, Blueprint et graphe ouverts, sélection, messages |
@@ -87,7 +87,8 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - Delay ignore un nouvel appel pendant son attente ; Retriggerable Delay repart de zéro.
 - Une référence vide produit « Accessed None trying to read property… » dans l'Output Log, le nœud est sauté et la suite continue.
 - Appeler un Custom Event, un Event Dispatcher ou une fonction exécute la chaîne appelée tout de suite, puis l'appelant continue (les frames appelées sont empilées au-dessus).
-- Chaque frame porte une portée (`Scope`) : sorties des nœuds et mémoire des macros. Un Event Graph utilise celle de l'acteur, gardée d'un événement à l'autre ; chaque appel de fonction en reçoit une neuve, comme les variables locales d'UE. Une fonction peut donc s'appeler elle-même, et un DoOnce dans une fonction repart à zéro à chaque appel.
+- Chaque frame porte une portée (`Scope`) : sorties des nœuds, mémoire des macros et variables locales. Un Event Graph utilise celle de l'acteur, gardée d'un événement à l'autre ; chaque appel de fonction en reçoit une neuve, avec ses Local Variables à leur valeur par défaut. Une fonction peut donc s'appeler elle-même, et un DoOnce dans une fonction repart à zéro à chaque appel.
+- Une fonction d'interface sans sortie s'implémente par un Event, avec sortie par un graphe fonction (`Graph.iface`, signature recopiée de l'interface par `operations/interfaceOps.ts`). Le Message remet ses sorties à leur valeur par défaut, puis appelle l'implémentation de la cible ; une cible qui n'implémente pas l'interface les laisse ainsi, sans erreur.
 - Equal (Float) est exact, comme le == d'UE ; Nearly Equal (Float) prend une tolérance.
 - Les composants d'un joueur Blueprint comptent comme ceux de tout acteur : ses Box Collision déclenchent des overlaps, ses meshes, lumières et textes sont dessinés sous sa capsule. Un Interface Message vers un acteur qui n'implémente pas l'interface ne fait rien, sans erreur ; Cast Failed n'est pas une erreur non plus.
 - Une fonction pure est exécutée jusqu'au bout à chaque lecture de ses sorties.

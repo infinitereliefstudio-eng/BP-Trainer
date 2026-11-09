@@ -1,6 +1,6 @@
 # Idées notées pour plus tard
 
-## Retours sur la qualité des solutions (noté le 6 novembre 2026)
+## Retours sur la qualité des solutions (noté le 6 novembre 2026) — prévu à l'étape E de la V3
 
 Aujourd'hui, une leçon vérifie surtout le **résultat** dans le niveau : une solution différente de celle prévue réussit si elle produit le bon comportement. Deux leçons imposent en plus une notion (Branch en leçon 4, DoOnce en leçon 5), ce qui refuse des solutions valables.
 
@@ -15,7 +15,7 @@ Limites : règles sans compréhension de l'intention (fausses alertes possibles,
 
 ## Laissé de côté à l'étape 3
 
-- Variables locales des fonctions, paramètres des fonctions d'interface, fonctions d'interface avec sortie (aujourd'hui : événements sans paramètre).
-- Remplacer un Custom Event par l'événement d'interface du même nom en un geste (UE le propose quand on implémente l'interface).
+- ~~Variables locales des fonctions, paramètres des fonctions d'interface, fonctions d'interface avec sortie.~~ Fait à l'étape A de la V3.
+- ~~Remplacer un Custom Event par l'événement d'interface du même nom en un geste.~~ Fait à l'étape A de la V3.
 - ~~Pendant Play : modifier une variable d'instance dans Details, choisir l'objet débogué depuis le niveau.~~ Fait à l'étape 4 avec l'Outliner en direct.
 - Flèches entre les acteurs du niveau qui se référencent (Details › variables Instance Editable).

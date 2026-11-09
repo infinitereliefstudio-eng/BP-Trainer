@@ -27,6 +27,8 @@ const TRAPS: Record<string, string> = {
   'actor.spawn': 'Le BeginPlay du nouvel acteur a déjà tourné quand Return Value sort : un Set fait après arrive trop tard pour lui. Utilise Expose on Spawn.',
   'time.setTimerByEvent': 'Relancer le même événement remplace son timer au lieu d’en ajouter un. Garde le Return Value (Timer Handle) pour l’arrêter avec Clear Timer.',
   'dispatcher.bind': 'Seuls les appels faits après le Bind sont reçus : fais le Bind tôt, au BeginPlay, avant le premier Call.',
+  'var.getLocal': 'Chaque appel de la fonction repart de la valeur par défaut : une variable locale ne garde rien d’un appel à l’autre. Pour compter entre deux appels, utilise une variable du Blueprint.',
+  'iface.message': 'Si la cible n’implémente pas l’interface, rien ne se passe et les sorties gardent leur valeur par défaut (0, vide, None) : aucune erreur ne le signale.',
 };
 
 const COPY_TRAP = 'Copie toute la valeur : deux variables qui contiennent le même tableau ou la même structure ne partagent rien, modifier l’une ne change pas l’autre.';

@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 36:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 36")
+        if await page.locator('.lesson-item').count() != 39:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 39")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -211,6 +211,53 @@ async def main():
         await page.locator('button[aria-label="Ouvrir Details"]').tap()
         await page.wait_for_timeout(300)
         await shot('23_child_class_settings')
+
+        # Step A of V3: Local Variables, and an interface function with an input and an output
+        for lid in ['l-locales', 'l-terminal']:
+            await page.evaluate(PUT, [f'project:lesson:{lid}', (HERE / 'out' / f'{lid}.json').read_text()])
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Le ticket de caisse').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.evaluate("""() => { const s = window.bpStore; s.openGraph(s.cls.graphs.find(g => g.name === 'AjouterArticle').id); }""")
+        await page.wait_for_timeout(200)
+        await page.locator('.tab', has_text='AjouterArticle').tap()
+        await page.wait_for_timeout(300)
+        await shot('24_function_with_locals')
+        await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('25_my_blueprint_locals')
+        if await page.locator('.drawer.left', has_text='Local Variables (AjouterArticle)').count() == 0:
+            errs.append('My Blueprint : pas de section Local Variables dans une fonction')
+        await page.locator('.drawer.left .mb-main', has_text='SousTotal').tap()
+        await page.wait_for_timeout(300)
+        await shot('26_local_details')
+        if await page.locator('.drawer.right', has_text='Local Variable').count() == 0:
+            errs.append('Details : la variable locale ne s’affiche pas')
+        await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Le terminal').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.sheet .btn', has_text='Fermer').count():
+            await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.evaluate(OPEN, 'BP_Joueur')
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('27_message_with_pins')
+        await page.evaluate(OPEN, 'BP_Terminal')
+        await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('28_my_blueprint_interface_function')
+        if await page.locator('.drawer.left', has_text='BPI_Interactif · fonction').count() == 0:
+            errs.append('My Blueprint : la fonction d’interface Interagir n’est pas listée comme fonction')
+        await page.locator('.drawer.left .mb-main', has_text='Interagir').first.tap()
+        await page.wait_for_timeout(300)
+        await shot('29_interface_function_graph')
+        await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'interface', id: s.project.interfaces[0].id }); }""")
+        await page.wait_for_timeout(300)
+        await shot('30_interface_details')
         print('errors', errs)
         await b.close()
         return errs

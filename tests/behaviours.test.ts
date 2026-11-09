@@ -6,7 +6,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import { ProjectBuilder } from '../src/core/lessons/builder';
-import { allDefinitions, contextFor, resolvePins } from '../src/core/nodes/registry';
+import { allDefinitions, contextFor, getDefinition, resolvePins } from '../src/core/nodes/registry';
+import { addFunction } from '../src/core/operations/functionOps';
 import { getBehavior } from '../src/core/runtime/behaviors';
 import type { ExecCx, WorldApi } from '../src/core/runtime/behaviors/types';
 import type { ActorRT, RValue } from '../src/core/runtime/world';
@@ -23,7 +24,9 @@ const nullWorld = new Proxy({} as WorldApi, {
 
 function touchedPins(defId: string): { declared: Set<string>; touched: string[] } {
   const pb = new ProjectBuilder('t');
-  const b = pb.blueprint('BP');
+  const bp = pb.blueprint('BP');
+  // Nodes only allowed in functions (Local Variables) are tried in one.
+  const b = getDefinition(defId)?.allowedIn?.includes('event') === false ? bp.inGraph(addFunction(bp.cls).id) : bp;
   const node = b.graph.nodes[b.node(defId, CONFIG[defId] ?? {})];
   const ctx = contextFor(b.cls, pb.project);
   const declared = new Set(resolvePins(node, ctx).map((p) => p.id));
@@ -65,6 +68,7 @@ function touchedPins(defId: string): { declared: Set<string>; touched: string[] 
       touched.push(p);
       return true;
     },
+    setLocal: () => undefined,
   };
   const behavior = getBehavior(defId)!;
   if (behavior.exec) touched.push(...behavior.exec(cx));

@@ -82,10 +82,17 @@ interface Frame {
 interface Scope {
   outputs: Record<string, Record<string, RValue>>;
   state: Record<string, unknown>;
+  /** Local Variables of a function call, by id. Empty for an Event Graph. */
+  locals: Record<string, RValue>;
 }
 
-const actorScope = (a: ActorRT): Scope => ({ outputs: a.outputs, state: a.nodeState });
-const callScope = (): Scope => ({ outputs: {}, state: {} });
+const actorScope = (a: ActorRT): Scope => ({ outputs: a.outputs, state: a.nodeState, locals: {} });
+/** A function call: fresh node memory, and its Local Variables at their default values. */
+const callScope = (graph: Graph): Scope => {
+  const locals: Record<string, RValue> = {};
+  for (const l of graph.fn?.locals ?? []) locals[l.id] = structuredClone(l.defaultValue) as RValue;
+  return { outputs: {}, state: {}, locals };
+};
 
 export interface PauseInfo {
   reason: 'breakpoint' | 'step';
@@ -110,7 +117,7 @@ export const MAX_STEPS = 100_000;
 const MAX_PURE_DEPTH = 64;
 
 /** Nodes run by the interpreter itself rather than by a behaviour. */
-export const INTERPRETER_NODES = new Set(['var.get', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
+export const INTERPRETER_NODES = new Set(['var.get', 'var.getLocal', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
 
 /** Events and function entries: where a chain starts. */
 function isEntry(node: NodeInstance | undefined): boolean {
@@ -439,6 +446,9 @@ export class Interpreter {
         entry.outputs = params;
       },
       writeRef: (pin, value) => this.writeRef(actor, scope, gi, node, pin, value),
+      setLocal: (id, value) => {
+        scope.locals[id] = value;
+      },
     };
     const outs = behavior.exec(cx);
     if (resume) this.stack.push({ actor, scope, gi, node: node.id, mode: 'in', pin: RESUME });
@@ -474,7 +484,7 @@ export class Interpreter {
     }
     const entry = Object.values(gi.graph.nodes).find((n) => n.def === 'fn.entry');
     if (!entry) return undefined;
-    return { actor: target, scope: callScope(), gi, node: entry.id, mode: 'out', pin: 'then' };
+    return { actor: target, scope: callScope(gi.graph), gi, node: entry.id, mode: 'out', pin: 'then' };
   }
 
   /** Return Node: hand the outputs to the caller and drop the rest of the function. */
@@ -550,6 +560,10 @@ export class Interpreter {
       actor.vars[String(src.config.variable)] = value;
       return true;
     }
+    if (src?.def === 'var.getLocal') {
+      scope.locals[String(src.config.variable)] = value;
+      return true;
+    }
     if (src?.def === 'var.getExternal') {
       const target = this.host.actor(this.readInput(actor, scope, gi, src, 'target', 0), 'Target');
       if (target) target.vars[String(src.config.variable)] = value;
@@ -605,6 +619,8 @@ export class Interpreter {
       case 'var.get':
         this.host.record.read(actor.id, String(src.config.variable));
         return actor.vars[String(src.config.variable)] ?? null;
+      case 'var.getLocal':
+        return scope.locals[String(src.config.variable)] ?? null;
       case 'var.component':
         return { ref: 'component', actor: actor.id, id: String(src.config.component) };
       case 'actor.self':

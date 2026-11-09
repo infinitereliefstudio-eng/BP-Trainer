@@ -2,6 +2,8 @@
  * Communication between Blueprints: Cast, references, variables of another
  * actor, Event Dispatchers, Custom Event calls and Blueprint Interfaces.
  */
+import { interfaceImplementation } from '../../model/inheritance';
+import { defaultValueFor } from '../../types/values';
 import { isRef, type ActorRT, type RValue } from '../world';
 import { copyValue } from '../values';
 import { RESUME, type Behavior, type ExecCx } from './types';
@@ -181,12 +183,20 @@ export const communicationBehaviors: Record<string, Behavior> = {
   'iface.message': {
     // Sent to anything: if the target does not implement the interface,
     // nothing happens and no error is logged. That is the point of it.
+    // A function with outputs runs its implementation graph and returns;
+    // one without runs the matching Event, both before the chain continues.
     exec: (cx) => {
       const target = cx.world.tryActor(cx.in('target'));
       const cls = target && cx.world.classOf(target);
       const { interface: iface, fn } = cx.node.config;
+      // Outputs start from their default value: a target that does not answer leaves them so (not the last answer).
+      const outputs = cx.ctx.project?.interfaces.find((i) => i.id === iface)?.functions.find((f) => f.id === fn)?.outputs ?? [];
+      for (const o of outputs) cx.out(o.id, defaultValueFor(o.type) as RValue);
       if (target && cls?.interfaces.includes(String(iface))) {
-        cx.callEvents(target, (n) => n.def === 'event.interface' && n.config.interface === iface && n.config.fn === fn, {});
+        const params = cx.params();
+        const impl = cx.ctx.project && interfaceImplementation(cx.ctx.project, cls, String(iface), String(fn));
+        if (impl) cx.callFunction(target, impl.id, params);
+        else cx.callEvents(target, (n) => n.def === 'event.interface' && n.config.interface === iface && n.config.fn === fn, params);
       } else if (target) cx.world.note('iface.notImplemented', target.label);
       else cx.world.note('iface.noTarget');
       return ['then'];

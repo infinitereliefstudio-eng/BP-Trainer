@@ -3,6 +3,7 @@ import type { ComponentChildren } from 'preact';
 import { COMPONENT_LABEL, type Component, type ComponentKind } from '@core/model/project';
 import { addComponent, addDispatcher, addVariable } from '@core/operations/classOps';
 import { addFunction } from '@core/operations/functionOps';
+import { addLocalVariable } from '@core/operations/localOps';
 import type { Value } from '@core/types/values';
 import { PIN_COLOR } from '@editor/theme';
 import { useStore } from '../hooks';
@@ -42,7 +43,8 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
       })),
     });
 
-  const functions = cls.graphs.filter((g) => g.kind === 'function');
+  const functions = cls.graphs.filter((g) => g.kind === 'function' && !g.iface);
+  const openFn = store.graph.kind === 'function' && store.graph.fn ? store.graph : undefined;
   const inEventGraph = store.graph.kind === 'event';
   const implemented = store.project.interfaces.filter((i) => cls.interfaces.includes(i.id));
 
@@ -70,8 +72,17 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
   const fromParent = () => store.info('Hérité de la classe parente : on le modifie dans le Blueprint parent.');
   const inherited = {
     variables: view.variables.filter((v) => !cls.variables.some((o) => o.id === v.id)),
-    functions: view.graphs.filter((g) => g.kind === 'function' && !cls.graphs.some((o) => o.id === g.id)),
+    functions: view.graphs.filter((g) => g.kind === 'function' && !g.iface && !cls.graphs.some((o) => o.id === g.id)),
   };
+
+  const addLocal = () => {
+    if (!openFn) return;
+    const l = store.apply('Ajouter une variable locale', (cl) => addLocalVariable(store.project, cl, openFn.id));
+    if (l) store.setFocus({ kind: 'local', graph: openFn.id, id: l.id });
+    onOpenDetails();
+  };
+  /** The graph implementing an interface function with outputs: this class's, or the parent's. */
+  const implGraph = (ifaceId: string, fnId: string) => view.graphs.find((g) => g.iface?.interface === ifaceId && g.iface.fn === fnId);
 
   return (
     <div class="panel-scroll">
@@ -132,6 +143,31 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           />
         ))}
       </Section>
+
+      {openFn && (
+        <Section title={`Local Variables (${openFn.name})`} onAdd={addLocal}>
+          {(openFn.fn?.locals ?? []).length === 0 && (
+            <p class="hint">Touche + pour une variable locale : elle n'existe que pendant un appel de {openFn.name}.</p>
+          )}
+          {(openFn.fn?.locals ?? []).map((l) => (
+            <Row
+              key={l.id}
+              selected={focus.kind === 'local' && focus.id === l.id}
+              dot={PIN_COLOR[l.type.category]}
+              label={l.name}
+              sub="locale"
+              onClick={() => {
+                store.setFocus({ kind: 'local', graph: openFn.id, id: l.id });
+                onOpenDetails();
+              }}
+              actions={[
+                { label: 'Get', onClick: () => placeNode('var.getLocal', { variable: l.id }) },
+                { label: 'Set', onClick: () => placeNode('var.setLocal', { variable: l.id }) },
+              ]}
+            />
+          ))}
+        </Section>
+      )}
 
       <Section title="Variables" onAdd={addVar}>
         {cls.variables.length === 0 && <p class="hint">Touche + pour créer une variable.</p>}
@@ -198,18 +234,37 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
       >
         {implemented.length === 0 && <p class="hint">Aucune interface implémentée. Touche + (Class Settings) pour en ajouter une.</p>}
         {implemented.flatMap((i) =>
-          i.functions.map((f) => (
-            <Row
-              key={`${i.id}:${f.id}`}
-              label={f.name}
-              sub={i.name}
-              onClick={() => {
-                store.setFocus({ kind: 'interface', id: i.id });
-                onOpenDetails();
-              }}
-              actions={inEventGraph ? [{ label: 'Event', onClick: () => placeNode('event.interface', { interface: i.id, fn: f.id }) }] : []}
-            />
-          )),
+          i.functions.map((f) => {
+            const impl = f.outputs?.length ? implGraph(i.id, f.id) : undefined;
+            if (impl) {
+              return (
+                <Row
+                  key={`${i.id}:${f.id}`}
+                  label={f.name}
+                  sub={`${i.name} · fonction`}
+                  selected={store.graphId === impl.id}
+                  onClick={() => {
+                    if (!cls.graphs.some((g) => g.id === impl.id)) return fromParent();
+                    store.openGraph(impl.id);
+                    store.setFocus({ kind: 'function', id: impl.id });
+                    onOpenDetails();
+                  }}
+                />
+              );
+            }
+            return (
+              <Row
+                key={`${i.id}:${f.id}`}
+                label={f.name}
+                sub={i.name}
+                onClick={() => {
+                  store.setFocus({ kind: 'interface', id: i.id });
+                  onOpenDetails();
+                }}
+                actions={inEventGraph ? [{ label: 'Event', onClick: () => placeNode('event.interface', { interface: i.id, fn: f.id }) }] : []}
+              />
+            );
+          }),
         )}
       </Section>
     </div>

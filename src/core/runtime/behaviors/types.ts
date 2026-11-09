@@ -93,6 +93,8 @@ export interface ExecCx extends ValueCx {
    * Returns false when the pin is not wired to a variable.
    */
   writeRef(pin: string, value: RValue): boolean;
+  /** Write a Local Variable of the function call this node runs in. */
+  setLocal(id: string, value: RValue): void;
 }
 
 export interface Behavior {

@@ -10,8 +10,11 @@ import { decodeType, encodeType } from '../types/wildcard';
 import { validateName } from './classOps';
 import type { OpResult } from './graphOps';
 
-/** Every pin type the project stores: variables, function and dispatcher parameters. */
+/** Every pin type the project stores: variables, locals, function, interface and dispatcher parameters. */
 function eachType(p: Project, fn: (t: PinType) => PinType): void {
+  for (const i of p.interfaces) {
+    for (const f of i.functions) for (const prm of [...(f.inputs ?? []), ...(f.outputs ?? [])]) prm.type = fn(prm.type);
+  }
   for (const c of p.classes) {
     for (const v of c.variables) v.type = fn(v.type);
     for (const d of c.dispatchers) for (const prm of d.params) prm.type = fn(prm.type);
@@ -19,6 +22,7 @@ function eachType(p: Project, fn: (t: PinType) => PinType): void {
       if (g.fn) {
         for (const prm of g.fn.inputs) prm.type = fn(prm.type);
         for (const prm of g.fn.outputs) prm.type = fn(prm.type);
+        for (const l of g.fn.locals ?? []) l.type = fn(l.type);
       }
       // Generic nodes remember the type they adopted.
       for (const n of Object.values(g.nodes)) {

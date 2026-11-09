@@ -51,7 +51,7 @@ export function findCustomEvent(cls: BlueprintClass, name: string): NodeInstance
   return undefined;
 }
 
-function interfaceFn(ctx: NodeContext, n: NodeInstance) {
+export function interfaceFn(ctx: NodeContext, n: NodeInstance) {
   const iface = ctx.project ? findInterface(ctx.project, String(n.config.interface)) : undefined;
   return { iface, fn: iface?.functions.find((f) => f.id === n.config.fn) };
 }
@@ -252,7 +252,7 @@ export const communicationNodes: NodeDefinition[] = [
     allowedIn: ['event'],
     hiddenFromPalette: true,
     description: "L'implémentation d'une fonction d'interface dans ce Blueprint : elle s'exécute quand quelqu'un lui envoie ce message.",
-    pins: [execOut()],
+    pins: (n, ctx) => [execOut(), ...(interfaceFn(ctx, n).fn?.inputs ?? []).map((p) => dataOut(p.id, p.name, p.type))],
   },
   {
     id: 'iface.message',
@@ -261,8 +261,17 @@ export const communicationNodes: NodeDefinition[] = [
     kind: 'function',
     hiddenFromPalette: true,
     description:
-      "Envoie un message d'interface à n'importe quel objet. S'il implémente l'interface, sa version de la fonction s'exécute ; sinon il ne se passe rien, sans erreur.",
-    pins: [execIn(), dataIn('target', 'Target', T.object('Object'), { defaultsToSelf: true }), execOut()],
+      "Envoie un message d'interface à n'importe quel objet. S'il implémente l'interface, sa version de la fonction s'exécute ; sinon il ne se passe rien, sans erreur, et les sorties gardent leur valeur par défaut.",
+    pins: (n, ctx) => {
+      const fn = interfaceFn(ctx, n).fn;
+      return [
+        execIn(),
+        dataIn('target', 'Target', T.object('Object'), { defaultsToSelf: true }),
+        ...(fn?.inputs ?? []).map((p) => dataIn(p.id, p.name, p.type, { default: defaultValueFor(p.type) })),
+        execOut(),
+        ...(fn?.outputs ?? []).map((p) => dataOut(p.id, p.name, p.type)),
+      ];
+    },
   },
   {
     id: 'iface.doesImplement',

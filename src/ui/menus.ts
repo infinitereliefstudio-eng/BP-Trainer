@@ -4,6 +4,7 @@ import { parentEvent } from '@core/nodes/library/functions';
 import { getDefinition } from '@core/nodes/registry';
 import { addVariable } from '@core/operations/classOps';
 import { addNode, connect, disconnectNode, disconnectPin, duplicateNodes, removeNodes } from '@core/operations/graphOps';
+import { convertToInterfaceEvent, interfaceMatch } from '@core/operations/interfaceOps';
 import { addCommentAround, insertReroute } from '@core/operations/organizeOps';
 import { graphBounds, layoutGraph } from '@editor/layout';
 
@@ -54,6 +55,7 @@ export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => 
     ...breakpointItems(store, ids),
     ...gotoItems(store, ids),
     ...parentCallItems(store, ids),
+    ...interfaceEventItems(store, ids),
     {
       label: many ? `Supprimer (${ids.length})` : 'Supprimer',
       danger: true,
@@ -235,6 +237,27 @@ function parentCallItems(store: EditorStore, ids: string[]): MenuItem[] {
       action: () => {
         const res = store.apply('Appel au parent', (_c, g) => addNode(g, 'call.parentEvent', node.x + 320, node.y + 40, { event: key }));
         if (res.ok) store.selectNodes([res.value.id]);
+      },
+    },
+  ];
+}
+
+/**
+ * UE's fix for a Custom Event named like a function of an interface this
+ * Blueprint implements: it becomes the interface event, wires kept.
+ */
+function interfaceEventItems(store: EditorStore, ids: string[]): MenuItem[] {
+  const node = ids.length === 1 ? store.graph.nodes[ids[0]] : undefined;
+  if (node?.def !== 'event.custom') return [];
+  const match = interfaceMatch(store.project, store.ctx.cls, String(node.config.name));
+  if (!match || match.fn.outputs?.length) return [];
+  return [
+    {
+      label: 'Convertir en événement d’interface',
+      hint: `Event ${match.fn.name}`,
+      action: () => {
+        const res = store.applyProject('Convertir en événement d’interface', (p) => convertToInterfaceEvent(p, store.ctx.cls, store.graph, node.id));
+        if (!res.ok) store.warn(res.reason);
       },
     },
   ];

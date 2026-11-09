@@ -1,8 +1,8 @@
 # Reprise du projet
 
-Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V2.md](PLAN_V2.md) (le plan en cours), [PLAN_V1.md](PLAN_V1.md) (le plan de la V1), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
+Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-09, étape E de la V2 livrée (en attente de validation) : le plan V2 est entièrement livré.
+Dernière mise à jour : 2026-11-09, étape A de la V3 livrée (en attente de validation). La V2 est validée.
 
 ## Le projet
 
@@ -83,7 +83,7 @@ Demande de Tristan : simuler précisément (il s'interrogeait sur le Set d'une v
 | B — Explications | Livrée le 2026-11-09, validée (« tu peux passer à l'étape c ») |
 | C — Débutant et Intermédiaire | Livrée le 2026-11-09, validée (« ok tu peux passer à la suite ») |
 | D — Confirmé et Avancé | Livrée le 2026-11-09, validée (« tu peux passer a la dernière étape ») |
-| E — Héritage | **Livrée le 2026-11-09, en attente de validation** |
+| E — Héritage | Livrée le 2026-11-09, validée (« oui ça me convient ») |
 
 Étape A, choix d'implémentation :
 - `Simulation` prend `order: 'level' | 'reversed' | 'shuffled'` (défaut `level` pour les tests). Il fixe l'ordre des acteurs de départ (niveau puis joueur) pour BeginPlay, Tick et les touches ; les acteurs créés par Spawn passent après, dans l'ordre de création. Play utilise `shuffled` (graine = l'heure) et écrit l'ordre tiré dans l'Output Log (`LogBlueprintTrainer:`) dès que deux acteurs ont un BeginPlay. Option « Ordre des BeginPlay : mélangé / fixe » dans le menu ⋮, gardée dans le navigateur (`ui/playSettings.ts`).
@@ -123,7 +123,28 @@ Demande de Tristan : simuler précisément (il s'interrogeait sur le Set d'une v
 - Interface : Parent Class liste les Blueprints (sauf soi-même et ses enfants) ; My Blueprint montre les membres hérités (« hérité ») ; appui long sur un événement redéfini › « Ajouter l'appel au parent » ; palette : « Parent: … » dans un enfant.
 - Leçon « L'héritage » (Avancé, `library/inheritance.ts`) : BP_Clignotante, enfant de BP_LampeBase, redéfinit BeginPlay ; sans Parent: BeginPlay elle ne s'allume plus.
 
-Toujours au BACKLOG : qualité des solutions (ne pas faire sans sa demande), variables locales, paramètres des fonctions d'interface, Text, Name, Struct, Map, Set, GameMode, GameInstance, Data Tables.
+Toujours au BACKLOG après la V2 : qualité des solutions, variables locales, paramètres des fonctions d'interface, Text, Name, Struct, Map, Set, GameMode, GameInstance, Data Tables. La V3 reprend la plupart de ces points.
+
+## V3 (plan lancé le 2026-11-09)
+
+Tristan a demandé un plan V3 (« prépare moi un plan pour la v3 »), puis l'a lancé (« tu peux lancer ») sans trancher les quatre questions : les propositions du plan sont retenues (Data Tables plus tard, Qualité en dernier, Timeline à points clés, Line Trace depuis l'avant du joueur). Plan : [PLAN_V3.md](PLAN_V3.md), Claude Doc https://claude.ai/artifact/GDZsZN9sGLDfTNSH8TJeuW. Étapes A à E, une validation entre chacune. L'étape E (qualité des solutions) reprend les idées de BACKLOG.md : Tristan l'a acceptée avec le plan.
+
+| Étape | État |
+|---|---|
+| A — Fonctions | **Livrée le 2026-11-09, en attente de validation** |
+| B — Données | À faire |
+| C — Mouvement | À faire |
+| D — Interaction | À faire |
+| E — Qualité | À faire |
+
+Étape A, choix d'implémentation :
+- Variables locales : `FunctionSignature.locals` (`LocalVariable` : id, nom, type, valeur par défaut), champ optionnel, pas de changement de format. Nœuds `var.getLocal` / `var.setLocal` (réservés aux fonctions, `allowedIn`), trouvés par `findLocal(cls, id)` dans les graphes de la classe. Opérations dans `operations/localOps.ts` ; le nom ne peut pas reprendre une autre locale, un paramètre de la fonction, une variable ou un composant du Blueprint.
+- Runtime : `Scope.locals`, remplies aux valeurs par défaut par `callScope(graph)` à chaque appel (récursion comprise). `var.getLocal` est lu par l'interpréteur ; `var.setLocal` passe par `ExecCx.setLocal`. Increment Int et les pins par référence acceptent un Get local.
+- Compilation : `localScope` (une locale utilisée hors de sa fonction), `interfaceFunction` (Event d'une fonction d'interface qui a une sortie), avertissement `interfaceName` (Custom Event qui porte le nom d'une fonction d'interface implémentée : le message ne le déclenche pas). Chacun a son « Pourquoi ? ».
+- Interfaces : `InterfaceFunction.inputs` / `outputs` (optionnels). Sans sortie, l'implémentation reste un Event (avec les entrées en pins de sortie) ; avec une sortie, c'est un graphe fonction marqué `Graph.iface`, dont `syncInterfaceGraphs` (`operations/interfaceOps.ts`) garde la signature égale à celle de l'interface. Le store l'appelle à chaque fin de transaction (classes concernées) ; les opérations de paramètres d'interface l'appellent pour tout le projet. Un graphe d'implémentation est supprimé quand l'interface, la fonction ou sa dernière sortie disparaît, ou quand la classe ne l'implémente plus.
+- Message : ses sorties repartent de leur valeur par défaut à chaque envoi (sinon un acteur qui n'implémente pas l'interface laissait la réponse du précédent) ; il appelle la fonction d'implémentation de la cible (`interfaceImplementation`, la plus proche dans la lignée, une redéfinition de l'enfant gagne) ou ses Events.
+- Interface : My Blueprint › Local Variables (fonction ouverte), Interfaces (« · fonction » ouvre le graphe d'implémentation, absent de Functions et de la palette des appels) ; Details de la locale (`LocalDetails.tsx`), de l'interface avec Inputs / Outputs par fonction (`InterfaceDetails.tsx`, séparé de SignatureDetails), d'une implémentation (lecture seule) ; appui long sur un Custom Event › « Convertir en événement d'interface ». Notes Piège sur Get local et sur le Message.
+- Leçons : « Le ticket de caisse » (Confirmé, après « Qui modifie quoi » : sous-total en locale, total du ticket en variable du Blueprint ; piège : total en locale → 10, 10, 8, 8), « Prédis P4 — Locale ou pas » (Increment Int sur une locale), « Le terminal » (Avancé, après C2 : Interagir gagne Niveau et Reponse, implémentation en fonction, réponse vide du rocher). Le plan nommait la première « Les locales » ; le titre a changé pour dire la situation. « Fonctions pures et impures » ajoute à Soigner une sortie Soin et une locale Avant (80, 15, 5, 100). Tests : `tests/functionsV3.test.ts`, `tests/lessonVariantsV3.test.ts` ; smoke : captures 24 à 30.
 
 ## Méthode de travail
 

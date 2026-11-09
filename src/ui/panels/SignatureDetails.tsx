@@ -1,6 +1,6 @@
 /**
- * Details of things that have a signature: functions, Event Dispatchers,
- * and Blueprint Interface assets.
+ * Details of things that have a signature: functions and Event Dispatchers
+ * (Blueprint Interface assets: InterfaceDetails.tsx).
  */
 import { findDispatcher, findGraph, findInterface, type Param } from '@core/model/project';
 import {
@@ -21,14 +21,7 @@ import {
   updateFunctionParam,
   type ParamSide,
 } from '@core/operations/functionOps';
-import {
-  addInterfaceFunction,
-  removeInterface,
-  removeInterfaceFunction,
-  renameInterface,
-  renameInterfaceFunction,
-  pruneProject,
-} from '@core/operations/projectOps';
+import { pruneProject } from '@core/operations/projectOps';
 import type { OpResult } from '@core/operations/graphOps';
 import type { PinType } from '@core/types/pins';
 import { useStore } from '../hooks';
@@ -38,7 +31,7 @@ import { TypeSelect } from '../widgets/TypeSelect';
 import { Check, Field, Group, TextCommit } from './fields';
 
 /** Editable list of parameters: name and type, with a delete button. */
-function ParamList(props: {
+export function ParamList(props: {
   params: Param[];
   onAdd: () => void;
   onRename: (id: string, name: string) => OpResult;
@@ -74,6 +67,7 @@ export function FunctionDetails({ id, openOverlay }: { id: string; openOverlay: 
   const cls = store.cls;
   const g = findGraph(cls, id);
   if (!g?.fn) return null;
+  if (g.iface) return <InterfaceFunctionDetails graphId={id} />;
   const fn = g.fn;
   const param = (side: ParamSide) => (
     <ParamList
@@ -126,6 +120,39 @@ export function FunctionDetails({ id, openOverlay }: { id: string; openOverlay: 
           }
         >
           Supprimer
+        </button>
+      </div>
+    </>
+  );
+}
+
+/** A function graph implementing an interface function: its signature belongs to the interface. */
+function InterfaceFunctionDetails({ graphId }: { graphId: string }) {
+  const store = useStore();
+  const g = findGraph(store.cls, graphId);
+  const iface = g?.iface && findInterface(store.project, g.iface.interface);
+  if (!g?.fn || !iface) return null;
+  const list = (ps: Param[]) => (ps.length ? ps.map((p) => p.name).join(', ') : 'aucune');
+  return (
+    <>
+      <Group title={g.name}>
+        <p class="muted small">
+          Implémentation de {g.name}, fonction de {iface.name}. Elle s'exécute quand un autre Blueprint envoie le message {g.name} à celui-ci, et
+          renvoie ses sorties au nœud Message. Son nom, ses entrées et ses sorties se règlent dans l'interface.
+        </p>
+        <Field label="Inputs">
+          <span class="muted">{list(g.fn.inputs)}</span>
+        </Field>
+        <Field label="Outputs">
+          <span class="muted">{list(g.fn.outputs)}</span>
+        </Field>
+      </Group>
+      <div class="row-buttons">
+        <button class="btn" onClick={() => store.openGraph(graphId)}>
+          Ouvrir le graphe
+        </button>
+        <button class="btn" onClick={() => store.setFocus({ kind: 'interface', id: iface.id })}>
+          Voir {iface.name}
         </button>
       </div>
     </>
@@ -192,65 +219,6 @@ export function DispatcherDetails({ id, openOverlay }: { id: string; openOverlay
         }
       >
         Supprimer
-      </button>
-    </>
-  );
-}
-
-// --------------------------------------------------------------- interfaces
-
-export function InterfaceDetails({ id, openOverlay }: { id: string; openOverlay: OpenOverlay }) {
-  const store = useStore();
-  const iface = findInterface(store.project, id);
-  if (!iface) return null;
-  const users = store.project.classes.filter((c) => c.interfaces.includes(id)).map((c) => c.name);
-  return (
-    <>
-      <Group title="Blueprint Interface">
-        <Field label="Nom">
-          <NameField
-            value={iface.name}
-            onCommit={(name) => store.applyProject('Renommer l’interface', (p) => renameInterface(p, id, name))}
-          />
-        </Field>
-        <p class="muted small">
-          Une interface est une liste de fonctions sans contenu. Chaque Blueprint qui l'implémente (Class Settings) décide de ce qu'elles font.
-        </p>
-        <p class="muted small">Implémentée par : {users.length ? users.join(', ') : 'aucun Blueprint'}.</p>
-      </Group>
-      <Group title="Fonctions">
-        {iface.functions.map((f) => (
-          <div class="param-row" key={f.id}>
-            <NameField
-              value={f.name}
-              onCommit={(name) => store.applyProject('Renommer la fonction', (p) => renameInterfaceFunction(p, id, f.id, name))}
-            />
-            <button
-              class="chip danger"
-              aria-label={`Supprimer ${f.name}`}
-              onClick={() => store.applyProject('Supprimer la fonction', (p) => removeInterfaceFunction(p, id, f.id))}
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-        <button class="btn" onClick={() => store.applyProject('Ajouter une fonction', (p) => addInterfaceFunction(p, id))}>
-          + Fonction
-        </button>
-      </Group>
-      <button
-        class="btn danger"
-        onClick={() =>
-          openOverlay({
-            kind: 'confirm',
-            title: `Supprimer ${iface.name} ?`,
-            text: 'Les Blueprints qui l’implémentent perdront ses événements, et les messages qui l’utilisent seront supprimés.',
-            confirmLabel: 'Supprimer',
-            onConfirm: () => store.applyProject('Supprimer l’interface', (p) => removeInterface(p, id)),
-          })
-        }
-      >
-        Supprimer l’interface
       </button>
     </>
   );

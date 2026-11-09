@@ -8,7 +8,7 @@
  * The model keeps each class as written. `inheritedView` builds the merged
  * class that graphs, compilation and the runtime work with.
  */
-import type { BlueprintClass, Component, NodeInstance, ParentClass, Project } from './project';
+import type { BlueprintClass, Component, Graph, NodeInstance, ParentClass, Project } from './project';
 
 /** The Blueprint parent of `cls`, if any. */
 export function parentOf(p: Project | undefined, cls: BlueprintClass): BlueprintClass | undefined {
@@ -86,4 +86,17 @@ export function eventKey(n: NodeInstance): string {
     default:
       return n.def;
   }
+}
+
+/**
+ * The function graph implementing an interface function for `cls`: its own,
+ * else the nearest parent's (UE implements a function with outputs as a
+ * function graph, Graph.iface).
+ */
+export function interfaceImplementation(p: Project | undefined, cls: BlueprintClass, ifaceId: string, fnId: string): Graph | undefined {
+  for (const c of lineage(p, cls)) {
+    const g = c.graphs.find((x) => x.iface?.interface === ifaceId && x.iface.fn === fnId);
+    if (g) return g;
+  }
+  return undefined;
 }

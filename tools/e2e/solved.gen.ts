@@ -11,7 +11,7 @@ const OUT = new URL('./out/', import.meta.url);
 
 it('generates solved lesson projects', () => {
   mkdirSync(OUT, { recursive: true });
-  for (const id of ['l03-interrupteur', 'l10-dispatcher', 'l11-interface', 'l12-station']) {
+  for (const id of ['l03-interrupteur', 'l10-dispatcher', 'l11-interface', 'l12-station', 'l-locales', 'l-terminal']) {
     const lesson = getLesson(id)!;
     const p = lesson.setup();
     lesson.solve(p);

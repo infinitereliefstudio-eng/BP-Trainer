@@ -84,6 +84,24 @@ const COMPILE: Record<CompileCode, Explanation> = {
     why: 'Une fonction du même nom que celle du parent la redéfinit : partout où la fonction du parent est appelée sur cet acteur, c’est elle qui s’exécute. Elle doit donc accepter les mêmes entrées et rendre les mêmes sorties.',
     fixes: ['Donne-lui exactement les entrées, sorties et la case Pure de la fonction du parent.', 'Ou renomme-la si ce n’est pas une redéfinition.'],
   },
+  localScope: {
+    why: 'Une variable locale n’existe que dans sa fonction, et seulement pendant un appel. Un autre graphe ne peut pas la voir : il n’y a rien à lire ni à écrire.',
+    fixes: [
+      'Crée une variable locale dans cette fonction (My Blueprint › Local Variables) et remplace le nœud.',
+      'Ou, si la valeur doit survivre entre deux appels ou servir ailleurs, utilise une variable du Blueprint.',
+    ],
+  },
+  interfaceFunction: {
+    why: 'UE implémente une fonction d’interface qui renvoie une valeur comme une fonction : un événement ne peut rien renvoyer à celui qui envoie le message.',
+    fixes: [
+      'Supprime cet événement et ouvre la fonction dans My Blueprint › Interfaces.',
+      'Ou retire la sortie de la fonction dans l’interface, si rien ne doit être renvoyé.',
+    ],
+  },
+  interfaceName: {
+    why: 'Un message d’interface déclenche l’événement d’interface (Event …), pas un Custom Event qui porte le même nom. Ici, le message passe sans rien faire.',
+    fixes: ['Appui long sur le Custom Event › Convertir en événement d’interface : ses fils sont gardés.', 'Ou renomme le Custom Event, s’il n’a rien à voir avec l’interface.'],
+  },
   noParentEvent: {
     why: 'Un nœud Parent: appelle la version de la classe parente. Ici, aucune classe parente n’a cet événement : il n’y a rien à appeler.',
     fixes: ['Supprime le nœud Parent:.', 'Ou vérifie la classe parente dans Class Settings.'],

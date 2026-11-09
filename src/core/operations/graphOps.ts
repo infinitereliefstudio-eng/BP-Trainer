@@ -27,7 +27,8 @@ export function addNode(
   const def = getDefinition(defId);
   if (!def) return fail(`Nœud inconnu : ${defId}`);
   if (def.allowedIn && !def.allowedIn.includes(graph.kind)) {
-    return fail(`${typeof def.title === 'string' ? def.title : 'Ce nœud'} n'est pas autorisé dans une fonction.`);
+    const name = typeof def.title === 'string' ? def.title : 'Ce nœud';
+    return fail(graph.kind === 'function' ? `${name} n'est pas autorisé dans une fonction.` : `${name} n'existe que dans une fonction.`);
   }
   if (def.unique) {
     const existing = Object.values(graph.nodes).find((n) => n.def === defId);

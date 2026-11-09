@@ -66,6 +66,28 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       keywords: ['set', 'variable', v.name.toLowerCase()],
     });
   }
+  const fnGraph = graphKind === 'function' ? ctx.cls.graphs.find((g) => g.id === graph.id) : undefined;
+  for (const l of fnGraph?.fn?.locals ?? []) {
+    const kw = ['local', 'variable', 'locale', l.name.toLowerCase()];
+    out.push({
+      key: `lget:${l.id}`,
+      title: `Get ${l.name}`,
+      category: 'Variables|Local',
+      description: 'Lit la variable locale (valeur de cet appel de la fonction).',
+      def: 'var.getLocal',
+      config: { variable: l.id },
+      keywords: ['get', ...kw],
+    });
+    out.push({
+      key: `lset:${l.id}`,
+      title: `Set ${l.name}`,
+      category: 'Variables|Local',
+      description: 'Change la variable locale, pour la suite de cet appel seulement.',
+      def: 'var.setLocal',
+      config: { variable: l.id },
+      keywords: ['set', ...kw],
+    });
+  }
   for (const c of ctx.cls.components) {
     if (c.kind === 'BoxCollision' && graphKind === 'event') {
       out.push({
@@ -203,7 +225,8 @@ function communicationEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEn
   for (const c of [self, ...others]) {
     const own = c.id === self.id;
     for (const g of c.graphs) {
-      if (g.kind !== 'function' || !g.fn) continue;
+      // Interface implementations are reached by sending the message, not called by name.
+      if (g.kind !== 'function' || !g.fn || g.iface) continue;
       out.push(
         entry(ctx, `fn:${c.id}:${g.id}`, g.fn.pure ? 'call.pureFunction' : 'call.function', { owner: c.id, graph: g.id }, {
           category: own ? 'Functions' : `Class|${c.name}`,
@@ -243,7 +266,7 @@ function communicationEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEn
       const cfg = { interface: iface.id, fn: fn.id };
       const kw = ['interface', 'message', fn.name.toLowerCase(), iface.name.toLowerCase()];
       out.push(entry(ctx, `imsg:${iface.id}:${fn.id}`, 'iface.message', cfg, { category: `Interface Messages|${iface.name}`, keywords: kw }));
-      if (eventGraph && self.interfaces.includes(iface.id)) {
+      if (eventGraph && self.interfaces.includes(iface.id) && !fn.outputs?.length) {
         out.push(entry(ctx, `iev:${iface.id}:${fn.id}`, 'event.interface', cfg, { category: `Add Event|${iface.name}`, keywords: kw }));
       }
     }

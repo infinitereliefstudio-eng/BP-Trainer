@@ -12,6 +12,7 @@
  * - Data inputs are pulled when a node asks for them; pure nodes are
  *   recomputed for every read; impure nodes keep their last outputs.
  */
+import { eventKey, isA, lineage } from '../model/inheritance';
 import type { BlueprintClass, Graph, Link, NodeInstance, PinRef, Project } from '../model/project';
 import type { NodeContext, PinSpec } from '../nodes/definition';
 import { contextFor, findPin, getDefinition, nodeTitle, pinValue, resolvePins } from '../nodes/registry';
@@ -131,7 +132,7 @@ export class Interpreter {
   private stepping = false;
 
   constructor(
-    project: Project,
+    private readonly project: Project,
     private readonly host: InterpreterHost,
     /** Node ids where execution stops. Not saved with the project, like UE. */
     readonly breakpoints: Set<string> = new Set(),
@@ -161,10 +162,17 @@ export class Interpreter {
     }
   }
 
-  /** Does this actor's class contain a node matching `match`? */
+  /** Does this actor's class, or one it inherits from, contain an event node matching `match`? */
   hasEvent(actor: ActorRT, match: (n: NodeInstance) => boolean): boolean {
-    const list = actor.classId ? this.byClass.get(actor.classId) : undefined;
-    return !!list?.some((gi) => gi.graph.kind === 'event' && Object.values(gi.graph.nodes).some(match));
+    return this.chain(actor.classId).some((c) =>
+      (this.byClass.get(c.id) ?? []).some((gi) => gi.graph.kind === 'event' && Object.values(gi.graph.nodes).some(match)),
+    );
+  }
+
+  /** The class of an actor, then its parents. */
+  private chain(classId: string | undefined): BlueprintClass[] {
+    const cls = classId ? this.project.classes.find((c) => c.id === classId) : undefined;
+    return cls ? lineage(this.project, cls) : [];
   }
 
   /** Queue every event node of the actor's class that matches. Run by drain(). */
@@ -317,14 +325,29 @@ export class Interpreter {
     });
   }
 
-  private eventFrames(actor: ActorRT, match: (n: NodeInstance) => boolean, pin: string, outputs: Record<string, RValue>): Frame[] {
+  /**
+   * Event nodes that answer for `actor`, from its class up to its parents.
+   * An event a class defines hides the parent's version (override), which
+   * then runs only through a "Parent:" node. `from` starts higher in the chain.
+   */
+  private eventFrames(actor: ActorRT, match: (n: NodeInstance) => boolean, pin: string, outputs: Record<string, RValue>, from?: string): Frame[] {
     if (actor.destroyed || !actor.classId) return [];
+    let chain = this.chain(actor.classId);
+    if (from) chain = chain.slice(Math.max(0, chain.findIndex((c) => c.id === from)));
     const frames: Frame[] = [];
-    for (const gi of this.byClass.get(actor.classId) ?? []) {
-      if (gi.graph.kind !== 'event') continue;
-      for (const n of Object.values(gi.graph.nodes)) {
-        if (match(n)) frames.push({ actor, scope: actorScope(actor), gi, node: n.id, mode: 'out', pin, outputs });
+    const overridden = new Set<string>();
+    for (const cls of chain) {
+      const defined: string[] = [];
+      for (const gi of this.byClass.get(cls.id) ?? []) {
+        if (gi.graph.kind !== 'event') continue;
+        for (const n of Object.values(gi.graph.nodes)) {
+          if (getDefinition(n.def)?.kind !== 'event') continue;
+          const key = eventKey(n);
+          defined.push(key);
+          if (!overridden.has(key) && match(n)) frames.push({ actor, scope: actorScope(actor), gi, node: n.id, mode: 'out', pin, outputs });
+        }
       }
+      for (const k of defined) overridden.add(k);
     }
     return frames;
   }
@@ -403,8 +426,14 @@ export class Interpreter {
         calls.push(...frames);
         return frames.length;
       },
-      callFunction: (target, graphId, params) => {
-        const entry = this.functionEntry(target, graphId);
+      callParentEvent: (key, outputs) => {
+        const parent = gi.cls.parentClassId;
+        const frames = parent ? this.eventFrames(actor, (n) => eventKey(n) === key, 'then', outputs, parent) : [];
+        calls.push(...frames);
+        return frames.length;
+      },
+      callFunction: (target, graphId, params, virtual = true) => {
+        const entry = this.functionEntry(target, graphId, virtual);
         if (!entry) return;
         calls.push(entry, { actor, scope, gi, node: node.id, mode: 'ret', pin: '' });
         entry.outputs = params;
@@ -420,14 +449,31 @@ export class Interpreter {
 
   // ------------------------------------------------------------ functions
 
-  /** The frame that starts a function graph of `target`, or undefined (logged). */
-  private functionEntry(target: ActorRT, graphId: string): Frame | undefined {
-    const gi = this.graphs.get(graphId);
-    const entry = gi && Object.values(gi.graph.nodes).find((n) => n.def === 'fn.entry');
-    if (!gi || !entry || gi.cls.id !== target.classId) {
+  /**
+   * The frame that starts a function graph of `target`, or undefined (logged).
+   * `virtual`: if the target's class (or a class between it and the one that
+   * wrote the function) overrides it by name, its version runs, as in UE.
+   */
+  private functionEntry(target: ActorRT, graphId: string, virtual = true): Frame | undefined {
+    let gi = this.graphs.get(graphId);
+    if (!gi || !isA(this.project, target.classId, gi.cls.id)) {
       this.host.runtimeError(`${target.label} n'a pas cette fonction.`);
       return undefined;
     }
+    if (virtual) {
+      const name = gi.graph.name;
+      const owner = gi.cls.id;
+      for (const c of this.chain(target.classId)) {
+        if (c.id === owner) break;
+        const over = (this.byClass.get(c.id) ?? []).find((x) => x.graph.kind === 'function' && x.graph.name === name);
+        if (over) {
+          gi = over;
+          break;
+        }
+      }
+    }
+    const entry = Object.values(gi.graph.nodes).find((n) => n.def === 'fn.entry');
+    if (!entry) return undefined;
     return { actor: target, scope: callScope(), gi, node: entry.id, mode: 'out', pin: 'then' };
   }
 
@@ -462,7 +508,7 @@ export class Interpreter {
     const cx = this.valueCx(actor, scope, gi, call, depth);
     const target = this.host.actor(cx.in('target'), 'Target');
     if (!target) return {};
-    const entry = this.functionEntry(target, String(call.config.graph));
+    const entry = this.functionEntry(target, String(call.config.graph), !call.config.parent);
     if (!entry) return {};
     const params: Record<string, RValue> = {};
     for (const spec of resolvePins(call, gi.ctx)) {

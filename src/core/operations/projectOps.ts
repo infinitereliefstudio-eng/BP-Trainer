@@ -1,6 +1,7 @@
 /** Project-level mutators: Blueprint classes. */
+import { descendants, inheritedView, isA, rootParent } from '../model/inheritance';
 import { newId } from '../model/ids';
-import { createClass, uniqueName, type BlueprintClass, type BlueprintInterface, type ParentClass, type Project } from '../model/project';
+import { componentDefaults, createClass, uniqueName, type BlueprintClass, type BlueprintInterface, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { renameTypeRefs } from './enumOps';
@@ -40,9 +41,50 @@ export function renameClass(p: Project, id: string, name: string): OpResult {
 
 export function removeClass(p: Project, id: string): OpResult {
   if (p.classes.length <= 1) return { ok: false, reason: 'Le projet doit garder au moins un Blueprint.' };
+  const child = p.classes.find((c) => c.parentClassId === id);
+  if (child) return { ok: false, reason: `${child.name} hérite de ce Blueprint : change d’abord sa classe parente (Class Settings).` };
   p.classes = p.classes.filter((c) => c.id !== id);
   p.level.actors = p.level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;
+  return { ok: true, value: undefined };
+}
+
+/**
+ * Parent Class: Actor, Pawn, or another Blueprint (by id). A Blueprint cannot
+ * inherit from itself or from one of its children.
+ */
+export function setParentClass(p: Project, classId: string, parent: string): OpResult {
+  const cls = p.classes.find((c) => c.id === classId);
+  if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
+  if (parent === 'Actor' || parent === 'Pawn') {
+    delete cls.parentClassId;
+    cls.parent = parent;
+  } else {
+    const base = p.classes.find((c) => c.id === parent);
+    if (!base) return { ok: false, reason: 'Blueprint parent introuvable.' };
+    if (isA(p, base.id, cls.id)) return { ok: false, reason: `${base.name} hérite déjà de ${cls.name} : il ne peut pas être sa classe parente.` };
+    cls.parentClassId = base.id;
+    // As in UE, a child has no root of its own: it uses the parent's. Its own components hang under it.
+    const baseRoot = inheritedView(base, p).components.find((c) => !c.parent);
+    if (baseRoot) {
+      for (const root of cls.components.filter((c) => !c.parent)) {
+        if (root.kind === 'Scene') {
+          for (const c of cls.components) if (c.parent === root.id) c.parent = baseRoot.id;
+          cls.components = cls.components.filter((c) => c.id !== root.id);
+        } else root.parent = baseRoot.id;
+      }
+    }
+  }
+  if (!cls.parentClassId && cls.components.every((c) => !!c.parent)) {
+    // Back to a native parent: a root of its own again.
+    const root = { id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene' as const, props: componentDefaults('Scene') };
+    for (const c of cls.components) if (!cls.components.some((o) => o.id === c.parent)) c.parent = root.id;
+    cls.components.unshift(root);
+  }
+  // The native class at the top follows the new chain, for this class and its children.
+  for (const c of [cls, ...descendants(p, cls)]) c.parent = rootParent(p, c);
+  if (p.playerClassId && rootParent(p, p.classes.find((c) => c.id === p.playerClassId) ?? cls) !== 'Pawn') delete p.playerClassId;
+  pruneProject(p);
   return { ok: true, value: undefined };
 }
 
@@ -144,7 +186,7 @@ export function setPlayerClass(p: Project, classId: string | undefined): OpResul
   }
   const cls = p.classes.find((c) => c.id === classId);
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
-  if (cls.parent !== 'Pawn') return { ok: false, reason: 'Le joueur doit être un Blueprint de classe parente Pawn.' };
+  if (rootParent(p, cls) !== 'Pawn') return { ok: false, reason: 'Le joueur doit être un Blueprint de classe parente Pawn.' };
   p.playerClassId = classId;
   return { ok: true, value: undefined };
 }

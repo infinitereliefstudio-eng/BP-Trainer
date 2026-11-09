@@ -11,6 +11,7 @@ import { lessonInventory } from './library/inventory';
 import { lesson1, lesson2, lesson3, lesson4 } from './library/module1';
 import { lesson5, lesson6, lesson7, lesson8 } from './library/module2';
 import { lesson10, lesson11, lesson9 } from './library/module3';
+import { lessonInheritance } from './library/inheritance';
 import { lesson12 } from './library/module4';
 import { lessonLift, lessonWaves } from './library/timing';
 import { debug1, debug2, predict1, predict2, predict3 } from './library/exercises';
@@ -55,6 +56,7 @@ export const LESSONS: Lesson[] = [
   lessonCleanDestroy,
   refactor1,
   lesson12,
+  lessonInheritance,
   lessonControlRoom,
 ];
 

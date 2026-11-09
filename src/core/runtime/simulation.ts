@@ -9,6 +9,7 @@
  * class orders them and answers the interpreter (WorldApi).
  */
 import { explainRuntime } from '../explain/runtime';
+import { inheritedView, isA, lineage } from '../model/inheritance';
 import { findClass, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import type { PrintOptions } from './behaviors/types';
 import { createActor, createPlayer } from './actorFactory';
@@ -87,7 +88,8 @@ export class Simulation implements InterpreterHost {
     this.rng = opts.seed ?? 12345;
     this.interp = new Interpreter(project, this, opts.breakpoints);
     const ps = project.level.playerStart;
-    this.player = createPlayer(project.playerClassId ? findClass(project, project.playerClassId) : undefined);
+    const pawn = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
+    this.player = createPlayer(pawn && inheritedView(pawn, project, true));
     this.player.x = ps.x;
     this.player.y = ps.y;
     this.player.yaw = ps.yaw;
@@ -124,14 +126,20 @@ export class Simulation implements InterpreterHost {
     for (const la of this.project.level.actors) {
       const cls = findClass(this.project, la.classId);
       if (!cls) continue;
-      const a = createActor(la.id, la.name, this.objectName(cls).name, cls, la.overrides);
+      const a = createActor(la.id, la.name, this.objectName(cls).name, inheritedView(cls, this.project, true), la.overrides);
       a.x = la.x;
       a.y = la.y;
       a.yaw = la.yaw;
       this.actors.push(a);
-      this.record.classes.add(cls.id);
+      this.markClass(cls.id);
     }
-    if (this.player.classId) this.record.classes.add(this.player.classId);
+    if (this.player.classId) this.markClass(this.player.classId);
+  }
+
+  /** An actor of this class exists: so does one of each class it inherits from (diagnostics). */
+  private markClass(classId: string): void {
+    const cls = findClass(this.project, classId);
+    for (const c of cls ? lineage(this.project, cls) : []) this.record.classes.add(c.id);
   }
 
   /** Fix the event order of the starting actors (the level, then the player). */
@@ -372,8 +380,15 @@ export class Simulation implements InterpreterHost {
     return !!a && !a.destroyed && (ref.ref === 'delegate' || a.components.some((c) => c.id === ref.id));
   }
 
+  /** The actor's class with everything it inherits. */
   classOf(actor: ActorRT): BlueprintClass | undefined {
-    return actor.classId ? findClass(this.project, actor.classId) : undefined;
+    const cls = actor.classId ? findClass(this.project, actor.classId) : undefined;
+    return cls && inheritedView(cls, this.project, true);
+  }
+
+  /** Is the actor of class `classId`, or of a child of it? */
+  isA(actor: ActorRT, classId: unknown): boolean {
+    return isA(this.project, actor.classId, classId);
   }
 
   ownerOf(c: ComponentRT): ActorRT | undefined {
@@ -388,12 +403,12 @@ export class Simulation implements InterpreterHost {
     const cls = findClass(this.project, classId);
     if (!cls) return null;
     const { n, name } = this.objectName(cls);
-    const a = createActor(`spawn_${nextId()}`, `${cls.name}${n + 1}`, name, cls, {});
+    const a = createActor(`spawn_${nextId()}`, `${cls.name}${n + 1}`, name, inheritedView(cls, this.project, true), {});
     a.x = x;
     a.y = y;
     a.yaw = yaw;
     this.actors.push(a);
-    this.record.classes.add(cls.id);
+    this.markClass(cls.id);
     return a;
   }
 

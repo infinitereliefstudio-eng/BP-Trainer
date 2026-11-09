@@ -93,7 +93,7 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
             >
               <span class="pi-title">{c.name}</span>
               <span class="pi-desc">
-                Parent : {c.parent} · {c.variables.length} variable(s) · {c.components.length} composant(s)
+                Parent : {(c.parentClassId && store.project.classes.find((x) => x.id === c.parentClassId)?.name) || c.parent} · {c.variables.length} variable(s) · {c.components.length} composant(s)
               </span>
             </button>
           ))}

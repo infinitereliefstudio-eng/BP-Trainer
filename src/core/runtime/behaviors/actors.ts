@@ -11,7 +11,7 @@ const ref = (a: ActorRT): RValue => ({ ref: 'actor', id: a.id });
 function ofClass(cx: ValueCx): ActorRT[] {
   const id = cx.in('class');
   if (typeof id !== 'string' || !id) return [];
-  return cx.world.allActors().filter((a) => a.classId === id);
+  return cx.world.allActors().filter((a) => cx.world.isA(a, id));
 }
 
 export const actorBehaviors: Record<string, Behavior> = {

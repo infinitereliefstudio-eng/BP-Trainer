@@ -1,6 +1,7 @@
 /** Class Settings: name, parent, input, implemented interfaces, player pawn. */
 import { implementInterface, removeImplementedInterface } from '@core/operations/classOps';
-import { removeClass, renameClass, setPlayerClass } from '@core/operations/projectOps';
+import { isA, rootParent } from '@core/model/inheritance';
+import { removeClass, renameClass, setParentClass, setPlayerClass } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
@@ -36,19 +37,30 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
         <Field label="Parent Class">
           <select
             class="field"
-            value={cls.parent}
+            value={cls.parentClassId ?? cls.parent}
             onChange={(e) => {
-              const parent = (e.target as HTMLSelectElement).value as 'Actor' | 'Pawn';
-              store.applyProject('Changer la classe parente', (p) => {
-                cls.parent = parent;
-                if (parent !== 'Pawn' && p.playerClassId === cls.id) setPlayerClass(p, undefined);
-              });
+              const parent = (e.target as HTMLSelectElement).value;
+              const res = store.applyProject('Changer la classe parente', (p) => setParentClass(p, cls.id, parent));
+              if (!res.ok) store.warn(res.reason);
             }}
           >
             <option value="Actor">Actor</option>
             <option value="Pawn">Pawn</option>
+            {store.project.classes
+              .filter((c) => c.id !== cls.id && !isA(store.project, c.id, cls.id))
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
           </select>
         </Field>
+        {cls.parentClassId && (
+          <p class="muted small">
+            Ce Blueprint hérite des composants, variables (sauf Private), fonctions et événements de son parent. Un événement ou une fonction du même nom ici
+            remplace celui du parent ; le nœud « Parent: … » appelle quand même sa version.
+          </p>
+        )}
         <Field label="Auto Receive Input">
           <select
             class="field"
@@ -102,7 +114,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
           <input
             type="checkbox"
             checked={isPlayer}
-            disabled={cls.parent !== 'Pawn'}
+            disabled={rootParent(store.project, cls) !== 'Pawn'}
             onChange={(e) => {
               const on = (e.target as HTMLInputElement).checked;
               const res = store.applyProject('Pion du joueur', (p) => setPlayerClass(p, on ? cls.id : undefined));
@@ -111,7 +123,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
           />
         </Field>
         <p class="muted small">
-          {cls.parent === 'Pawn'
+          {rootParent(store.project, cls) === 'Pawn'
             ? 'Coché, ce Blueprint devient le joueur quand tu lances Play (Game Mode › Default Pawn Class dans UE).'
             : 'Seul un Blueprint de classe parente Pawn peut être le joueur.'}
         </p>

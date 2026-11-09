@@ -1,3 +1,4 @@
+import { inheritedView } from '../../model/inheritance';
 import { findClass, spawnPins } from '../../model/project';
 import { T } from '../../types/pins';
 import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition } from '../definition';
@@ -45,7 +46,8 @@ export const actorNodes: NodeDefinition[] = [
     keywords: ['spawn', 'creer', 'faire apparaitre', 'instancier', 'ajouter'],
     pins: (n, ctx) => {
       const id = n.defaults.class;
-      const cls = typeof id === 'string' && ctx.project ? findClass(ctx.project, id) : undefined;
+      const own = typeof id === 'string' && ctx.project ? findClass(ctx.project, id) : undefined;
+      const cls = own && inheritedView(own, ctx.project);
       return [
         execIn(),
         dataIn('class', 'Class', T.class('Actor')),

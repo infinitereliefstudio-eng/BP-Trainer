@@ -4,6 +4,7 @@
  * To add a node: write its definition in the matching file of `library/`
  * (or a new file) and list that array below. Nothing else needs to change.
  */
+import { inheritedView } from '../model/inheritance';
 import { findVariable, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
 import { makeHierarchy } from '../types/pins';
 import { adoptedBy, adoptedType } from '../types/wildcard';
@@ -58,10 +59,15 @@ export function allDefinitions(): readonly NodeDefinition[] {
 }
 
 /** Context needed to resolve dynamic pins and titles for nodes of a class. */
+/**
+ * What a class's graphs see: the class with everything it inherits, the
+ * type hierarchy (a child Blueprint is its parent), and the project.
+ */
 export function contextFor(cls: BlueprintClass, project?: Project): NodeContext {
-  const parents: Record<string, string> = { [cls.name]: cls.parent };
-  for (const c of project?.classes ?? []) parents[c.name] = c.parent;
-  return { cls, hierarchy: makeHierarchy(parents), project };
+  const parentName = (c: BlueprintClass) => (c.parentClassId && project?.classes.find((x) => x.id === c.parentClassId)?.name) || c.parent;
+  const parents: Record<string, string> = { [cls.name]: parentName(cls) };
+  for (const c of project?.classes ?? []) parents[c.name] = parentName(c);
+  return { cls: inheritedView(cls, project), hierarchy: makeHierarchy(parents), project };
 }
 
 /** Pins as the definition declares them, wildcards unresolved. */

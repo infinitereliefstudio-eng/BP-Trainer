@@ -153,7 +153,10 @@ export interface BlueprintInterface {
 export interface BlueprintClass {
   id: string;
   name: string;
+  /** The native class at the top: Actor or Pawn (for a child Blueprint, its parent's). */
   parent: ParentClass;
+  /** Parent Blueprint, when this class inherits from another Blueprint (see inheritance.ts). */
+  parentClassId?: string;
   /** UE's "Auto Receive Input": input events fire only when true. */
   autoReceiveInput: boolean;
   components: Component[];

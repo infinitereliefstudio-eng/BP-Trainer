@@ -3,6 +3,7 @@
  * plus entries generated from the class (Get/Set per variable, one getter per
  * component), like UE's context menu.
  */
+import { eventKey, lineage, parentOf } from '../model/inheritance';
 import type { BlueprintClass, Graph, GraphKind, NodeInstance } from '../model/project';
 import { isAssignable, type PinType } from '../types/pins';
 import type { Value } from '../types/values';
@@ -96,7 +97,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       keywords: ['component', 'composant', c.name.toLowerCase()],
     });
   }
-  if (ctx.project) out.push(...communicationEntries(ctx, graphKind));
+  if (ctx.project) out.push(...communicationEntries(ctx, graphKind), ...parentEntries(ctx, graphKind));
   return out;
 }
 
@@ -104,6 +105,41 @@ function entry(ctx: NodeContext, key: string, def: string, config: Record<string
   const d = getDefinition(def)!;
   const title = typeof d.title === 'function' ? d.title(probe(def, config), ctx) : d.title;
   return { key, title, category: d.category, description: d.description, def, config, keywords: [], ...extra };
+}
+
+/**
+ * A child Blueprint: "Parent: Event" for each event its parents define (event
+ * graph), and "Parent: Function" for each parent function it overrides.
+ */
+function parentEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEntry[] {
+  const project = ctx.project!;
+  const own = project.classes.find((c) => c.id === ctx.cls.id);
+  const parent = own && parentOf(project, own);
+  if (!own || !parent) return [];
+  const out: PaletteEntry[] = [];
+  const ancestors = lineage(project, parent);
+  if (graphKind === 'event') {
+    const keys = new Set<string>();
+    for (const c of ancestors) {
+      for (const g of c.graphs) {
+        if (g.kind !== 'event') continue;
+        for (const n of Object.values(g.nodes)) if (getDefinition(n.def)?.kind === 'event') keys.add(eventKey(n));
+      }
+    }
+    for (const key of keys) {
+      out.push(entry(ctx, `parent:${key}`, 'call.parentEvent', { event: key }, { category: 'Call Function|Parent', keywords: ['parent', 'super', 'appeler'] }));
+    }
+  }
+  const mine = new Set(own.graphs.filter((g) => g.kind === 'function').map((g) => g.name));
+  const seen = new Set<string>();
+  for (const c of ancestors) {
+    for (const g of c.graphs) {
+      if (g.kind !== 'function' || !mine.has(g.name) || seen.has(g.name)) continue;
+      seen.add(g.name);
+      out.push(entry(ctx, `pfn:${g.id}`, 'call.function', { graph: g.id, parent: true }, { category: 'Call Function|Parent', keywords: ['parent', 'super', g.name.toLowerCase()] }));
+    }
+  }
+  return out;
 }
 
 /** Casts, other Blueprints' members, dispatchers, custom events, interfaces. */

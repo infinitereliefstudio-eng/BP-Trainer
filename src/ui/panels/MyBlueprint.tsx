@@ -30,7 +30,13 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
       items: ADDABLE.map((k) => ({
         label: COMPONENT_LABEL[k],
         action: () => {
-          const c = store.apply(`Ajouter ${COMPONENT_LABEL[k]}`, (cl) => addComponent(cl, k));
+          // A child Blueprint attaches new components to the root it inherits.
+          const inheritedRoot = store.cls.parentClassId ? store.ctx.cls.components.find((x) => !x.parent)?.id : undefined;
+          const c = store.apply(`Ajouter ${COMPONENT_LABEL[k]}`, (cl) => {
+            const added = addComponent(cl, k);
+            if (!added.parent && inheritedRoot) added.parent = inheritedRoot;
+            return added;
+          });
           store.setFocus({ kind: 'component', id: c.id });
         },
       })),
@@ -59,6 +65,14 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
     onOpenDetails();
   };
 
+  // What a child Blueprint gets from its parent, listed after its own members (read-only here).
+  const view = store.ctx.cls;
+  const fromParent = () => store.info('Hérité de la classe parente : on le modifie dans le Blueprint parent.');
+  const inherited = {
+    variables: view.variables.filter((v) => !cls.variables.some((o) => o.id === v.id)),
+    functions: view.graphs.filter((g) => g.kind === 'function' && !cls.graphs.some((o) => o.id === g.id)),
+  };
+
   return (
     <div class="panel-scroll">
       <Section
@@ -68,17 +82,20 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           addComp(r.left, r.bottom);
         }}
       >
-        {tree(cls.components).map(({ c, depth }) => (
-          <Row
-            key={c.id}
-            selected={focus.kind === 'component' && focus.id === c.id}
-            indent={depth}
-            onClick={() => store.setFocus({ kind: 'component', id: c.id })}
-            label={c.name}
-            sub={COMPONENT_LABEL[c.kind]}
-            actions={c.parent ? [{ label: 'Get', onClick: () => placeNode('var.component', { component: c.id }) }] : []}
-          />
-        ))}
+        {tree(view.components).map(({ c, depth }) => {
+          const mine = cls.components.some((o) => o.id === c.id);
+          return (
+            <Row
+              key={c.id}
+              selected={focus.kind === 'component' && focus.id === c.id}
+              indent={depth}
+              onClick={mine ? () => store.setFocus({ kind: 'component', id: c.id }) : fromParent}
+              label={c.name}
+              sub={`${COMPONENT_LABEL[c.kind]}${mine ? '' : ' · hérité'}`}
+              actions={c.parent ? [{ label: 'Get', onClick: () => placeNode('var.component', { component: c.id }) }] : []}
+            />
+          );
+        })}
       </Section>
 
       <Section title="Graphs">
@@ -105,6 +122,15 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
             actions={[{ label: 'Appeler', onClick: () => placeNode(g.fn?.pure ? 'call.pureFunction' : 'call.function', { owner: cls.id, graph: g.id }) }]}
           />
         ))}
+        {inherited.functions.map((g) => (
+          <Row
+            key={g.id}
+            label={g.name}
+            sub={`hérité${g.fn?.pure ? ' · pure' : ''}`}
+            onClick={fromParent}
+            actions={[{ label: 'Appeler', onClick: () => placeNode(g.fn?.pure ? 'call.pureFunction' : 'call.function', { owner: cls.id, graph: g.id }) }]}
+          />
+        ))}
       </Section>
 
       <Section title="Variables" onAdd={addVar}>
@@ -119,6 +145,19 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
               store.setFocus({ kind: 'variable', id: v.id });
               onOpenDetails();
             }}
+            actions={[
+              { label: 'Get', onClick: () => placeNode('var.get', { variable: v.id }) },
+              { label: 'Set', onClick: () => placeNode('var.set', { variable: v.id }) },
+            ]}
+          />
+        ))}
+        {inherited.variables.map((v) => (
+          <Row
+            key={v.id}
+            dot={PIN_COLOR[v.type.category]}
+            label={v.name}
+            sub="hérité"
+            onClick={fromParent}
             actions={[
               { label: 'Get', onClick: () => placeNode('var.get', { variable: v.id }) },
               { label: 'Set', onClick: () => placeNode('var.set', { variable: v.id }) },

@@ -76,6 +76,18 @@ const COMPILE: Record<CompileCode, Explanation> = {
     why: 'Un nœud avec des pins blanches ne s’exécute que si un fil d’exécution arrive sur son entrée. Sans fil, il est ignoré, sans erreur.',
     fixes: ['Relie sa pin d’entrée blanche à la sortie d’un événement ou du nœud qui doit le précéder.'],
   },
+  inheritedName: {
+    why: 'Un Blueprint enfant a déjà toutes les variables de sa classe parente : deux variables du même nom seraient ambiguës.',
+    fixes: ['Renomme la variable de l’enfant.', 'Ou supprime-la et utilise celle du parent (elle est déjà là).'],
+  },
+  overrideSignature: {
+    why: 'Une fonction du même nom que celle du parent la redéfinit : partout où la fonction du parent est appelée sur cet acteur, c’est elle qui s’exécute. Elle doit donc accepter les mêmes entrées et rendre les mêmes sorties.',
+    fixes: ['Donne-lui exactement les entrées, sorties et la case Pure de la fonction du parent.', 'Ou renomme-la si ce n’est pas une redéfinition.'],
+  },
+  noParentEvent: {
+    why: 'Un nœud Parent: appelle la version de la classe parente. Ici, aucune classe parente n’a cet événement : il n’y a rien à appeler.',
+    fixes: ['Supprime le nœud Parent:.', 'Ou vérifie la classe parente dans Class Settings.'],
+  },
   duplicateCustomEvent: {
     why: 'Un Custom Event est appelé par son nom : deux du même nom dans un Blueprint seraient ambigus.',
     fixes: ['Renomme l’un des deux dans Details.'],

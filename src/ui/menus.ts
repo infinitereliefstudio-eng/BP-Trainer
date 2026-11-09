@@ -1,4 +1,6 @@
 /** Context menus (long press) for nodes, pins, links and the "⋮" button. */
+import { eventKey } from '@core/model/inheritance';
+import { parentEvent } from '@core/nodes/library/functions';
 import { getDefinition } from '@core/nodes/registry';
 import { addVariable } from '@core/operations/classOps';
 import { addNode, connect, disconnectNode, disconnectPin, duplicateNodes, removeNodes } from '@core/operations/graphOps';
@@ -51,6 +53,7 @@ export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => 
     },
     ...breakpointItems(store, ids),
     ...gotoItems(store, ids),
+    ...parentCallItems(store, ids),
     {
       label: many ? `Supprimer (${ids.length})` : 'Supprimer',
       danger: true,
@@ -214,6 +217,27 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
   });
   items.push({ label: 'Plein écran', action: () => enterFullscreen() }, { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) });
   return items;
+}
+
+/**
+ * UE's "Add Call to Parent Function": on an event a child Blueprint
+ * overrides, place "Parent: Event" right after it.
+ */
+function parentCallItems(store: EditorStore, ids: string[]): MenuItem[] {
+  const node = ids.length === 1 ? store.graph.nodes[ids[0]] : undefined;
+  if (!node || getDefinition(node.def)?.kind !== 'event' || !store.cls.parentClassId) return [];
+  const key = eventKey(node);
+  if (!parentEvent(store.ctx, key)) return [];
+  return [
+    {
+      label: 'Ajouter l’appel au parent',
+      hint: 'Parent: …',
+      action: () => {
+        const res = store.apply('Appel au parent', (_c, g) => addNode(g, 'call.parentEvent', node.x + 320, node.y + 40, { event: key }));
+        if (res.ok) store.selectNodes([res.value.id]);
+      },
+    },
+  ];
 }
 
 /** Long press on an actor in the level. */

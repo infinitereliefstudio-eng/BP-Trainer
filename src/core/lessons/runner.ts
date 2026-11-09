@@ -61,7 +61,7 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
     prints: () => sim.log.filter((l) => l.message !== undefined).map((l) => l.message!),
     variable: (label, name) => {
       const a = label === 'Joueur' ? sim.player : sim.actors.find((x) => x.label === label);
-      const cls = a?.classId ? project.classes.find((c) => c.id === a.classId) : undefined;
+      const cls = a ? sim.classOf(a) : undefined;
       const v = cls?.variables.find((x) => x.name === name);
       return a && v ? a.vars[v.id] : undefined;
     },

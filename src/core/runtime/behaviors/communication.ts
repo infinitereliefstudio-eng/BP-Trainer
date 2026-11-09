@@ -18,7 +18,7 @@ export const communicationBehaviors: Record<string, Behavior> = {
     // A failed cast is normal flow, never an error — even on None.
     exec: (cx) => {
       const a = cx.world.tryActor(cx.in('object'));
-      if (a && a.classId === cx.node.config.class) {
+      if (a && cx.world.isA(a, cx.node.config.class)) {
         cx.out('as', { ref: 'actor', id: a.id });
         return ['then'];
       }
@@ -163,7 +163,15 @@ export const communicationBehaviors: Record<string, Behavior> = {
   'call.function': {
     exec: (cx) => {
       const target = cx.world.actor(cx.in('target'), 'Target');
-      if (target) cx.callFunction(target, String(cx.node.config.graph), cx.params());
+      // "Parent: Fn" calls exactly the parent's version; otherwise an override in the target's class wins.
+      if (target) cx.callFunction(target, String(cx.node.config.graph), cx.params(), !cx.node.config.parent);
+      return ['then'];
+    },
+  },
+
+  'call.parentEvent': {
+    exec: (cx) => {
+      cx.callParentEvent(String(cx.node.config.event), cx.params());
       return ['then'];
     },
   },

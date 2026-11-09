@@ -50,7 +50,7 @@ export function LiveOutliner({ session }: Props) {
 
 function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT }) {
   const sim = session.sim;
-  const cls = actor.classId ? findClass(sim.project, actor.classId) : undefined;
+  const cls = actor.classId ? sim.classOf(actor) : undefined;
   const timers = [...sim.timers.values()].filter((t) => t.actor === actor.id);
   const show = (v: RValue, t: PinType): string => {
     if (Array.isArray(v)) return `[${v.length}] ${v.map((x) => show(x, { ...t, container: undefined })).join(', ')}`;

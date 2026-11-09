@@ -31,6 +31,8 @@ export interface WorldApi {
   isValid(ref: RValue): boolean;
   readonly project: Project;
   classOf(actor: ActorRT): BlueprintClass | undefined;
+  /** Is the actor of this class, or of a Blueprint that inherits from it? */
+  isA(actor: ActorRT, classId: unknown): boolean;
   ownerOf(c: ComponentRT): ActorRT | undefined;
   destroy(actor: ActorRT): void;
   displayName(ref: RValue): string;
@@ -82,7 +84,9 @@ export interface ExecCx extends ValueCx {
    */
   callEvents(target: ActorRT, match: (n: NodeInstance) => boolean, outputs: Record<string, RValue>): number;
   /** Run a function graph of `target` to its end; its outputs become this node's. */
-  callFunction(target: ActorRT, graphId: string, params: Record<string, RValue>): void;
+  callFunction(target: ActorRT, graphId: string, params: Record<string, RValue>, virtual?: boolean): void;
+  /** "Parent: Event": run the parent class's version of an overridden event, on this actor. */
+  callParentEvent(eventKey: string, outputs: Record<string, RValue>): number;
   /**
    * Write through a pass-by-reference input (Increment Int, Clear and
    * Invalidate Timer…): the variable wired into `pin` gets `value`.

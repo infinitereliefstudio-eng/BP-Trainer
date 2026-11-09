@@ -6,6 +6,7 @@ import { edit } from '../src/core/lessons/builder';
 import { complete2, lessonCleanDestroy, lessonPureFunctions } from '../src/core/lessons/library/advanced';
 import { debug3, debug4, lessonBeginPlayOrder, lessonWhoChanges } from '../src/core/lessons/library/confirmed';
 import { lessonControlRoom, refactor1 } from '../src/core/lessons/library/controlRoom';
+import { lessonInheritance } from '../src/core/lessons/library/inheritance';
 import { lessonLift, lessonWaves } from '../src/core/lessons/library/timing';
 import { ORDER_NOTE, runLesson } from '../src/core/lessons/runner';
 import { updateVariable } from '../src/core/operations/classOps';
@@ -118,5 +119,20 @@ describe('V2 lesson traps, step D', () => {
     expect(start(debug3).runtimeErrors[0]).toMatch(/Accessed None/);
     expect(reasons(start(refactor1)).once).toMatch(/à chaque Tick/);
     expect(Object.keys(reasons(start(lessonControlRoom)))).toContain('eco-mode');
+  });
+});
+
+describe('V2 lesson traps, step E', () => {
+  it('L’héritage: a BeginPlay in the child without Parent: BeginPlay loses the parent’s logic', () => {
+    const p = lessonInheritance.setup();
+    lessonInheritance.solve(p);
+    const b = edit(p, 'BP_Clignotante');
+    const up = Object.values(b.graph.nodes).find((n) => n.def === 'call.parentEvent')!;
+    const begin = Object.values(b.graph.nodes).find((n) => n.def === 'event.beginPlay')!.id;
+    const timer = Object.values(b.graph.nodes).find((n) => n.def === 'time.setTimerByEvent')!.id;
+    removeNodes(b.graph, [up.id]);
+    b.link(begin, 'then', timer, 'exec');
+    const r = reasons(runLesson(lessonInheritance, p));
+    expect(r.parent).toMatch(/remplace celui de BP_LampeBase/);
   });
 });

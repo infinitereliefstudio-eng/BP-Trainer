@@ -1,4 +1,5 @@
 /** Details of what is selected in the level: an actor instance or the Player Start. */
+import { inheritedView, isA, rootParent } from '@core/model/inheritance';
 import { findClass } from '@core/model/project';
 import { actorRefValue, removeActor, setActorOverride, updateActor } from '@core/operations/levelOps';
 import type { Value } from '@core/types/values';
@@ -10,7 +11,8 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
   const store = useStore();
   const a = store.project.level.actors.find((x) => x.id === id);
   if (!a) return null;
-  const cls = findClass(store.project, a.classId);
+  const own = findClass(store.project, a.classId);
+  const cls = own && inheritedView(own, store.project);
   const editable = cls?.variables.filter((v) => v.instanceEditable) ?? [];
   const patch = (label: string, fn: () => void) => store.applyProject(label, fn);
 
@@ -48,7 +50,10 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
               const wanted = v.type.subtype ?? 'Actor';
               const choices = store.project.level.actors.filter((o) => {
                 const oc = findClass(store.project, o.classId);
-                return o.id !== a.id && (wanted === 'Actor' || oc?.name === wanted || (wanted === 'Pawn' && oc?.parent === 'Pawn'));
+                const wantedId = store.project.classes.find((c) => c.name === wanted)?.id;
+                // A child Blueprint fits where its parent is expected.
+                const fits = wanted === 'Actor' || (wanted === 'Pawn' && !!oc && rootParent(store.project, oc) === 'Pawn') || (!!wantedId && isA(store.project, o.classId, wantedId));
+                return o.id !== a.id && fits;
               });
               return (
                 <Field key={v.id} label={v.name}>

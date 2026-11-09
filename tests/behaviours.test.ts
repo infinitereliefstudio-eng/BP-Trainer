@@ -60,6 +60,7 @@ function touchedPins(defId: string): { declared: Set<string>; touched: string[] 
     params: () => ({}),
     callEvents: () => 0,
     callFunction: () => undefined,
+    callParentEvent: () => 0,
     writeRef: (p) => {
       touched.push(p);
       return true;

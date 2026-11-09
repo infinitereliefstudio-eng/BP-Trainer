@@ -2,7 +2,6 @@
  * Debug tab: values on the paused node (or the selected one), the debugged
  * actor's variables, and the Execution Trace.
  */
-import { findClass } from '@core/model/project';
 import { nodeTitle } from '@core/nodes/registry';
 import type { Simulation } from '@core/runtime/simulation';
 import { isRef, type RValue } from '@core/runtime/world';
@@ -40,7 +39,8 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
   }
   const sim = session.sim;
   const paused = sim.paused;
-  const instances = [...sim.actors, sim.player].filter((a) => a.classId === store.classId);
+  // A parent's graphs also run on its children's actors.
+  const instances = [...sim.actors, sim.player].filter((a) => sim.isA(a, store.classId));
   const actor = paused
     ? [...sim.actors, sim.player].find((a) => a.id === paused.actorId)
     : (instances.find((a) => a.id === session.selected) ?? instances[0]);
@@ -50,7 +50,7 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
   const watches = (paused ? sim.watch() : watchId && actor ? sim.watchNode(actor.id, watchGraph, watchId) : []).filter(
     (w) => w.type.category !== 'delegate',
   );
-  const cls = actor && findClass(sim.project, actor.classId ?? '');
+  const cls = actor && sim.classOf(actor);
   const watchedNode = watchId ? store.project.classes.flatMap((c) => c.graphs).find((g) => g.id === watchGraph)?.nodes[watchId] : undefined;
 
   return (

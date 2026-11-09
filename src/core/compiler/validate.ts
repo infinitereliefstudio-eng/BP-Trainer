@@ -3,6 +3,7 @@
  * returns messages for the Compiler Results panel. Step 2 will turn a
  * validated class into an executable form; the checks stay here.
  */
+import { inheritedView, lineage, parentOf } from '../model/inheritance';
 import {
   findComponent,
   findDispatcher,
@@ -39,7 +40,10 @@ export type CompileCode =
   | 'targetRequired'
   | 'badLink'
   | 'unreachable'
-  | 'duplicateCustomEvent';
+  | 'duplicateCustomEvent'
+  | 'inheritedName'
+  | 'overrideSignature'
+  | 'noParentEvent';
 
 export interface CompileMessage {
   severity: Severity;
@@ -60,7 +64,9 @@ export interface CompileResult {
 export function compileClass(cls: BlueprintClass, project?: Project): CompileResult {
   const ctx = contextFor(cls, project);
   const messages: CompileMessage[] = [];
-  for (const g of cls.graphs) checkGraph(g, cls, ctx, messages);
+  // Own graphs only, but looked at with everything the class inherits.
+  for (const g of cls.graphs) checkGraph(g, ctx.cls, ctx, messages);
+  checkInheritance(cls, project, messages);
   checkCustomEventNames(cls, messages);
 
   const errors = messages.filter((m) => m.severity === 'error').length;
@@ -87,7 +93,9 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     const title = nodeTitle(n, ctx);
 
     if ((n.def === 'var.get' || n.def === 'var.set') && !findVariable(cls, String(n.config.variable))) {
-      out.push({ severity: 'error', code: 'variableGone', text: `${title} : la variable n'existe plus.`, ...at });
+      const hidden = ctx.project && lineage(ctx.project, cls).flatMap((c) => c.variables).find((v) => v.id === n.config.variable && v.private);
+      if (hidden) out.push({ severity: 'error', code: 'private', text: `${hidden.name} est Private dans la classe parente : un Blueprint enfant ne peut pas l'utiliser.`, ...at });
+      else out.push({ severity: 'error', code: 'variableGone', text: `${title} : la variable n'existe plus.`, ...at });
     }
     if (n.def.startsWith('event.component') && !findComponent(cls, String(n.config.component))) {
       out.push({ severity: 'error', code: 'componentGone', text: `${title} : le composant n'existe plus.`, ...at });
@@ -231,6 +239,26 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
     }
   }
   return undefined;
+}
+
+/** A child Blueprint: no name taken twice, overrides that match, Parent: calls that exist. */
+function checkInheritance(cls: BlueprintClass, project: Project | undefined, out: CompileMessage[]): void {
+  const parent = parentOf(project, cls);
+  if (!parent) return;
+  const base = inheritedView(parent, project);
+  for (const v of cls.variables) {
+    if (base.variables.some((x) => x.name === v.name)) {
+      out.push({ severity: 'error', code: 'inheritedName', text: `La variable ${v.name} existe déjà dans ${parent.name}, la classe parente : renomme-la.` });
+    }
+  }
+  for (const g of cls.graphs) {
+    const inherited = g.kind === 'function' && base.graphs.find((x) => x.kind === 'function' && x.name === g.name);
+    if (!inherited || !g.fn || !inherited.fn) continue;
+    const sig = (f: typeof g.fn) => JSON.stringify([f.inputs.map((p) => p.type), f.outputs.map((p) => p.type), f.pure]);
+    if (sig(g.fn) !== sig(inherited.fn)) {
+      out.push({ severity: 'error', code: 'overrideSignature', text: `${g.name} redéfinit la fonction de ${parent.name} : elle doit avoir les mêmes entrées, sorties et case Pure.`, graphId: g.id });
+    }
+  }
 }
 
 function checkCustomEventNames(cls: BlueprintClass, out: CompileMessage[]): void {

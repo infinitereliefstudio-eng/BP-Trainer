@@ -3,6 +3,7 @@
  * of another Blueprint, Event Dispatchers, callable Custom Events and
  * Blueprint Interfaces.
  */
+import { inheritedView } from '../../model/inheritance';
 import {
   findDispatcher,
   findInterface,
@@ -18,7 +19,8 @@ import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition
 
 export function classById(ctx: NodeContext, id: unknown): BlueprintClass | undefined {
   if (ctx.cls.id === id) return ctx.cls;
-  return ctx.project?.classes.find((c) => c.id === id);
+  const c = ctx.project?.classes.find((x) => x.id === id);
+  return c && inheritedView(c, ctx.project);
 }
 
 const delegateType = (params: { type: PinType }[]): PinType => ({ category: 'delegate', subtype: signatureKey(params) });

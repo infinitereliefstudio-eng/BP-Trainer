@@ -2,6 +2,7 @@
 import type { ComponentChildren } from 'preact';
 import { COMPONENT_LABEL, type Component, type ComponentKind } from '@core/model/project';
 import { addComponent, addDispatcher, addVariable } from '@core/operations/classOps';
+import { ensureConstructionScript } from '@core/operations/constructionOps';
 import { addFunction } from '@core/operations/functionOps';
 import { addLocalVariable } from '@core/operations/localOps';
 import type { Value } from '@core/types/values';
@@ -46,6 +47,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
   const functions = cls.graphs.filter((g) => g.kind === 'function' && !g.iface);
   const openFn = store.graph.kind === 'function' && store.graph.fn ? store.graph : undefined;
   const inEventGraph = store.graph.kind === 'event';
+  const construction = cls.graphs.find((g) => g.kind === 'construction');
   const implemented = store.project.interfaces.filter((i) => cls.interfaces.includes(i.id));
 
   const addFn = () => {
@@ -115,6 +117,16 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           .map((g) => (
             <Row key={g.id} label={g.name} selected={store.graphId === g.id} onClick={() => store.openGraph(g.id)} />
           ))}
+        <Row
+          label="ConstructionScript"
+          sub={construction && Object.keys(construction.nodes).length > 1 ? undefined : 'vide'}
+          selected={store.graph.kind === 'construction'}
+          onClick={() => {
+            // Every Blueprint has one in UE; here it is created the first time it is opened.
+            const g = construction ?? store.apply('Ouvrir le Construction Script', (cl) => ensureConstructionScript(cl));
+            store.openGraph(g.id);
+          }}
+        />
       </Section>
 
       <Section title="Functions" onAdd={addFn}>

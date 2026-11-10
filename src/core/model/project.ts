@@ -39,7 +39,13 @@ export interface NodeInstance {
   wild?: Record<string, string>;
 }
 
-export type GraphKind = 'event' | 'function';
+/**
+ * 'construction' is the Construction Script: one per class, run when an
+ * instance is placed or changed in the editor and when it spawns, before BeginPlay.
+ */
+export type GraphKind = 'event' | 'function' | 'construction';
+
+export const CONSTRUCTION_SCRIPT = 'ConstructionScript';
 
 export interface Graph {
   id: string;
@@ -245,7 +251,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 6;
+export const PROJECT_FORMAT = 7;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

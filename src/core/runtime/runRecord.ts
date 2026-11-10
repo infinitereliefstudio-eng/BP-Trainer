@@ -16,7 +16,9 @@ export type NoteCode =
   | 'dispatcher.noListener'
   | 'iface.notImplemented'
   | 'iface.noTarget'
-  | 'call.noTarget';
+  | 'call.noTarget'
+  | 'timeline.atEnd'
+  | 'timeline.atStart';
 
 export interface NodeRuns {
   count: number;

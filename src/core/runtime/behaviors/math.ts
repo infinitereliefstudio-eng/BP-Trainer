@@ -38,6 +38,17 @@ const ops = (asInt: boolean): Record<string, (a: number, b: number, cx: ValueCx)
   max: (a, b) => Math.max(a, b),
 });
 
+/** Value moved from the In range to the Out range (UE's GetMappedRangeValue). */
+function mapRange(cx: ValueCx, clamped: boolean): number {
+  const inA = cx.num('inA'),
+    inB = cx.num('inB'),
+    outA = cx.num('outA'),
+    outB = cx.num('outB');
+  let k = inB === inA ? (cx.num('value') >= inB ? 1 : 0) : (cx.num('value') - inA) / (inB - inA);
+  if (clamped) k = Math.min(Math.max(k, 0), 1);
+  return outA + (outB - outA) * k;
+}
+
 const families: Record<string, Behavior> = {};
 for (const k of ['Int', 'Float'] as const) {
   const asInt = k === 'Int';
@@ -131,6 +142,58 @@ export const mathBehaviors: Record<string, Behavior> = {
       return { result: Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) };
     },
   },
+  'math.lerp': { pure: (cx) => ({ result: cx.num('a') + (cx.num('b') - cx.num('a')) * cx.num('alpha') }) },
+  'math.lerpVector': {
+    pure: (cx) => {
+      const a = toVec(cx.in('a')),
+        b = toVec(cx.in('b')),
+        k = cx.num('alpha');
+      return { result: { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k } };
+    },
+  },
+  'math.mapRangeClamped': { pure: (cx) => ({ result: mapRange(cx, true) }) },
+  'math.mapRangeUnclamped': { pure: (cx) => ({ result: mapRange(cx, false) }) },
+  // UE's FMath::FInterpTo: a step proportional to the distance left, never past the target.
+  'math.fInterpTo': {
+    pure: (cx) => {
+      const cur = cx.num('current'),
+        target = cx.num('target'),
+        speed = cx.num('speed');
+      if (speed <= 0) return { result: target };
+      const dist = target - cur;
+      if (dist * dist < 1e-8) return { result: target };
+      return { result: cur + dist * Math.min(Math.max(cx.num('delta') * speed, 0), 1) };
+    },
+  },
+  'math.fInterpToConstant': {
+    pure: (cx) => {
+      const cur = cx.num('current'),
+        target = cx.num('target');
+      const dist = target - cur;
+      const step = Math.max(cx.num('delta') * cx.num('speed'), 0);
+      return { result: Math.abs(dist) <= step ? target : cur + Math.sign(dist) * step };
+    },
+  },
+  'math.vInterpTo': {
+    pure: (cx) => {
+      const cur = toVec(cx.in('current')),
+        target = toVec(cx.in('target')),
+        speed = cx.num('speed');
+      if (speed <= 0) return { result: target };
+      const d = { x: target.x - cur.x, y: target.y - cur.y, z: target.z - cur.z };
+      if (d.x * d.x + d.y * d.y + d.z * d.z < 1e-8) return { result: target };
+      const k = Math.min(Math.max(cx.num('delta') * speed, 0), 1);
+      return { result: { x: cur.x + d.x * k, y: cur.y + d.y * k, z: cur.z + d.z * k } };
+    },
+  },
+  'math.normalizeVector': {
+    pure: (cx) => {
+      const a = toVec(cx.in('a'));
+      const len = Math.hypot(a.x, a.y, a.z);
+      return { result: len < 1e-8 ? { x: 0, y: 0, z: 0 } : { x: a.x / len, y: a.y / len, z: a.z / len } };
+    },
+  },
+  'time.getWorldDeltaSeconds': { pure: (cx) => ({ result: cx.world.deltaSeconds }) },
   'math.makeRotator': { pure: (cx) => ({ result: { x: cx.num('roll'), y: cx.num('pitch'), z: cx.num('yaw') } }) },
   'math.breakRotator': {
     pure: (cx) => {

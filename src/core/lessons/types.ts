@@ -18,6 +18,8 @@ export type ScenarioStep =
   | { press: InputKey }
   | { release: InputKey }
   | { checkpoint: string }
+  /** Turn the player to face this yaw, in degrees (0 = +X, 90 = +Y, towards the bottom of the screen). */
+  | { look: number }
   /** Frames per second from here on (60 by default): Delta Seconds changes with it, as on a slower device. */
   | { fps: number };
 
@@ -31,6 +33,11 @@ export interface CheckContext {
   /** A variable of an actor (level label, or "Joueur" for the player), by name. */
   variable(actorLabel: string, name: string): RValue | undefined;
   nodes(className: string): NodeInstance[];
+  /**
+   * The level as the editor shows it before Play: Construction Scripts have
+   * run, no BeginPlay has. Built on first use.
+   */
+  preview(): Simulation;
 }
 
 export interface Check {
@@ -41,6 +48,38 @@ export interface Check {
   at?: string;
   /** true when satisfied, otherwise the reason shown to the learner. */
   test(cx: CheckContext): true | string;
+  /**
+   * The notion the lesson is about (a Branch, no Tick…), checked on the graph.
+   * Shown apart and never blocking: another working solution still passes.
+   */
+  notion?: boolean;
+}
+
+/**
+ * Played after the lesson is passed: the same solution in a situation the
+ * lesson did not ask for (two instances, another actor in the zone, quick
+ * back and forth). Never blocking: "works too when…" or "does not when…".
+ */
+export interface RobustnessCase {
+  id: string;
+  /** The situation, completing "Et si… ?" : « un autre acteur entre dans la zone ». */
+  label: string;
+  /** Changes to the learner's project before playing (more instances…). */
+  mutate?(p: Project): void;
+  scenario: ScenarioStep[];
+  checks: Check[];
+  /** What to change when it fails, shown under the reason. */
+  advice: string;
+}
+
+/** Another way to solve the lesson, opened read-only once it is passed. */
+export interface Alternative {
+  title: string;
+  /** What this way does better, and what it costs. */
+  gains: string;
+  loses: string;
+  /** Builds it on the lesson's setup project. It must pass the lesson's checks (tested). */
+  build(p: Project): void;
 }
 
 /**
@@ -88,6 +127,8 @@ export interface Lesson {
   solve(p: Project): void;
   /** For "predict" exercises. */
   predict?: Prediction;
+  robustness?: RobustnessCase[];
+  alternatives?: Alternative[];
 }
 
 /** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */

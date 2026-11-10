@@ -1,6 +1,6 @@
 /** Module 2 — Portes et objets. */
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, usesNode } from '../checks';
+import { noRuntimeErrors, usesNode, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 import { doorBlueprint, keyBlueprint, playerBlueprint, solveKey } from './props';
 
@@ -103,7 +103,7 @@ export const lesson5: Lesson = {
   ],
   checks: [
     doorOpen('open', true, 'La porte a tourné de 90° quand le joueur est arrivé', 'ouverte'),
-    usesNode('once', 'BP_Porte', ['flow.doOnce'], 'Le graphe utilise un DoOnce', 'Fais passer l’ouverture par un DoOnce.'),
+    notion(usesNode('once', 'BP_Porte', ['flow.doOnce'], 'Le graphe utilise un DoOnce', 'Fais passer l’ouverture par un DoOnce.')),
     {
       id: 'pass',
       label: 'Le joueur traverse la porte',
@@ -190,7 +190,7 @@ export const lesson6: Lesson = {
       label: 'Le joueur possède la clé (bHasKey = true)',
       test: (cx) => (cx.variable('Joueur', 'bHasKey') === true ? true : 'bHasKey du joueur vaut toujours false.'),
     },
-    usesNode('cast', 'BP_Cle', ['cast.to'], 'Le graphe utilise Cast To BP_Joueur', 'Utilise Cast To BP_Joueur pour vérifier qui touche la clé.'),
+    notion(usesNode('cast', 'BP_Cle', ['cast.to'], 'Le graphe utilise Cast To BP_Joueur', 'Utilise Cast To BP_Joueur pour vérifier qui touche la clé.')),
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -267,7 +267,7 @@ export const lesson7: Lesson = {
         cx.prints().some((t) => /cl[eé]/i.test(t)) ? true : 'Aucun message contenant « clé » quand le joueur arrive sans la clé.',
     },
     doorOpen('open', true, 'Avec la clé, la porte s’ouvre'),
-    usesNode('branch', 'BP_Porte', ['flow.branch'], 'Le graphe utilise un Branch', 'Choisis entre ouvrir et prévenir avec un Branch.'),
+    notion(usesNode('branch', 'BP_Porte', ['flow.branch'], 'Le graphe utilise un Branch', 'Choisis entre ouvrir et prévenir avec un Branch.')),
     noRuntimeErrors(),
   ],
   solve(p) {

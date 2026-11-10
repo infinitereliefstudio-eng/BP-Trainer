@@ -4,7 +4,7 @@ import { getLesson } from '@core/lessons';
 import { startAutosave } from '@storage/persistence';
 import { App } from './App';
 import { Home } from './Home';
-import { loadProgress, openWorkspace, saveProgress, type Progress, type Workspace, type WorkspaceRef } from './workspace';
+import { isScratch, loadProgress, openWorkspace, saveProgress, type Progress, type Workspace, type WorkspaceRef } from './workspace';
 
 export function Root() {
   const [progress, setProgress] = useState<Progress | null>(null);
@@ -18,6 +18,7 @@ export function Root() {
     if (!ws) return;
     // Automated UI tests (?e2e) drive the editor through its store.
     if (location.search.includes('e2e')) (window as unknown as { bpStore: unknown }).bpStore = ws.store;
+    if (isScratch(ws.ref)) return;
     return startAutosave(ws.store, ws.key);
   }, [ws]);
 
@@ -29,17 +30,19 @@ export function Root() {
   const open = async (ref: WorkspaceRef) => {
     const next = await openWorkspace(ref);
     setWs(next);
-    if (progress) updateProgress({ ...progress, last: ref });
+    if (progress && !isScratch(ref)) updateProgress({ ...progress, last: ref });
   };
 
   if (!progress) return <div class="boot">Chargement…</div>;
   if (!ws) return <Home progress={progress} onOpen={open} />;
 
   const lessonId = ws.ref.kind === 'lesson' ? ws.ref.lessonId : undefined;
+  const altOf = ws.ref.kind === 'alternative' ? getLesson(ws.ref.lessonId) : undefined;
   return (
     <App
       key={ws.key}
       workspace={ws}
+      alternative={altOf && ws.ref.kind === 'alternative' ? { lesson: altOf, title: altOf.alternatives?.[ws.ref.index]?.title ?? '' } : undefined}
       lesson={lessonId ? getLesson(lessonId) : undefined}
       lessonDone={!!lessonId && progress.done.includes(lessonId)}
       onHome={() => setWs(null)}

@@ -4,7 +4,7 @@ import { addDispatcher, addDispatcherParam, implementInterface } from '../../ope
 import { addInterface, addInterfaceFunction } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
-import { noRuntimeErrors, notUsing, usesNode, visible } from '../checks';
+import { noRuntimeErrors, notUsing, usesNode, visible, notion } from '../checks';
 import type { Lesson } from '../types';
 import { doorBlueprint, generatorBlueprint, lampBlueprint, playerBlueprint, referenceVariable } from './props';
 
@@ -168,9 +168,9 @@ export const lesson10: Lesson = {
       },
     },
     visible('stop', 'BP_Lampe3', 'Lumiere', false, 'À l’arrêt, elles s’éteignent', 'stop'),
-    usesNode('call', 'BP_Generateur', ['dispatcher.call'], 'Le générateur utilise Call', 'Le générateur doit annoncer le changement avec Call.'),
-    usesNode('bind', 'BP_Lampe', ['dispatcher.bind'], 'La lampe utilise Bind Event', 'Chaque lampe doit s’abonner avec Bind Event.'),
-    notUsing('tick', 'BP_Lampe', ['event.tick'], 'Pas d’Event Tick dans BP_Lampe', 'BP_Lampe utilise encore Event Tick : le but est de s’en passer.'),
+    notion(usesNode('call', 'BP_Generateur', ['dispatcher.call'], 'Le générateur utilise Call', 'Le générateur doit annoncer le changement avec Call.')),
+    notion(usesNode('bind', 'BP_Lampe', ['dispatcher.bind'], 'La lampe utilise Bind Event', 'Chaque lampe doit s’abonner avec Bind Event.')),
+    notion(notUsing('tick', 'BP_Lampe', ['event.tick'], 'Pas d’Event Tick dans BP_Lampe', 'BP_Lampe utilise encore Event Tick : le but est de s’en passer.')),
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -305,8 +305,8 @@ export const lesson11: Lesson = {
         return Math.abs(Math.abs(yaw) - 90) < 1 ? true : 'La porte n’a pas tourné de 90°.';
       },
     },
-    usesNode('msg', 'BP_Joueur', ['iface.message'], 'Le joueur envoie un message d’interface', 'BP_Joueur doit envoyer Interagir (Message).'),
-    notUsing('nocast', 'BP_Joueur', ['cast.to'], 'Aucun Cast dans BP_Joueur', 'BP_Joueur utilise un Cast : avec une interface, il n’en a pas besoin.'),
+    notion(usesNode('msg', 'BP_Joueur', ['iface.message'], 'Le joueur envoie un message d’interface', 'BP_Joueur doit envoyer Interagir (Message).')),
+    notion(notUsing('nocast', 'BP_Joueur', ['cast.to'], 'Aucun Cast dans BP_Joueur', 'BP_Joueur utilise un Cast : avec une interface, il n’en a pas besoin.')),
     noRuntimeErrors(),
   ],
   solve(p) {

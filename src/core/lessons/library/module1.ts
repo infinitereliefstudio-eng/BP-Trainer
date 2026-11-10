@@ -1,7 +1,7 @@
 /** Module 1 — Premiers pas: messages, lights, overlaps, input. */
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, printed, usesNode, visible } from '../checks';
+import { noRuntimeErrors, printed, usesNode, visible, notion } from '../checks';
 import type { Lesson } from '../types';
 
 const MODULE = 'Premiers pas';
@@ -247,7 +247,7 @@ export const lesson4: Lesson = {
     visible('p1', 'BP_Lampe', 'Lumiere', true, '1er appui : la lampe s’allume', 'un'),
     visible('p2', 'BP_Lampe', 'Lumiere', false, '2e appui : elle s’éteint', 'deux'),
     visible('p3', 'BP_Lampe', 'Lumiere', true, '3e appui : elle se rallume', 'trois'),
-    usesNode('branch', 'BP_Lampe', ['flow.branch'], 'Le graphe utilise un Branch', 'Utilise un Branch pour choisir entre allumer et éteindre.'),
+    notion(usesNode('branch', 'BP_Lampe', ['flow.branch'], 'Le graphe utilise un Branch', 'Utilise un Branch pour choisir entre allumer et éteindre.')),
     noRuntimeErrors(),
   ],
   solve(p) {

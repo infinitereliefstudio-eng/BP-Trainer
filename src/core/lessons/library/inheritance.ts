@@ -7,7 +7,7 @@ import { addFunction } from '../../operations/functionOps';
 import { setParentClass } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, printedNumbers, usesNode } from '../checks';
+import { noRuntimeErrors, printedNumbers, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 
 function familyProject() {
@@ -127,7 +127,7 @@ export const lessonInheritance: Lesson = {
       label: 'Le tableau compte 2 BP_LampeBase',
       test: (cx) => (printedNumbers(cx).includes('2') ? true : `Le tableau affiche ${printedNumbers(cx).join(', ') || 'rien'} au lieu de 2.`),
     },
-    usesNode('call', 'BP_Clignotante', ['call.parentEvent'], 'BP_Clignotante appelle Parent: BeginPlay', 'Place Parent: BeginPlay dans BP_Clignotante.'),
+    notion(usesNode('call', 'BP_Clignotante', ['call.parentEvent'], 'BP_Clignotante appelle Parent: BeginPlay', 'Place Parent: BeginPlay dans BP_Clignotante.')),
     noRuntimeErrors(),
   ],
   solve(p) {

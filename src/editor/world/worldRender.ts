@@ -4,6 +4,7 @@
  */
 import { componentShape } from '@core/runtime/physics';
 import { componentTransform, PLAYER_RADIUS, type ActorRT } from '@core/runtime/world';
+import type { DebugLine } from '@core/runtime/trace';
 import type { Camera } from '../camera';
 
 export const WORLD = {
@@ -17,6 +18,9 @@ export const WORLD = {
   selected: '#2c7be5',
   player: '#3fa7ff',
   start: '#3fbf5a',
+  traceMiss: '#ff3b30',
+  traceHit: '#30d158',
+  reference: 'rgba(125, 211, 252, 0.8)',
 };
 
 export interface WorldScene {
@@ -28,6 +32,10 @@ export interface WorldScene {
   height: number;
   playing: boolean;
   selectedId?: string;
+  /** Debug lines of Line Traces (Play only). */
+  debugLines?: DebugLine[];
+  /** Editor only: an actor's Instance Editable variable points at another actor. */
+  references?: { from: string; to: string; label: string }[];
 }
 
 const DEG = Math.PI / 180;
@@ -66,8 +74,80 @@ export function renderWorld(c: CanvasRenderingContext2D, s: WorldScene, dpr: num
   for (const a of shown) drawActor(c, a, s);
   if (player) drawActor(c, player, s);
 
+  if (!s.playing && s.references?.length) drawReferences(c, s);
   if (!s.playing && s.playerStart) drawPlayerStart(c, s.playerStart, cam.zoom, s.selectedId === 'playerStart');
   if (player) drawPlayer(c, player);
+  if (s.playing && s.debugLines?.length) drawDebugLines(c, s.debugLines, cam.zoom);
+}
+
+/** A trace as UE draws it: red up to the hit, green beyond, a square on the hit point. */
+function drawDebugLines(c: CanvasRenderingContext2D, lines: DebugLine[], z: number): void {
+  c.save();
+  c.lineWidth = 2.5 / z;
+  c.setLineDash([]);
+  const seg = (x1: number, y1: number, x2: number, y2: number, color: string) => {
+    c.strokeStyle = color;
+    c.beginPath();
+    c.moveTo(x1, y1);
+    c.lineTo(x2, y2);
+    c.stroke();
+  };
+  for (const l of lines) {
+    if (!l.hit) {
+      seg(l.x1, l.y1, l.x2, l.y2, WORLD.traceMiss);
+      continue;
+    }
+    seg(l.x1, l.y1, l.hit.x, l.hit.y, WORLD.traceMiss);
+    seg(l.hit.x, l.hit.y, l.x2, l.y2, WORLD.traceHit);
+    const r = 7 / z;
+    c.fillStyle = WORLD.traceMiss;
+    c.fillRect(l.hit.x - r, l.hit.y - r, r * 2, r * 2);
+  }
+  c.restore();
+}
+
+/** Arrows from an actor to the actors its reference variables point at; selecting either end names the variable. */
+function drawReferences(c: CanvasRenderingContext2D, s: WorldScene): void {
+  const z = s.camera.zoom;
+  const byId = new Map(s.actors.map((a) => [a.id, a]));
+  c.save();
+  c.strokeStyle = WORLD.reference;
+  c.fillStyle = WORLD.reference;
+  c.lineWidth = 1.5 / z;
+  c.setLineDash([8 / z, 6 / z]);
+  c.font = `${11 / z}px system-ui, sans-serif`;
+  c.textAlign = 'center';
+  c.textBaseline = 'bottom';
+  for (const r of s.references ?? []) {
+    const a = byId.get(r.from),
+      b = byId.get(r.to);
+    if (!a || !b || a === b) continue;
+    const d = Math.hypot(b.x - a.x, b.y - a.y);
+    if (d < 1) continue;
+    const ux = (b.x - a.x) / d,
+      uy = (b.y - a.y) / d;
+    const gap = Math.min(40, d / 3);
+    const x1 = a.x + ux * gap,
+      y1 = a.y + uy * gap,
+      x2 = b.x - ux * gap,
+      y2 = b.y - uy * gap;
+    c.beginPath();
+    c.moveTo(x1, y1);
+    c.lineTo(x2, y2);
+    c.stroke();
+    const h = 11 / z;
+    c.setLineDash([]);
+    c.beginPath();
+    c.moveTo(x2, y2);
+    c.lineTo(x2 - ux * h - uy * h * 0.5, y2 - uy * h + ux * h * 0.5);
+    c.lineTo(x2 - ux * h + uy * h * 0.5, y2 - uy * h - ux * h * 0.5);
+    c.closePath();
+    c.fill();
+    c.setLineDash([8 / z, 6 / z]);
+    // The variable's name shows for the selected actor only: arrows often converge on one target.
+    if (s.selectedId === r.from || s.selectedId === r.to) c.fillText(r.label, x1 + (x2 - x1) * 0.4, y1 + (y2 - y1) * 0.4 - 4 / z);
+  }
+  c.restore();
 }
 
 function drawGrid(c: CanvasRenderingContext2D, s: WorldScene): void {

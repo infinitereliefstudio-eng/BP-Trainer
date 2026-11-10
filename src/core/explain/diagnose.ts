@@ -106,6 +106,10 @@ function noteText(code: NoteCode, n: number, detail: string | undefined, s: Site
       return `${times(n)}, Target valait None : le message n’est allé nulle part, sans erreur.`.replace(/^./, (c) => c.toUpperCase());
     case 'call.noTarget':
       return `${times(n)}, ${detail ?? 'l’acteur visé'} n’avait pas de Custom Event ${titleOf(s)} : l’appel n’a rien fait.`.replace(/^./, (c) => c.toUpperCase());
+    case 'timeline.atEnd':
+      return `${times(n)}, Play est arrivé alors que le Timeline était déjà à la fin : la valeur ne bouge plus, Update et Finished ressortent une fois avec la valeur finale. Pour rejouer depuis le début, entre par Play from Start ; pour revenir en arrière, par Reverse.`.replace(/^./, (c) => c.toUpperCase());
+    case 'timeline.atStart':
+      return `${times(n)}, Reverse est arrivé alors que le Timeline était déjà au début : la valeur ne bouge plus. Pour rejouer à l’envers depuis la fin, entre par Reverse from End.`.replace(/^./, (c) => c.toUpperCase());
   }
 }
 

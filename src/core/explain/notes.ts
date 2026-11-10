@@ -32,6 +32,12 @@ const TRAPS: Record<string, string> = {
   'set.toArray': 'L’ordre des éléments d’un Set n’est pas garanti : ne compte pas sur la position d’un élément dans le tableau obtenu.',
   'struct.setMembers': 'Relié à Get (a copy) d’un tableau, il ne change que la copie : le tableau reste intact, sans erreur. Utilise Get (a ref), ou Set Array Elem avec la structure modifiée.',
   'text.equal': 'Contrairement au == des String, il tient compte des majuscules. Pour comparer des identifiants, préfère des Name.',
+  'timeline.node': 'Play reprend là où le Timeline s’est arrêté : arrivé à la fin, Play ne rejoue rien (la valeur reste la dernière). Pour recommencer, entre par Play from Start ; pour revenir, par Reverse.',
+  'math.lerp': 'Lerp ne bouge pas tout seul : c’est Alpha qui doit aller de 0 à 1. Sur Tick avec un Alpha fixe (Lerp de la valeur actuelle vers la cible), on s’approche sans jamais arriver, et la vitesse dépend du nombre d’images par seconde : utilise un Timeline ou FInterp To.',
+  'math.lerpVector': 'Lerp ne bouge pas tout seul : c’est Alpha qui doit aller de 0 à 1. Sur Tick avec un Alpha fixe, on s’approche de B sans jamais y arriver : utilise un Timeline ou VInterp To.',
+  'trace.lineByChannel': 'End est une position dans le monde, pas une direction : c’est Start + direction × distance. Avec la direction seule, le rayon part vers l’origine du niveau. Et si Ignore Self est décoché, un rayon qui part du centre de l’acteur touche d’abord l’acteur lui-même, à la distance 0.',
+  'event.hit': 'Il n’y a pas d’événement de fin de contact : Event Hit se redéclenche à chaque image tant que les deux acteurs se bloquent. Ce qui ne doit arriver qu’une fois par contact passe par un Do Once, rouvert quand le contact a cessé (Retriggerable Delay › Reset).',
+  'cs.entry': 'Il ne tourne pas pendant la partie : changer une variable en jeu ne le relance pas. Et quand il s’exécute, aucun acteur n’a encore fait son BeginPlay : ne compte pas sur les variables que d’autres règlent au BeginPlay.',
   'iface.message': 'Si la cible n’implémente pas l’interface, rien ne se passe et les sorties gardent leur valeur par défaut (0, vide, None) : aucune erreur ne le signale.',
 };
 
@@ -44,6 +50,10 @@ const IN_UE: Record<string, string> = {
   'event.inputKey': 'Dans un projet UE5, on passe en général par Enhanced Input (Input Actions). Ces événements de touche restent utiles pour apprendre et prototyper.',
   'actor.getPlayerPawn': 'Ici il n’y a qu’un joueur, le pion à l’index 0.',
   'actor.setLocation': 'Le niveau est vu de dessus : Z est ignoré. Le déplacement se fait sans Sweep : l’acteur peut se poser dans un mur.',
+  'timeline.node': 'Ici une piste est faite de segments droits entre ses points clés. Dans UE, on double-clique le nœud pour ouvrir l’éditeur de courbes, où chaque point peut aussi être arrondi (Auto) ; un Timeline peut porter des pistes Vector, Color et Event.',
+  'trace.lineByChannel': 'Ici le rayon est tracé dans le plan du sol. Un Static Mesh qui bloque arrête les deux canaux ; une Box Collision (zone de déclenchement) n’en arrête aucun ; la capsule du joueur ignore Visibility et bloque Camera, comme le preset Pawn. Dans UE, cela se règle composant par composant dans Collision Presets.',
+  'event.hit': 'Ici, seul le joueur se déplace en balayant le décor : Event Hit vient donc toujours d’un contact avec lui. Dans UE, un acteur déplacé avec Sweep coché, ou simulé par la physique (Simulation Generates Hit Events), en reçoit aussi.',
+  'cs.entry': 'Dans UE, le Construction Script sert aussi à créer des composants (Add Static Mesh Component…). Ici il règle les composants existants.',
   'actor.getLocation': 'Le niveau est vu de dessus : Z vaut toujours 0.',
 };
 

@@ -14,6 +14,7 @@ import {
 import { removeNodes, setNodeConfig, setPinDefault } from '@core/operations/graphOps';
 import { renameCustomEvent } from '@core/operations/projectOps';
 import { inUeFor, trapFor } from '@core/explain/notes';
+import { readTimeline, TIMELINE_NODE } from '@core/nodes/library/timeline';
 import type { Simulation } from '@core/runtime/simulation';
 import { hasInlineValue } from '@editor/layout';
 import { useStore } from '../hooks';
@@ -44,7 +45,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   const store = useStore();
   const f = store.focus;
   let body: ComponentChildren;
-  if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} />;
+  if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} openOverlay={openOverlay} />;
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
@@ -69,7 +70,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
 
 // -------------------------------------------------------------------- nodes
 
-function NodeDetails({ run, onFocusNode }: Pick<DetailsProps, 'run' | 'onFocusNode'>) {
+function NodeDetails({ run, onFocusNode, openOverlay }: Pick<DetailsProps, 'run' | 'onFocusNode' | 'openOverlay'>) {
   const store = useStore();
   const ids = [...store.selection];
   if (ids.length > 1) {
@@ -118,6 +119,7 @@ function NodeDetails({ run, onFocusNode }: Pick<DetailsProps, 'run' | 'onFocusNo
           </button>
         )}
       </Group>
+      {node.def === TIMELINE_NODE && <TimelineSummary nodeId={node.id} openOverlay={openOverlay} />}
       {node.def !== 'util.comment' && node.def !== 'util.reroute' && (
         <NodeDiagnosis run={run} graphId={store.graph.id} nodeId={node.id} onFocusNode={onFocusNode} />
       )}
@@ -303,6 +305,31 @@ function SetMembersFields({ nodeId }: { nodeId: string }) {
         </Field>
       ))}
       <p class="muted small">Seuls les membres cochés ont une pin et changent ; les autres gardent leur valeur.</p>
+    </Group>
+  );
+}
+
+/** A Timeline node: what it holds, and the way into its track editor. */
+function TimelineSummary({ nodeId, openOverlay }: { nodeId: string; openOverlay: OpenOverlay }) {
+  const store = useStore();
+  const node = store.graph.nodes[nodeId];
+  if (!node) return null;
+  const data = readTimeline(node);
+  return (
+    <Group title="Timeline">
+      <Field label="Length">
+        <span>{String(data.length).replace('.', ',')} s</span>
+      </Field>
+      <Field label="Pistes">
+        <span>{data.tracks.map((t) => `${t.name} (${t.keys.length} points)`).join(', ') || 'aucune'}</span>
+      </Field>
+      <Field label="Options">
+        <span>{[data.loop && 'Loop', data.autoPlay && 'Auto Play'].filter(Boolean).join(', ') || 'aucune'}</span>
+      </Field>
+      <button class="btn primary" onClick={() => openOverlay({ kind: 'timeline', nodeId })}>
+        Éditer la piste
+      </button>
+      <p class="hint">Double toucher le nœud ouvre aussi l’éditeur, comme le double-clic dans UE.</p>
     </Group>
   );
 }

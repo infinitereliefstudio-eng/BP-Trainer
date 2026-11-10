@@ -204,6 +204,7 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
         }),
     });
   }
+  items.push({ label: 'Conseils de construction', action: () => openOverlay({ kind: 'advice' }) });
   const fixed = playOrder() === 'level';
   items.push({
     label: fixed ? 'Ordre des BeginPlay : fixe' : 'Ordre des BeginPlay : mélangé',

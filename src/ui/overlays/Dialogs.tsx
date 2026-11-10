@@ -111,7 +111,7 @@ export function ConfirmDialog(props: { title: string; text: string; confirmLabel
 
 export function AboutDialog({ onClose }: { onClose: () => void }) {
   return (
-    <Dialog title="BP Trainer — étape 3" onClose={onClose}>
+    <Dialog title="BP Trainer — aide et gestes" onClose={onClose}>
       <p>Créer des Blueprints, les faire communiquer, les lancer avec Play et les déboguer, au doigt.</p>
       <ul class="about-list">
         <li>Appui long sur le vide : palette des nœuds.</li>
@@ -120,6 +120,10 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
         <li>Appui long sur un nœud, une pin ou un fil : options.</li>
         <li>Deux doigts : zoom et déplacement.</li>
         <li>Appui long sur un nœud › Ajouter un breakpoint : Play s’arrête juste avant lui.</li>
+        <li>Double toucher un nœud : ses Details. Sur un Timeline : son éditeur de piste.</li>
+        <li>My Blueprint › Graphs › ConstructionScript : le graphe exécuté dans l’éditeur.</li>
+        <li>Pendant Play : le joueur regarde dans la direction du joystick ; un Line Trace avec Draw Debug Type se dessine dans le niveau.</li>
+        <li>Menu ⋮ › Conseils de construction : des pistes sur la façon dont les graphes sont bâtis.</li>
       </ul>
       <div class="dialog-actions">
         <button class="btn primary" onClick={onClose}>

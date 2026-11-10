@@ -43,6 +43,15 @@ export interface LatentAction {
   outPin: string;
 }
 
+/** Playback of one Timeline node on one actor. */
+export interface TimelineRT {
+  graphId: string;
+  /** Position in seconds, from 0 to the timeline's length. */
+  pos: number;
+  playing: boolean;
+  reverse: boolean;
+}
+
 export interface ActorRT {
   id: string;
   /** Level label, e.g. "BP_Lampe2". */
@@ -62,6 +71,8 @@ export interface ActorRT {
   /** Memory of stateful nodes (DoOnce, FlipFlop, Gate, loops…). */
   nodeState: Record<string, unknown>;
   latent: Record<string, LatentAction>;
+  /** Timeline node id → its playback state (created on first use). */
+  timelines: Record<string, TimelineRT>;
   /** Other actors currently overlapping, and component-level pairs. */
   overlaps: Set<string>;
   compOverlaps: Set<string>;

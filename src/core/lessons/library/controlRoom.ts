@@ -9,7 +9,7 @@ import { removeNodes } from '../../operations/graphOps';
 import { addInterface, addInterfaceFunction } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, PRESS_E, usesNode } from '../checks';
+import { noRuntimeErrors, PRESS_E, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 import { playerInteracts } from './module3';
 import { lampBlueprint, playerBlueprint } from './props';
@@ -104,9 +104,9 @@ export const lessonControlRoom: Lesson = {
     { id: 'eco-lamps', label: 'En Eco, les trois lampes éclairent à 1500', at: 'eco', test: (cx) => lampsAre(cx, true, 1500) },
     { id: 'full', label: '2e appui : Plein, les lampes à 5000', at: 'plein', test: (cx) => (modeIs(cx, 'Plein') === true ? lampsAre(cx, true, 5000) : modeIs(cx, 'Plein')) },
     { id: 'off', label: '3e appui : Arret, les lampes éteintes', at: 'arret', test: (cx) => (modeIs(cx, 'Arret') === true ? lampsAre(cx, false) : modeIs(cx, 'Arret')) },
-    usesNode('iface', 'BP_Console', ['event.interface'], 'La console répond à Interagir', 'La console doit réagir à Event Interagir de BPI_Interactif.'),
-    usesNode('call', 'BP_Console', ['dispatcher.call'], 'La console prévient avec OnModeChange', 'La console doit annoncer le changement avec Call OnModeChange.'),
-    usesNode('bind', 'BP_Lampe', ['dispatcher.bind'], 'Les lampes s’abonnent', 'BP_Lampe doit s’abonner avec Bind Event to OnModeChange.'),
+    notion(usesNode('iface', 'BP_Console', ['event.interface'], 'La console répond à Interagir', 'La console doit réagir à Event Interagir de BPI_Interactif.')),
+    notion(usesNode('call', 'BP_Console', ['dispatcher.call'], 'La console prévient avec OnModeChange', 'La console doit annoncer le changement avec Call OnModeChange.')),
+    notion(usesNode('bind', 'BP_Lampe', ['dispatcher.bind'], 'Les lampes s’abonnent', 'BP_Lampe doit s’abonner avec Bind Event to OnModeChange.')),
     noRuntimeErrors(),
   ],
   solve(p) {

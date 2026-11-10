@@ -69,6 +69,8 @@ function touchedPins(defId: string): { declared: Set<string>; touched: string[] 
       return true;
     },
     setLocal: () => undefined,
+    timeline: () => ({ graphId: 'g', pos: 0, playing: false, reverse: false }),
+    callConstruction: () => undefined,
   };
   const behavior = getBehavior(defId)!;
   if (behavior.exec) touched.push(...behavior.exec(cx));

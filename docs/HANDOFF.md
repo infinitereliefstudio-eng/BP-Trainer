@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-09, étape B de la V3 livrée (en attente de validation). L'étape A est validée.
+Dernière mise à jour : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -132,10 +132,12 @@ Tristan a demandé un plan V3 (« prépare moi un plan pour la v3 »), puis l'a 
 | Étape | État |
 |---|---|
 | A — Fonctions | Livrée le 2026-11-09, validée (« tu peux passer à la suite ») |
-| B — Données | **Livrée le 2026-11-09, en attente de validation** |
-| C — Mouvement | À faire |
-| D — Interaction | À faire |
-| E — Qualité | À faire |
+| B — Données | Livrée le 2026-11-09 (pas de retour explicite ; Tristan a enchaîné le 2026-11-10 avec « carte blanche ») |
+| C — Mouvement | **Livrée le 2026-11-10, en attente de validation** |
+| D — Interaction | **Livrée le 2026-11-10, en attente de validation** |
+| E — Qualité | **Livrée le 2026-11-10, en attente de validation** |
+
+Le 2026-11-10, Tristan a écrit : « Regarde où on en était, analyse l'existant et améliore l'app […] Tu as carte blanche », avec pour but une appli complète, fidèle à UE, un vrai parcours de difficulté croissante, pratique sur téléphone. Les étapes C, D et E ont donc été faites à la suite, sans porte de validation entre elles : c'est une exception demandée par lui, la règle « une étape à la fois » reste la règle par défaut pour la suite.
 
 Étape A, choix d'implémentation :
 - Variables locales : `FunctionSignature.locals` (`LocalVariable` : id, nom, type, valeur par défaut), champ optionnel, pas de changement de format. Nœuds `var.getLocal` / `var.setLocal` (réservés aux fonctions, `allowedIn`), trouvés par `findLocal(cls, id)` dans les graphes de la classe. Opérations dans `operations/localOps.ts` ; le nom ne peut pas reprendre une autre locale, un paramètre de la fonction, une variable ou un composant du Blueprint.
@@ -155,6 +157,35 @@ Tristan a demandé un plan V3 (« prépare moi un plan pour la v3 »), puis l'a 
 - Interface : sélecteur de type avec le conteneur (Single, Array, Set, Map) et, pour une Map, le type des valeurs ; éditeur des valeurs par défaut des tableaux, Sets, Maps (paires) et structures (un champ par membre) ; Content Browser › + Structure, `StructDetails.tsx` ; Details de Set Members (membres à changer). Pins Set et Map dessinées en accolades. Notes Piège : Find (Map), To Array (Set), Set Members, Equal (Text) ; Dans UE : Format Text.
 - Leçons : « Les codes des portes » (Intermédiaire, après L'inventaire : Find sans tester Return Value ouvre la Cave), « La fiche de l'objet » (Confirmé : ajouter le membre Charge, Set Members in ; piège : un Make qui ne relie que Charge vide le Nom), « Débogue D5 — Le chargeur qui ne charge pas » (Set Members sur Array Element), « Les badges » (Confirmé : passer Badges d'Array à Set of Name ; le second badge « rouge » ne compte plus). Le plan nommait la première « Le trousseau » ; elle porte sur une Map de codes. Plus de « Le trousseau » distinct. Tests : `tests/dataV3.test.ts`, suite de `tests/lessonVariantsV3.test.ts` ; smoke : captures 31 à 37. 43 leçons et exercices.
 
+Étape C, choix d'implémentation :
+- Timeline : le nœud `timeline.node` porte tout le timeline dans ses réglages (`config` : nom, durée, Loop, Auto Play, pistes Float avec leurs points clés), lu et écrit par `nodes/library/timeline.ts` (`readTimeline`, `timelineConfig`). Dupliquer ou supprimer le nœud copie ou supprime le timeline, comme dans UE ; une copie reçoit un nom libre et garde les identifiants de ses pistes (ses fils restent valides). Pins : Play, Play from Start, Stop, Reverse, Reverse from End, Set New Time ; Update, Finished, Direction, une sortie Float par piste. Interdit dans une fonction et dans le Construction Script.
+- Exécution : un état par nœud et par acteur (`ActorRT.timelines`), avancé une fois par image après les actions latentes (`Interpreter.tickTimelines`, `runtime/timelines.ts`), calqué sur `FTimeline::TickTimeline` : Update à chaque image, Finished en bout de course dans les deux sens. Play depuis la fin ne déplace rien mais ressort une fois Update et Finished (comme UE) ; la note `timeline.atEnd` l'explique dans « Pourquoi ce nœud ne s'est pas exécuté ? ». Entre deux points clés la valeur varie en ligne droite (écart noté dans « Dans UE » : pas de point arrondi, pas de piste Vector, Color ou Event).
+- Éditeur de piste (`ui/overlays/TimelineEditor.tsx`) : double toucher le nœud, ou Details › « Éditer la piste ». Toucher la courbe ajoute un point clé, un doigt le déplace (l'échelle reste figée pendant le geste), champs Time et Value pour la précision ; pistes ajoutées, renommées, supprimées. Opérations dans `operations/timelineOps.ts`.
+- Interpolation : Lerp, Lerp (Vector), Map Range Clamped / Unclamped, FInterp To, FInterp To Constant, VInterp To, Normalize, Get World Delta Seconds (`WorldApi.deltaSeconds`).
+- Construction Script : un graphe de type `construction` par classe (`GraphKind`), créé à sa première ouverture (`operations/constructionOps.ts`), avec le nœud d'entrée `cs.entry`. Il s'exécute dans le constructeur de `Simulation`, avant tout BeginPlay : comme l'aperçu du niveau dans l'éditeur est une `Simulation` non démarrée, le niveau montre son résultat sans Play et le relance à chaque changement du modèle. Spawn Actor l'exécute après les valeurs Expose on Spawn et avant BeginPlay. Avec un parent : script du parent, puis de l'enfant. Il ne tourne plus pendant la partie. `CheckContext.preview()` donne aux leçons le niveau tel que l'éditeur le montre.
+- Flèches de références : dans le niveau (hors Play), une flèche relie un acteur à ceux que ses variables Instance Editable désignent ; le nom de la variable s'affiche pour l'acteur sélectionné.
+- Format 7 : rien à convertir, le numéro empêche seulement une version plus ancienne d'ouvrir des nœuds qu'elle ne connaît pas.
+- Leçons : « La porte qui glisse » (Intermédiaire : Play / Reverse ; pièges testés : Play à la sortie, Play from Start à l'entrée), « Complète C3 — Le projecteur » (Timeline à trous), « La rangée de lampes » (Confirmé : Construction Script ; fait au BeginPlay, c'est bon en jeu mais pas dans l'éditeur), « Prédis P5 — Avant ou après ? » (ordre Construction, BeginPlay, Tick, Finished ; ajoutée, hors plan).
+
+Étape D, choix d'implémentation :
+- Line Trace By Channel (`nodes/library/trace.ts`, `runtime/trace.ts`, `raycast` dans `runtime/physics.ts`) : rayon dans le plan, Out Hit éclaté (Hit Actor, Hit Component, Location, Normal, Distance), Actors to Ignore, Ignore Self coché par défaut comme dans UE. Ce qui bloque suit les presets d'UE : un Static Mesh qui bloque arrête Visibility et Camera, une Box Collision aucun des deux, la capsule du joueur ignore Visibility et bloque Camera (preset Pawn) ; être caché ne change rien. Un rayon qui part de l'intérieur d'une forme la touche à la distance 0. Draw Debug Type : None, For One Frame, For Duration (5 s), Persistent ; `Simulation.debugLines`, dessinées en Play (rouge jusqu'au point touché, vert après).
+- Event Hit : quand le joueur bute contre un Static Mesh qui bloque, l'acteur du mesh et le joueur (s'il est un Blueprint) reçoivent Event Hit à chaque image du contact (`movement.ts` renvoie les contacts, `Simulation.fireHit`). Hit Normal suit `ReceiveHit` d'UE : la normale de la surface pour celui qui s'est déplacé, son opposé pour l'autre (le sens de la poussée). Seul le joueur balaie le décor : pas de Sweep sur Set Actor Location / Add Actor World Offset (dans UE il ne balaie que le composant racine, ici une Scene sans collision ; noté au BACKLOG).
+- Scénarios : nouvelle étape `{ look: yaw }` (oriente le joueur).
+- Leçons : « Regarder et interagir » (Avancé : E → Line Trace 300 cm devant → message d'interface ; piège testé : End donné comme une direction), « Débogue D6 — La tourelle aveugle » (Ignore Self décoché : le rayon touche la tourelle elle-même ; ajoutée, hors plan), « Refactor R3 — Le bon bouton » (overlap et Cast remplacés par Line Trace et interface), « La caisse qu'on pousse » (Event Hit à chaque image : Do Once rouvert par un Retriggerable Delay, vitesse par Get World Delta Seconds, vérifiée à 30 images par seconde).
+
+Étape E, choix d'implémentation :
+- Notion visée : `Check.notion` (aide `notion(...)` de `lessons/checks.ts`). Une leçon est réussie quand le comportement est bon ; la notion (Branch, Do Once, Cast, pas de Tick, Timeline, Line Trace…) est affichée à part, cochée ou non, sans bloquer. Les contraintes des exercices Refactor et de « Qui modifie quoi » restent bloquantes : elles sont l'exercice.
+- Robustesse : `Lesson.robustness` (`RobustnessCase` : situation, modification du projet, scénario, vérifications, conseil), jouée après la réussite par `runRobustness`, dans les deux ordres d'acteurs. Résultat : « Marche aussi si… » ou « Ne marche pas si… », avec la raison et le conseil. Dix leçons en ont une. Celle de « Le générateur prévient » échoue avec la solution de référence elle-même (Bind sans Is Valid sur une lampe sans générateur) : le retour le dit, et un test vérifie que la version avec Is Valid tient.
+- Conseils de construction : `core/quality/advice.ts`, des règles sur la forme des graphes, filtrées par niveau : Tick qui surveille, Delay sur Tick, recherche d'acteurs sur Tick, mouvement sur Tick sans Delta Seconds, overlap sans regarder Other Actor, chaîne de trois nœuds copiée. `quality/lessonAdvice.ts` retire ce que le projet de départ de la leçon déclenche déjà. Affichés après la réussite, et à la demande par le menu ⋮ › Conseils de construction (tout le projet).
+- Une autre façon de faire : `Lesson.alternatives` (titre, ce qu'elle gagne, ce qu'elle perd, construction sur le projet de départ). Chacune passe les vérifications de sa leçon (testé). « Ouvrir ce graphe » l'ouvre dans un projet d'essai (`WorkspaceRef` de type `alternative`, jamais enregistré, bandeau « Revenir à ma solution »). Sept alternatives sur cinq leçons.
+- Le contenu des leçons écrites avant la V3 est dans `lessons/library/quality.ts`, rattaché par identifiant dans `lessons/index.ts` ; les leçons de la V3 portent le leur.
+
+Parcours et accueil (2026-11-10, hors plan, dans la carte blanche) :
+- 51 leçons et exercices (le plan en visait 49 ; P5 et D6 en plus).
+- Accueil : barre de progression, compte par niveau, prochaine étape mise en avant (« À suivre »), et un onglet Carnet : la phrase « À retenir » de chaque étape réussie, les notions de toutes, avec une recherche (« timeline », « cast »…).
+- Aide et gestes (menu ⋮) remise à jour.
+- La page de test claude.ai n'a pas été republiée le 2026-11-10 : l'APK installée charge le site GitHub Pages, mis à jour par le push sur `main`. Elle reste utile pour montrer une étape avant de la pousser.
+
 ## Méthode de travail
 
 1. Annoncer l'étape, créer une liste de tâches, travailler par petits fichiers.
@@ -171,6 +202,8 @@ Tristan a demandé un plan V3 (« prépare moi un plan pour la v3 »), puis l'a 
 6. Mettre à jour README.md (« État : étape N »), ARCHITECTURE.md, ce fichier et BACKLOG.md.
 7. Commit sur `main` avec, en fin de message, les lignes d'attribution demandées par l'environnement (Co-Authored-By / Claude-Session), puis `git push origin main`.
 8. Résumer à Tristan en français : ce qui est livré, quoi tester sur son téléphone, ce qui est reporté. Puis attendre sa validation.
+
+L'APK étant installée et liée au site, un push sur `main` est une mise en production : ne pousser que ce qui passe lint, tests, build et smoke.
 
 ## Pièges techniques déjà rencontrés
 

@@ -24,6 +24,7 @@ function blank(id: string, label: string, objectName: string, className: string)
     outputs: {},
     nodeState: {},
     latent: {},
+    timelines: {},
     overlaps: new Set(),
     compOverlaps: new Set(),
     bindings: {},

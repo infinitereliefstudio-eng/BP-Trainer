@@ -11,6 +11,9 @@ import { lessonInventory } from './library/inventory';
 import { lessonBadges, lessonCodes } from './library/collections';
 import { debug5, lessonRecord } from './library/records';
 import { lessonLocals, predict4 } from './library/locals';
+import { complete3, lessonLampRow, lessonSlidingDoor } from './library/motion';
+import { lessonCrate, lessonLook, refactor3 } from './library/interaction';
+import { debug6, predict5 } from './library/extras';
 import { lessonTerminal } from './library/terminal';
 import { lesson1, lesson2, lesson3, lesson4 } from './library/module1';
 import { lesson5, lesson6, lesson7, lesson8 } from './library/module2';
@@ -19,6 +22,7 @@ import { lessonInheritance } from './library/inheritance';
 import { lesson12 } from './library/module4';
 import { lessonLift, lessonWaves } from './library/timing';
 import { debug1, debug2, predict1, predict2, predict3 } from './library/exercises';
+import { QUALITY } from './library/quality';
 import type { Lesson } from './types';
 
 export const LESSONS: Lesson[] = [
@@ -43,6 +47,8 @@ export const LESSONS: Lesson[] = [
   lessonInventory,
   lessonCodes,
   predict3,
+  lessonSlidingDoor,
+  complete3,
   // Confirmé
   lesson9,
   debug1,
@@ -55,6 +61,8 @@ export const LESSONS: Lesson[] = [
   lessonRecord,
   debug5,
   lessonBadges,
+  lessonLampRow,
+  predict5,
   lessonBeginPlayOrder,
   debug4,
   lessonWaves,
@@ -69,10 +77,20 @@ export const LESSONS: Lesson[] = [
   lesson12,
   lessonInheritance,
   lessonControlRoom,
+  lessonLook,
+  debug6,
+  refactor3,
+  lessonCrate,
 ];
 
 let n = 0;
-for (const l of LESSONS) if (!l.kind || l.kind === 'build') l.number = ++n;
+for (const l of LESSONS) {
+  if (!l.kind || l.kind === 'build') l.number = ++n;
+  // What to try once the lesson works, and other ways to solve it (library/quality.ts).
+  const q = QUALITY[l.id];
+  if (q?.robustness) l.robustness = [...(l.robustness ?? []), ...q.robustness];
+  if (q?.alternatives) l.alternatives = [...(l.alternatives ?? []), ...q.alternatives];
+}
 
 export function getLesson(id: string): Lesson | undefined {
   return LESSONS.find((l) => l.id === id);

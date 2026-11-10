@@ -254,7 +254,7 @@ select.field { padding-right: 4px; }
 .home-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn.big { height: 46px; padding: 0 18px; font-size: 15px; font-weight: 600; }
 .home-path { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
-.module h2 { font-size: 16px; margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
+.module h2 { font-size: 16px; margin: 0 0 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
 .lesson-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
 .lesson-item {
   display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 12px; border-radius: 8px;
@@ -352,3 +352,63 @@ select.field { padding-right: 4px; }
 .container-value > .chip { align-self: flex-start; }
 .d-field:has(> .d-value > .container-value), .d-field:has(> .d-value > .struct-value) { flex-direction: column; align-items: stretch; padding: 4px 0; }
 .d-field:has(> .d-value > .container-value) > .d-label, .d-field:has(> .d-value > .struct-value) > .d-label { flex: none; }
+
+/* Timeline track editor */
+.sheet.timeline-editor { width: min(820px, 98vw); height: min(380px, 96vh); }
+.timeline-editor .palette-head { flex-wrap: wrap; row-gap: 4px; }
+.tl-name { width: 130px; }
+.tl-name .field, .tl-rename .field { height: 34px; }
+.tl-opt { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.tl-opt .num-field { width: 86px; }
+.tl-opt input[type='checkbox'] { width: 20px; height: 20px; }
+.tl-tracks { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tl-tracks .chip { flex: none; }
+.tl-tracks .chip.on { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
+.tl-tracks .chip.danger { color: #ff8a8a; }
+.tl-rename { width: 120px; flex: none; margin-left: auto; }
+.tl-plot { flex: 1; min-height: 110px; position: relative; overflow: hidden; }
+.tl-plot svg { display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
+.tl-bg { fill: #141414; }
+.tl-grid { stroke: #2a2a2a; stroke-width: 1; }
+.tl-label { fill: var(--muted); font-size: 11px; }
+.tl-curve { fill: none; stroke: #9be36d; stroke-width: 2.5; stroke-linejoin: round; }
+.tl-hold { fill: none; stroke: #9be36d; stroke-width: 1.5; stroke-dasharray: 5 5; opacity: 0.55; }
+.tl-key { fill: #141414; stroke: #9be36d; stroke-width: 2.5; }
+.tl-key.on { fill: var(--orange); stroke: #fff; }
+.tl-foot { display: flex; align-items: center; gap: 12px; padding: 6px 10px; border-top: 1px solid var(--line); min-height: 48px; }
+
+/* Home: progress, tabs, notebook */
+.home-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 980px; margin: 0 auto 14px; flex-wrap: wrap; }
+.home-tabs { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 10px; padding: 3px; }
+.home-tabs button { height: 38px; padding: 0 16px; border-radius: 8px; font-weight: 600; color: var(--muted); }
+.home-tabs button.active { background: var(--panel-2); color: var(--text); }
+.home-progress { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 160px; max-width: 360px; }
+.meter { flex: 1; height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--ok); border-radius: 4px; }
+.level-count { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--panel-2); color: var(--muted); font-variant-numeric: tabular-nums; }
+.level-count.full { background: rgba(63, 191, 90, 0.18); color: var(--ok); }
+.lesson-item.next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.next-tag { color: #7fb4ff; }
+.notebook .search { height: 44px; width: 100%; max-width: 520px; }
+.note-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.note-item { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 10px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line-2); }
+.note-item.done { border-color: #2f6b3a; }
+.note-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.note-text { line-height: 1.45; font-size: 13.5px; }
+.note-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; padding: 2px 7px; border-radius: 9px; background: var(--panel-2); color: var(--muted); }
+
+/* Lesson sheet: notion, robustness, advice, alternatives */
+.results-head { margin: 8px 0 2px; }
+.result.skipped .r-icon { color: var(--muted); }
+.result.warn .r-icon { color: var(--warn); font-weight: 800; }
+.quality { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line-2); }
+.quality > h4 { margin: 0; font-size: 15px; }
+.quality > p { margin: 0; }
+.q-section { display: flex; flex-direction: column; gap: 6px; }
+.advice-card h4, .alt-card h4 { color: var(--text); }
+
+/* Scratch workspace: another way to solve a lesson */
+.scratch-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 10px; background: #2a2208; border-bottom: 1px solid #6b5a14; font-size: 13px; }
+.scratch-bar span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scratch-bar .btn { flex: none; height: 32px; }

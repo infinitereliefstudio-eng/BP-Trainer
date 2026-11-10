@@ -2,7 +2,7 @@
 
 Apprendre les Blueprints d'Unreal Engine 5 sur téléphone : un éditeur de nœuds tactile fidèle à UE, une simulation de la logique et un parcours d'exercices.
 
-**État : V1 et V2 livrées ; V3 en cours ([docs/PLAN_V3.md](docs/PLAN_V3.md)), étapes A (variables locales, interfaces avec entrées et sorties) et B (structures, Set, Map, Text, Name) livrées, B en attente de validation. 43 leçons et exercices sur 4 niveaux.** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps), la communication entre Blueprints (références, Cast, Event Dispatchers, Blueprint Interfaces, fonctions), le débogage (breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés), les 12 leçons avec les exercices « Prédis » et « Débogue », une bibliothèque de plus de 150 nœuds (timers, tableaux, Spawn, Switch, Enums…), l'Outliner en direct pendant Play, et le mode hors ligne prêt pour l'APK ([docs/APK.md](docs/APK.md)).
+**État : V1, V2 et V3 livrées ([docs/PLAN_V3.md](docs/PLAN_V3.md)) ; les étapes C, D et E de la V3 sont en attente de validation. 51 leçons et exercices sur 4 niveaux.** L'éditeur de graphes, le niveau vu de dessus, Play (joystick, touches E / F / Espace, contrôle du temps), la communication entre Blueprints (références, Cast, Event Dispatchers, Blueprint Interfaces, fonctions, héritage), les données (structures, Map, Set, Text, Name), le mouvement (Timeline avec son éditeur de piste, Lerp, FInterp To, Construction Script), l'interaction (Line Trace By Channel, Event Hit), le débogage (breakpoints, pas à pas, valeurs des pins, Execution Trace, « Pourquoi ? »), plus de 190 nœuds, et des retours sur la qualité des solutions (notion visée, robustesse, conseils de construction, autres façons de faire). L'appli est installée en APK ([docs/APK.md](docs/APK.md)) et fonctionne hors ligne.
 
 ## Utiliser l'appli
 
@@ -21,6 +21,9 @@ Les gestes, en paysage :
 | Onglet du graphe pendant Play | Fils qui s'allument, Debug (valeurs, trace) | Fenêtre Blueprint en PIE |
 | Double toucher un fil | Ajoute un Reroute | Double-clic sur un fil |
 | Appui long sur des nœuds › Entourer d’un Comment | Cadre titré, déplacé avec ses nœuds | C |
+| Double toucher un Timeline | Éditeur de piste : toucher ajoute un point clé, glisser le déplace | Double-clic sur le Timeline |
+| My Blueprint › Graphs › ConstructionScript | Graphe exécuté dans l’éditeur, avant le jeu | Onglet Construction Script |
+| ⋮ › Conseils de construction | Pistes sur la façon dont les graphes sont bâtis | — |
 | ☷ pendant Play | Outliner : acteurs et variables en direct | World Outliner en PIE |
 
 ## Développer

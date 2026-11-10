@@ -9,7 +9,7 @@
 import { compileClass, type CompileMessage } from '../compiler/validate';
 import type { Project } from '../model/project';
 import { type ActorOrder, Simulation, STEP } from '../runtime/simulation';
-import type { Check, CheckContext, Lesson } from './types';
+import type { Check, CheckContext, Lesson, RobustnessCase } from './types';
 
 export interface CheckResult {
   check: Check;
@@ -50,7 +50,7 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
 export const ORDER_NOTE =
   'Ta solution marche quand les acteurs font leur BeginPlay dans l’ordre du niveau, mais pas dans l’ordre inverse. Dans UE cet ordre n’est pas garanti : un Blueprint ne doit pas compter sur le fait qu’un autre a déjà fait son BeginPlay.';
 
-function playScenario(lesson: Lesson, source: Project, order: ActorOrder): LessonRun {
+function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks'>, source: Project, order: ActorOrder): LessonRun {
   const project = structuredClone(source);
   const sim = new Simulation(project, { order });
   const cx: CheckContext = {
@@ -66,7 +66,12 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
       return a && v ? a.vars[v.id] : undefined;
     },
     nodes: (className) => Object.values(project.classes.find((c) => c.name === className)?.graphs.flatMap((g) => Object.values(g.nodes)) ?? []),
+    preview: () => {
+      preview ??= new Simulation(structuredClone(source));
+      return preview;
+    },
   };
+  let preview: Simulation | undefined;
 
   const results = new Map<string, CheckResult>();
   const evaluate = (at?: string) => {
@@ -87,6 +92,7 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
   let dt = STEP;
   for (const step of lesson.scenario) {
     if ('fps' in step) dt = 1 / step.fps;
+    else if ('look' in step) sim.player.yaw = step.look;
     else if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += dt) sim.step(dt);
     else if ('teleport' in step) {
       sim.teleportPlayer(step.teleport[0], step.teleport[1]);
@@ -115,10 +121,34 @@ function playScenario(lesson: Lesson, source: Project, order: ActorOrder): Lesso
   return {
     compileErrors: [],
     results: ordered,
-    passed: ordered.every((r) => r.ok),
+    // A notion check is advice: the lesson is passed when the behaviour is right.
+    passed: ordered.every((r) => r.ok || !!r.check.notion),
     runtimeErrors,
     notes,
     prints: cx.prints(),
     sim,
   };
+}
+
+export interface RobustnessResult {
+  case: RobustnessCase;
+  ok: boolean;
+  /** Why it does not hold, when it fails. */
+  reason?: string;
+}
+
+/**
+ * Once a lesson is passed: does the same solution hold in situations the
+ * lesson did not ask for? Each case is played in both actor orders.
+ */
+export function runRobustness(lesson: Lesson, project: Project): RobustnessResult[] {
+  return (lesson.robustness ?? []).map((c) => {
+    const p = structuredClone(project);
+    c.mutate?.(p);
+    for (const order of ['level', 'reversed'] as const) {
+      const bad = playScenario(c, p, order).results.find((r) => !r.ok);
+      if (bad) return { case: c, ok: false, reason: bad.reason };
+    }
+    return { case: c, ok: true };
+  });
 }

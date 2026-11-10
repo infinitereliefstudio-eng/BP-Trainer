@@ -142,7 +142,10 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       out.push({
         severity: 'error',
         code: 'latentInFunction',
-        text: `${title} contient un appel latent, interdit hors de l'Event Graph (latent call outside of the event graph).`,
+        text:
+          g.kind === 'construction'
+            ? `${title} n'est pas autorisé dans le Construction Script : il n'accepte ni événement, ni attente, ni Timeline.`
+            : `${title} contient un appel latent, interdit hors de l'Event Graph (latent call outside of the event graph).`,
         ...at,
       });
     }

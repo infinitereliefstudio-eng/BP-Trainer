@@ -42,7 +42,7 @@ const COMPILE: Record<CompileCode, Explanation> = {
     fixes: ['Garde un seul nœud d’événement.', 'Pour enchaîner plusieurs actions, relie-le à un Sequence, ou mets les actions à la suite.'],
   },
   latentInFunction: {
-    why: 'Une fonction s’exécute d’un bloc, dans la même image, et rend la main tout de suite. Un nœud qui attend (Delay, Retriggerable Delay…) ne peut donc pas y être.',
+    why: 'Une fonction, comme le Construction Script, s’exécute d’un bloc, dans la même image, et rend la main tout de suite. Un nœud qui attend (Delay, Retriggerable Delay, Timeline…) ne peut donc pas y être.',
     fixes: ['Mets l’attente dans l’Event Graph, par exemple dans un Custom Event que la fonction appelle.', 'Ou utilise Set Timer by Event, qui n’attend pas.'],
   },
   byRef: {

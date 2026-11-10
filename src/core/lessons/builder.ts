@@ -5,6 +5,7 @@
 import { createProject, type BlueprintClass, type ComponentKind, type ComponentProps, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { addComponent, addVariable, updateComponentProps } from '../operations/classOps';
+import { ensureConstructionScript } from '../operations/constructionOps';
 import { addNode, connect } from '../operations/graphOps';
 import { placeActor } from '../operations/levelOps';
 import { addClass } from '../operations/projectOps';
@@ -26,6 +27,12 @@ export class ClassBuilder {
   /** The same class, building in another of its graphs (a function). */
   inGraph(graphId: string): ClassBuilder {
     return new ClassBuilder(this.cls, this.project, graphId);
+  }
+
+  /** The same class, building in its Construction Script; `entry` is the script's first node. */
+  construction(): { b: ClassBuilder; entry: string } {
+    const g = ensureConstructionScript(this.cls);
+    return { b: new ClassBuilder(this.cls, this.project, g.id), entry: Object.values(g.nodes).find((n) => n.def === 'cs.entry')!.id };
   }
 
   component(kind: ComponentKind, name: string, props: Partial<ComponentProps> = {}): string {

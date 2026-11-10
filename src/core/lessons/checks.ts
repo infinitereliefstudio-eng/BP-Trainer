@@ -72,3 +72,9 @@ export const PRESS_E = [{ press: 'E' as const }, { release: 'E' as const }];
 export function notUsing(id: string, className: string, defs: string[], label: string, reason: string): Check {
   return { id, label, test: (cx) => (cx.nodes(className).some((n) => defs.includes(n.def)) ? reason : true) };
 }
+
+/**
+ * Marks a check as the notion the lesson aims at: shown apart, never
+ * blocking. A different solution that behaves right still passes.
+ */
+export const notion = (c: Check): Check => ({ ...c, notion: true });

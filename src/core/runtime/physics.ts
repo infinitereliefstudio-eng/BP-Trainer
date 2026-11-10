@@ -128,3 +128,70 @@ export function pushOut(px: number, py: number, r: number, wall: Shape): [number
   else ny = Math.sign(ly || 1) * (wall.hy + r);
   return [wall.cx + nx * c - ny * s, wall.cy + nx * s + ny * c];
 }
+
+/** Where a ray meets a shape: distance from its start, and the surface normal there. */
+export interface RayHit {
+  t: number;
+  nx: number;
+  ny: number;
+}
+
+/**
+ * First intersection of the ray from (ox, oy) along the unit direction
+ * (dx, dy), within `len`. A ray that starts inside the shape hits at once
+ * (distance 0), as a UE trace that starts penetrating does.
+ */
+export function raycast(shape: Shape, ox: number, oy: number, dx: number, dy: number, len: number): RayHit | undefined {
+  if (shape.kind === 'circle') {
+    const mx = ox - shape.cx,
+      my = oy - shape.cy;
+    const c = mx * mx + my * my - shape.r * shape.r;
+    if (c <= 0) return { t: 0, nx: -dx, ny: -dy };
+    const b = mx * dx + my * dy;
+    const disc = b * b - c;
+    if (b > 0 || disc < 0) return undefined;
+    const t = -b - Math.sqrt(disc);
+    if (t > len) return undefined;
+    const px = ox + dx * t - shape.cx,
+      py = oy + dy * t - shape.cy;
+    const d = Math.hypot(px, py) || 1;
+    return { t, nx: px / d, ny: py / d };
+  }
+  // Box: slab test in the box's own axes.
+  const c = Math.cos(shape.angle),
+    s = Math.sin(shape.angle);
+  const lox = (ox - shape.cx) * c + (oy - shape.cy) * s;
+  const loy = -(ox - shape.cx) * s + (oy - shape.cy) * c;
+  const ldx = dx * c + dy * s;
+  const ldy = -dx * s + dy * c;
+  if (Math.abs(lox) <= shape.hx && Math.abs(loy) <= shape.hy) return { t: 0, nx: -dx, ny: -dy };
+  let tMin = -Infinity,
+    tMax = Infinity;
+  let nx = 0,
+    ny = 0;
+  for (const [o, d, h, ax, ay] of [
+    [lox, ldx, shape.hx, 1, 0],
+    [loy, ldy, shape.hy, 0, 1],
+  ]) {
+    if (Math.abs(d) < 1e-12) {
+      if (Math.abs(o) > h) return undefined;
+      continue;
+    }
+    let t1 = (-h - o) / d,
+      t2 = (h - o) / d;
+    let sign = -1;
+    if (t1 > t2) {
+      [t1, t2] = [t2, t1];
+      sign = 1;
+    }
+    if (t1 > tMin) {
+      tMin = t1;
+      nx = ax * sign;
+      ny = ay * sign;
+    }
+    tMax = Math.min(tMax, t2);
+    if (tMin > tMax) return undefined;
+  }
+  if (tMin < 0 || tMin > len) return undefined;
+  return { t: tMin, nx: nx * c - ny * s, ny: nx * s + ny * c };
+}

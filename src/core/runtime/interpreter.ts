@@ -15,11 +15,13 @@
 import { eventKey, isA, lineage } from '../model/inheritance';
 import type { BlueprintClass, Graph, Link, NodeInstance, PinRef, Project } from '../model/project';
 import type { NodeContext, PinSpec } from '../nodes/definition';
+import { readTimeline, TIMELINE_NODE } from '../nodes/library/timeline';
 import { contextFor, findPin, getDefinition, nodeTitle, pinValue, resolvePins } from '../nodes/registry';
 import { defaultValueFor } from '../types/values';
 import { getBehavior } from './behaviors';
 import { RESUME, type ExecCx, type ValueCx, type WorldApi } from './behaviors/types';
 import type { RunRecord } from './runRecord';
+import { advanceTimeline, newTimelineState, timelineOutputs } from './timelines';
 import type { ActorRT, RValue } from './world';
 
 /** Where execution currently is: used for error messages and the trace. */
@@ -117,6 +119,8 @@ export const MAX_STEPS = 100_000;
 const MAX_PURE_DEPTH = 64;
 
 /** Nodes run by the interpreter itself rather than by a behaviour. */
+export const CONSTRUCTION_ENTRY = 'cs.entry';
+
 export const INTERPRETER_NODES = new Set(['var.get', 'var.getLocal', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
 
 /** Events and function entries: where a chain starts. */
@@ -174,6 +178,56 @@ export class Interpreter {
     return this.chain(actor.classId).some((c) =>
       (this.byClass.get(c.id) ?? []).some((gi) => gi.graph.kind === 'event' && Object.values(gi.graph.nodes).some(match)),
     );
+  }
+
+  /**
+   * Queue the actor's Construction Script: the parent's first, then the
+   * child's, as UE's default "Parent: Construction Script" call does.
+   */
+  construct(actor: ActorRT): void {
+    const frames = this.constructionFrames(actor);
+    if (frames.length) this.queue.push(frames);
+  }
+
+  private constructionFrames(actor: ActorRT): Frame[] {
+    const frames: Frame[] = [];
+    for (const cls of this.chain(actor.classId).reverse()) {
+      for (const gi of this.byClass.get(cls.id) ?? []) {
+        if (gi.graph.kind !== 'construction') continue;
+        const entry = Object.values(gi.graph.nodes).find((n) => n.def === CONSTRUCTION_ENTRY);
+        // A script of its own scope each run, like the function it is in UE.
+        if (entry) frames.push({ actor, scope: { outputs: {}, state: {}, locals: {} }, gi, node: entry.id, mode: 'out', pin: 'then' });
+      }
+    }
+    return frames;
+  }
+
+  /** Timelines set to Auto Play start with the game. */
+  autoPlayTimelines(actor: ActorRT): void {
+    for (const cls of this.chain(actor.classId)) {
+      for (const gi of this.byClass.get(cls.id) ?? []) {
+        for (const n of Object.values(gi.graph.nodes)) {
+          if (n.def !== TIMELINE_NODE || !n.config.autoPlay) continue;
+          actor.timelines[n.id] ??= newTimelineState(gi.graph.id);
+          actor.timelines[n.id].playing = true;
+        }
+      }
+    }
+  }
+
+  /** Advance the actor's playing timelines: Update each frame, then Finished at the end. */
+  tickTimelines(actor: ActorRT, dt: number): void {
+    for (const [nodeId, tl] of Object.entries(actor.timelines)) {
+      if (!tl.playing) continue;
+      const gi = this.graphs.get(tl.graphId);
+      const node = gi?.graph.nodes[nodeId];
+      if (!gi || !node) continue;
+      const data = readTimeline(node);
+      const finished = advanceTimeline(tl, data, dt);
+      const at = { actor, scope: actorScope(actor), gi, node: nodeId, mode: 'out' as const };
+      this.queue.push([{ ...at, pin: 'update', outputs: timelineOutputs(tl, data) }]);
+      if (finished) this.queue.push([{ ...at, pin: 'finished' }]);
+    }
   }
 
   /** The class of an actor, then its parents. */
@@ -269,7 +323,7 @@ export class Interpreter {
    * Run queued work until there is none left (true) or a breakpoint stops
    * it (false; call continue()/step() then drain() again).
    */
-  drain(): boolean {
+  drain(ignoreBreakpoints = false): boolean {
     if (this.paused) return false;
     for (;;) {
       if (!this.stack.length) {
@@ -284,7 +338,7 @@ export class Interpreter {
         this.stack.pop();
         continue;
       }
-      if (!this.skipBreak && this.breakable(f) && (this.stepping || this.breakpoints.has(f.node))) {
+      if (!ignoreBreakpoints && !this.skipBreak && this.breakable(f) && (this.stepping || this.breakpoints.has(f.node))) {
         const node = f.gi.graph.nodes[f.node];
         this.paused = {
           reason: this.stepping ? 'step' : 'breakpoint',
@@ -444,6 +498,13 @@ export class Interpreter {
         if (!entry) return;
         calls.push(entry, { actor, scope, gi, node: node.id, mode: 'ret', pin: '' });
         entry.outputs = params;
+      },
+      timeline: () => {
+        actor.timelines[node.id] ??= newTimelineState(gi.graph.id);
+        return actor.timelines[node.id];
+      },
+      callConstruction: (target) => {
+        calls.push(...this.constructionFrames(target));
       },
       writeRef: (pin, value) => this.writeRef(actor, scope, gi, node, pin, value),
       setLocal: (id, value) => {

@@ -53,6 +53,8 @@ export const actorBehaviors: Record<string, Behavior> = {
       const cls = a && cx.node.defaults.class === id ? cx.world.classOf(a) : undefined;
       if (a && cls) for (const v of spawnPins(cls)) a.vars[v.id] = copyValue(cx.in(`expose:${v.id}`));
       cx.out('result', a ? ref(a) : null);
+      // The Construction Script sees the exposed values, then BeginPlay runs.
+      if (a) cx.callConstruction(a);
       if (a) cx.callEvents(a, (n) => n.def === 'event.beginPlay', {});
       return ['then'];
     },

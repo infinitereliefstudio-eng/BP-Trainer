@@ -25,6 +25,10 @@ export type Overlay =
   | { kind: 'confirm'; title: string; text: string; confirmLabel: string; onConfirm: () => void }
   | { kind: 'content' }
   | { kind: 'about' }
-  | { kind: 'lesson' };
+  | { kind: 'lesson' }
+  /** Construction advice on the whole project. */
+  | { kind: 'advice' }
+  /** The track editor of a Timeline node of the open graph. */
+  | { kind: 'timeline'; nodeId: string };
 
 export type OpenOverlay = (o: Overlay | null) => void;

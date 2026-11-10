@@ -11,6 +11,8 @@ import { communicationBehaviors } from './communication';
 import { flowBehaviors } from './flow';
 import { pureBehaviors } from './pure';
 import { dataBehaviors } from './data';
+import { timelineBehaviors } from './timeline';
+import { traceBehaviors } from './trace';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
@@ -23,6 +25,8 @@ const ALL: Record<string, Behavior> = {
   ...timeBehaviors,
   ...communicationBehaviors,
   ...dataBehaviors,
+  ...timelineBehaviors,
+  ...traceBehaviors,
 };
 
 export function getBehavior(defId: string): Behavior | undefined {

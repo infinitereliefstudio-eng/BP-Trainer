@@ -18,8 +18,10 @@ import { actorMenu, linkMenu, moreMenu, nodeMenu, pinMenu, placeMenu } from './m
 import type { Overlay } from './overlayTypes';
 import { ContentBrowser } from './overlays/ContentBrowser';
 import { ContextMenu } from './overlays/ContextMenu';
+import { AdviceDialog } from './overlays/AdviceDialog';
 import { AboutDialog, ConfirmDialog, PromptDialog, ValueDialog } from './overlays/Dialogs';
 import { Palette } from './overlays/Palette';
+import { TimelineEditor } from './overlays/TimelineEditor';
 import { BottomPanel, type BottomTab } from './panels/BottomPanel';
 import { DebugPanel } from './panels/DebugPanel';
 import { Details } from './panels/Details';
@@ -35,6 +37,8 @@ import { resetLesson, type Workspace, type WorkspaceRef } from './workspace';
 interface Props {
   workspace: Workspace & { fresh: boolean };
   lesson?: Lesson;
+  /** Set when the workspace shows another way to solve `lesson`: nothing is saved. */
+  alternative?: { lesson: Lesson; title: string };
   lessonDone: boolean;
   onHome: () => void;
   onLessonPassed: () => void;
@@ -49,10 +53,10 @@ export function App(props: Props) {
   );
 }
 
-function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }: Props) {
+function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPassed, onOpen }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
-  const [view, setView] = useState<MainView>(lesson ? 'level' : 'graph');
+  const [view, setView] = useState<MainView>(lesson && !alternative ? 'level' : 'graph');
   const [left, setLeft] = useState(false);
   const [details, setDetails] = useState(false);
   const [bottom, setBottom] = useState<false | BottomTab>(false);
@@ -84,6 +88,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
       openLinkMenu: (linkId, sx, sy) => setOverlay({ kind: 'menu', sx, sy, items: linkMenu(store, linkId) }),
       editValue: (nodeId, spec) => setOverlay({ kind: 'value', nodeId, spec }),
       openDetails,
+      openTimeline: (nodeId) => setOverlay({ kind: 'timeline', nodeId }),
     }),
     [store],
   );
@@ -203,6 +208,22 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
           })
         }
       />
+      {alternative && (
+        <div class="scratch-bar">
+          <span>
+            <strong>Autre façon de faire · {alternative.title}</strong> — rien n’est enregistré ici.
+          </span>
+          <button
+            class="btn"
+            onClick={() => {
+              stop();
+              onOpen({ kind: 'lesson', lessonId: alternative.lesson.id });
+            }}
+          >
+            Revenir à ma solution
+          </button>
+        </div>
+      )}
       <main class="workspace">
         {view === 'graph' ? (
           <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
@@ -349,6 +370,7 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
       )}
       {overlay?.kind === 'content' && <ContentBrowser onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} />}
       {overlay?.kind === 'about' && <AboutDialog onClose={close} />}
+      {overlay?.kind === 'timeline' && <TimelineEditor nodeId={overlay.nodeId} onClose={close} />}
       {overlay?.kind === 'lesson' && lesson && (
         <LessonSheet
           lesson={lesson}
@@ -365,8 +387,14 @@ function Shell({ workspace, lesson, lessonDone, onHome, onLessonPassed, onOpen }
             close();
           }}
           openOverlay={setOverlay}
+          onFocusNode={focusNode}
+          onOpenAlternative={(index) => {
+            stop();
+            onOpen({ kind: 'alternative', lessonId: lesson.id, index });
+          }}
         />
       )}
+      {overlay?.kind === 'advice' && <AdviceDialog onClose={close} onFocusNode={focusNode} />}
 
       <div class="rotate-hint">
         <p>Tourne ton téléphone en paysage pour utiliser l’éditeur.</p>

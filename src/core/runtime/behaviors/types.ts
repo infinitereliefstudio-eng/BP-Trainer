@@ -7,7 +7,8 @@
 import type { BlueprintClass, NodeInstance, Project } from '../../model/project';
 import type { NodeContext } from '../../nodes/definition';
 import type { NoteCode } from '../runRecord';
-import type { ActorRT, ComponentRT, ObjRef, RValue, TimerRT } from '../world';
+import type { DebugLine, TraceHit } from '../trace';
+import type { ActorRT, ComponentRT, ObjRef, RValue, TimelineRT, TimerRT } from '../world';
 
 /** Entry pin used when a node asked to be resumed (loops). */
 export const RESUME = '__resume';
@@ -21,6 +22,12 @@ export interface PrintOptions {
 /** The part of the simulation a node may touch. */
 export interface WorldApi {
   readonly time: number;
+  /** Duration of the frame being played (Get World Delta Seconds). */
+  readonly deltaSeconds: number;
+  /** First thing blocking `channel` between two points, skipping the actors of `ignore`. */
+  lineTrace(start: { x: number; y: number }, end: { x: number; y: number }, channel: number, ignore: Set<string>): TraceHit | undefined;
+  /** Keep a trace's debug line on screen. */
+  debugLine(line: DebugLine): void;
   random(): number;
   print(actor: ActorRT, text: string, opts: PrintOptions): void;
   /** Resolve a reference; logs "Accessed None" and returns null when empty. */
@@ -93,6 +100,10 @@ export interface ExecCx extends ValueCx {
    * Returns false when the pin is not wired to a variable.
    */
   writeRef(pin: string, value: RValue): boolean;
+  /** Playback state of this Timeline node on this actor. */
+  timeline(): TimelineRT;
+  /** Run the Construction Script of `target` right after this node (Spawn Actor). */
+  callConstruction(target: ActorRT): void;
   /** Write a Local Variable of the function call this node runs in. */
   setLocal(id: string, value: RValue): void;
 }

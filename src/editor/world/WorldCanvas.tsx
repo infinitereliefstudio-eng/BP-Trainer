@@ -3,6 +3,8 @@
  * be selected and dragged; in Play it shows the running simulation.
  */
 import { useEffect, useRef } from 'preact/hooks';
+import { inheritedView } from '@core/model/inheritance';
+import { findClass, type Project } from '@core/model/project';
 import { moveActor, movePlayerStart, snapActor } from '@core/operations/levelOps';
 import { componentShape, overlaps } from '@core/runtime/physics';
 import { Simulation } from '@core/runtime/simulation';
@@ -102,6 +104,8 @@ export function WorldCanvas({ store, session, requests }: Props) {
         height: l.size.h,
         playing: !!s,
         selectedId: s ? s.selected : f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : undefined,
+        debugLines: s?.sim.debugLines,
+        references: s ? undefined : levelReferences(store.project),
       },
       l.size.dpr,
     );
@@ -266,6 +270,22 @@ export function WorldCanvas({ store, session, requests }: Props) {
       <canvas ref={canvasRef} />
     </div>
   );
+}
+
+/** Which placed actor points at which, through an Instance Editable reference variable. */
+function levelReferences(p: Project): { from: string; to: string; label: string }[] {
+  const out: { from: string; to: string; label: string }[] = [];
+  for (const a of p.level.actors) {
+    const cls = findClass(p, a.classId);
+    if (!cls) continue;
+    for (const v of inheritedView(cls, p).variables) {
+      const value = a.overrides[v.id];
+      for (const item of Array.isArray(value) ? value : [value]) {
+        if (typeof item === 'string' && item.startsWith('actor:')) out.push({ from: a.id, to: item.slice(6), label: v.name });
+      }
+    }
+  }
+  return out;
 }
 
 /** Keep the player inside the middle of the view. */

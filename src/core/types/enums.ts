@@ -6,6 +6,12 @@ import type { Project } from '../model/project';
 
 export const BUILTIN_ENUMS: Record<string, string[]> = {
   ECollisionEnabled: ['No Collision', 'Query Only (No Physics Collision)', 'Physics Only (No Query Collision)', 'Collision Enabled (Query and Physics)'],
+  /** Direction output of a Timeline. */
+  ETimelineDirection: ['Forward', 'Backward'],
+  /** Trace Channel of a Line Trace: what the ray is blocked by. */
+  ETraceTypeQuery: ['Visibility', 'Camera'],
+  /** Draw Debug Type of a Line Trace. */
+  EDrawDebugTrace: ['None', 'For One Frame', 'For Duration', 'Persistent'],
 };
 
 /** Entries of an enum by name, or undefined if it does not exist. */

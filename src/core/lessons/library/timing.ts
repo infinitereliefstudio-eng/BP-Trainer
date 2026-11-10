@@ -6,7 +6,7 @@
 import { updateVariable } from '../../operations/classOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { countPrints, noRuntimeErrors, usesNode } from '../checks';
+import { countPrints, noRuntimeErrors, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 
 // --------------------------------------------------------------- Les vagues
@@ -97,7 +97,7 @@ export const lessonWaves: Lesson = {
         return `Messages : ${cx.prints().join(', ') || 'aucun'}. Il fallait Vie : 10, Vie : 20, Vie : 30.`;
       },
     },
-    usesNode('timer', 'BP_Spawner', ['time.setTimerByEvent'], 'Le spawner utilise Set Timer by Event', 'Répète la création avec Set Timer by Event.'),
+    notion(usesNode('timer', 'BP_Spawner', ['time.setTimerByEvent'], 'Le spawner utilise Set Timer by Event', 'Répète la création avec Set Timer by Event.')),
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -197,7 +197,7 @@ export const lessonLift: Lesson = {
         return x > 620 ? `Elle a continué jusqu’à ${x} : arrête-la quand X atteint 600.` : `Elle s’est arrêtée à ${x} au lieu de 600.`;
       },
     },
-    usesNode('tick', 'BP_Ascenseur', ['event.tick'], 'Le mouvement se fait sur Event Tick', 'Déplace la plateforme sur Event Tick.'),
+    notion(usesNode('tick', 'BP_Ascenseur', ['event.tick'], 'Le mouvement se fait sur Event Tick', 'Déplace la plateforme sur Event Tick.')),
     noRuntimeErrors(),
   ],
   solve(p) {

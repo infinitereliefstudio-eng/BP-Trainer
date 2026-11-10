@@ -27,12 +27,16 @@ import { switchNodes } from './library/switch';
 import { textNodes } from './library/text';
 import { structNodes } from './library/structs';
 import { containerNodes } from './library/containers';
+import { timelineNodes } from './library/timeline';
+import { traceNodes } from './library/trace';
 
 const ALL: NodeDefinition[] = [
   ...eventNodes,
   ...flowNodes,
   ...switchNodes,
   ...timeNodes,
+  ...timelineNodes,
+  ...traceNodes,
   ...variableNodes,
   ...actorNodes,
   ...componentNodes,

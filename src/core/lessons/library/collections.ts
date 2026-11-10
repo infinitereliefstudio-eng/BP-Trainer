@@ -6,7 +6,7 @@
 import { setVariableType } from '../../operations/classOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
-import { countPrints, noRuntimeErrors, printedNumbers, usesNode } from '../checks';
+import { countPrints, noRuntimeErrors, printedNumbers, usesNode, notion } from '../checks';
 import type { Lesson } from '../types';
 import { playerBlueprint } from './props';
 
@@ -103,7 +103,7 @@ export const lessonCodes: Lesson = {
       'refusée',
       'La Cave s’ouvre : elle n’est pas dans Codes, donc Find renvoie Value = 0 (valeur par défaut)… égal à son CodeTape, 0. Teste Return Value de Find avant de comparer.',
     ),
-    usesNode('find', 'BP_Digicode', ['map.find'], 'Le code est cherché dans la Map avec Find', 'BP_Digicode doit chercher le code de sa porte dans Codes avec Find.'),
+    notion(usesNode('find', 'BP_Digicode', ['map.find'], 'Le code est cherché dans la Map avec Find', 'BP_Digicode doit chercher le code de sa porte dans Codes avec Find.')),
     noRuntimeErrors(),
   ],
   solve: (p) => solveCodes(p, true),

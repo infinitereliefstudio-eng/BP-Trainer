@@ -8,7 +8,7 @@ import { addDispatcher, addDispatcherParam, implementInterface } from '../../ope
 import { addInterface, addInterfaceFunction } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
-import { noRuntimeErrors, usesNode } from '../checks';
+import { noRuntimeErrors, usesNode, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 import { playerInteracts } from './module3';
 import { doorBlueprint, generatorBlueprint, lampBlueprint, playerBlueprint, referenceVariable } from './props';
@@ -161,9 +161,9 @@ const checks: Check[] = [
       return 'Le timer tourne encore après la panne : arrête-le avec Clear and Invalidate Timer by Handle.';
     },
   },
-  usesNode('clamp', 'BP_Generateur', ['math.clampFloat', 'math.clampInt'], 'Le carburant passe par Clamp', 'Utilise Clamp pour borner le carburant entre 0 et 100.'),
-  usesNode('iface', 'BP_Generateur', ['event.interface'], 'Le générateur répond à Interagir (interface)', 'Le générateur doit réagir à Event Interagir de BPI_Interactif.'),
-  usesNode('call', 'BP_Generateur', ['dispatcher.call'], 'Le générateur prévient avec son Event Dispatcher', 'Le générateur doit annoncer ses changements avec Call OnEtatChange.'),
+  notion(usesNode('clamp', 'BP_Generateur', ['math.clampFloat', 'math.clampInt'], 'Le carburant passe par Clamp', 'Utilise Clamp pour borner le carburant entre 0 et 100.')),
+  notion(usesNode('iface', 'BP_Generateur', ['event.interface'], 'Le générateur répond à Interagir (interface)', 'Le générateur doit réagir à Event Interagir de BPI_Interactif.')),
+  notion(usesNode('call', 'BP_Generateur', ['dispatcher.call'], 'Le générateur prévient avec son Event Dispatcher', 'Le générateur doit annoncer ses changements avec Call OnEtatChange.')),
   {
     id: 'bind',
     label: 'Les lampes et la porte s’abonnent au dispatcher',

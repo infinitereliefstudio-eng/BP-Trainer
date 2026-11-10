@@ -6,7 +6,7 @@ import { addEnum } from '../../operations/enumOps';
 import { removeNodes } from '../../operations/graphOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, visible } from '../checks';
+import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, visible, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 
 const press = PRESS_E;
@@ -96,7 +96,7 @@ export const lessonKeypad: Lesson = {
         return `« Bloqué » s’affiche ${n} fois au lieu de 2 : seuls les essais 4 et 5 doivent passer par Default.`;
       },
     },
-    usesNode('switch', 'BP_Digicode', ['flow.switchInt'], 'Le graphe utilise Switch on Int', 'Choisis la réaction avec un Switch on Int.'),
+    notion(usesNode('switch', 'BP_Digicode', ['flow.switchInt'], 'Le graphe utilise Switch on Int', 'Choisis la réaction avec un Switch on Int.')),
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -216,7 +216,7 @@ export const lessonDoorStates: Lesson = {
         return count(cx, 'verrouill') >= 2 ? true : 'La porte verrouillée doit afficher « Verrouillée » à chaque appui : relie la sortie Verrouillee à un Print String.';
       },
     },
-    usesNode('switch', 'BP_Porte', ['flow.switchEnum'], 'Le graphe utilise Switch on E_EtatPorte', 'Choisis l’action avec un Switch on E_EtatPorte.'),
+    notion(usesNode('switch', 'BP_Porte', ['flow.switchEnum'], 'Le graphe utilise Switch on E_EtatPorte', 'Choisis l’action avec un Switch on E_EtatPorte.')),
     noRuntimeErrors(),
   ],
   solve(p) {

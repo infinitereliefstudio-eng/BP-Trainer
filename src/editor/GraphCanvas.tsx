@@ -40,6 +40,8 @@ export interface CanvasRequests {
   openLinkMenu(linkId: string, sx: number, sy: number): void;
   editValue(nodeId: string, spec: PinSpec, sx: number, sy: number): void;
   openDetails(): void;
+  /** Double tap on a Timeline node: its track editor, as in UE. */
+  openTimeline(nodeId: string): void;
 }
 
 export interface GraphCanvasHandle {
@@ -328,7 +330,8 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
         }
         if (hit.kind === 'node' || hit.kind === 'value') {
           store.selectNodes([hit.node]);
-          live.current.requests.openDetails();
+          if (store.graph.nodes[hit.node]?.def === 'timeline.node' && !live.current.session) live.current.requests.openTimeline(hit.node);
+          else live.current.requests.openDetails();
         } else if (hit.kind === 'empty') {
           const w = camera().toWorld(sx, sy);
           live.current.requests.openPalette({ sx, sy, world: w });

@@ -4,7 +4,7 @@
  */
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, normText as norm, printedNumbers as numbers, usesNode, visible } from '../checks';
+import { noRuntimeErrors, normText as norm, printedNumbers as numbers, usesNode, visible, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 
 /** An Integer variable named `name` in `className`, or why not. */
@@ -116,7 +116,7 @@ export const lessonCounter: Lesson = {
       at: 'trois',
       test: (cx) => (cx.prints().some((p) => norm(p).includes('trop')) ? true : 'Aucun message « Trop de passages ! » au 3e passage.'),
     },
-    usesNode('branch', 'BP_Compteur', ['flow.branch'], 'Le graphe utilise un Branch', 'Choisis d’afficher l’alerte avec un Branch.'),
+    notion(usesNode('branch', 'BP_Compteur', ['flow.branch'], 'Le graphe utilise un Branch', 'Choisis d’afficher l’alerte avec un Branch.')),
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -317,7 +317,7 @@ export const complete1: Lesson = {
     },
     visible('still-on', 'BP_Torche', 'Lumiere', true, 'Après 2 appuis, la torche éclaire encore', 'deux'),
     visible('off', 'BP_Torche', 'Lumiere', false, 'Au 3e appui, elle s’éteint', 'trois'),
-    usesNode('branch', 'BP_Torche', ['flow.branch'], 'Un Branch choisit le chemin', 'Le trou 3 attend un Branch.'),
+    notion(usesNode('branch', 'BP_Torche', ['flow.branch'], 'Un Branch choisit le chemin', 'Le trou 3 attend un Branch.')),
     noRuntimeErrors(),
   ],
   solve(p) {

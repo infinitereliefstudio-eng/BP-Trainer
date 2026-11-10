@@ -8,7 +8,7 @@ import { disconnectPin } from '../../operations/graphOps';
 import { addLocalVariable } from '../../operations/localOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, printedNumbers, usesNode } from '../checks';
+import { noRuntimeErrors, printedNumbers, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 
 const fnGraph = (cx: CheckContext, className: string, name: string) =>
@@ -258,7 +258,7 @@ export const lessonCleanDestroy: Lesson = {
         return n === 3 ? 'Caisses contient toujours 3 caisses, dont une détruite : retire-la de la liste dans son Event Destroyed.' : `Caisses contient ${n} caisse(s) au lieu de 2.`;
       },
     },
-    usesNode('destroyed', 'BP_Caisse', ['event.destroyed'], 'La caisse utilise Event Destroyed', 'Prévenir le gardien se fait dans Event Destroyed de BP_Caisse.'),
+    notion(usesNode('destroyed', 'BP_Caisse', ['event.destroyed'], 'La caisse utilise Event Destroyed', 'Prévenir le gardien se fait dans Event Destroyed de BP_Caisse.')),
     noRuntimeErrors(),
   ],
   solve(p) {

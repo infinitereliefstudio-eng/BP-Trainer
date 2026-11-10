@@ -10,7 +10,7 @@ import { addInterface, addInterfaceFunction } from '../../operations/projectOps'
 import { removeNodes } from '../../operations/graphOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
-import { countPrints, noRuntimeErrors, notUsing, PRESS_E } from '../checks';
+import { countPrints, noRuntimeErrors, notUsing, PRESS_E, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 import { playerInteracts } from './module3';
 import { doorBlueprint, playerBlueprint } from './props';
@@ -151,7 +151,7 @@ export const lessonTerminal: Lesson = {
         return countPrints(cx, OUVERTE) ? true : 'La porte s’ouvre mais sa réponse « Porte ouverte » ne s’affiche pas.';
       },
     },
-    notUsing('nocast', 'BP_Joueur', ['cast.to'], 'Aucun Cast dans BP_Joueur', 'BP_Joueur utilise un Cast : le message d’interface suffit.'),
+    notion(notUsing('nocast', 'BP_Joueur', ['cast.to'], 'Aucun Cast dans BP_Joueur', 'BP_Joueur utilise un Cast : le message d’interface suffit.')),
     noRuntimeErrors(),
   ],
   solve(p) {

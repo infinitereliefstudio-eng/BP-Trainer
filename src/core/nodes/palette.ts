@@ -37,7 +37,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       typeof d.title === 'function' ? d.title(probe(d.id, config), ctx) : d.title;
     out.push({
       key: d.id,
-      title: d.id === 'event.inputKey' ? 'Input Key (E, F, Space Bar)' : title,
+      title: d.id === 'event.inputKey' ? 'Input Key (E, F, Space Bar)' : d.id === 'timeline.node' ? 'Add Timeline…' : title,
       category: d.category,
       description: d.description,
       def: d.id,

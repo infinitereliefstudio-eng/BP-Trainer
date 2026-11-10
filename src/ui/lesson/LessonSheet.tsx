@@ -4,7 +4,9 @@
  */
 import { useState } from 'preact/hooks';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
-import { runLesson, type LessonRun } from '@core/lessons/runner';
+import { runLesson, runRobustness, type LessonRun, type RobustnessResult } from '@core/lessons/runner';
+import type { Advice } from '@core/quality/advice';
+import { newAdvice } from '@core/quality/lessonAdvice';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
@@ -21,22 +23,35 @@ interface Props {
   onNext: () => void;
   onReset: () => void;
   openOverlay: OpenOverlay;
+  /** Show a node of the learner's project (from a piece of advice). */
+  onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
+  /** Open another way to solve the lesson, in a scratch workspace. */
+  onOpenAlternative: (index: number) => void;
+}
+
+/** What is looked at once the lesson works: never blocking. */
+interface Quality {
+  robustness: RobustnessResult[];
+  advice: Advice[];
 }
 
 type Tab = 'learn' | 'goals' | 'help';
 
-export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, onNext, onReset, openOverlay }: Props) {
+export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, onNext, onReset, openOverlay, onFocusNode, onOpenAlternative }: Props) {
   const store = useStore();
   const tap = useOwnTap();
   const [tab, setTab] = useState<Tab>('learn');
   const [run, setRun] = useState<LessonRun | null>(null);
   const [hints, setHints] = useState(0);
+  const [quality, setQuality] = useState<Quality | null>(null);
 
   const verify = () => {
     store.commit();
-    const res = runLesson(lesson, structuredClone(store.project));
+    const project = structuredClone(store.project);
+    const res = runLesson(lesson, project);
     setRun(res);
     onChecked(res);
+    setQuality(res.passed ? { robustness: runRobustness(lesson, project), advice: newAdvice(lesson, project) } : null);
     if (res.passed) onPassed();
   };
 
@@ -115,6 +130,17 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, 
                     </button>
                   )}
                 </div>
+              )}
+              {run?.passed && quality && (
+                <QualityReview
+                  lesson={lesson}
+                  quality={quality}
+                  onFocus={(a) => {
+                    onClose();
+                    onFocusNode(a.graphId, a.nodeId, a.classId);
+                  }}
+                  onOpenAlternative={onOpenAlternative}
+                />
               )}
             </>
           )}
@@ -224,9 +250,11 @@ function RunResult({ run }: { run: LessonRun }) {
       </div>
     );
   }
+  const required = run.results.filter((r) => !r.check.notion);
+  const notions = run.results.filter((r) => r.check.notion);
   return (
     <div class="results">
-      {run.results.map((r) => (
+      {required.map((r) => (
         <div key={r.check.id} class={`result ${r.ok ? 'ok' : 'ko'}`}>
           <span class="r-icon">{r.ok ? '✓' : '✕'}</span>
           <span>
@@ -235,6 +263,20 @@ function RunResult({ run }: { run: LessonRun }) {
           </span>
         </div>
       ))}
+      {notions.length > 0 && (
+        <>
+          <p class="eyebrow results-head">Notion visée · ne bloque pas la réussite</p>
+          {notions.map((r) => (
+            <div key={r.check.id} class={`result notion ${r.ok ? 'ok' : 'skipped'}`}>
+              <span class="r-icon">{r.ok ? '✓' : '○'}</span>
+              <span>
+                {r.check.label}
+                {!r.ok && r.reason && <span class="r-why">{r.reason}</span>}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
       {run.notes.map((n) => (
         <p key={n} class="note">
           {n}
@@ -245,6 +287,78 @@ function RunResult({ run }: { run: LessonRun }) {
           Pour comprendre un échec, ferme ce panneau, touche le nœud qui aurait dû agir, puis Details › « Pourquoi ce nœud ne s’est pas exécuté ? » : la
           réponse s’appuie sur cette vérification.
         </p>
+      )}
+    </div>
+  );
+}
+
+/** After success: does it hold elsewhere, is it well built, how else could it be done. */
+function QualityReview({
+  lesson,
+  quality,
+  onFocus,
+  onOpenAlternative,
+}: { lesson: Lesson; quality: Quality; onFocus: (a: Advice) => void; onOpenAlternative: (index: number) => void }) {
+  const { robustness, advice } = quality;
+  const alternatives = lesson.alternatives ?? [];
+  if (!robustness.length && !advice.length && !alternatives.length) return null;
+  return (
+    <div class="quality">
+      <h4>Pour aller plus loin</h4>
+      <p class="muted small">La leçon est réussie. Ce qui suit regarde si ta solution tient ailleurs et comment elle est construite : ce sont des conseils.</p>
+      {robustness.length > 0 && (
+        <section class="q-section">
+          <p class="eyebrow">Et si…</p>
+          {robustness.map((r) => (
+            <div key={r.case.id} class={`result ${r.ok ? 'ok' : 'warn'}`}>
+              <span class="r-icon">{r.ok ? '✓' : '!'}</span>
+              <span>
+                {r.ok ? 'Marche aussi si ' : 'Ne marche pas si '}
+                {r.case.label}
+                {!r.ok && (
+                  <span class="r-why">
+                    {r.reason} {r.case.advice}
+                  </span>
+                )}
+              </span>
+            </div>
+          ))}
+        </section>
+      )}
+      {advice.length > 0 && (
+        <section class="q-section">
+          <p class="eyebrow">Conseils de construction</p>
+          {advice.map((a, i) => (
+            <article key={i} class="card advice-card">
+              <h4>
+                {a.title} <span class="muted small">· {a.className}</span>
+              </h4>
+              <p>{a.text}</p>
+              <button class="btn" onClick={() => onFocus(a)}>
+                Voir le nœud
+              </button>
+            </article>
+          ))}
+        </section>
+      )}
+      {alternatives.length > 0 && (
+        <section class="q-section">
+          <p class="eyebrow">Une autre façon de faire</p>
+          {alternatives.map((alt, i) => (
+            <article key={alt.title} class="card alt-card">
+              <h4>{alt.title}</h4>
+              <p>
+                <strong>Ce qu’elle gagne.</strong> {alt.gains}
+              </p>
+              <p>
+                <strong>Ce qu’elle perd.</strong> {alt.loses}
+              </p>
+              <button class="btn" onClick={() => onOpenAlternative(i)}>
+                Ouvrir ce graphe
+              </button>
+            </article>
+          ))}
+        </section>
       )}
     </div>
   );

@@ -11,7 +11,7 @@ const OUT = new URL('./out/', import.meta.url);
 
 it('generates solved lesson projects', () => {
   mkdirSync(OUT, { recursive: true });
-  for (const id of ['l03-interrupteur', 'l10-dispatcher', 'l11-interface', 'l12-station', 'l-locales', 'l-terminal', 'l-codes', 'l-fiche', 'l-badges']) {
+  for (const id of ['l03-interrupteur', 'l10-dispatcher', 'l11-interface', 'l12-station', 'l-locales', 'l-terminal', 'l-codes', 'l-fiche', 'l-badges', 'l-porte-glisse', 'c3-projecteur', 'l-rangee-lampes', 'l-regarder', 'l-caisse', 'r3-bouton']) {
     const lesson = getLesson(id)!;
     const p = lesson.setup();
     lesson.solve(p);

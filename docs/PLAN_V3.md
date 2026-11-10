@@ -68,3 +68,14 @@ GameMode, GameInstance, Save Game, Open Level, Data Tables, widgets UMG, ordre d
 2. Qualité en dernier (étape E).
 3. Timeline : éditeur de piste avec points clés.
 4. Line Trace en 2D : rayon depuis l'avant du joueur, visible en Play (Draw Debug Type For Duration par défaut dans les leçons).
+
+## Livraison (2026-11-10)
+
+Les cinq étapes sont livrées. Tristan a donné carte blanche le 2026-11-10 : C, D et E ont été faites à la suite. Écarts au plan, détaillés dans [HANDOFF.md](HANDOFF.md) :
+
+- 51 leçons et exercices au lieu de 49 : « Prédis P5 — Avant ou après ? » et « Débogue D6 — La tourelle aveugle » en plus.
+- « Regarder et interagir » : le piège expliqué est End donné comme une direction (le plus fréquent). Le rayon qui touche l'acteur qui le lance est le sujet de D6, car Ignore Self est coché par défaut dans UE.
+- « La rangée de lampes » règle des composants existants : le Construction Script ne crée pas de composants ici.
+- Robustesse sur dix leçons et autres façons de faire sur cinq (le plan visait une quinzaine) : à compléter leçon par leçon.
+- Pas de Sweep sur les déplacements d'acteurs : Event Hit vient du joueur qui bute contre un mesh.
+- Le format de sauvegarde passe à 7 sans conversion (le Timeline vit dans son nœud).

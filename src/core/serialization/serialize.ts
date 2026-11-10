@@ -89,6 +89,11 @@ function migrate(p: Project, from: number): Project {
     p.structs ??= [];
     cur = 6;
   }
+  if (cur === 6) {
+    // v7: Timelines (kept in their node), Construction Script graphs, Line Trace, Event Hit.
+    // Nothing to convert: the bump only stops an older app from opening nodes it does not know.
+    cur = 7;
+  }
   p.format = cur;
   return p;
 }

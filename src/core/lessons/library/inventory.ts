@@ -4,7 +4,7 @@
  */
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode } from '../checks';
+import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, notion } from '../checks';
 import type { Lesson } from '../types';
 import { playerBlueprint } from './props';
 
@@ -111,8 +111,8 @@ export const lessonInventory: Lesson = {
         return missing.length ? `Pas affiché après E : ${missing.join(', ')}. For Each Loop doit afficher Array Element à chaque tour.` : true;
       },
     },
-    usesNode('add', 'BP_Objet', ['array.add', 'array.addUnique'], 'BP_Objet ajoute avec Add', 'Ajoute le nom avec Add.'),
-    usesNode('loop', 'BP_Joueur', ['flow.forEachLoop'], 'BP_Joueur parcourt avec For Each Loop', 'Parcours l’inventaire avec For Each Loop.'),
+    notion(usesNode('add', 'BP_Objet', ['array.add', 'array.addUnique'], 'BP_Objet ajoute avec Add', 'Ajoute le nom avec Add.')),
+    notion(usesNode('loop', 'BP_Joueur', ['flow.forEachLoop'], 'BP_Joueur parcourt avec For Each Loop', 'Parcours l’inventaire avec For Each Loop.')),
     noRuntimeErrors(),
   ],
   solve(p) {

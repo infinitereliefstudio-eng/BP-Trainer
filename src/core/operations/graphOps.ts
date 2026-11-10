@@ -6,6 +6,7 @@ import { newId } from '../model/ids';
 import type { BlueprintClass, Graph, Link, NodeInstance, PinRef } from '../model/project';
 import { checkConnection, pinSpec } from '../graph/rules';
 import { conversionFor } from '../nodes/library/conversions';
+import { nameTimeline, TIMELINE_NODE } from '../nodes/library/timeline';
 import type { NodeContext } from '../nodes/definition';
 import { getDefinition, resolvePins } from '../nodes/registry';
 import { isAssignable } from '../types/pins';
@@ -28,6 +29,7 @@ export function addNode(
   if (!def) return fail(`Nœud inconnu : ${defId}`);
   if (def.allowedIn && !def.allowedIn.includes(graph.kind)) {
     const name = typeof def.title === 'string' ? def.title : 'Ce nœud';
+    if (graph.kind === 'construction') return fail(`${name} n'est pas autorisé dans le Construction Script.`);
     return fail(graph.kind === 'function' ? `${name} n'est pas autorisé dans une fonction.` : `${name} n'existe que dans une fonction.`);
   }
   if (def.unique) {
@@ -47,16 +49,17 @@ export function addNode(
     def: defId,
     x: Math.round(x),
     y: Math.round(y),
-    config: { ...(def.defaultConfig ?? {}), ...config },
+    config: structuredClone({ ...(def.defaultConfig ?? {}), ...config }),
     defaults: {},
   };
+  if (defId === TIMELINE_NODE) nameTimeline(node, graph);
   graph.nodes[node.id] = node;
   return ok(node);
 }
 
 export function removeNodes(graph: Graph, ids: Iterable<string>): void {
-  // A function always keeps its entry node, like in UE.
-  const set = new Set([...ids].filter((id) => graph.nodes[id]?.def !== 'fn.entry'));
+  // A function and the Construction Script always keep their entry node, like in UE.
+  const set = new Set([...ids].filter((id) => graph.nodes[id]?.def !== 'fn.entry' && graph.nodes[id]?.def !== 'cs.entry'));
   for (const id of set) delete graph.nodes[id];
   for (const l of Object.values(graph.links)) {
     if (set.has(l.from.node) || set.has(l.to.node)) delete graph.links[l.id];
@@ -176,6 +179,8 @@ export function duplicateNodes(graph: Graph, ids: string[], dx = 32, dy = 32): s
     if (def?.unique) continue; // UE refuses to duplicate BeginPlay & co.
     const copy: NodeInstance = structuredClone(src);
     copy.id = newId('n');
+    // A copied Timeline is a new timeline, with a name and tracks of its own.
+    if (copy.def === TIMELINE_NODE) nameTimeline(copy, graph);
     copy.x += dx;
     copy.y += dy;
     graph.nodes[copy.id] = copy;

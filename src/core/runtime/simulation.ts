@@ -16,9 +16,10 @@ import { createActor, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
 import { RunRecord, type NoteCode } from './runRecord';
-import { movePlayer } from './movement';
+import { movePlayer, type BlockingHit } from './movement';
 import { endOverlapsWith, updateOverlaps, type Fire } from './overlaps';
 import { TimerSet } from './timers';
+import { lineTrace, type DebugLine, type TraceHit } from './trace';
 import { isRef, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
 
 export type { ScreenMessage, SimLogEntry, SimLogLevel } from './journal';
@@ -60,6 +61,10 @@ export class Simulation implements InterpreterHost {
   trace: TraceEntry[] = [];
   /** Joystick direction, each axis in [-1, 1]. */
   move = { x: 0, y: 0 };
+  /** Duration of the frame being played. */
+  deltaSeconds = STEP;
+  /** Debug lines of Line Traces still on screen. */
+  debugLines: DebugLine[] = [];
   /** Running timers (Set Timer by Event). */
   readonly timers = new TimerSet();
   /** Everything that ran, for "why did this node not run?". */
@@ -97,6 +102,16 @@ export class Simulation implements InterpreterHost {
     this.spawnLevel();
     this.order = opts.order ?? 'level';
     this.rankActors(this.order);
+    this.construct();
+  }
+
+  /**
+   * Construction Scripts run as soon as the level exists, before any
+   * BeginPlay: this is also what the editor's level view shows.
+   */
+  private construct(): void {
+    for (const a of this.scripted()) this.interp.construct(a);
+    this.interp.drain(true);
   }
 
   // ------------------------------------------------------------- journal
@@ -180,6 +195,7 @@ export class Simulation implements InterpreterHost {
         `Ordre des BeginPlay pour cette partie : ${first.map((a) => a.label).join(', ')}. Il change à chaque Play : UE ne garantit pas l'ordre entre acteurs.`,
       );
     }
+    for (const a of this.scripted()) this.interp.autoPlayTimelines(a);
     this.fireAll(isBeginPlay, 'then');
     this.runPhases();
   }
@@ -198,14 +214,20 @@ export class Simulation implements InterpreterHost {
   step(dt = STEP): void {
     if (!this.started) this.start();
     if (this.paused) return;
+    this.deltaSeconds = dt;
     this.phases.push(
       () => {
-        movePlayer(this.player, this.move, this.actors, dt);
+        for (const h of movePlayer(this.player, this.move, this.actors, dt)) this.fireHit(h);
+      },
+      () => {
         updateOverlaps([this.player, ...this.actors.filter((a) => !a.destroyed)], this.fire);
       },
       () => this.fireAll((n) => n.def === 'event.tick', 'then', { delta: dt }),
       () => {
-        for (const a of this.scripted()) this.interp.tickLatents(a, dt);
+        for (const a of this.scripted()) {
+          this.interp.tickLatents(a, dt);
+          this.interp.tickTimelines(a, dt);
+        }
         this.timers.tick(dt, (t) => {
           const owner = this.findActor(t.actor);
           if (owner && !owner.destroyed) this.fire(owner, (n) => n.id === t.node, 'then');
@@ -216,6 +238,7 @@ export class Simulation implements InterpreterHost {
         this.record.time = this.time;
         this.frame++;
         this.journal.expire(this.time);
+        this.debugLines = this.debugLines.filter((l) => l.until > this.time + 1e-9);
         this.removeDestroyed();
       },
     );
@@ -229,6 +252,33 @@ export class Simulation implements InterpreterHost {
       const next = this.phases.shift();
       if (!next) return;
       next();
+    }
+  }
+
+  /**
+   * The player is blocked by a mesh: both actors get Event Hit, every frame
+   * the contact lasts. The one that moved gets the surface normal, the other
+   * its opposite (the direction it is pushed in), as UE's ReceiveHit.
+   */
+  private fireHit(h: BlockingHit): void {
+    const isHit = (n: NodeInstance) => n.def === 'event.hit';
+    const at: RValue = { x: h.x, y: h.y, z: 0 };
+    const comp: RValue = { ref: 'component', actor: h.actor.id, id: h.comp.id };
+    this.fire(h.actor, isHit, 'then', {
+      myComp: comp,
+      other: { ref: 'actor', id: this.player.id },
+      otherComp: null,
+      location: at,
+      normal: { x: -h.nx, y: -h.ny, z: 0 },
+    });
+    if (this.player.classId) {
+      this.fire(this.player, isHit, 'then', {
+        myComp: null,
+        other: { ref: 'actor', id: h.actor.id },
+        otherComp: comp,
+        location: at,
+        normal: { x: h.nx, y: h.ny, z: 0 },
+      });
     }
   }
 
@@ -410,6 +460,15 @@ export class Simulation implements InterpreterHost {
     this.actors.push(a);
     this.markClass(cls.id);
     return a;
+  }
+
+  lineTrace(start: { x: number; y: number }, end: { x: number; y: number }, channel: number, ignore: Set<string>): TraceHit | undefined {
+    return lineTrace(this.allActors(), start, end, channel, ignore);
+  }
+
+  debugLine(line: DebugLine): void {
+    this.debugLines.push(line);
+    if (this.debugLines.length > 200) this.debugLines.shift();
   }
 
   setTimer(event: ObjRef, time: number, looping: boolean): RValue {

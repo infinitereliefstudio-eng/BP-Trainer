@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 43:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 43")
+        if await page.locator('.lesson-item').count() != 51:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 51")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -312,6 +312,167 @@ async def main():
         await page.locator('.tb.class-name').tap()
         await page.wait_for_timeout(300)
         await shot('37_content_browser')
+
+        # Step C of V3: a Timeline and its track editor (tap adds a key, a finger moves it), the Construction Script
+        for lid in ['l-porte-glisse', 'c3-projecteur', 'l-rangee-lampes', 'l-regarder', 'l-caisse', 'r3-bouton']:
+            await page.evaluate(PUT, [f'project:lesson:{lid}', (HERE / 'out' / f'{lid}.json').read_text()])
+        home = (ROOT / 'dist' / 'index.html').as_uri() + '?e2e'
+
+        async def close_sheet():
+            if await page.locator('.sheet .btn', has_text='Fermer').count():
+                await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+                await page.wait_for_timeout(200)
+
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La porte qui glisse').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('38_timeline_graph')
+        await page.evaluate("() => { const s = window.bpStore; s.selectNodes([Object.values(s.graph.nodes).find(n => n.def === 'timeline.node').id]); }")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.drawer.right .btn', has_text='Éditer la piste').tap()
+        await page.wait_for_timeout(300)
+        keys = "() => Object.values(window.bpStore.graph.nodes).find(n => n.def === 'timeline.node').config.tracks[0].keys"
+        box = await page.locator('.tl-plot').bounding_box()
+        x0, y0 = box['x'] + box['width'] * 0.5, box['y'] + box['height'] * 0.3
+        await page.touchscreen.tap(x0, y0)
+        await page.wait_for_timeout(200)
+        added = await page.evaluate(keys)
+        if len(added) != 3:
+            errs.append(f'Timeline : {len(added)} points clés après un toucher, 3 attendus')
+        cdp = await ctx.new_cdp_session(page)
+        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x0, 'y': y0}]})
+        for i in range(1, 9):
+            await cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x0 - i * 15, 'y': y0 + i * 8}]})
+            await page.wait_for_timeout(20)
+        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+        await page.wait_for_timeout(300)
+        moved = await page.evaluate(keys)
+        if len(moved) != 3 or not (moved[1]['t'] < added[1]['t'] and moved[1]['v'] < added[1]['v']):
+            errs.append(f'Timeline : le point clé n’a pas suivi le doigt ({added[1]} puis {moved[1] if len(moved) > 1 else None})')
+        await shot('39_timeline_editor')
+        await page.locator('.timeline-editor .btn', has_text='Fermer').tap()
+        await page.evaluate("() => { const s = window.bpStore; s.undo(); s.undo(); }")
+        await page.locator('.drawer.right .drawer-head .btn').tap()
+
+        # The lesson passes; then: notion apart, robustness, another way to do it, opened as a scratch project
+        await page.locator('.tb.lesson').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.lesson-tabs button', has_text='Objectifs').tap()
+        await page.locator('.lesson-body .btn.big', has_text='Vérifier').tap()
+        await page.wait_for_timeout(600)
+        if await page.locator('.success').count() == 0:
+            errs.append('La porte qui glisse : la solution de référence ne passe pas dans l’appli')
+        if await page.locator('.result.notion.ok').count() != 1:
+            errs.append('Fiche de leçon : la notion visée n’est pas affichée à part')
+        if await page.locator('.quality .result.ok', has_text='Marche aussi si').count() != 1:
+            errs.append('Fiche de leçon : pas de résultat de robustesse')
+        await page.locator('.quality').scroll_into_view_if_needed()
+        await shot('40_quality_review')
+        await page.locator('.alt-card .btn').scroll_into_view_if_needed()
+        await shot('41_alternative_card')
+        await page.locator('.alt-card .btn', has_text='Ouvrir ce graphe').tap()
+        await page.wait_for_timeout(600)
+        await shot('42_alternative_open')
+        if await page.locator('.scratch-bar').count() != 1:
+            errs.append('Autre façon de faire : le bandeau du projet d’essai manque')
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.tb.stop').tap()
+        await page.locator('.scratch-bar .btn').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.tb.lesson').count() != 1:
+            errs.append('Autre façon de faire : pas de retour à la leçon')
+
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La rangée de lampes').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.wait_for_timeout(300)
+        await shot('43_construction_level')
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.drawer.left .mb-main', has_text='ConstructionScript').tap()
+        await page.wait_for_timeout(300)
+        await shot('44_construction_my_blueprint')
+        await page.locator('.drawer.left .drawer-head .btn').tap()
+        await page.wait_for_timeout(300)
+        await shot('45_construction_graph')
+        if await page.locator('.tab.active', has_text='ConstructionScript').count() != 1:
+            errs.append('Construction Script : le graphe ne s’ouvre pas depuis My Blueprint')
+        # Changing an instance in the level reruns the script: the editor preview follows.
+        lit = await page.evaluate("""() => { const s = window.bpStore; const a = s.project.level.actors[1]; const on = s.cls.variables.find(v => v.name === 'Allumee').id; s.applyProject('test', p => { p.level.actors[1].overrides[on] = true; }); return a.name; }""")
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.wait_for_timeout(300)
+        await shot('46_construction_rerun')
+
+        # Step D of V3: a Line Trace drawn during Play, Event Hit pushing a crate
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Regarder et interagir').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.evaluate(OPEN, 'BP_Joueur')
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('47_trace_graph')
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.key', has_text='E').first.dispatch_event('pointerdown')
+        await page.wait_for_timeout(300)
+        await page.locator('.key', has_text='E').first.dispatch_event('pointerup')
+        await shot('48_trace_play')
+        if await page.locator('.screen-msg, .screen-messages', has_text='Levier actionné').count() == 0 and 'Levier' not in await page.inner_text('body'):
+            errs.append('Regarder et interagir : le levier ne réagit pas en Play')
+        await page.locator('.tb.stop').tap()
+
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La caisse qu’on pousse').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await shot('49_hit_graph')
+
+        # Step E of V3: advice on the whole project (menu), the notebook on the home screen
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Générateur et lampe').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.evaluate("""() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Lampe'); s.openClass(c.id); s.apply('test', (cl, g) => { const id = (k) => 'smoke_' + k; g.nodes[id('t')] = { id: id('t'), def: 'event.tick', x: 64, y: 96, config: {}, defaults: {} }; g.nodes[id('p')] = { id: id('p'), def: 'debug.printString', x: 400, y: 96, config: {}, defaults: {} }; g.links[id('l')] = { id: id('l'), from: { node: id('t'), pin: 'then' }, to: { node: id('p'), pin: 'exec' } }; }); }""")
+        await page.locator('button[aria-label^="Plus d"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Conseils de construction').tap()
+        await page.wait_for_timeout(300)
+        await shot('50_advice')
+        if await page.locator('.advice-card', has_text='Tick qui surveille').count() != 1:
+            errs.append('Conseils de construction : « Tick qui surveille » manque')
+        await page.locator('.advice-card .btn').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate("() => window.bpStore.undo()")
+
+        await page.evaluate(PUT, ['progress', '{"done":["l01-bonjour","l02-lampe","l03-interrupteur","l-porte-glisse"]}'])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await shot('51_home_progress')
+        if await page.locator('.lesson-item.next').count() != 1:
+            errs.append('Accueil : la prochaine étape n’est pas mise en avant')
+        await page.locator('.home-tabs button', has_text='Carnet').tap()
+        await page.locator('.notebook .search').fill('timeline')
+        await page.wait_for_timeout(300)
+        await shot('52_notebook_search')
+        found = await page.locator('.note-item').count()
+        if found < 3 or await page.locator('.note-item.done', has_text='Play reprend').count() != 1:
+            errs.append(f'Carnet : recherche « timeline » : {found} fiches, la leçon réussie doit montrer sa phrase à retenir')
         print('errors', errs)
         await b.close()
         return errs

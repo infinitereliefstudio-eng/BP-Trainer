@@ -11,6 +11,8 @@ import { lessonBadges, lessonCodes, solveCodes } from '../src/core/lessons/libra
 import { debug5, lessonRecord, solveRecord } from '../src/core/lessons/library/records';
 import { addInterfaceParam } from '../src/core/operations/interfaceOps';
 import { T } from '../src/core/types/pins';
+import { lessonCrate, lessonLook, refactor3, solveCrate, traceAndInteract } from '../src/core/lessons/library/interaction';
+import { complete3, lessonLampRow, lessonSlidingDoor, solveLampRow, solveSlidingDoor } from '../src/core/lessons/library/motion';
 
 const reasons = (run: ReturnType<typeof runLesson>) => Object.fromEntries(run.results.filter((r) => !r.ok).map((r) => [r.check.id, r.reason]));
 
@@ -73,5 +75,86 @@ describe('V3 lesson traps, step B', () => {
   it('Les badges and D5: the starting project fails for the reason the lesson is about', () => {
     expect(reasons(runLesson(lessonBadges, lessonBadges.setup())).count).toMatch(/compte double/);
     expect(reasons(runLesson(debug5, debug5.setup())).total).toMatch(/une copie de chaque lampe/);
+  });
+});
+
+describe('V3 lesson traps, step C', () => {
+  it('La porte qui glisse: the starting project jumps open', () => {
+    const r = reasons(runLesson(lessonSlidingDoor, lessonSlidingDoor.setup()));
+    expect(r.slides).toMatch(/sauté au lieu de glisser/);
+  });
+
+  it('La porte qui glisse: Play on the way out does nothing, the Timeline is already at its end', () => {
+    const p = lessonSlidingDoor.setup();
+    solveSlidingDoor(p, 'play', 'play');
+    const r = reasons(runLesson(lessonSlidingDoor, p));
+    expect(Object.keys(r)[0]).toBe('closing');
+    expect(r.closing).toMatch(/déjà à la fin.*Reverse/s);
+  });
+
+  it('La porte qui glisse: Play from Start on the way in makes the door jump back', () => {
+    const p = lessonSlidingDoor.setup();
+    solveSlidingDoor(p, 'playFromStart', 'reverse');
+    const r = reasons(runLesson(lessonSlidingDoor, p));
+    expect(Object.keys(r)).toEqual(['resume']);
+    expect(r.resume).toMatch(/Play from Start repart de 0/);
+  });
+
+  it('Complète C3: both FlipFlop outputs on Play leave the light on', () => {
+    const p = complete3.setup();
+    complete3.solve(p);
+    const g = p.classes[0].graphs[0];
+    for (const l of Object.values(g.links)) if (l.to.pin === 'reverse') l.to.pin = 'play';
+    const r = reasons(runLesson(complete3, p));
+    expect(r.down).toMatch(/Reverse/);
+  });
+
+  it('La rangée de lampes: done at BeginPlay, it shows in game but not in the editor', () => {
+    const p = lessonLampRow.setup();
+    solveLampRow(p, 'beginPlay');
+    const r = reasons(runLesson(lessonLampRow, p));
+    expect(Object.keys(r)).toEqual(['editor']);
+    expect(r.editor).toMatch(/En jeu c’est bon, mais pas dans l’éditeur/);
+    expect(r.editor).toMatch(/ConstructionScript/);
+  });
+});
+
+describe('V3 lesson traps, step D', () => {
+  it('Regarder et interagir: End given as a direction only never reaches the lever', () => {
+    const p = lessonLook.setup();
+    const b = edit(p, 'BP_Joueur');
+    const key = Object.values(b.graph.nodes).find((n) => n.def === 'event.inputKey')!.id;
+    traceAndInteract(b, { iface: p.interfaces[0].id, fn: p.interfaces[0].functions[0].id }, false, key);
+    const run = runLesson(lessonLook, p);
+    expect(run.runtimeErrors).toEqual([]);
+    expect(reasons(run).lever).toMatch(/End = Start \+ Get Actor Forward Vector × 300/);
+  });
+
+  it('La caisse qu’on pousse: printing at every Hit shows the message dozens of times', () => {
+    const p = lessonCrate.setup();
+    solveCrate(p, { once: false });
+    expect(reasons(runLesson(lessonCrate, p)).once).toMatch(/à chaque image/);
+  });
+
+  it('La caisse qu’on pousse: a Do Once never reopened stays closed for the second push', () => {
+    const p = lessonCrate.setup();
+    solveCrate(p, { reopen: false });
+    const r = reasons(runLesson(lessonCrate, p));
+    expect(Object.keys(r)).toEqual(['again']);
+    expect(r.again).toMatch(/Retriggerable Delay/);
+  });
+
+  it('La caisse qu’on pousse: a fixed distance per Hit is too slow at 30 images per second', () => {
+    const p = lessonCrate.setup();
+    solveCrate(p, { perSecond: false });
+    const r = reasons(runLesson(lessonCrate, p));
+    expect(Object.keys(r)).toEqual(['slow']);
+    expect(r.slow).toMatch(/Get World Delta Seconds/);
+  });
+
+  it('Refactor R3: the starting project lights both buttons at once', () => {
+    const r = reasons(runLesson(refactor3, refactor3.setup()));
+    expect(r.top).toMatch(/deux zones/);
+    expect(r['no-cast']).toBeDefined();
   });
 });

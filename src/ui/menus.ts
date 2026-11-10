@@ -1,4 +1,5 @@
 /** Context menus (long press) for nodes, pins, links and the "⋮" button. */
+import { hapticsEnabled, hapticsSupported, setHaptics } from '@editor/haptics';
 import { eventKey } from '@core/model/inheritance';
 import { parentEvent } from '@core/nodes/library/functions';
 import { getDefinition } from '@core/nodes/registry';
@@ -218,6 +219,10 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
       );
     },
   });
+  if (hapticsSupported()) {
+    const on = hapticsEnabled();
+    items.push({ label: on ? 'Vibrations : activées' : 'Vibrations : coupées', action: () => setHaptics(!on) });
+  }
   items.push({ label: 'Plein écran', action: () => enterFullscreen() }, { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) });
   return items;
 }

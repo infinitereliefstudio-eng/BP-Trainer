@@ -7,6 +7,7 @@ import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
 import { runLesson, runRobustness, type LessonRun, type RobustnessResult } from '@core/lessons/runner';
 import type { Advice } from '@core/quality/advice';
 import { newAdvice } from '@core/quality/lessonAdvice';
+import { haptic } from '@editor/haptics';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
@@ -52,6 +53,7 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, 
     setRun(res);
     onChecked(res);
     setQuality(res.passed ? { robustness: runRobustness(lesson, project), advice: newAdvice(lesson, project) } : null);
+    haptic(res.passed ? 'success' : 'fail');
     if (res.passed) onPassed();
   };
 
@@ -204,6 +206,7 @@ function PredictPanel({
             disabled={right}
             onClick={() => {
               setChoice(i);
+              haptic(i === p.answer ? 'success' : 'fail');
               if (i === p.answer) onPassed();
             }}
           >

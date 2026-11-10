@@ -13,6 +13,7 @@ import { insertReroute, nodesInComment } from '@core/operations/organizeOps';
 import { COMMENT_MIN } from '@core/nodes/library/organization';
 import type { EditorStore } from '@core/store/editorStore';
 import { isAssignable, type PinType } from '@core/types/pins';
+import { haptic } from './haptics';
 import { Camera, type Point } from './camera';
 import { GestureController, type GestureHost } from './gestures';
 import { hitTest, nodesInRect, type Hit } from './hit';
@@ -202,6 +203,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
   const tryConnect = (a: PinRef, b: PinRef): boolean => {
     const res = store.apply('Relier', (_c, g) => connect(g, a, b, store.ctx));
     if (!res.ok) store.warn(res.reason);
+    haptic(res.ok ? 'link' : 'refuse');
     return res.ok;
   };
 

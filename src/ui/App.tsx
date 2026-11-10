@@ -10,6 +10,7 @@ import { addNode } from '@core/operations/graphOps';
 import type { Simulation } from '@core/runtime/simulation';
 import type { Value } from '@core/types/values';
 import { GraphCanvas, type CanvasRequests, type GraphCanvasHandle } from '@editor/GraphCanvas';
+import { haptic } from '@editor/haptics';
 import { PlaySession } from '@editor/world/playSession';
 import { WorldCanvas, type WorldRequests } from '@editor/world/WorldCanvas';
 import { StoreContext, useStore } from './hooks';
@@ -126,6 +127,7 @@ function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPas
   const showPaused = () => {
     const p = session?.sim.paused;
     if (!p) return;
+    haptic('stop');
     setBottom(false);
     setDebugOpen(true);
     focusNode(p.graphId, p.nodeId, p.classId, { top: 60, right: Math.min(300, window.innerWidth * 0.8) });
@@ -143,6 +145,7 @@ function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPas
         store.compile();
         setView('graph');
         setBottom('compiler');
+        haptic('fail');
         store.error(`Play impossible : ${cls.name} contient des erreurs de compilation.`);
         return;
       }

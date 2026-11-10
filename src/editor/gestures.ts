@@ -5,6 +5,7 @@
  * The controller decides *what kind* of gesture is happening; the host
  * (GraphCanvas) decides what it means for the model.
  */
+import { haptic } from './haptics';
 import type { Hit } from './hit';
 
 export interface GestureHost {
@@ -91,7 +92,7 @@ export class GestureController {
     this.longTimer = window.setTimeout(() => {
       if (this.mode !== 'pending') return;
       this.mode = 'consumed';
-      navigator.vibrate?.(12);
+      haptic('press');
       this.host.onLongPress(this.startHit, this.start.x, this.start.y);
     }, LONG_PRESS_MS);
   };
@@ -233,6 +234,7 @@ export class GestureController {
     const p = this.local(e);
     this.clearLong();
     this.mode = 'consumed';
+    haptic('press');
     this.host.onLongPress(this.host.hitAt(p.x, p.y), p.x, p.y);
   };
 }

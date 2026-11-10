@@ -3,6 +3,7 @@
  * on-screen Print String messages and the runtime error counter.
  */
 import { useEffect, useReducer, useRef } from 'preact/hooks';
+import { haptic } from '@editor/haptics';
 import type { InputKey } from '@core/runtime/simulation';
 import type { PlaySession, Speed } from '@editor/world/playSession';
 
@@ -74,6 +75,7 @@ function Key({ label, k, session, wide }: { label: string; k: InputKey; session:
       onPointerDown={(e) => {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         (e.currentTarget as HTMLElement).classList.add('down');
+        haptic('tap');
         session.sim.pressKey(k);
       }}
       onPointerUp={(e) => {

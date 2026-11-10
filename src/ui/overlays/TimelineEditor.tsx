@@ -6,6 +6,7 @@
 import { useLayoutEffect, useRef, useState } from 'preact/hooks';
 import { readTimeline, TIMELINE_NODE, type TimelineData, type TimelineKey } from '@core/nodes/library/timeline';
 import { addTimelineTrack, normalizeTimeline, setTimeline } from '@core/operations/timelineOps';
+import { haptic } from '@editor/haptics';
 import { useStore } from '../hooks';
 import { Check, NumberField, TextCommit } from '../panels/fields';
 import { useOwnTap } from '../widgets/useOwnTap';
@@ -100,12 +101,14 @@ export function TimelineEditor({ nodeId, onClose }: { nodeId: string; onClose: (
       if (x < PAD.l - 8 || y > size.h - PAD.b + 10) return;
       const key = at(e, range);
       key.v = Math.max(range[0], Math.min(range[1], key.v));
+      haptic('tap');
       commitKeys([...track.keys, key], key, 'Ajouter un point clé');
       return;
     }
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
     // While dragging, the scale stays put, with room to go past the current extremes.
     const room = (range[1] - range[0]) * 0.5;
+    haptic('tap');
     setSel(best);
     setDrag({ keys: track.keys.map((k) => ({ ...k })), index: best, range: [range[0] - room, range[1] + room] });
   };

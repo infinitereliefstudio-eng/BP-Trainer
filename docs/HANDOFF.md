@@ -184,6 +184,7 @@ Parcours et accueil (2026-11-10, hors plan, dans la carte blanche) :
 - 51 leçons et exercices (le plan en visait 49 ; P5 et D6 en plus).
 - Accueil : barre de progression, compte par niveau, prochaine étape mise en avant (« À suivre »), et un onglet Carnet : la phrase « À retenir » de chaque étape réussie, les notions de toutes, avec une recherche (« timeline », « cast »…).
 - Aide et gestes (menu ⋮) remise à jour.
+- Retours haptiques (`editor/haptics.ts`, Vibration API) : appui long, fil relié ou refusé, nœud ajouté, touches de Play, point clé d'un Timeline, breakpoint atteint, leçon réussie ou non. Menu ⋮ › Vibrations pour les couper (choix gardé dans le navigateur).
 - La page de test claude.ai n'a pas été republiée le 2026-11-10 : l'APK installée charge le site GitHub Pages, mis à jour par le push sur `main`. Elle reste utile pour montrer une étape avant de la pousser.
 
 ## Méthode de travail

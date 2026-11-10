@@ -6,6 +6,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { compatiblePin, paletteEntries, searchEntries, type PaletteEntry } from '@core/nodes/palette';
 import { uniqueName } from '@core/model/project';
 import { getDefinition } from '@core/nodes/registry';
+import { haptic } from '@editor/haptics';
 import { addNode, connect } from '@core/operations/graphOps';
 import type { PaletteRequest } from '@editor/GraphCanvas';
 import { useStore } from '../hooks';
@@ -64,6 +65,7 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
       return added;
     });
     onClose();
+    haptic(res.ok ? 'tap' : 'refuse');
     if (!res.ok) store.warn(res.reason);
     else store.selectNodes([res.value.id]);
   };

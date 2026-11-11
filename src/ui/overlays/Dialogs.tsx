@@ -9,6 +9,7 @@ import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
 import { useOwnTap } from '../widgets/useOwnTap';
+import { APP_VERSION, BUILD_DATE } from '../../version';
 
 function Dialog({ title, children, onClose }: { title: string; children: ComponentChildren; onClose: () => void }) {
   const tap = useOwnTap();
@@ -114,6 +115,7 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
     <Dialog title="BP Trainer — aide et gestes" onClose={onClose}>
       <p>Créer des Blueprints, les faire communiquer, les lancer avec Play et les déboguer, au doigt.</p>
       <ul class="about-list">
+        <li>En leçon : la bande sous la barre d’outils garde l’objectif sous les yeux, et Vérifier teste ton travail sans ouvrir la fiche.</li>
         <li>Appui long sur le vide : palette des nœuds.</li>
         <li>Tirer depuis une pin : un fil. Relâcher dans le vide : palette filtrée.</li>
         <li>Toucher une pin puis une autre : relier sans glisser.</li>
@@ -125,6 +127,9 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
         <li>Pendant Play : le joueur regarde dans la direction du joystick ; un Line Trace avec Draw Debug Type se dessine dans le niveau.</li>
         <li>Menu ⋮ › Conseils de construction : des pistes sur la façon dont les graphes sont bâtis.</li>
       </ul>
+      <p class="muted small">
+        BP Trainer {APP_VERSION} · construit le {BUILD_DATE}
+      </p>
       <div class="dialog-actions">
         <button class="btn primary" onClick={onClose}>
           Compris

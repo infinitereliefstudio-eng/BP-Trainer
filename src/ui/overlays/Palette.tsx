@@ -11,6 +11,7 @@ import { addNode, connect } from '@core/operations/graphOps';
 import type { PaletteRequest } from '@editor/GraphCanvas';
 import { useStore } from '../hooks';
 import { useOwnTap } from '../widgets/useOwnTap';
+import { recentKeys, rememberKey } from './recentNodes';
 
 interface Props {
   req: PaletteRequest;
@@ -36,7 +37,17 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
     [usable, query],
   );
 
+  // The last nodes placed, offered first when browsing: the same ten come back all the time.
+  const recents = useMemo(() => {
+    if (query.trim() || req.from) return [];
+    const byKey = new Map(usable.map((e) => [e.key, e]));
+    return recentKeys()
+      .map((k) => byKey.get(k))
+      .filter((e) => !!e);
+  }, [usable, query, req.from]);
+
   const place = (e: PaletteEntry) => {
+    rememberKey(e.key);
     const def = getDefinition(e.def);
     if (def?.unique) {
       const existing = Object.values(store.graph.nodes).find((n) => n.def === e.def);
@@ -94,6 +105,13 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
         </div>
         <div class="palette-list">
           {results.length === 0 && <p class="hint">Aucun nœud ne correspond.</p>}
+          {recents.length > 0 && <div class="palette-cat recent">Récents</div>}
+          {recents.map((e) => (
+            <button key={`recent:${e.key}`} class="palette-item" onClick={tap.guard(() => place(e))}>
+              <span class="pi-title">{e.title}</span>
+              <span class="pi-desc">{e.description}</span>
+            </button>
+          ))}
           {results.map((e) => {
             const header = !query && e.category !== lastCat ? e.category : null;
             lastCat = e.category;

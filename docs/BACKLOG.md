@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : pédagogie, fonctions, fidélité à UE, ergonomie sur téléphone, technique. Mis à jour le 2026-11-10, après la V3. Rien ici n'est décidé : une idée ne se réalise que si Tristan la demande.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : pédagogie, fonctions, fidélité à UE, ergonomie sur téléphone, technique. Mis à jour le 2026-11-11, après la V4 (voir « Déjà fait » en bas : plusieurs lignes des tableaux sont faites). Rien ici n'est décidé : une idée ne se réalise que si Tristan la demande.
 
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
@@ -101,6 +101,7 @@ Le meilleur rapport entre ce que ça apporte et ce que ça coûte, dans l'ordre.
 
 ## Déjà fait, noté ici auparavant
 
+- V4 (11 novembre 2026) : objectifs visibles et Vérifier sans ouvrir la fiche, sauvegarde complète dans un fichier, solution de référence ouvrable, écran allumé pendant Play, révision espacée, fiches de nœuds consultables, numéro de version visible, reprendre où on en était, palette avec les récents, trois Prédis de plus. Les lignes correspondantes des tableaux ci-dessus sont donc faites (les favoris de la palette et le message « nouvelle version » ne le sont pas).
 - Retours sur la qualité des solutions (noté le 6 novembre 2026) : notion visée non bloquante, scénarios de robustesse, conseils de construction, autres façons de faire. Étape E de la V3.
 - Variables locales, paramètres et sorties des fonctions d'interface, conversion d'un Custom Event en événement d'interface. Étape A de la V3.
 - Structures, Map, Set, Text, Name. Étape B de la V3.

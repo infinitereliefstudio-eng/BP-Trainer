@@ -31,6 +31,11 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 | `quality/` | Les conseils de construction : des règles sur la forme des graphes (`advice.ts` : Tick qui surveille, Delay sur Tick, overlap sans Other Actor, chaîne copiée…), jamais bloquantes ; `lessonAdvice.ts` ne garde que ce que l'élève a ajouté au projet de départ |
 | `lessons/` | Le parcours : chaque leçon décrit ses explications, son projet de départ, un scénario joué automatiquement et des vérifications. `runner.ts` exécute le scénario sans affichage ; chaque leçon fournit aussi sa solution de référence, testée. `library/props.ts` regroupe les Blueprints réutilisés (joueur, clé, porte, générateur, lampe) ; `library/beginner.ts`, `choices.ts` et `inventory.ts` les leçons ajoutées en V2 (niveaux : `levels.ts`, champ `level`), `library/exercises.ts` les exercices « Prédis » (`kind: 'predict'`, réponse vérifiée par la simulation dans les tests) et « Débogue » (`kind: 'debug'`) |
 
+### Révision, mémo et index
+
+- `review/` : les questions de révision (`bank/`, une par leçon et par fiche de mémo, la première option est la bonne) et leur calendrier (`schedule.ts` : boîtes de Leitner, questions dues, jours d'affilée). Pour ajouter une leçon, ajouter sa question : un test l'exige.
+- `reference/memo.ts` : les fiches du mémo UE (ce que le simulateur n'exécute pas). `reference/nodeIndex.ts` : l'index des nœuds, tiré des définitions, des notes de `explain/notes.ts` et des solutions des leçons.
+
 ### Ajouter un nœud
 
 1. Écrire sa définition dans le fichier de `core/nodes/library/` de sa catégorie (ou un nouveau fichier).
@@ -75,6 +80,7 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - `render/` dessine la grille, les fils (courbes de Bézier) et les nœuds, aux couleurs d'UE (`theme.ts`), plus la loupe pendant qu'on tire un fil.
 - `gestures.ts` reconnaît les gestes (toucher, double toucher, appui long, glisser, pincer) ; `GraphCanvas.tsx` leur donne un sens et appelle le store.
 - Reroute (style `knot`) : un point, saisi par son centre ; ses pins sont de part et d'autre. Comment (style `comment`) : dessiné derrière les fils, saisi par sa barre de titre (déplace les nœuds qu'il contient entièrement) ou sa poignée (redimensionne) ; son intérieur reste du vide.
+- `ui/home/` : les onglets de l'accueil (Révision, Carnet, Nœuds, Mémo UE) et la sauvegarde complète. `ui/lesson/GoalStrip.tsx` : les objectifs sous la barre d'outils ; la vérification d'une leçon est faite par `App.tsx` et partagée avec la fiche. `storage/backup.ts` : export et restauration de toutes les clés `progress` et `project:*`.
 - `world/playSession.ts` garde l'acteur choisi (`selected`) : surligné dans le niveau, montré dans l'Outliner en direct (`ui/play/LiveOutliner.tsx`), et objet débogué.
 
 ## Débogage

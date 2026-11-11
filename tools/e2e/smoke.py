@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 51:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 51")
+        if await page.locator('.lesson-item').count() != 54:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 54")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -473,6 +473,52 @@ async def main():
         found = await page.locator('.note-item').count()
         if found < 3 or await page.locator('.note-item.done', has_text='Play reprend').count() != 1:
             errs.append(f'Carnet : recherche « timeline » : {found} fiches, la leçon réussie doit montrer sa phrase à retenir')
+
+        # V4: spaced review, node index, UE memo, objectives visible while building
+        await page.locator('.home-tabs button', has_text='Révision').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.count-badge').count() != 1:
+            errs.append('Révision : pas de compteur de questions à revoir sur l’onglet')
+        await page.locator('.review .btn.big').first.tap()
+        await page.wait_for_timeout(300)
+        await shot('53_review_question')
+        if await page.locator('.quiz .option').count() != 4:
+            errs.append('Révision : la question n’a pas quatre réponses')
+        await page.locator('.quiz .option').first.tap()
+        await page.wait_for_timeout(300)
+        await shot('54_review_answer')
+        if await page.locator('.quiz .option.answer').count() != 1:
+            errs.append('Révision : la bonne réponse n’est pas montrée après le choix')
+        await page.locator('.home-tabs button', has_text='Nœuds').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.notebook .search').fill('delay')
+        await page.wait_for_timeout(300)
+        if await page.locator('.node-item').count() < 2:
+            errs.append('Index des nœuds : la recherche « delay » ne trouve pas Delay et Retriggerable Delay')
+        await page.locator('.node-head').first.tap()
+        await page.wait_for_timeout(300)
+        await shot('55_node_index')
+        if await page.locator('.node-body').count() != 1:
+            errs.append('Index des nœuds : la fiche du nœud ne s’ouvre pas')
+        await page.locator('.home-tabs button', has_text='Mémo UE').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.note-item', has_text='Enhanced Input').tap()
+        await page.wait_for_timeout(300)
+        await shot('56_memo_card')
+        if await page.locator('.memo-card').count() != 1:
+            errs.append('Mémo : la fiche Enhanced Input ne s’ouvre pas')
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Interrupteur à touche').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        if await page.locator('.goal-strip').count() != 1:
+            errs.append('Leçon : la bande des objectifs manque')
+        await page.locator('.goal-verify').tap()
+        await page.wait_for_timeout(600)
+        await shot('57_goal_strip')
+        if await page.locator('.goal-result').count() != 1:
+            errs.append('Leçon : Vérifier depuis la bande n’affiche pas de résultat')
         print('errors', errs)
         await b.close()
         return errs

@@ -22,6 +22,7 @@ import { lessonInheritance } from './library/inheritance';
 import { lesson12 } from './library/module4';
 import { lessonLift, lessonWaves } from './library/timing';
 import { debug1, debug2, predict1, predict2, predict3 } from './library/exercises';
+import { predict6, predict7, predict8 } from './library/predicts';
 import { QUALITY } from './library/quality';
 import type { Lesson } from './types';
 
@@ -34,6 +35,7 @@ export const LESSONS: Lesson[] = [
   lessonCounter,
   lessonBarrier,
   complete1,
+  predict6,
   // Intermédiaire
   predict1,
   lesson5,
@@ -42,6 +44,7 @@ export const LESSONS: Lesson[] = [
   lesson8,
   predict2,
   lessonKeypad,
+  predict7,
   lessonDoorStates,
   refactor2,
   lessonInventory,
@@ -60,6 +63,7 @@ export const LESSONS: Lesson[] = [
   predict4,
   lessonRecord,
   debug5,
+  predict8,
   lessonBadges,
   lessonLampRow,
   predict5,

@@ -4,11 +4,9 @@
  */
 import { useState } from 'preact/hooks';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
-import { runLesson, runRobustness, type LessonRun, type RobustnessResult } from '@core/lessons/runner';
+import type { LessonRun, RobustnessResult } from '@core/lessons/runner';
 import type { Advice } from '@core/quality/advice';
-import { newAdvice } from '@core/quality/lessonAdvice';
 import { haptic } from '@editor/haptics';
-import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { RichText, richInline } from './RichText';
@@ -19,8 +17,13 @@ interface Props {
   done: boolean;
   onClose: () => void;
   onPassed: () => void;
-  /** The check's simulation, kept for the node diagnostics in Details. */
-  onChecked: (run: LessonRun) => void;
+  /** The last check and what it found, kept by the editor so the goal strip shows it too. */
+  check: LessonCheck | null;
+  onVerify: () => void;
+  /** The tab to show first (the goal strip opens the sheet on its results). */
+  initialTab?: LessonTab;
+  /** Open the reference solution as a graph, in a scratch workspace. */
+  onOpenSolution: () => void;
   onNext: () => void;
   onReset: () => void;
   openOverlay: OpenOverlay;
@@ -31,31 +34,42 @@ interface Props {
 }
 
 /** What is looked at once the lesson works: never blocking. */
-interface Quality {
+export interface Quality {
   robustness: RobustnessResult[];
   advice: Advice[];
 }
 
-type Tab = 'learn' | 'goals' | 'help';
+export type LessonTab = 'learn' | 'goals' | 'help';
+type Tab = LessonTab;
 
-export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, onNext, onReset, openOverlay, onFocusNode, onOpenAlternative }: Props) {
-  const store = useStore();
+/** A run of the lesson's checks on the learner's project. */
+export interface LessonCheck {
+  run: LessonRun;
+  quality: Quality | null;
+}
+
+export function LessonSheet({
+  lesson,
+  next,
+  done,
+  onClose,
+  onPassed,
+  check,
+  onVerify,
+  initialTab,
+  onOpenSolution,
+  onNext,
+  onReset,
+  openOverlay,
+  onFocusNode,
+  onOpenAlternative,
+}: Props) {
   const tap = useOwnTap();
-  const [tab, setTab] = useState<Tab>('learn');
-  const [run, setRun] = useState<LessonRun | null>(null);
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'learn');
   const [hints, setHints] = useState(0);
-  const [quality, setQuality] = useState<Quality | null>(null);
-
-  const verify = () => {
-    store.commit();
-    const project = structuredClone(store.project);
-    const res = runLesson(lesson, project);
-    setRun(res);
-    onChecked(res);
-    setQuality(res.passed ? { robustness: runRobustness(lesson, project), advice: newAdvice(lesson, project) } : null);
-    haptic(res.passed ? 'success' : 'fail');
-    if (res.passed) onPassed();
-  };
+  const run = check?.run ?? null;
+  const quality = check?.quality ?? null;
+  const verify = onVerify;
 
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
@@ -155,6 +169,11 @@ export function LessonSheet({ lesson, next, done, onClose, onPassed, onChecked, 
                   <p>{h}</p>
                 </article>
               ))}
+              {hints >= 3 && lesson.kind !== 'predict' && (
+                <button class="btn primary" onClick={onOpenSolution}>
+                  Ouvrir la solution dans l’éditeur
+                </button>
+              )}
               {hints < 3 && (
                 <button class="btn" onClick={() => setHints(hints + 1)}>
                   {['Afficher un indice', 'Quels nœuds utiliser ?', 'Voir la solution'][hints]}

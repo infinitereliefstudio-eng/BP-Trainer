@@ -5,6 +5,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { compileClass } from '@core/compiler/validate';
 import { LESSONS } from '@core/lessons';
+import { runLesson, runRobustness } from '@core/lessons/runner';
+import { newAdvice } from '@core/quality/lessonAdvice';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
 import { addNode } from '@core/operations/graphOps';
 import type { Simulation } from '@core/runtime/simulation';
@@ -14,7 +16,8 @@ import { haptic } from '@editor/haptics';
 import { PlaySession } from '@editor/world/playSession';
 import { WorldCanvas, type WorldRequests } from '@editor/world/WorldCanvas';
 import { StoreContext, useStore } from './hooks';
-import { LessonSheet } from './lesson/LessonSheet';
+import { GoalStrip } from './lesson/GoalStrip';
+import { LessonSheet, type LessonCheck } from './lesson/LessonSheet';
 import { actorMenu, linkMenu, moreMenu, nodeMenu, pinMenu, placeMenu } from './menus';
 import type { Overlay } from './overlayTypes';
 import { ContentBrowser } from './overlays/ContentBrowser';
@@ -40,6 +43,8 @@ interface Props {
   lesson?: Lesson;
   /** Set when the workspace shows another way to solve `lesson`: nothing is saved. */
   alternative?: { lesson: Lesson; title: string };
+  /** Set when the workspace shows the reference solution of this lesson: nothing is saved. */
+  solution?: Lesson;
   lessonDone: boolean;
   onHome: () => void;
   onLessonPassed: () => void;
@@ -54,10 +59,10 @@ export function App(props: Props) {
   );
 }
 
-function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPassed, onOpen }: Props) {
+function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
-  const [view, setView] = useState<MainView>(lesson && !alternative ? 'level' : 'graph');
+  const [view, setView] = useState<MainView>(lesson && !alternative && !solution ? 'level' : 'graph');
   const [left, setLeft] = useState(false);
   const [details, setDetails] = useState(false);
   const [bottom, setBottom] = useState<false | BottomTab>(false);
@@ -65,11 +70,53 @@ function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPas
   const [overlay, setOverlay] = useState<Overlay | null>(null);
   const [session, setSession] = useState<PlaySession | null>(null);
   const [lastRun, setLastRun] = useState<Simulation | undefined>(undefined);
+  const [check, setCheck] = useState<LessonCheck | null>(null);
+  const scratch = !!alternative || !!solution;
 
   useEffect(() => {
-    if (lesson && workspace.fresh) setOverlay({ kind: 'lesson' });
+    if (lesson && workspace.fresh && !scratch) setOverlay({ kind: 'lesson' });
   }, []);
   useEffect(() => () => session?.dispose(), [session]);
+
+  // Keep the screen on while a game runs (the phone would sleep during a long Play).
+  useEffect(() => {
+    if (!session) return;
+    type Lock = { release(): Promise<void> };
+    const wl = (navigator as Navigator & { wakeLock?: { request(type: 'screen'): Promise<Lock> } }).wakeLock;
+    if (!wl) return;
+    let lock: Lock | undefined;
+    let over = false;
+    const take = () => {
+      if (document.visibilityState !== 'visible') return;
+      wl.request('screen')
+        .then((l) => {
+          if (over) l.release().catch(() => undefined);
+          else lock = l;
+        })
+        .catch(() => undefined);
+    };
+    take();
+    // The lock is dropped when the app goes to the background: take it again on return.
+    document.addEventListener('visibilitychange', take);
+    return () => {
+      over = true;
+      document.removeEventListener('visibilitychange', take);
+      lock?.release().catch(() => undefined);
+    };
+  }, [session]);
+
+  /** Run the lesson's checks on the project as it is; returns whether it passed. */
+  const verify = (): boolean => {
+    if (!lesson) return false;
+    store.commit();
+    const project = structuredClone(store.project);
+    const run = runLesson(lesson, project);
+    setCheck({ run, quality: run.passed ? { robustness: runRobustness(lesson, project), advice: newAdvice(lesson, project) } : null });
+    if (run.sim) setLastRun(run.sim);
+    haptic(run.passed ? 'success' : 'fail');
+    if (run.passed) onLessonPassed();
+    return run.passed;
+  };
 
   const openDetails = () => {
     setDetails(true);
@@ -211,6 +258,33 @@ function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPas
           })
         }
       />
+      {solution && (
+        <div class="scratch-bar">
+          <span>
+            <strong>Solution de référence</strong> — une façon de faire parmi d’autres. Lis-la, lance Play ; rien n’est enregistré ici.
+          </span>
+          <button
+            class="btn"
+            onClick={() => {
+              stop();
+              onOpen({ kind: 'lesson', lessonId: solution.id });
+            }}
+          >
+            Revenir à mon travail
+          </button>
+        </div>
+      )}
+      {lesson && !scratch && !playing && lesson.kind !== 'predict' && (
+        <GoalStrip
+          lesson={lesson}
+          check={check}
+          done={lessonDone}
+          onVerify={() => {
+            if (verify()) setOverlay({ kind: 'lesson', tab: 'goals' });
+          }}
+          onDetails={() => setOverlay({ kind: 'lesson', tab: 'goals' })}
+        />
+      )}
       {alternative && (
         <div class="scratch-bar">
           <span>
@@ -381,11 +455,18 @@ function Shell({ workspace, lesson, alternative, lessonDone, onHome, onLessonPas
           done={lessonDone}
           onClose={close}
           onPassed={onLessonPassed}
-          onChecked={(r) => r.sim && setLastRun(r.sim)}
+          check={check}
+          onVerify={verify}
+          initialTab={overlay.tab}
+          onOpenSolution={() => {
+            stop();
+            onOpen({ kind: 'solution', lessonId: lesson.id });
+          }}
           onNext={() => nextLesson && onOpen({ kind: 'lesson', lessonId: nextLesson.id })}
           onReset={() => {
             stop();
             resetLesson(workspace);
+            setCheck(null);
             setView('level');
             close();
           }}

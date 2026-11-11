@@ -69,5 +69,9 @@ export function inUeFor(node: NodeInstance): string | undefined {
   return IN_UE[node.def];
 }
 
+/** The notes of a node definition, for the node index (no instance at hand). */
+export const trapOf = (defId: string): string | undefined => TRAPS[defId];
+export const inUeOf = (defId: string): string | undefined => IN_UE[defId];
+
 /** For tests: every node id these notes are about. */
 export const NOTED_NODES = [...Object.keys(TRAPS), ...Object.keys(IN_UE)];

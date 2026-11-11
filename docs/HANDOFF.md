@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -186,6 +186,28 @@ Parcours et accueil (2026-11-10, hors plan, dans la carte blanche) :
 - Aide et gestes (menu ⋮) remise à jour.
 - Retours haptiques (`editor/haptics.ts`, Vibration API) : appui long, fil relié ou refusé, nœud ajouté, touches de Play, point clé d'un Timeline, breakpoint atteint, leçon réussie ou non. Menu ⋮ › Vibrations pour les couper (choix gardé dans le navigateur).
 - La page de test claude.ai n'a pas été republiée le 2026-11-10 : l'APK installée charge le site GitHub Pages, mis à jour par le push sur `main`. Elle reste utile pour montrer une étape avant de la pousser.
+
+## V4 (2026-11-11, carte blanche)
+
+Tristan a écrit le 2026-11-11, depuis l'appli de bureau Claude sur Windows (il a donc maintenant un ordinateur, en plus du téléphone) : « Tu as carte blanche pour améliorer cette application que ce soit l'interface, la pédagogie, les leçons, les fonctionnalités ou tout ce qui pourrait permettre d'avoir une application complète d'apprentissage des blueprints unreal engine et ce qui va autour ». Fait d'un bloc, **en attente de sa validation** ; la règle « une étape à la fois » reste la règle par défaut.
+
+Choix : prendre le haut de BACKLOG.md (« Par où commencer ») et ce qui répond à « ce qui va autour ».
+
+- **Révision espacée** (`core/review/`) : une question à choix par leçon et par fiche de mémo (`bank/lessons.ts`, `bank/memo.ts` ; la première option est la bonne, l'affichage mélange). `schedule.ts` : boîtes de Leitner (1, 3, 7, 16, 35, 90 jours), une question se débloque quand sa leçon est réussie ou sa fiche lue, elle est due un jour après la leçon (tout de suite pour les leçons réussies avant la V4, qui n'ont pas de date). Une réponse fausse la ramène au lendemain et la repose en fin de séance. Onglet Révision de l'accueil (`ui/home/Review.tsx`), compteur sur l'onglet, bandeau dans le parcours. Séances de 8 questions ; « S'entraîner quand même » ne touche pas au calendrier.
+- **Mémo UE** (`core/reference/memo.ts`, `ui/home/Memo.tsx`) : 22 fiches sur ce que le simulateur n'exécute pas (sortes de Blueprints, cycle de vie, fonction / macro / événement, composants, Gameplay Framework, Enhanced Input, UMG, niveaux et sauvegarde, choisir comment communiquer, obtenir une référence, références dures et souples, Data Tables, conteneurs, String / Name / Text, collisions, Tick / Timer / Timeline / Delay, briques d'un jeu narratif, performance, nommage, déboguer dans UE, raccourcis, autres éditeurs à nœuds). Chaque fiche renvoie aux leçons qui la pratiquent. `RichText` rend maintenant les blocs de lignes « - » en liste.
+- **Index des nœuds** (`core/reference/nodeIndex.ts`, `ui/home/NodeIndex.tsx`) : tous les nœuds hors de la palette, avec description, Piège, Dans UE et les leçons dont le projet de départ ou la solution l'utilise (calculé à la première ouverture). Filtre « Avec un piège ».
+- **Objectifs visibles** (`ui/lesson/GoalStrip.tsx`) : une bande sous la barre d'outils, en leçon, hors Play et hors Prédis : l'objectif en vue (toucher pour passer au suivant), Vérifier, et le résultat de la dernière vérification (toucher pour ouvrir la fiche sur Objectifs). Repliable (choix gardé dans le navigateur). La vérification vit maintenant dans `App.tsx` (`verify`, `LessonCheck`) et la fiche la reçoit.
+- **Solution ouvrable** : après le troisième indice, « Ouvrir la solution dans l'éditeur » ouvre `setup()` + `solve()` dans un projet d'essai (`WorkspaceRef` de type `solution`, jamais enregistré, bandeau « Revenir à mon travail »), sur le Blueprint que la solution a le plus modifié.
+- **Sauvegarde complète** (`storage/backup.ts`, `ui/home/BackupDialog.tsx`) : accueil › « Sauvegarde · v4.0.0 » : tout exporter (progression, révision, tous les projets) dans un fichier, restaurer. L'export passe par le partage Android quand il existe (téléphone), sinon par un téléchargement. À confirmer dans l'APK.
+- **Progression** (`ui/workspace.ts`) : `doneAt`, `review`, `read`, `days` (champs optionnels, les anciennes progressions restent lisibles). Jours d'affilée sur l'accueil. `Root.tsx` applique les changements à la dernière progression (`changeProgress`), pour que deux changements de suite ne s'écrasent pas.
+- **Accueil** : cinq onglets (Parcours, Révision, Carnet, Nœuds, Mémo UE), bouton « Reprendre » quand la dernière leçon ouverte n'est pas celle que « Continuer » propose.
+- **Petites choses** : écran allumé pendant Play (Wake Lock), nœuds récents en tête de la palette (`ui/overlays/recentNodes.ts`), numéro de version et date de construction (`src/version.ts`, `define` de `vite.config.ts`, version 4.0.0 dans `package.json`) dans Sauvegarde et dans Aide et gestes.
+- **Trois Prédis** (`lessons/library/predicts.ts`) : P6 « Sept divisé par deux » (Débutant, division entière), P7 « Le Gate » (Intermédiaire), P8 « Deux tableaux, ou un seul ? » (Confirmé, Set copie un tableau). 54 leçons et exercices.
+- Tests : `tests/review.test.ts` (banque de questions, calendrier, mémo, index), `tests/backup.test.ts`. Le smoke test a une suite (captures 53 à 57) **écrite sans pouvoir être lancée** (pas de Python sur la machine de Tristan) : la CI la jouera au premier push ; si elle échoue, le déploiement est bloqué et l'APK garde l'ancienne version.
+
+Remarqué, non changé : le Gate de l'appli a Start Closed décoché par défaut, alors que la macro d'UE le coche. À vérifier puis corriger (aucune leçon n'en dépend ; P7 le coche explicitement).
+
+Reste du haut du backlog : regard du joueur indépendant du déplacement, leçon de synthèse de la V3, plusieurs projets en Simulation libre, sons, Data Tables.
 
 ## Méthode de travail
 

@@ -4,7 +4,7 @@ Avant toute chose, lis **docs/HANDOFF.md** : contexte, état des étapes, décis
 
 ## Règles
 
-- L'utilisateur, Tristan, parle français et n'a qu'un téléphone : il teste sur la page de test claude.ai, ne lance aucune commande. Réponds en français.
+- L'utilisateur, Tristan, parle français. Il teste surtout sur son téléphone (APK liée au site GitHub Pages) ; depuis le 2026-11-11 il utilise aussi l'appli de bureau Claude sur Windows (Node installé, pas de Python : le smoke test ne tourne que dans la CI). Réponds en français.
 - Une étape à la fois : ne commence pas l'étape suivante du plan sans son feu vert explicite.
 - Textes de l'appli en français ; noms des nœuds, pins et panneaux en anglais, comme dans UE.
 - Architecture maintenable : petits fichiers par responsabilité. `src/core` n'utilise jamais le DOM. Un nœud = une définition déclarative (`core/nodes/library`) + un comportement (`core/runtime/behaviors`) ; une leçon = une définition testée avec sa solution de référence.

@@ -25,7 +25,7 @@ export type Overlay =
   | { kind: 'confirm'; title: string; text: string; confirmLabel: string; onConfirm: () => void }
   | { kind: 'content' }
   | { kind: 'about' }
-  | { kind: 'lesson' }
+  | { kind: 'lesson'; tab?: 'learn' | 'goals' | 'help' }
   /** Construction advice on the whole project. */
   | { kind: 'advice' }
   /** The track editor of a Timeline node of the open graph. */

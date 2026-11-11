@@ -1,6 +1,6 @@
 {
   "name": "bp-trainer",
-  "version": "0.1.0",
+  "version": "4.0.0",
   "private": true,
   "description": "Apprendre les Blueprints d'Unreal Engine 5 sur téléphone : éditeur de nœuds tactile, simulation et parcours d'exercices.",
   "type": "module",

@@ -15,7 +15,7 @@ Un ordre proposé, par lots cohérents. À trancher avec Tristan.
 | 2 | Entrées et contrôle | Enhanced Input, regard indépendant du déplacement, Tick maîtrisé et End Play, avec leurs leçons | ★★★ | M |
 | 3 | Synthèse | Leçon de synthèse de la V3, Débogue en série, « Montre-moi » après un échec | ★★★ | M |
 | 4 | Données d'un jeu | Data Tables, Actor Components, puis la suite « jeu narratif » pour Station enterrée | ★★★ | L |
-| 5 | Au-delà d'un niveau | GameInstance, GameMode, Open Level, Save Game | ★★ | XL |
+| 5 | Sauvegarde, puis niveaux | Save Game seul d'abord (M), puis plusieurs niveaux, Open Level, GameInstance (L). Voir « Sauvegarde et niveaux ». Demandé par Tristan le 2026-11-11 : peut passer avant le lot 4 | ★★★ | M puis L |
 | 6 | Interface | Widgets (UMG), comme une version à part | ★★★ | XL |
 
 Questions ouvertes : la suite narrative pour Station enterrée passe-t-elle avant une appli plus généraliste ? Quel objectif du jour par défaut (une leçon, ou cinq questions de révision) ?
@@ -101,7 +101,8 @@ Proposition : commencer par le rappel dans l'appli et la voie A, qui ne coûtent
 | Timeline complet | Points clés arrondis (Auto), pistes Vector, Color et Event, Play Rate, Set Timeline Length | ★★ | M |
 | Sweep et racine au choix | Sweep sur Set Actor Location et Add Actor World Offset. Dans UE il ne balaie que le composant racine : il faut pouvoir choisir un Static Mesh comme racine | ★★ | M |
 | Collision Presets | Réglage par composant et par canal (Block, Overlap, Ignore), au lieu de la seule case « bloque » | ★★ | M |
-| Plusieurs niveaux | GameMode, GameInstance, Open Level, Save Game : ce qui survit à un changement de niveau, et ce qui repart de zéro | ★★ | XL |
+| Save Game | Classe SaveGame, slots qui survivent à Stop, nœuds de sauvegarde et de chargement. Voir « Sauvegarde et niveaux », étape 1 | ★★★ | M |
+| Plusieurs niveaux | Open Level, GameInstance, GameMode léger : ce qui survit à un changement de niveau, et ce qui repart de zéro. Voir « Sauvegarde et niveaux », étape 2 | ★★★ | L |
 | Widgets (UMG) | Créer un widget, un texte, un bouton, le mettre à jour par événement : l'interface d'un jeu narratif. Un éditeur à part entière | ★★★ | XL |
 | Autres traces | Sphere Trace, Box Trace, Multi Line Trace, Line Trace For Objects | ★ | S à M |
 | Autres composants | Sphere Collision, Arrow, Spot Light, Audio | ★ | S chacun |
@@ -110,6 +111,45 @@ Proposition : commencer par le rappel dans l'appli et la voie A, qui ne coûtent
 | Déplacement d'IA | AI MoveTo simple, sans navigation réelle | ★ | L |
 | Physique simulée | Simulate Physics, impulsions | ★ | XL |
 | Export collable dans UE | UE accepte des nœuds collés sous forme de texte. À étudier : la fidélité du format n'est pas acquise | ★★ | XL |
+
+## Sauvegarde et niveaux
+
+Demandé par Tristan le 2026-11-11 : des exercices sur Save Game, le chargement d'un niveau, etc. La sauvegarde peut se faire seule, avant les niveaux : il suffit que quelque chose survive entre deux Play.
+
+### Étape 1 : Save Game seul (M)
+
+- Un nouveau type d'asset : une classe **SaveGame**, qui ne contient que des variables (pas de graphe, pas de composants), créée depuis le Content Browser.
+- Les nœuds d'UE : Create Save Game Object, Save Game to Slot, Load Game from Slot, Does Save Game Exist, Delete Game in Slot ; Cast To vers la classe SaveGame.
+- Les slots survivent à Stop : ce qu'une partie a sauvé est là à la suivante. Un panneau « Slots de sauvegarde » montre leur contenu et permet de les vider (n'existe pas dans UE, mais aide à comprendre). À décider : où ils sont gardés (avec le projet, pour qu'un export les emporte, ou à part).
+- Scénario des leçons : une nouvelle étape « arrêter et relancer la partie », qui garde les slots ; les vérifications portent sur ce que la seconde partie a retrouvé.
+
+| Exercice | Ce qu'il apprend |
+|---|---|
+| Le compteur de pièces qui survit | Créer, remplir, sauver ; charger au BeginPlay |
+| Débogue : la première partie plante | Load sans Does Save Game Exist renvoie None, puis Accessed None |
+| Débogue : la sauvegarde vide | Save Game to Slot appelé avant d'avoir rempli les variables |
+| Prédis : Load, Cast, lecture | Le Cast raté quand le slot contient une autre classe |
+| Le checkpoint | Sauver la position et l'état à un endroit précis, pas à chaque Tick |
+| La porte ouverte qui le reste | On ne sauve pas une référence d'acteur, mais un identifiant et un état |
+| Refactor : un seul objet de sauvegarde | Trois Blueprints qui écrivent chacun leur slot, à regrouper |
+
+### Étape 2 : plusieurs niveaux et GameInstance (L)
+
+- Plusieurs niveaux par projet (`Project.level` devient une liste : changement de format et migration), un sélecteur dans l'onglet Niveau, le nœud Open Level (by Name).
+- **GameInstance** : une classe choisie dans les réglages du projet, obtenue par Get Game Instance, seule à garder ses variables d'un niveau à l'autre.
+- **GameMode** en version légère : la classe du pion par défaut, par niveau.
+- Scénario des leçons : les vérifications doivent pouvoir porter sur le niveau courant après un Open Level.
+
+| Exercice | Ce qu'il apprend |
+|---|---|
+| Le couloir : passer une porte charge le niveau suivant | Open Level détruit tous les acteurs du niveau |
+| Prédis : que vaut le score après Open Level ? | Les variables du joueur repartent de leur valeur par défaut |
+| Garder l'inventaire entre deux niveaux | GameInstance comme mémoire de la session |
+| Arriver par la bonne porte | Dire au niveau suivant d'où l'on vient (un Name dans le GameInstance) |
+| Débogue : l'objet ramassé réapparaît | L'état du monde doit être gardé hors du niveau |
+| Synthèse : quitter, relancer, reprendre au bon niveau | GameInstance pour la session, SaveGame pour le disque |
+
+Hors de portée, à expliquer dans le mémo sans les simuler : les versions Async des nœuds de sauvegarde, le chargement de niveaux en streaming.
 
 ## Ergonomie et design sur téléphone
 

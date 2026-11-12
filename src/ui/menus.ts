@@ -1,5 +1,5 @@
 /** Context menus (long press) for nodes, pins, links and the "⋮" button. */
-import { hapticsEnabled, hapticsSupported, setHaptics } from '@editor/haptics';
+import { HAPTIC_LABEL, HAPTIC_LEVELS, hapticLevel, hapticsSupported, setHapticLevel } from '@editor/haptics';
 import { eventKey } from '@core/model/inheritance';
 import { parentEvent } from '@core/nodes/library/functions';
 import { getDefinition } from '@core/nodes/registry';
@@ -220,8 +220,10 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
     },
   });
   if (hapticsSupported()) {
-    const on = hapticsEnabled();
-    items.push({ label: on ? 'Vibrations : activées' : 'Vibrations : coupées', action: () => setHaptics(!on) });
+    // Each touch moves to the next strength, and plays it.
+    const level = hapticLevel();
+    const next = HAPTIC_LEVELS[(HAPTIC_LEVELS.indexOf(level) + 1) % HAPTIC_LEVELS.length];
+    items.push({ label: `Vibrations : ${HAPTIC_LABEL[level]}`, action: () => setHapticLevel(next) });
   }
   items.push({ label: 'Plein écran', action: () => enterFullscreen() }, { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) });
   return items;

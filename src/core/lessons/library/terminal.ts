@@ -182,7 +182,7 @@ export const lessonTerminal: Lesson = {
     t.f.graph.nodes[t.ret].defaults[reponse.id] = AUTORISE;
     // Door: rotate, then answer.
     const d = implement('BP_Porte');
-    removeNodes(d.b.graph, Object.values(d.b.graph.nodes).filter((n) => n.def === 'component.setRelativeRotation').map((n) => n.id));
+    removeNodes(d.b.graph, Object.values(d.b.graph.nodes).filter((n) => n.def === 'component.setRelativeRotation' || n.def === 'var.component').map((n) => n.id));
     const rot = d.f.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [300, 96]);
     d.f.link(d.entry, 'then', rot, 'exec').target('Porte', rot).link(rot, 'then', d.ret, 'exec');
     d.f.graph.nodes[d.ret].defaults[reponse.id] = OUVERTE;

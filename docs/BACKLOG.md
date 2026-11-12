@@ -184,6 +184,8 @@ Hors de portée, à expliquer dans le mémo sans les simuler : les versions Asyn
 
 ## Déjà fait, noté ici auparavant
 
+- V5 (12 novembre 2026) : bilan de la solution (étoiles, taille comparée aux solutions connues, nœuds déconseillés par leçon), autres règles de conseil (nœud jamais exécuté, variable jamais lue, Custom Event jamais appelé, Cast sur Tick…), fiches de notions dans les leçons, Débogue D7 à D9 (dont le timer jamais arrêté), Prédis P9 et P10 (For Loop with Break), trois leçons (Clamp, modulo, For Loop). Reste de ces lignes : étoiles gardées dans la progression, modificateurs de défi.
+
 - V4 (11 novembre 2026) : objectifs visibles et Vérifier sans ouvrir la fiche, sauvegarde complète dans un fichier, solution de référence ouvrable, écran allumé pendant Play, révision espacée, fiches de nœuds consultables (index des nœuds), mémo UE, numéro de version visible, reprendre où on en était, récents dans la palette, jours d'affilée, trois Prédis de plus.
 - Retours sur la qualité des solutions (noté le 6 novembre 2026) : notion visée non bloquante, scénarios de robustesse, conseils de construction, autres façons de faire. Étape E de la V3.
 - Variables locales, paramètres et sorties des fonctions d'interface, conversion d'un Custom Event en événement d'interface. Étape A de la V3.

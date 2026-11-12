@@ -488,3 +488,27 @@ select.field { padding-right: 4px; }
 .app { position: relative; }
 .palette-cat.recent { color: #8fb8f0; }
 .quiz-why p, .quiz .success p { margin: 0; line-height: 1.45; font-size: 14px; }
+
+/* V5: solution review and notion cards */
+.verdict { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #1a1a1a; border: 1px solid var(--line-2); }
+.verdict .stars { font-size: 20px; letter-spacing: 2px; color: var(--orange); }
+.verdict .stars .off { color: #444; }
+.verdict.stars-3 { border-color: #2f6b3a; background: rgba(63, 191, 90, 0.1); }
+.points { display: flex; flex-direction: column; gap: 4px; }
+.points .result { padding: 5px 10px; font-size: 13px; }
+.size-bars { display: flex; flex-direction: column; gap: 6px; }
+.size-row { display: grid; grid-template-columns: minmax(90px, 30%) 1fr 32px; align-items: center; gap: 8px; font-size: 13px; }
+.size-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.size-track { height: 10px; border-radius: 5px; background: #0e0e0e; border: 1px solid var(--line-2); overflow: hidden; }
+.size-fill { display: block; height: 100%; background: var(--ok); }
+.size-fill.heavy { background: var(--warn); }
+.size-num { text-align: right; font-variant-numeric: tabular-nums; }
+.goal-stars { color: var(--orange); }
+.notions { display: flex; flex-direction: column; gap: 8px; }
+.notion-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.notion-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 12px; border-radius: 17px; border: 1px solid var(--line-2); background: #1a1a1a; color: var(--text); font: inherit; font-size: 13px; }
+.notion-chip.active { border-color: var(--orange); background: #2a2014; }
+.chip-new { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--orange); }
+.notion-card .pattern { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.node-pill { padding: 2px 8px; border-radius: 4px; background: #0e0e0e; border: 1px solid var(--line-2); font-size: 12px; }
+.pattern .arrow { color: var(--muted); }

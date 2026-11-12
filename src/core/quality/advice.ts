@@ -4,9 +4,10 @@
  * are tips, never failures: each says what it saw and what would be sturdier.
  */
 import type { Level } from '../lessons/levels';
-import type { BlueprintClass, Graph, NodeInstance, Project } from '../model/project';
-import type { NodeContext } from '../nodes/definition';
-import { contextFor, findPin, getDefinition, nodeTitle } from '../nodes/registry';
+import type { NodeInstance, Project } from '../model/project';
+import { contextFor, getDefinition, nodeTitle } from '../nodes/registry';
+import { reach, type Rule, view } from './graphView';
+import { HYGIENE_RULES } from './hygiene';
 
 export interface Advice {
   rule: string;
@@ -16,6 +17,8 @@ export interface Advice {
   nodeId: string;
   title: string;
   text: string;
+  /** The variable the advice is about, when it is not the node itself. */
+  subject?: string;
 }
 
 const LEVEL_RANK: Record<Level, number> = { debutant: 0, intermediaire: 1, confirme: 2, avance: 3 };
@@ -34,43 +37,6 @@ const STEPPING = new Set(['actor.addOffset', 'component.addRelativeRotation']);
 const DELAYS = new Set(['time.delay', 'time.retriggerableDelay']);
 const SEARCHES = new Set(['actor.getAllOfClass', 'actor.getOfClass']);
 const OVERLAPS = new Set(['event.actorBeginOverlap', 'event.actorEndOverlap', 'event.componentBeginOverlap', 'event.componentEndOverlap']);
-
-interface GraphView {
-  cls: BlueprintClass;
-  graph: Graph;
-  ctx: NodeContext;
-  /** node id → exec successors, in wire order. */
-  next: Map<string, string[]>;
-  /** "node:pin" of every output pin that has a wire. */
-  wiredOut: Set<string>;
-}
-
-function view(cls: BlueprintClass, graph: Graph, ctx: NodeContext): GraphView {
-  const next = new Map<string, string[]>();
-  const wiredOut = new Set<string>();
-  for (const l of Object.values(graph.links)) {
-    wiredOut.add(`${l.from.node}:${l.from.pin}`);
-    const from = graph.nodes[l.from.node];
-    if (!from || findPin(from, l.from.pin, ctx)?.type.category !== 'exec') continue;
-    next.set(l.from.node, [...(next.get(l.from.node) ?? []), l.to.node]);
-  }
-  return { cls, graph, ctx, next, wiredOut };
-}
-
-/** Every node an event's exec wires lead to, the event excluded. */
-function reach(v: GraphView, start: string): NodeInstance[] {
-  const seen = new Set<string>();
-  const todo = [...(v.next.get(start) ?? [])];
-  while (todo.length) {
-    const id = todo.pop()!;
-    if (seen.has(id)) continue;
-    seen.add(id);
-    todo.push(...(v.next.get(id) ?? []));
-  }
-  return [...seen].map((id) => v.graph.nodes[id]).filter(Boolean);
-}
-
-type Rule = (v: GraphView, add: (rule: string, node: NodeInstance, title: string, text: string) => void) => void;
 
 const tickRules: Rule = (v, add) => {
   for (const tick of Object.values(v.graph.nodes)) {
@@ -138,6 +104,7 @@ const RULES: { from: Level; run: Rule }[] = [
   { from: 'intermediaire', run: tickRules },
   { from: 'intermediaire', run: overlapRule },
   { from: 'confirme', run: copiedChainRule },
+  ...HYGIENE_RULES,
 ];
 
 /**
@@ -151,10 +118,10 @@ export function adviceFor(project: Project, level?: Level, classNames?: string[]
     if (classNames && !classNames.includes(cls.name)) continue;
     const ctx = contextFor(cls, project);
     for (const graph of cls.graphs) {
-      const v = view(cls, graph, ctx);
+      const v = view(cls, graph, ctx, project);
       for (const r of RULES) {
         if (LEVEL_RANK[r.from] > rank) continue;
-        r.run(v, (rule, node, title, text) => out.push({ rule, classId: cls.id, className: cls.name, graphId: graph.id, nodeId: node.id, title, text }));
+        r.run(v, (rule, node, title, text, subject) => out.push({ rule, classId: cls.id, className: cls.name, graphId: graph.id, nodeId: node.id, title, text, subject }));
       }
     }
   }

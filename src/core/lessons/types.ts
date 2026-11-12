@@ -83,6 +83,21 @@ export interface Alternative {
 }
 
 /**
+ * Nodes that work but are a poor fit for this lesson's situation: found in
+ * the learner's solution, they are pointed out once the lesson is passed.
+ */
+export interface Avoid {
+  /** Node definitions concerned. */
+  defs: string[];
+  /** Only in this Blueprint (any when absent). */
+  in?: string;
+  /** What was found, in a few words: « Event Tick pour surveiller ». */
+  label: string;
+  /** Why it is not the best here, and what to use instead. */
+  why: string;
+}
+
+/**
  * build: make something work. predict: read a Blueprint and choose what it
  * will print, then check with Play. debug: a broken Blueprint to repair.
  * complete: a graph with gaps, the nodes to place are named. refactor: a
@@ -129,6 +144,7 @@ export interface Lesson {
   predict?: Prediction;
   robustness?: RobustnessCase[];
   alternatives?: Alternative[];
+  avoid?: Avoid[];
 }
 
 /** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */

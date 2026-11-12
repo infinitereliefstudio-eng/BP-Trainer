@@ -12,7 +12,7 @@ const OBJECTIVES = [
   'Puis lance ▶ Play et regarde l’Output Log pour vérifier.',
 ];
 
-const predictLesson = (l: Omit<Lesson, 'kind' | 'objectives' | 'checks' | 'solve' | 'number'>): Lesson => ({
+export const predictLesson = (l: Omit<Lesson, 'kind' | 'objectives' | 'checks' | 'solve' | 'number'>): Lesson => ({
   ...l,
   kind: 'predict',
   number: 0,

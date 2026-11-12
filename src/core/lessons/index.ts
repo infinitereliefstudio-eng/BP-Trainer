@@ -23,6 +23,11 @@ import { lesson12 } from './library/module4';
 import { lessonLift, lessonWaves } from './library/timing';
 import { debug1, debug2, predict1, predict2, predict3 } from './library/exercises';
 import { predict6, predict7, predict8 } from './library/predicts';
+import { predict10, predict9 } from './library/predicts2';
+import { debug7, debug8, debug9 } from './library/debugs';
+import { lessonFence } from './library/fence';
+import { lessonFan, lessonGauge } from './library/gauges';
+import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import type { Lesson } from './types';
 
@@ -34,7 +39,10 @@ export const LESSONS: Lesson[] = [
   lesson4,
   lessonCounter,
   lessonBarrier,
+  lessonGauge,
   complete1,
+  predict9,
+  debug7,
   predict6,
   // Intermédiaire
   predict1,
@@ -43,7 +51,10 @@ export const LESSONS: Lesson[] = [
   lesson7,
   lesson8,
   predict2,
+  debug8,
   lessonKeypad,
+  lessonFan,
+  predict10,
   predict7,
   lessonDoorStates,
   refactor2,
@@ -70,6 +81,8 @@ export const LESSONS: Lesson[] = [
   lessonBeginPlayOrder,
   debug4,
   lessonWaves,
+  debug9,
+  lessonFence,
   debug3,
   lessonLift,
   // Avancé
@@ -94,6 +107,7 @@ for (const l of LESSONS) {
   const q = QUALITY[l.id];
   if (q?.robustness) l.robustness = [...(l.robustness ?? []), ...q.robustness];
   if (q?.alternatives) l.alternatives = [...(l.alternatives ?? []), ...q.alternatives];
+  if (AVOID[l.id]) l.avoid = [...(l.avoid ?? []), ...AVOID[l.id]];
 }
 
 export function getLesson(id: string): Lesson | undefined {

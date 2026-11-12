@@ -69,7 +69,9 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
           {run.compileErrors.length > 0 ? (
             <>✕ Erreurs de compilation</>
           ) : run.passed ? (
-            <>✓ Réussi · voir la suite</>
+            <>
+              ✓ Réussi{check?.quality && <span class="goal-stars"> {'★'.repeat(check.quality.verdict.stars)}{'☆'.repeat(3 - check.quality.verdict.stars)}</span>} · voir le bilan
+            </>
           ) : (
             <>
               ✕ {okCount}/{required.length}

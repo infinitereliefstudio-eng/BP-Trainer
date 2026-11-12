@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-12, V5 faite et testée en local, **commit local non poussé** au moment d’écrire (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -208,6 +208,21 @@ Choix : prendre le haut de BACKLOG.md (« Par où commencer ») et ce qui répon
 Remarqué, non changé : le Gate de l'appli a Start Closed décoché par défaut, alors que la macro d'UE le coche. À vérifier puis corriger (aucune leçon n'en dépend ; P7 le coche explicitement).
 
 Reste du haut du backlog : regard du joueur indépendant du déplacement, leçon de synthèse de la V3, plusieurs projets en Simulation libre, sons, Data Tables.
+
+## V5 (2026-11-12)
+
+Demande de Tristan : de nouvelles leçons (autres sujets ou variations), une meilleure explication des notions à connaître, et un moyen pour l’appli de dire s’il y a mieux que la solution trouvée (nombre de nœuds, nœuds mal choisis pour le contexte…). Fait d’un bloc, **en attente de sa validation**.
+
+- **Bilan de la solution** (`core/quality/review.ts`, affiché après la réussite à la place de « Pour aller plus loin ») : une note sur trois étoiles et ses points (notion visée, robustesse, taille, nœuds déconseillés, conseils), jamais bloquante. `sizeReport` compte les nœuds (hors Comment et Reroute) et compare à la solution connue la plus proche (référence ou alternative) : compact, proche, lourd (plus de 25 % ou de 2 nœuds en trop), avec ce qu’il y a en plus par titre de nœud et un bouton vers la solution de référence. Les tailles affichées retirent les nœuds du projet de départ quand la solution ne fait qu’en ajouter. La bande des objectifs montre les étoiles.
+- **Nœuds déconseillés par leçon** : `Lesson.avoid` (`Avoid` : nœuds, Blueprint, libellé, pourquoi et quoi à la place), dans `lessons/library/avoid.ts` pour les leçons existantes (21 leçons : Tick qui surveille, recherche d’acteurs, Delay pour répéter, Cast dans « Regarder et interagir »…). Seuls les nœuds ajoutés par l’élève comptent. Testé : aucune solution connue n’en utilise.
+- **Six règles de conseil de plus** (`core/quality/hygiene.ts`, helpers communs dans `graphView.ts`) : nœud jamais exécuté, nœud pur que personne ne lit, Boolean comparé à une case, Sequence à une sortie, variable écrite jamais lue (ignorée si la leçon fournit la variable), Custom Event jamais appelé, Cast sur Tick. Deux solutions de référence laissaient un nœud orphelin (R1, Le terminal) : corrigées.
+- **Notions à connaître** : dans l’onglet Comprendre, chaque notion est une puce ; la toucher ouvre sa fiche (ce que c’est, quand s’en servir, piège, schéma type, leçon où elle a été vue ; « nouveau » sinon). `core/reference/glossaryData.ts` (39 fiches d’idées) et `glossary.ts` (à défaut, la description et le Piège du nœud du même nom). Testé : toute notion d’une leçon a une fiche.
+- **Huit leçons et exercices** (62 au total) : « La jauge d’énergie » (Débutant, Clamp ; alternative Min / Max), « Prédis P9 — Le Set oublié », « Débogue D7 — La lampe qui ne s’éteint plus » (premier Débogue du niveau Débutant), « Débogue D8 — La porte d’un seul passage » (DoOnce sans Reset), « Le ventilateur » (Intermédiaire, modulo, variation de l’interrupteur à touche), « Prédis P10 — Sortir d’une boucle », « Débogue D9 — Le compte à rebours sans fin » (timer jamais arrêté ; un DoOnce qui masque échoue), « La clôture » (Confirmé, For Loop et Spawn ; cinq Spawn copiés passent puis échouent au « Et si Nombre vaut 8 »). Fichiers `library/gauges.ts`, `fence.ts`, `debugs.ts`, `predicts2.ts`. Neuf questions de révision. Tests : `tests/reviewV5.test.ts`.
+- Écarté : « Bind fait deux fois » du backlog, car dans UE Bind Event n’ajoute pas deux fois le même événement (AddUnique) : le bug ne serait pas réaliste.
+- Version 5.0.0. `smoke.py` attend 62 étapes ; il n’a pas pu être lancé en local (pas de Python) : la CI le jouera au push. Vérifié à la main dans le navigateur à 800×400 : fiche de notion, bilan avec une solution alourdie.
+- Le dépôt cloné sous Windows avait `core.autocrlf=true` : le passer à `false` (les fichiers sont en LF, Biome et les scripts s’y attendent).
+
+Pistes non faites : garder les étoiles dans la progression et les montrer sur l’accueil ; « Montre-moi » après un échec ; listes `avoid` et robustesse pour les leçons restantes.
 
 ## Méthode de travail
 

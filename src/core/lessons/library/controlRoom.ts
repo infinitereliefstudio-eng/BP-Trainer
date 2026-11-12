@@ -227,7 +227,7 @@ export const refactor1: Lesson = {
     const nodes = Object.values(b.graph.nodes);
     removeNodes(
       b.graph,
-      nodes.filter((n) => n.def === 'actor.getAllOfClass' || n.def === 'array.length').map((n) => n.id),
+      nodes.filter((n) => n.def === 'actor.getAllOfClass' || n.def === 'array.length' || n.def === 'conv.intToString').map((n) => n.id),
     );
     const tick = nodes.find((n) => n.def === 'event.tick')!.id;
     const text = nodes.find((n) => n.def === 'component.setText')!.id;

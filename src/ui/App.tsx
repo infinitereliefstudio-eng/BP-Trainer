@@ -7,6 +7,7 @@ import { compileClass } from '@core/compiler/validate';
 import { LESSONS } from '@core/lessons';
 import { runLesson, runRobustness } from '@core/lessons/runner';
 import { newAdvice } from '@core/quality/lessonAdvice';
+import { avoidHits, sizeReport, verdict } from '@core/quality/review';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
 import { addNode } from '@core/operations/graphOps';
 import type { Simulation } from '@core/runtime/simulation';
@@ -111,7 +112,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
     store.commit();
     const project = structuredClone(store.project);
     const run = runLesson(lesson, project);
-    setCheck({ run, quality: run.passed ? { robustness: runRobustness(lesson, project), advice: newAdvice(lesson, project) } : null });
+    let quality: LessonCheck['quality'] = null;
+    if (run.passed) {
+      const parts = { robustness: runRobustness(lesson, project), advice: newAdvice(lesson, project), size: sizeReport(lesson, project), avoided: avoidHits(lesson, project) };
+      quality = { ...parts, verdict: verdict(run, parts) };
+    }
+    setCheck({ run, quality });
     if (run.sim) setLastRun(run.sim);
     haptic(run.passed ? 'success' : 'fail');
     if (run.passed) onLessonPassed();

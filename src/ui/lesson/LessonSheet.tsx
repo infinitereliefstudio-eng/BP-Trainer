@@ -4,8 +4,9 @@
  */
 import { useState } from 'preact/hooks';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
-import type { LessonRun, RobustnessResult } from '@core/lessons/runner';
-import type { Advice } from '@core/quality/advice';
+import type { LessonRun } from '@core/lessons/runner';
+import type { QualityParts, Verdict } from '@core/quality/review';
+import { firstSeen, notionHelp } from '@core/reference/glossary';
 import { haptic } from '@editor/haptics';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
@@ -34,9 +35,8 @@ interface Props {
 }
 
 /** What is looked at once the lesson works: never blocking. */
-export interface Quality {
-  robustness: RobustnessResult[];
-  advice: Advice[];
+export interface Quality extends QualityParts {
+  verdict: Verdict;
 }
 
 export type LessonTab = 'learn' | 'goals' | 'help';
@@ -108,7 +108,7 @@ export function LessonSheet({
                   <RichText text={c.body} />
                 </article>
               ))}
-              <p class="muted small">Notions : {lesson.notions.join(' · ')}</p>
+              <Notions lesson={lesson} />
               <button class="btn primary" onClick={() => setTab('goals')}>
                 {lesson.kind === 'predict' ? 'Répondre' : 'Voir les objectifs'}
               </button>
@@ -155,6 +155,7 @@ export function LessonSheet({
                     onClose();
                     onFocusNode(a.graphId, a.nodeId, a.classId);
                   }}
+                  onOpenSolution={onOpenSolution}
                   onOpenAlternative={onOpenAlternative}
                 />
               )}
@@ -320,14 +321,80 @@ function QualityReview({
   quality,
   onFocus,
   onOpenAlternative,
-}: { lesson: Lesson; quality: Quality; onFocus: (a: Advice) => void; onOpenAlternative: (index: number) => void }) {
-  const { robustness, advice } = quality;
+  onOpenSolution,
+}: {
+  lesson: Lesson;
+  quality: Quality;
+  onFocus: (a: { graphId: string; nodeId: string; classId: string }) => void;
+  onOpenAlternative: (index: number) => void;
+  onOpenSolution: () => void;
+}) {
+  const { robustness, advice, size, avoided, verdict } = quality;
   const alternatives = lesson.alternatives ?? [];
-  if (!robustness.length && !advice.length && !alternatives.length) return null;
+  // Sizes leave out what the lesson gave, when the solution only adds to it.
+  const given = size && size.reference > size.given && size.mine > size.given ? size.given : 0;
   return (
     <div class="quality">
-      <h4>Pour aller plus loin</h4>
-      <p class="muted small">La leçon est réussie. Ce qui suit regarde si ta solution tient ailleurs et comment elle est construite : ce sont des conseils.</p>
+      <h4>Bilan de ta solution</h4>
+      <div class={`verdict stars-${verdict.stars}`}>
+        <span class="stars" role="img" aria-label={`${verdict.stars} sur 3`}>
+          {'★'.repeat(verdict.stars)}
+          <span class="off">{'★'.repeat(3 - verdict.stars)}</span>
+        </span>
+        <strong>{verdict.title}</strong>
+      </div>
+      <div class="points">
+        {verdict.points.map((pt) => (
+          <div key={pt.text} class={`result ${pt.ok ? 'ok' : 'warn'}`}>
+            <span class="r-icon">{pt.ok ? '✓' : '!'}</span>
+            <span>{pt.text}</span>
+          </div>
+        ))}
+      </div>
+      <p class="muted small">La leçon est réussie quoi qu’il arrive. Ce bilan compare ta solution aux solutions connues et regarde comment elle est construite : le détail est ci-dessous.</p>
+      {size && (
+        <section class="q-section">
+          <p class="eyebrow">Taille du graphe</p>
+          <div class="size-bars">
+            <SizeBar label="Ta solution" value={size.mine - given} max={Math.max(size.mine, size.reference) - given} heavy={size.verdict === 'heavy'} />
+            <SizeBar label={size.closest === 'la solution de référence' ? 'Référence' : size.closest} value={size.reference - given} max={Math.max(size.mine, size.reference) - given} />
+          </div>
+          <p class="muted small">
+            {given > 0 ? 'Nœuds ajoutés au projet de départ. ' : 'Nombre de nœuds. '}
+            {size.mine < size.smallest
+              ? 'Tu fais plus court que toutes les solutions connues : vérifie surtout « Et si… », la plus courte n’est pas toujours la plus solide.'
+              : size.verdict === 'compact'
+                ? 'Rien de trop.'
+                : size.verdict === 'close'
+                  ? 'Un peu plus que nécessaire, sans gravité.'
+                  : 'Nettement plus que nécessaire : il existe une construction plus directe.'}
+          </p>
+          {size.extra.length > 0 && (
+            <p class="small">
+              En plus chez toi : {size.extra.map((e) => `${e.count} × ${e.title}`).join(', ')}.
+            </p>
+          )}
+          {size.verdict !== 'compact' && (
+            <button class="btn" onClick={onOpenSolution}>
+              Comparer avec la solution de référence
+            </button>
+          )}
+        </section>
+      )}
+      {avoided.length > 0 && (
+        <section class="q-section">
+          <p class="eyebrow">Pas le meilleur outil ici</p>
+          {avoided.map((h) => (
+            <article key={h.avoid.label} class="card advice-card">
+              <h4>{h.avoid.label}</h4>
+              <p>{h.avoid.why}</p>
+              <button class="btn" onClick={() => onFocus(h)}>
+                Voir le nœud
+              </button>
+            </article>
+          ))}
+        </section>
+      )}
       {robustness.length > 0 && (
         <section class="q-section">
           <p class="eyebrow">Et si…</p>
@@ -383,5 +450,68 @@ function QualityReview({
         </section>
       )}
     </div>
+  );
+}
+
+function SizeBar({ label, value, max, heavy }: { label: string; value: number; max: number; heavy?: boolean }) {
+  return (
+    <div class="size-row">
+      <span class="size-label">{label}</span>
+      <span class="size-track">
+        <span class={`size-fill${heavy ? ' heavy' : ''}`} style={{ width: `${max > 0 ? Math.max(4, (value / max) * 100) : 4}%` }} />
+      </span>
+      <span class="size-num">{value}</span>
+    </div>
+  );
+}
+
+/** The lesson's notions as chips: touch one for what it is, when to use it and its trap. */
+function Notions({ lesson }: { lesson: Lesson }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const help = open ? notionHelp(open) : undefined;
+  const seen = open ? firstSeen(open, lesson) : undefined;
+  return (
+    <section class="notions">
+      <p class="eyebrow">Notions à connaître · touche pour une explication</p>
+      <div class="notion-chips">
+        {lesson.notions.map((n) => (
+          <button key={n} class={`notion-chip${open === n ? ' active' : ''}${firstSeen(n, lesson) ? '' : ' new'}`} onClick={() => setOpen(open === n ? null : n)}>
+            {n}
+            {!firstSeen(n, lesson) && <span class="chip-new">nouveau</span>}
+          </button>
+        ))}
+      </div>
+      {open && help && (
+        <article class="card notion-card">
+          <h4>{help.title}</h4>
+          <p>{help.what}</p>
+          {help.when && (
+            <p>
+              <strong>Quand s’en servir.</strong> {help.when}
+            </p>
+          )}
+          {help.trap && (
+            <p>
+              <strong>Piège.</strong> {help.trap}
+            </p>
+          )}
+          {help.pattern && (
+            <p class="pattern">
+              {help.pattern.split(' → ').map((step, i) => (
+                <>
+                  {i > 0 && <span class="arrow">→</span>}
+                  <span class="node-pill">{step}</span>
+                </>
+              ))}
+            </p>
+          )}
+          {seen && (
+            <p class="muted small">
+              Déjà rencontrée dans {lessonLabel(seen)} · {seen.title} : {seen.remember}
+            </p>
+          )}
+        </article>
+      )}
+    </section>
   );
 }

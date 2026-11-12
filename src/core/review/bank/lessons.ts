@@ -344,4 +344,61 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     ['À chaque image, tant que le contact dure', 'Une fois au début du contact', 'Une fois au début, une fois à la fin', 'Une fois par seconde'],
     'Il n’existe pas d’événement de fin de contact : un Do Once rouvert par un Retriggerable Delay donne « une fois par contact ».',
   ),
+
+  // ------------------------------------------------------------------- V5
+  q(
+    'l-jauge',
+    'Energie vaut 90. Que range Set Energie relié à Clamp (Energie + 30, Min 0, Max 100) ?',
+    ['100', '120', '90', '30'],
+    'Clamp ramène le résultat entre Min et Max : 120 devient 100. Il ne change rien lui-même, c’est le Set qui range.',
+  ),
+  q(
+    'l-jauge',
+    'Tu poses un Clamp relié à Get Energie, sans le relier à un Set. Que devient Energie ?',
+    ['Rien : Clamp calcule, il ne range pas', 'Elle est bornée à chaque image', 'Elle est bornée au prochain Set', 'Le Blueprint ne compile pas'],
+    'Clamp est un nœud pur : il rend un résultat. Tant qu’un Set ne le range pas dans la variable, elle ne change pas.',
+    2,
+  ),
+  q(
+    'p9-set-seul',
+    'Un Set Score = 100 est posé dans le graphe, sans aucun fil blanc. Que vaut Score après le BeginPlay ?',
+    ['Sa valeur d’avant : le Set ne s’exécute pas', '100', '0', 'Cela dépend de l’ordre des nœuds à l’écran'],
+    'Seuls les nœuds traversés par le fil blanc s’exécutent. La position d’un nœud dans le graphe ne compte pas.',
+  ),
+  q(
+    'd7-lampe-allumee',
+    'Deux Set Visibility identiques, reliés aux bons événements, mais la lampe ne s’éteint jamais. Que regarder en premier ?',
+    ['La case New Visibility de chacun', 'L’ordre des nœuds dans le graphe', 'Le type de la lumière', 'La valeur de Delta Seconds'],
+    'Deux nœuds identiques ne font pas la même chose si leurs pins n’ont pas les mêmes valeurs : on lit les valeurs avant de refaire le graphe.',
+  ),
+  q(
+    'd8-do-once',
+    'Une action marche la première fois, puis plus jamais, sans aucune erreur. Quel nœud soupçonner ?',
+    ['Un DoOnce dont Reset n’est pas relié', 'Un Branch', 'Un Print String', 'Un Sequence'],
+    'DoOnce se ferme après le premier passage et le reste tant que le fil blanc n’entre pas par Reset.',
+  ),
+  q(
+    'l-ventilateur',
+    'Vitesse va de 0 à 3. Que vaut (Vitesse + 1) % 4 quand Vitesse vaut 3 ?',
+    ['0', '4', '1', '3'],
+    'Le modulo rend le reste de la division : 4 % 4 = 0. Ajouter 1 puis prendre le modulo fait tourner la valeur en rond.',
+  ),
+  q(
+    'p10-break',
+    'Dans un For Loop with Break, le fil blanc entre dans Break pendant le tour 3. Que se passe-t-il ensuite ?',
+    ['Le tour 3 se termine, puis Completed sort', 'Tout s’arrête, Completed ne sort pas', 'Les tours 4 à Last ont lieu quand même', 'La boucle recommence à First'],
+    'Break empêche les tours suivants ; le tour en cours va au bout et la boucle sort par Completed.',
+  ),
+  q(
+    'd9-minuteur',
+    'Un timer lancé en Looping doit cesser quand son travail est fini. Comment ?',
+    ['Clear and Invalidate Timer by Handle, avec le Handle gardé au lancement', 'Il s’arrête seul quand la condition devient fausse', 'Un DoOnce devant le nœud appelé', 'Un Delay plus long que le timer'],
+    'Un timer en Looping ne s’arrête jamais seul. Masquer son effet (DoOnce) le laisse tourner pour rien.',
+  ),
+  q(
+    'l-cloture',
+    'Un For Loop avec First Index 0 et Last Index 5 fait combien de tours ?',
+    ['6', '5', '4', 'Cela dépend de Loop Body'],
+    'Last Index est compris : 0, 1, 2, 3, 4, 5. Pour N tours à partir de 0, Last Index vaut N − 1.',
+  ),
 ];

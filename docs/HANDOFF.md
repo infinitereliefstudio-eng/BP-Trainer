@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-16, V6 (les exercices du recueil de Tristan) faite et testée, **poussée sur la branche `exercices-recueil`, pas encore sur `main`** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -263,7 +263,7 @@ Tests : `tests/v6.test.ts` (les nouveaux nœuds, et pour sept leçons la mauvais
 
 Non fait, chacun de la taille d’une version : Enhanced Input (E30), Save Game (E15, E24), Data Tables (E16, variante d’E43), Actor Components (E14), plusieurs niveaux et GameInstance (E40), widgets UMG (E10, E27, E38), Attach / Detach (E32), caméras (E31), Spline et instances de mesh (E28, E44). Idées tirées des doublons, non faites : un « Et si… » à deux couples sur « Le générateur prévient », une porte tournée sur « La porte qui glisse », un écart nul ou négatif sur « La clôture ».
 
-Version 6.0.0. Travail fait dans une session Claude en ligne, sur la branche `exercices-recueil` : à fusionner dans `main` (ce qui met l’APK à jour) quand Tristan le demande.
+Version 6.0.0. Travail fait dans une session Claude en ligne, sur la branche `exercices-recueil` (demande de fusion n° 1), puis poussé sur `main` le 2026-11-16 avec l’accord de Tristan.
 
 ## Méthode de travail
 

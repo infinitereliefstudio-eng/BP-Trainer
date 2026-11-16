@@ -6,6 +6,8 @@ import type { ActorRT, RValue } from './world';
 /** Object variables edited on a level instance are saved as "actor:<id>". */
 export function instanceValue(v: Value): RValue {
   if (typeof v === 'string' && v.startsWith('actor:')) return { ref: 'actor', id: v.slice(6) };
+  // A list of references to placed actors (an Instance Editable array set in the level).
+  if (Array.isArray(v) && v.some((x) => typeof x === 'string' && x.startsWith('actor:'))) return v.map(instanceValue);
   return structuredClone(v) as RValue;
 }
 

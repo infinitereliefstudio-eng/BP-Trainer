@@ -68,6 +68,31 @@ export const communicationBehaviors: Record<string, Behavior> = {
     },
   },
 
+  'flow.forEachLoopWithBreak': {
+    // Break is noticed when the body ends: the loop then goes to Completed.
+    exec: (cx) => {
+      const st = cx.state(() => ({ i: 0, broken: false }));
+      if (cx.entry === 'break') {
+        st.broken = true;
+        return [];
+      }
+      if (cx.entry === RESUME) st.i += 1;
+      else {
+        st.i = 0;
+        st.broken = false;
+      }
+      const arr = cx.in('array');
+      const list = Array.isArray(arr) ? arr : [];
+      if (!st.broken && st.i < list.length) {
+        cx.out('element', list[st.i]);
+        cx.out('index', st.i);
+        cx.resume();
+        return ['body'];
+      }
+      return ['completed'];
+    },
+  },
+
   'array.length': {
     pure: (cx) => {
       const arr = cx.in('array');

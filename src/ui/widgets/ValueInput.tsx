@@ -41,6 +41,17 @@ export function ValueInput({ type, value, onChange, autoFocus }: Props) {
         return <input class="field color" type="color" value={String(value ?? '#ffffff')} onChange={(e) => onChange((e.target as HTMLInputElement).value)} />;
       }
       if (type.subtype === 'TimerHandle') return <span class="muted">Invalide (à relier dans le graphe)</span>;
+      if (type.subtype === 'RandomStream') {
+        // UE shows a stream variable as its Initial Seed.
+        const seed = Number((value as { initial?: number } | null)?.initial) || 0;
+        return (
+          <span class="check">
+            <span class="muted small">Initial Seed</span>
+            <TextValue type={{ category: 'int' }} value={seed} onChange={(v) => onChange({ initial: Number(v) || 0, seed: Number(v) || 0 })} />
+          </span>
+        );
+      }
+      if (type.subtype === 'Transform') return <span class="muted">Identité (à relier dans le graphe)</span>;
       return <StructValueInput type={type} value={value} onChange={onChange} />;
     case 'object':
       return <span class="muted">None (à relier dans le graphe)</span>;

@@ -97,10 +97,12 @@ export const VARIABLE_CATEGORIES: PinCategory[] = [
 ];
 
 /** Engine structures the app knows, with their UE display names. Project structures go by their own name. */
-export type StructName = 'TimerHandle' | 'LinearColor';
+export type StructName = 'TimerHandle' | 'LinearColor' | 'RandomStream' | 'Transform';
 export const STRUCT_LABEL: Record<StructName, string> = {
   TimerHandle: 'Timer Handle',
   LinearColor: 'Linear Color',
+  RandomStream: 'Random Stream',
+  Transform: 'Transform',
 };
 
 function baseLabel(t: PinType): string {

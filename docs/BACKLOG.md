@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : motivation, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, technique. Mis à jour le 2026-11-11, après la V4 et une discussion d'idées avec Tristan (séries avec notifications, nouvelles leçons, Enhanced Input et ce qui n'est pas encore géré). Rien ici n'est décidé : une idée ne se réalise que si Tristan la demande.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : motivation, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, technique. Mis à jour le 2026-11-16, après la V6 (les exercices du recueil), et le 2026-11-11, après la V4 et une discussion d'idées avec Tristan (séries avec notifications, nouvelles leçons, Enhanced Input et ce qui n'est pas encore géré). Rien ici n'est décidé : une idée ne se réalise que si Tristan la demande.
 
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
@@ -183,6 +183,8 @@ Hors de portée, à expliquer dans le mémo sans les simuler : les versions Asyn
 | Version anglaise | Textes de l'appli et des leçons | ★ | L (contenu) |
 
 ## Déjà fait, noté ici auparavant
+
+- V6 (16 novembre 2026) : 16 leçons et exercices tirés du recueil de Tristan (Unbind, registre en Map, vagues, timer annulable, parcours de réseau, dialogue par les données, sac, transaction, annuler / refaire, viseur, miroirs, grille tournée, tirage sans remise, Random Stream), et les nœuds Dot Product, Get Reflection Vector, Snap To Grid, For Each Loop with Break, Random Stream, Transform. Du recueil, restent à faire avec leur chantier : E30 (Enhanced Input), E15 et E24 (Save Game), E16 (Data Tables), E14 (Actor Components), E40 (niveaux, GameInstance), E10, E27, E38 (UMG), E32 (Attach / Detach), E31 (caméras), E28 et E44 (Spline, instances de mesh). Noté au passage : un éditeur dans Details pour remplir un tableau de références sur une instance ; le dispatcher natif OnDestroyed ; Set Actor Transform ; des « Et si… » de plus (deux couples, porte tournée, écart nul).
 
 - V5 (12 novembre 2026) : bilan de la solution (étoiles, taille comparée aux solutions connues, nœuds déconseillés par leçon), autres règles de conseil (nœud jamais exécuté, variable jamais lue, Custom Event jamais appelé, Cast sur Tick…), fiches de notions dans les leçons, Débogue D7 à D9 (dont le timer jamais arrêté), Prédis P9 et P10 (For Loop with Break), trois leçons (Clamp, modulo, For Loop). Reste de ces lignes : étoiles gardées dans la progression, modificateurs de défi.
 

@@ -142,6 +142,32 @@ export const mathBehaviors: Record<string, Behavior> = {
       return { result: Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z) };
     },
   },
+  'math.dotProduct': {
+    pure: (cx) => {
+      const a = toVec(cx.in('a')),
+        b = toVec(cx.in('b'));
+      return { result: a.x * b.x + a.y * b.y + a.z * b.z };
+    },
+  },
+  // FMath::GetReflectionVector: the normal is normalised first, Direction keeps its length.
+  'math.reflectionVector': {
+    pure: (cx) => {
+      const d = toVec(cx.in('direction')),
+        raw = toVec(cx.in('normal'));
+      const len = Math.hypot(raw.x, raw.y, raw.z);
+      const n = len < 1e-8 ? { x: 0, y: 0, z: 0 } : { x: raw.x / len, y: raw.y / len, z: raw.z / len };
+      const k = 2 * (d.x * n.x + d.y * n.y + d.z * n.z);
+      return { result: { x: d.x - k * n.x, y: d.y - k * n.y, z: d.z - k * n.z } };
+    },
+  },
+  // FMath::GridSnap: Grid 0 returns Location, otherwise the nearest multiple (halves go up).
+  'math.snapToGridFloat': {
+    pure: (cx) => {
+      const loc = cx.num('location'),
+        grid = cx.num('grid');
+      return { result: grid === 0 ? loc : Math.floor((loc + grid / 2) / grid) * grid };
+    },
+  },
   'math.lerp': { pure: (cx) => ({ result: cx.num('a') + (cx.num('b') - cx.num('a')) * cx.num('alpha') }) },
   'math.lerpVector': {
     pure: (cx) => {

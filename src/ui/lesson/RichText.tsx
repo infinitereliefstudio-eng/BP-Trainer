@@ -1,4 +1,4 @@
-/** Renders lesson text: paragraphs, **bold** and `code`, without HTML injection. */
+/** Renders lesson text: paragraphs, lists ("- " or "1. " lines), **bold** and `code`, without HTML injection. */
 import type { ComponentChildren } from 'preact';
 
 function inline(text: string): ComponentChildren[] {
@@ -29,6 +29,16 @@ export function RichText({ text }: { text: string }) {
                 <li key={j}>{inline(l.slice(2))}</li>
               ))}
             </ul>
+          );
+        }
+        // A block whose lines are numbered ("1. ", "2. "…) is a list of steps.
+        if (lines.length > 1 && lines.every((l) => /^\d+\. /.test(l))) {
+          return (
+            <ol key={i} class="rich-list">
+              {lines.map((l, j) => (
+                <li key={j}>{inline(l.replace(/^\d+\. /, ''))}</li>
+              ))}
+            </ol>
           );
         }
         return <p key={i}>{inline(para)}</p>;

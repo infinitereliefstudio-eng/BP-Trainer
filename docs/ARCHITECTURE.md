@@ -60,6 +60,12 @@ Certains nœuds dépendent d'autre chose que leur Blueprint : `Cast To`, variabl
 
 Créer un objet `Lesson` dans `core/lessons/library/` (explications, `setup`, `scenario`, `checks`, `solve`) et l'ajouter à la liste de `core/lessons/index.ts`. Les tests vérifient automatiquement que le projet de départ échoue et que la solution réussit.
 
+Les leçons de la V6 (le recueil d’exercices) partagent `library/kit.ts` : `fnDef` / `fnOf` (une fonction avec ses paramètres, à écrire ou à compléter), `editable` et `override` (variable Instance Editable et sa valeur sur un acteur du niveau, y compris un tableau de références `actor:<id>`), `gap` (cadre jaune d’un exercice Complète), `wipe`, `tap`, `goTo`, `DEBUG_METHOD` (la carte de méthode commune aux Débogue). Quand la version de départ et la solution ne diffèrent que par un morceau, le graphe est écrit une fois par une fonction à drapeau (`directorGraph(b, …, fixed)`, `benchGraph(b, fixed)`) : `setup` l’appelle sans le correctif, `solve` vide le graphe et la rappelle avec.
+
+### Structures du moteur
+
+`types/pins.ts` (`STRUCT_LABEL`) liste les structures connues du moteur : Timer Handle, Linear Color, et depuis la V6 **Random Stream** (`{ initial, seed }` ; les tirages « from Stream » sont des nœuds purs qui font avancer l’objet reçu d’un Get de variable, `runtime/behaviors/randomStream.ts`) et **Transform** (`{ location, rotation, scale }`, `runtime/behaviors/transform.ts`). Pour en ajouter une : son nom dans `StructName`, sa valeur par défaut et son affichage dans `types/values.ts`, son éditeur dans `ui/widgets/ValueInput.tsx`.
+
 ### Qualité d'une solution
 
 Une vérification peut être une **notion visée** (`notion(...)`, `Check.notion`) : affichée à part, elle ne bloque pas la réussite. Une leçon peut porter des **scénarios de robustesse** (`robustness` : la même solution dans une situation que la leçon ne demandait pas, jouée par `runRobustness` après la réussite) et d'**autres façons de faire** (`alternatives` : construites sur le projet de départ, elles doivent passer les vérifications de la leçon ; l'interface les ouvre dans un projet d'essai jamais enregistré). Pour les leçons écrites avant la V3, ce contenu est dans `lessons/library/quality.ts`. `tests/quality.test.ts` vérifie le tout.

@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-12, V5 faite et testée en local, **commit local non poussé** au moment d’écrire (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-16, V6 (les exercices du recueil de Tristan) faite et testée, **poussée sur la branche `exercices-recueil`, pas encore sur `main`** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -223,6 +223,47 @@ Demande de Tristan : de nouvelles leçons (autres sujets ou variations), une mei
 - Le dépôt cloné sous Windows avait `core.autocrlf=true` : le passer à `false` (les fichiers sont en LF, Biome et les scripts s’y attendent).
 
 Pistes non faites : garder les étoiles dans la progression et les montrer sur l’accueil ; « Montre-moi » après un échec ; listes `avoid` et robustesse pour les leçons restantes.
+
+## V6 (2026-11-16) : le recueil d’exercices
+
+Tristan a fourni un recueil de 44 exercices écrits pour le vrai UE5 (`Recueil_exercices_Blueprints_UE5.md`, E01 à E44, sans corrigés) et demandé : trier ceux qui valent d’être ajoutés, vérifier ce qu’il faut dans l’appli, puis « commence par faire les modifications nécessaires pour intégrer les exercices qui en ont besoin et intègre l’ensemble des exercices retenus », avec de bonnes explications pour chaque leçon (nœuds, objectif, moyens), jugées trop légères sur certaines leçons existantes.
+
+Tri : 13 faisables tels quels, 3 de plus grâce à de petites évolutions (faites), 11 qui demandent un chantier (non faits, voir plus bas), 9 doublons de leçons existantes, 8 hors de ce que l’appli simule (physique, matériaux, IA, performance, packaging, animation, chargement asynchrone).
+
+Évolutions de l’appli :
+
+- Nœuds : **Dot Product**, **Get Reflection Vector**, **Snap To Grid (Float)** (le titre exact d’UE ; le recueil disait « Grid Snap »), **For Each Loop with Break**.
+- **Random Stream** : structure du moteur, variable avec Initial Seed dans Details, nœuds Make Random Stream, Random Integer / Float in Range from Stream, Set Random Stream Seed, Reset Random Stream. Générateur de `FRandomStream` (pas congruentiel 32 bits) ; les nombres ne sont pas garantis identiques à ceux d’UE, la reproductibilité l’est. Un tirage relié directement à Make Random Stream redonne toujours le premier nombre, comme dans UE.
+- **Transform** : structure du moteur, nœuds Get Actor Transform, Make / Break Transform, Transform Location, Inverse Transform Location (vue de dessus : seul Yaw tourne).
+- Une variable Instance Editable de type tableau de références peut désigner des acteurs du niveau (`actorFactory.instanceValue`) ; le niveau dessinait déjà les flèches. Pas encore d’éditeur dans Details pour remplir un tel tableau à la main : les leçons le préremplissent.
+
+Seize leçons et exercices (78 au total), chacun avec quatre ou cinq cartes : ce qui est en place, ce que fait chaque nœud et ses pins, le plan, le piège, et le lien avec UE.
+
+| Recueil | Dans l’appli | Niveau | Fichier |
+|---|---|---|---|
+| E04 | Débogue D10 — Le compteur qui ment | Débutant | `counterLie.ts` |
+| E09 | Débogue D11 — Le four qui oublie son annulation | Confirmé | `oven.ts` |
+| E25 | Débogue D12 — La régie et ses panneaux (premier Unbind) | Confirmé | `stage.ts` |
+| E22 | Ajouter un objectif sans tout casser | Confirmé | `objective.ts` |
+| E36 | Les cartes tirées sans remise, puis La même donne (Random Stream) | Confirmé | `cards.ts` |
+| E26 | Le standard téléphonique (registre en Map) | Avancé | `switchboard.ts` |
+| E37 | Débogue D13 — Les vagues qui se terminent trop tôt | Avancé | `waveEnd.ts` |
+| E42 | Le réseau en boucle (parcours avec Set) | Avancé | `powerGrid.ts` |
+| E43 | L’interrogatoire (dialogue par les données, Map au lieu d’une Data Table) | Avancé | `interrogation.ts` |
+| E13 | Complète C5 — Le sac de randonnée | Avancé | `backpack.ts` |
+| E20 | Débogue D14 — L’atelier de fabrication (transaction) | Avancé | `workshop.ts` |
+| E41 | Complète C6 — Annuler et refaire | Avancé | `undo.ts` |
+| E07 | Complète C4 — La bonne cible dans le viseur | Avancé | `crosshair.ts` |
+| E34 | Le rayon et les miroirs | Avancé | `mirrors.ts` |
+| E29 | Débogue D15 — Les meubles sur une grille tournée | Avancé | `gridFloor.ts` |
+
+Adaptations par rapport au recueil, à connaître : les widgets sont remplacés par des Text Render ou des Print String ; E20 est simplifié en Map de quantités (la « place libérée » est le défi) ; E41 garde une position (Vector) au lieu d’un Transform, sans la limite de 10 actions (défi) ; E37 passe par un dispatcher de la cible, l’appli n’ayant pas le dispatcher natif OnDestroyed ; E25 remplace les fenêtres par des panneaux (spectacle déjà en cours au lancement, panneau qui change de régie).
+
+Tests : `tests/v6.test.ts` (les nouveaux nœuds, et pour sept leçons la mauvaise réponse tentante, qui doit échouer avec l’explication de la leçon : Random lu deux fois, Make Random Stream à chaque tirage, segment qui repart de la surface du miroir, Add sans Contains, pas d’Unbind, parcours sans Set, second appui qui relance le timer). 17 questions de révision et 12 fiches de notions en plus. `smoke.py` attend 78 étapes et a une suite V6 (captures 58 à 63), lancée ici avec « errors [] ».
+
+Non fait, chacun de la taille d’une version : Enhanced Input (E30), Save Game (E15, E24), Data Tables (E16, variante d’E43), Actor Components (E14), plusieurs niveaux et GameInstance (E40), widgets UMG (E10, E27, E38), Attach / Detach (E32), caméras (E31), Spline et instances de mesh (E28, E44). Idées tirées des doublons, non faites : un « Et si… » à deux couples sur « Le générateur prévient », une porte tournée sur « La porte qui glisse », un écart nul ou négatif sur « La clôture ».
+
+Version 6.0.0. Travail fait dans une session Claude en ligne, sur la branche `exercices-recueil` : à fusionner dans `main` (ce qui met l’APK à jour) quand Tristan le demande.
 
 ## Méthode de travail
 

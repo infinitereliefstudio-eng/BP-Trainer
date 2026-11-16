@@ -13,6 +13,8 @@ import { pureBehaviors } from './pure';
 import { dataBehaviors } from './data';
 import { timelineBehaviors } from './timeline';
 import { traceBehaviors } from './trace';
+import { randomStreamBehaviors } from './randomStream';
+import { transformBehaviors } from './transform';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
@@ -27,6 +29,8 @@ const ALL: Record<string, Behavior> = {
   ...dataBehaviors,
   ...timelineBehaviors,
   ...traceBehaviors,
+  ...randomStreamBehaviors,
+  ...transformBehaviors,
 };
 
 export function getBehavior(defId: string): Behavior | undefined {

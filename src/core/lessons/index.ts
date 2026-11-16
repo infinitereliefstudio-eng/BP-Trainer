@@ -27,6 +27,21 @@ import { predict10, predict9 } from './library/predicts2';
 import { debug7, debug8, debug9 } from './library/debugs';
 import { lessonFence } from './library/fence';
 import { lessonFan, lessonGauge } from './library/gauges';
+import { debug10 } from './library/counterLie';
+import { debug11 } from './library/oven';
+import { debug12 } from './library/stage';
+import { lessonSwitchboard } from './library/switchboard';
+import { debug13 } from './library/waveEnd';
+import { lessonGrid } from './library/powerGrid';
+import { lessonTalk } from './library/interrogation';
+import { complete4 } from './library/crosshair';
+import { complete5 } from './library/backpack';
+import { lessonObjective } from './library/objective';
+import { lessonCards, lessonSeed } from './library/cards';
+import { debug14 } from './library/workshop';
+import { complete6 } from './library/undo';
+import { lessonMirrors } from './library/mirrors';
+import { debug15 } from './library/gridFloor';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import type { Lesson } from './types';
@@ -43,6 +58,7 @@ export const LESSONS: Lesson[] = [
   complete1,
   predict9,
   debug7,
+  debug10,
   predict6,
   // Intermédiaire
   predict1,
@@ -70,11 +86,15 @@ export const LESSONS: Lesson[] = [
   lesson11,
   debug2,
   lessonWhoChanges,
+  debug12,
+  lessonObjective,
   lessonLocals,
   predict4,
   lessonRecord,
   debug5,
   predict8,
+  lessonCards,
+  lessonSeed,
   lessonBadges,
   lessonLampRow,
   predict5,
@@ -82,6 +102,7 @@ export const LESSONS: Lesson[] = [
   debug4,
   lessonWaves,
   debug9,
+  debug11,
   lessonFence,
   debug3,
   lessonLift,
@@ -90,6 +111,8 @@ export const LESSONS: Lesson[] = [
   complete2,
   lessonTerminal,
   lessonCleanDestroy,
+  lessonSwitchboard,
+  debug13,
   refactor1,
   lesson12,
   lessonInheritance,
@@ -97,7 +120,15 @@ export const LESSONS: Lesson[] = [
   lessonLook,
   debug6,
   refactor3,
+  complete4,
+  lessonMirrors,
   lessonCrate,
+  debug15,
+  debug14,
+  complete5,
+  lessonTalk,
+  complete6,
+  lessonGrid,
 ];
 
 let n = 0;

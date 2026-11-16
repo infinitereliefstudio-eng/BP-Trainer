@@ -12,6 +12,16 @@ export type Vec3 = { x: number; y: number; z: number };
 export type StructValue = { [memberId: string]: Value };
 export type Value = boolean | number | string | null | Vec3 | StructValue | Value[];
 
+/**
+ * A Random Stream: the seed it was made with and where it is now. Each draw
+ * moves `seed` on; Reset puts it back to `initial`.
+ */
+export type RandomStreamValue = { initial: number; seed: number };
+/** A Transform seen from above: location, rotation (z = Yaw, in degrees) and scale. */
+export type TransformValue = { location: Vec3; rotation: Vec3; scale: Vec3 };
+
+export const IDENTITY_TRANSFORM: TransformValue = { location: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 } };
+
 export function defaultValueFor(t: PinType): Value {
   if (t.container) return [];
   switch (t.category) {
@@ -32,6 +42,8 @@ export function defaultValueFor(t: PinType): Value {
     case 'struct':
       if (t.subtype === 'LinearColor') return '#ffffff';
       if (t.subtype === 'TimerHandle') return null; // an unset Timer Handle is invalid
+      if (t.subtype === 'RandomStream') return { initial: 0, seed: 0 };
+      if (t.subtype === 'Transform') return structuredClone(IDENTITY_TRANSFORM);
       return {}; // a project structure: every member at its default
     default:
       return null; // object / class references default to None
@@ -65,6 +77,11 @@ export function formatValue(v: Value, t: PinType, project?: Project): string {
     case 'struct':
       if (t.subtype === 'TimerHandle') return v ? 'Timer Handle' : 'Invalid';
       if (t.subtype === 'LinearColor') return String(v ?? '');
+      if (t.subtype === 'RandomStream') return `Seed ${Number((v as RandomStreamValue | null)?.initial) || 0}`;
+      if (t.subtype === 'Transform') {
+        const l = ((v as TransformValue | null)?.location ?? { x: 0, y: 0, z: 0 }) as Vec3;
+        return `${l.x}, ${l.y}, ${l.z}`;
+      }
       return t.subtype ?? 'Structure';
     default:
       return v === null ? 'None' : String(v);

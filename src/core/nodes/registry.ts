@@ -29,6 +29,8 @@ import { structNodes } from './library/structs';
 import { containerNodes } from './library/containers';
 import { timelineNodes } from './library/timeline';
 import { traceNodes } from './library/trace';
+import { randomStreamNodes } from './library/randomStream';
+import { transformNodes } from './library/transform';
 
 const ALL: NodeDefinition[] = [
   ...eventNodes,
@@ -43,6 +45,8 @@ const ALL: NodeDefinition[] = [
   ...communicationNodes,
   ...functionNodes,
   ...mathNodes,
+  ...randomStreamNodes,
+  ...transformNodes,
   ...textNodes,
   ...structNodes,
   ...containerNodes,

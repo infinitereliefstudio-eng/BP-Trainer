@@ -135,6 +135,23 @@ export const communicationNodes: NodeDefinition[] = [
     ],
   },
   {
+    id: 'flow.forEachLoopWithBreak',
+    title: 'For Each Loop with Break',
+    category: 'Utilities|Array',
+    kind: 'flow',
+    description: 'Comme For Each Loop, mais un passage par Break arrête le parcours : les éléments restants sont sautés et Completed est exécuté. Pour chercher un élément et s’arrêter dès qu’on l’a trouvé.',
+    keywords: ['loop', 'boucle', 'each', 'tableau', 'array', 'break', 'arreter', 'chercher', 'trouver'],
+    pins: [
+      execIn(),
+      dataIn('array', 'Array', T.array(T.wildcard)),
+      execIn('break', 'Break'),
+      execOut('body', 'Loop Body'),
+      dataOut('element', 'Array Element', T.wildcard),
+      dataOut('index', 'Array Index', T.int),
+      execOut('completed', 'Completed'),
+    ],
+  },
+  {
     id: 'array.length',
     title: 'Length',
     category: 'Utilities|Array',

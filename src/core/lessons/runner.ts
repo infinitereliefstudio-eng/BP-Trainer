@@ -90,7 +90,20 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks'>, source: Proje
   const notes: string[] = [];
   sim.start();
   let dt = STEP;
+  // After "Infinite loop detected" the rest of the scenario is not played: every further event
+  // would run to the step limit again, seconds each on a phone. Checkpoints are still evaluated.
+  let seen = 0;
+  let runaway = false;
+  const ranAway = () => {
+    for (; seen < sim.log.length; seen++) if (sim.log[seen].level === 'error' && sim.log[seen].text.includes('Infinite loop detected')) return true;
+    return false;
+  };
   for (const step of lesson.scenario) {
+    if ('checkpoint' in step) {
+      evaluate(step.checkpoint);
+      continue;
+    }
+    if (runaway) continue;
     if ('fps' in step) dt = 1 / step.fps;
     else if ('look' in step) sim.player.yaw = step.look;
     else if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += dt) sim.step(dt);
@@ -112,7 +125,8 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks'>, source: Proje
     } else if ('release' in step) {
       sim.releaseKey(step.release);
       sim.step(dt);
-    } else evaluate(step.checkpoint);
+    }
+    runaway = ranAway();
   }
   evaluate(undefined);
 

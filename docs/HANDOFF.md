@@ -263,6 +263,8 @@ Tests : `tests/v6.test.ts` (les nouveaux nœuds, et pour sept leçons la mauvais
 
 Non fait, chacun de la taille d’une version : Enhanced Input (E30), Save Game (E15, E24), Data Tables (E16, variante d’E43), Actor Components (E14), plusieurs niveaux et GameInstance (E40), widgets UMG (E10, E27, E38), Attach / Detach (E32), caméras (E31), Spline et instances de mesh (E28, E44). Idées tirées des doublons, non faites : un « Et si… » à deux couples sur « Le générateur prévient », une porte tournée sur « La porte qui glisse », un écart nul ou négatif sur « La clôture ».
 
+Vérification d’une leçon : après un « Infinite loop detected », `runner.playScenario` ne joue plus la suite du scénario (les points de contrôle restent évalués). Sans cela, chaque événement suivant repartait pour 100 000 nœuds : plusieurs secondes de gel sur téléphone pour « Le réseau en boucle », et un test trop lent pour la CI (le premier push de la V6 a échoué là-dessus, sans rien publier).
+
 Version 6.0.0. Travail fait dans une session Claude en ligne, sur la branche `exercices-recueil` (demande de fusion n° 1), puis poussé sur `main` le 2026-11-16 avec l’accord de Tristan.
 
 ## Méthode de travail

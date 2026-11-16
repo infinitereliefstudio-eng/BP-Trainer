@@ -281,7 +281,9 @@ describe('the traps of the new lessons', () => {
     });
     expect(r.passed).toBe(false);
     expect(reasons(r)).toContain('Infinite loop detected');
-  });
+    // The scenario stops at the first runaway loop instead of paying for one at each of its four E presses.
+    expect(r.runtimeErrors.filter((e) => e.includes('Infinite loop detected'))).toHaveLength(1);
+  }, 20_000);
 
   it('Le four: a second E that restarts the timer delays the cooking', () => {
     const r = spoiled('d11-four', (p) => {

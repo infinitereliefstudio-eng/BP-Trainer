@@ -10,6 +10,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, printedNumbers } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { PREDICT_METHOD } from './kit';
 
 const fnGraph = (cx: CheckContext, className: string, name: string) =>
   cx.project.classes.find((c) => c.name === className)?.graphs.find((g) => g.kind === 'function' && g.name === name);
@@ -68,22 +69,37 @@ export const lessonLocals: Lesson = {
     'Une variable locale vit le temps d’un appel et repart de sa valeur par défaut au suivant : parfait pour un calcul intermédiaire. Ce qui doit durer d’un appel à l’autre est une variable du Blueprint.',
   cards: [
     {
-      title: 'Une variable pour un seul appel',
+      title: 'Ce qui est en place',
       body:
-        'Ouvre la fonction **AjouterArticle**. Dans My Blueprint apparaît **Local Variables (AjouterArticle)** : touche **+** pour en créer une.\n\n' +
-        'Une variable **locale** n’existe que pendant un appel de la fonction. Elle est remise à sa **valeur par défaut** au début de chaque appel, et aucun autre graphe ne la voit.',
+        '**BP_Caisse** a une fonction **AjouterArticle**, vide pour l’instant :\n\n' +
+        '- entrées **Prix** et **Quantite** (Integer) ;\n- sorties **TotalLigne** et **TotalTicket** (Integer), sur son **Return Node**.\n\n' +
+        'Le BeginPlay l’appelle deux fois : 2 articles à 5, puis 3 articles à 4. Après chaque appel, deux Print String affichent TotalLigne puis TotalTicket. On attend **10, 10**, puis **8, 18** (à partir de 3 articles, un est offert).',
     },
     {
-      title: 'Pourquoi pas une variable du Blueprint ?',
+      title: 'Une variable pour un seul appel',
       body:
-        'Un calcul intermédiaire (le sous-total d’une ligne) n’a aucun sens hors de l’appel. En variable du Blueprint, il traînerait d’un appel à l’autre et encombrerait la liste des variables.\n\n' +
-        'À l’inverse, le **total du ticket** doit survivre d’une ligne à la suivante : lui ne peut **pas** être local.',
+        'Une variable **locale** n’existe que **pendant un appel** de la fonction. Elle est remise à sa valeur par défaut au début de chaque appel, et aucun autre graphe ne la voit.\n\n' +
+        'Pour en créer une : ouvre la fonction, puis dans My Blueprint, **Local Variables (AjouterArticle)** › **+**. Nomme-la `SousTotal`, type Integer. Ses **Get** et **Set** ne se trouvent que dans cette fonction.\n\n' +
+        'Une variable **du Blueprint** (Variables › +) vit aussi longtemps que l’acteur, et garde sa valeur d’un appel à l’autre.',
+    },
+    {
+      title: 'Qui va où ?',
+      body:
+        'Pose-toi la question pour chaque valeur : « doit-elle survivre à la fin de l’appel ? »\n\n' +
+        '- Le **sous-total d’une ligne** n’a aucun sens hors de l’appel qui la calcule : **local**. En variable du Blueprint, il traînerait d’un appel à l’autre et encombrerait la liste.\n- Le **total du ticket** doit s’additionner de ligne en ligne : variable **du Blueprint**, par exemple `Ticket`.',
     },
     {
       title: 'Le calcul',
       body:
-        'Sous-total = Prix × Quantite. À partir de 3 articles, un est offert : on retire un Prix. Le total du ticket augmente du sous-total.\n\n' +
-        'Avec une locale `SousTotal` : **Set** SousTotal (Prix × Quantite), puis, si Quantite ≥ 3, **Set** SousTotal (SousTotal − Prix). Un Set peut se lire plusieurs fois : c’est tout l’intérêt.',
+        'Dans AjouterArticle, depuis le nœud d’entrée :\n\n' +
+        '1. **Set SousTotal** = Prix **×** Quantite.\n2. **Branch** (Quantite **>=** 3) → True : **Set SousTotal** = SousTotal **−** Prix (l’article offert).\n3. Les deux chemins rejoignent **Set Ticket** = Ticket **+** SousTotal.\n4. → **Return Node** : TotalLigne = Get SousTotal, TotalTicket = Get Ticket.\n\n' +
+        'L’intérêt d’une variable, même locale : on la range une fois et on la relit autant qu’on veut, au lieu de recalculer Prix × Quantite à chaque endroit.',
+    },
+    {
+      title: 'Le piège',
+      body:
+        'Mettre aussi le total du ticket en locale. Le premier ticket est juste (10, 10), le second faux (8, **8**) : la locale est repartie de 0 au début du second appel. La vérification le reconnaît et te le dira.\n\n' +
+        'Dans UE, les variables locales sont aussi remises à zéro à chaque appel, et n’existent que dans les fonctions, pas dans l’Event Graph.',
     },
   ],
   objectives: [
@@ -182,9 +198,18 @@ export const predict4: Lesson = {
     {
       title: 'À lire',
       body:
-        'Ouvre la fonction **Ajouter** de **BP_Compteur**. `Appels` est une variable **locale** (valeur par défaut 0) ; `Total` est une variable du Blueprint (0 au départ).\n\n' +
-        '**Increment Int** ajoute 1 à la variable reliée et renvoie sa nouvelle valeur. Le BeginPlay appelle Ajouter trois fois.',
+        'Ouvre la fonction **Ajouter** de **BP_Compteur**. Deux variables :\n\n' +
+        '- **Appels** : une variable **locale** de la fonction, valeur par défaut 0 ;\n- **Total** : une variable **du Blueprint**, 0 au départ.\n\n' +
+        'Dans la fonction : **Increment Int** (Appels) → **Set Total** = Total + (la sortie de l’Increment) → **Print String** de Total.\n\n' +
+        'Le **BeginPlay** appelle Ajouter **trois fois** à la suite.',
     },
+    {
+      title: 'Ce que font ces nœuds',
+      body:
+        '- **Increment Int** ajoute 1 à la variable reliée à sa pin en losange, et donne la **nouvelle** valeur sur sa sortie.\n- Une variable **locale** vit le temps d’un appel : au début de chaque appel, elle repart de sa valeur par défaut.\n- Une variable **du Blueprint** garde sa valeur d’un appel à l’autre, tant que l’acteur existe.\n\n' +
+        'Pour chaque appel, note : que vaut Appels au début ? Après l’Increment ? Et Total, avant et après le Set ?',
+    },
+    PREDICT_METHOD,
   ],
   objectives: [
     'Lis le graphe sans lancer Play : suis le fil blanc depuis l’événement.',

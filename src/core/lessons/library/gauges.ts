@@ -48,22 +48,36 @@ export const lessonGauge: Lesson = {
   remember: 'Calcule, borne, puis range : Clamp ramène un résultat entre Min et Max en un seul nœud. Il ne change pas la variable : c’est le Set qui le fait.',
   cards: [
     {
-      title: 'Une valeur qui a des limites',
+      title: 'Ce qui est en place',
       body:
-        'Une jauge (vie, énergie, carburant) a presque toujours un minimum et un maximum. Sans précaution, `Energie + 30` donne 110 : le calcul ne connaît pas tes limites.\n\n' +
-        'On pourrait tester avec un **Branch** : si le résultat dépasse 100, ranger 100, sinon ranger le résultat. Puis recommencer pour 0. Cela marche, mais demande deux Branch et quatre Set.',
+        '**BP_Batterie** a une variable **Energie** (Integer) qui vaut **50** au départ, et entend les touches. Le graphe est vide.\n\n' +
+        '- **E** recharge de 30.\n- **F** consomme 45.\n- Energie doit toujours rester entre **0** et **100**, et s’afficher après chaque appui.\n\n' +
+        'Une jauge (vie, énergie, munitions, carburant) a presque toujours un minimum et un maximum. Le calcul, lui, ne les connaît pas : 80 + 30 donne 110.',
     },
     {
-      title: 'Clamp',
+      title: 'Les nœuds',
       body:
-        '**Clamp (Integer)** fait ce travail seul : il reçoit une valeur, un **Min** et un **Max**, et rend la valeur ramenée entre les deux. `Clamp(110, 0, 100)` rend 100 ; `Clamp(-35, 0, 100)` rend 0 ; `Clamp(55, 0, 100)` rend 55.\n\n' +
-        'C’est un nœud **pur** (sans pin blanche) : il calcule, il ne range rien. Relie sa sortie au **Set Energie**.',
+        '- **+ (Integer)** et **− (Integer)** : calculent A + B et A − B. Nœuds purs (verts, sans fil blanc) : ils ne rangent rien.\n- **Clamp (Integer)** : reçoit **Value**, **Min** et **Max**, et rend Value ramenée entre les deux. Clamp(110, 0, 100) = 100 ; Clamp(−35, 0, 100) = 0 ; Clamp(55, 0, 100) = 55. Pur, lui aussi.\n- **Set Energie** : seul nœud qui change vraiment la variable. Il a une **sortie** qui redonne la valeur qu’il vient de ranger.\n\n' +
+        'Sans Clamp, il faudrait un Branch par limite et un Set de plus pour chacune : quatre nœuds là où un suffit.',
     },
     {
-      title: 'L’ordre du calcul',
+      title: 'Le plan',
       body:
-        'Lis de gauche à droite : **Get Energie** → **+ 30** → **Clamp (0, 100)** → **Set Energie** → **Print String**.\n\n' +
-        'Le Set a une pin de sortie qui redonne la valeur qu’il vient de ranger : relie-la au Print String, pour afficher la valeur après le changement.',
+        'Chaque touche a son propre fil, avec le même schéma :\n\n' +
+        '**calculer → borner → ranger → afficher**\n\n' +
+        '1. **E** (Pressed) → **Set Energie** = Clamp(Energie **+ 30**, 0, 100) → **Print String** (sortie du Set).\n2. **F** (Pressed) → **Set Energie** = Clamp(Energie **− 45**, 0, 100) → **Print String**.\n\n' +
+        'On lit le calcul de droite à gauche, en remontant les fils : Get Energie → + 30 → Clamp → Set.',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '**Afficher avant le Set.** Un Print String relié à Get Energie mais placé avant le Set affiche l’ancienne valeur : 50, 80 au lieu de 80, 100. Relier le Print String à la sortie du Set évite la question.\n\n' +
+        '**Borner un seul côté.** E ne peut que dépasser 100 et F que passer sous 0, alors on est tenté de ne borner que là. Ça marche aujourd’hui ; le jour où un bonus négatif apparaît, la limite oubliée manque. Clamp tient les deux côtés d’office.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Clamp existe pour Integer et Float (et FClamp en C++). Pour une barre de vie affichée en widget, on passe ensuite la valeur dans une **Progress Bar**, qui veut un pourcentage entre 0 et 1 : Energie / 100, en Float.',
     },
   ],
   objectives: [
@@ -165,22 +179,37 @@ export const lessonFan: Lesson = {
   remember: 'Pour faire tourner une valeur en rond, ajoute 1 puis prends le reste de la division par la taille du cycle : (Vitesse + 1) % 4 donne 1, 2, 3, 0, 1…',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Ventilateur** : un socle rond, une variable **Vitesse** (Integer, 0) et la touche E. Le graphe est vide.\n\n' +
+        'Le ventilateur a quatre réglages : 0 (arrêt), 1, 2, 3. Chaque appui passe au suivant, et après 3 on revient à 0. Il affiche la nouvelle vitesse à chaque appui.',
+    },
+    {
       title: 'Plus que deux états',
       body:
-        'L’interrupteur à touche alternait entre deux états avec un Boolean. Ici il y en a quatre : il faut un **Integer**, et une façon de revenir à 0 après 3.\n\n' +
-        'On peut l’écrire avec un **Branch** : si Vitesse vaut 3, ranger 0, sinon ranger Vitesse + 1. Cela marche. Mais il existe une opération faite pour ça.',
+        '« Interrupteur à touche » alternait entre deux états avec un Boolean. Ici il y en a quatre : il faut un **Integer**, et un moyen de revenir à 0 après 3.\n\n' +
+        'La première idée : un **Branch** (Vitesse == 3 ?) qui range 0 d’un côté et Vitesse + 1 de l’autre. Ça marche. Mais il existe une opération faite pour ça, sans condition.',
     },
     {
       title: 'Le modulo',
       body:
-        '**% (Integer)** rend le **reste** de la division entière. `1 % 4` = 1, `3 % 4` = 3, et `4 % 4` = **0** : le reste retombe à zéro dès qu’on atteint la taille du cycle.\n\n' +
-        'Donc `(Vitesse + 1) % 4` donne exactement la suite voulue : 1, 2, 3, 0, 1, 2… sans aucun Branch.',
+        '**% (Integer)** rend le **reste** de la division entière de A par B :\n\n' +
+        '- 1 % 4 = 1 ; 2 % 4 = 2 ; 3 % 4 = 3 ;\n- 4 % 4 = **0** : le reste retombe à zéro dès qu’on atteint B.\n\n' +
+        'Donc (Vitesse + 1) % 4 donne exactement la suite voulue : 1, 2, 3, 0, 1, 2… C’est un nœud pur, comme +.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**E** (Pressed) → **Set Vitesse** = (Get Vitesse **+ 1**) **% 4** → **Print String** (relié à la sortie du Set).\n\n' +
+        'Lis le calcul en remontant les fils : Get Vitesse → + 1 → % 4 → Set.\n\n' +
+        'Le piège habituel : un Print String qui lit Get Vitesse **avant** le Set affiche 0, 1, 2 au lieu de 1, 2, 3.',
     },
     {
       title: 'Pourquoi c’est mieux',
       body:
-        'Le jour où le ventilateur a six vitesses, il suffit de changer le 4 en 6. Avec des Branch, il faudrait retoucher la condition, et ne pas se tromper d’un cran.\n\n' +
-        'Le même calcul sert partout où quelque chose boucle : l’objet suivant d’un inventaire, le point suivant d’une patrouille, une action une fois sur trois.',
+        'Le jour où le ventilateur a six vitesses, on change le 4 en 6, et c’est tout. Avec des Branch, il faut retoucher la condition, sans se tromper d’un cran.\n\n' +
+        'Le même calcul sert partout où quelque chose **boucle** : l’objet suivant d’un inventaire (Index + 1) % Length, le point suivant d’une patrouille, une action une fois sur trois (Compteur % 3 == 0).\n\n' +
+        'Pour le défi (revenir en arrière), essaie d’abord − 1 et regarde ce que donne −1 % 4 : le résultat t’expliquera le + 3.',
     },
   ],
   objectives: [

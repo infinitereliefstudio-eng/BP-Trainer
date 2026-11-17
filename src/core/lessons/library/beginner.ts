@@ -45,20 +45,36 @@ export const lessonCounter: Lesson = {
   remember: 'Un Set ne change la variable que quand le fil blanc passe par lui : posé seul, il ne s’exécute jamais. Lire la variable (Get) donne sa valeur du moment.',
   cards: [
     {
-      title: 'Compter',
+      title: 'Ce qui est en place',
       body:
-        'Une variable **Integer** garde un nombre entier d’un événement à l’autre. Crée-la dans **BP_Compteur** (Variables › +), nomme-la `Passages`, type **Integer**.\n\n' +
-        'Pour ajouter 1 : **Set Passages** avec `Passages + 1`, ou plus court, **Increment Int** avec le **Get** de Passages branché sur sa pin en losange.',
+        '**BP_Compteur** est une borne au milieu du niveau : un **Socle** et une **Zone** (Box Collision) autour. Le joueur part à gauche. Le graphe est vide, et il n’y a pas encore de variable : c’est à toi de la créer.\n\n' +
+        'À chaque fois que le joueur entre dans la Zone, la borne doit compter ce passage, afficher le total, et lancer une alerte à partir du 3e.',
     },
     {
-      title: 'Le fil blanc décide',
+      title: 'Une variable Integer',
       body:
-        'Un **Set** (ou un Increment) a des pins blanches : il ne fait rien tant que le fil d’exécution ne passe pas par lui. Un Set posé à côté, sans fil, est ignoré sans erreur (Compile le signale).\n\n' +
-        'À l’inverse, **Get Passages** n’a pas de fil blanc : il donne la valeur au moment où un nœud exécuté la lit.',
+        'Un nombre que l’on veut garder d’un passage à l’autre se range dans une **variable**. Dans My Blueprint, Variables › **+**, nomme-la `Passages`, type **Integer** (un nombre entier, pin verte). Sa valeur par défaut, 0, est sa valeur au lancement.\n\n' +
+        '- **Get Passages** (sans fil blanc) lit la valeur **au moment** où un nœud exécuté la demande.\n- **Set Passages** (fil blanc) range une nouvelle valeur.\n- **Increment Int** (fil blanc) ajoute 1 à la variable branchée sur sa pin en **losange**, et redonne la nouvelle valeur. Le losange veut dire « par référence » : le nœud écrit dans la variable elle-même, pas dans une copie. Branche-y **Get Passages**.\n\n' +
+        '`Set Passages` avec `Passages + 1` fait la même chose, en trois nœuds.',
     },
     {
-      title: 'Comparer',
-      body: '**>= (Integer)** compare deux nombres et donne un Boolean, que **Branch** utilise pour choisir son chemin : `Passages >= 3` → True.',
+      title: 'Comparer et choisir',
+      body:
+        '**>= (Integer)** compare A et B et donne un **Boolean** (pin rouge) : vrai si A est plus grand ou égal à B. Avec A = Passages et B = 3, il est vrai au 3e passage, et à tous les suivants.\n\n' +
+        '**Branch** lit ce Boolean sur **Condition** et envoie le fil blanc par **True** ou par **False**. Rien n’oblige à relier les deux sorties : ici, False ne fait rien.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Tout ce qui arrive à chaque passage est sur **un seul fil blanc**, dans cet ordre :\n\n' +
+        '1. **Event ActorBeginOverlap**.\n2. **Increment Int** (Passages).\n3. **Print String**, In String = Get Passages.\n4. **Branch**, Condition = Passages >= 3.\n5. True : **Print String** « Trop de passages ! ».\n\n' +
+        'Relier un Integer (vert) à In String (magenta, une String) pose automatiquement une **conversion** : c’est normal.',
+    },
+    {
+      title: 'Les deux pièges',
+      body:
+        '**Un Increment posé à côté du fil.** Il ne s’exécute jamais et Passages reste à 0, sans erreur à l’exécution (Compile l’avertit). Tout nœud à pins blanches doit être traversé par le fil.\n\n' +
+        '**Afficher avant de compter.** Si le Print String vient avant l’Increment, il lit l’ancienne valeur : on voit 0, 1, 2 au lieu de 1, 2, 3. Un Get donne la valeur du moment, pas celle de la fin de l’événement.',
     },
   ],
   objectives: [
@@ -164,15 +180,38 @@ export const lessonBarrier: Lesson = {
   remember: 'Cacher (Hidden, Visible) ne change que l’affichage : la collision reste. Pour laisser passer, c’est Set Collision Enabled.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Barriere** est un long mur orange qui coupe le niveau en deux. Le joueur part à gauche et ne peut pas passer. **Auto Receive Input** est activé : la barrière entend la touche E.\n\n' +
+        'Le but : sur E, la barrière disparaît **et** laisse passer. Ce sont deux choses différentes pour le moteur, et c’est tout le sujet de la leçon.',
+    },
+    {
       title: 'Ce qu’on voit',
       body:
-        '**Set Actor Hidden In Game** cache tout l’acteur ; **Set Visibility** cache un seul composant. Dans les deux cas, c’est **seulement l’affichage** qui change.',
+        'Deux nœuds cachent, à deux niveaux :\n\n' +
+        '- **Set Actor Hidden In Game** : cache **tout l’acteur**, tous ses composants. Pin **New Hidden** : coché = caché. Sans Target relié, il agit sur l’acteur lui-même (self).\n- **Set Visibility** : cache **un seul composant**, branché sur Target.\n\n' +
+        'Attention au sens des cases : Hidden coché = caché, Visibility coché = visible.\n\n' +
+        'Dans les deux cas, seul **l’affichage** change. Le mur caché est toujours là pour le moteur.',
     },
     {
       title: 'Ce qui bloque',
       body:
-        'Un mesh bloque le joueur à cause de sa **collision**, réglée par **Collision Enabled** : `No Collision` (rien), `Query Only` (overlaps seulement), `Physics Only` (bloque seulement), `Query and Physics` (les deux).\n\n' +
-        '**Set Collision Enabled** la change pendant le jeu. Sa pin Target attend le composant (Barriere), pas l’acteur.',
+        'Un mesh bloque le joueur à cause de sa **collision**, réglée par **Collision Enabled**. La valeur qui nous intéresse :\n\n' +
+        '- **No Collision** : le composant n’existe plus pour les collisions. Ni blocage, ni overlap.\n- **Query and Physics** (Collision Enabled) : il bloque et il détecte. C’est le réglage de départ de la barrière.\n\n' +
+        '**Set Collision Enabled** change ce réglage pendant le jeu. **Target** attend le **composant** (Get Barriere), pas l’acteur : la collision appartient à chaque composant. **New Type** est une liste : choisis No Collision.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**E** (Pressed) → **Set Actor Hidden In Game** (New Hidden coché) → **Set Collision Enabled** (Target = Barriere, New Type = No Collision).\n\n' +
+        'L’ordre des deux nœuds n’a pas d’importance : ils s’exécutent dans la même image.\n\n' +
+        'Le piège : s’arrêter au premier nœud. Le mur disparaît, le joueur avance… et se cogne à un mur invisible. C’est un bug classique dans un vrai jeu.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Dans UE, Collision Enabled se règle dans Details › Collision, souvent par un **preset** (BlockAll, OverlapAll, NoCollision…) qui règle aussi la réponse à chaque type d’objet. Pour cacher et couper d’un coup tout un acteur, **Set Actor Enable Collision** existe aussi.\n\n' +
+        'Pour une porte, un piège ou un passage secret, retiens le réflexe : se demander séparément « est-ce qu’on le voit ? » et « est-ce qu’on peut le traverser ? ».',
     },
   ],
   objectives: [
@@ -275,8 +314,27 @@ export const complete1: Lesson = {
     {
       title: 'Compléter un graphe',
       body:
-        'Le graphe de **BP_Torche** est presque fini. Les cadres jaunes marquent où il manque un nœud. Les nœuds à placer : **Decrement Int**, **== (Integer)** (ou **<= (Integer)**), **Branch**.\n\n' +
-        'Regarde les couleurs : une pin **verte** attend un Integer, une pin **rouge** un Boolean. Branch veut un Boolean sur Condition : c’est ce que donne une comparaison.',
+        'Un exercice **Complète** donne un graphe presque fini. Les **cadres jaunes** (des Comments) marquent où il manque un nœud, et la consigne dit lesquels poser. À toi de trouver où chacun se branche.\n\n' +
+        'Le meilleur indice est la **couleur des pins** : un fil ne relie que des pins de types compatibles. Vert d’eau = Integer, rouge = Boolean, blanc = exécution, bleu = référence.',
+    },
+    {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Torche** a une **Lumiere** allumée et une variable **Charges** (Integer, 3). Dans le graphe :\n\n' +
+        '- l’événement **E** ;\n- un **Print String** qui lit Get Charges ;\n- un **Set Visibility** qui éteint Lumiere ;\n- trois cadres jaunes, et aucun fil blanc entre ces nœuds.',
+    },
+    {
+      title: 'Les trois nœuds à placer',
+      body:
+        '- **Decrement Int** : retire 1 à la variable branchée sur sa pin en losange (Get Charges). Fil blanc : il doit être traversé pour agir.\n- **== (Integer)** : vrai si A et B sont égaux. Sa sortie est un Boolean rouge. **<= (Integer)** marche aussi (Charges <= 0).\n- **Branch** : envoie le fil blanc par True ou False selon sa Condition, le Boolean rouge.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Sur le fil blanc : **E** → Decrement Int → Print String → Branch → (True) Set Visibility.\n\n' +
+        'La Condition du Branch vient de **Charges == 0**, avec un second Get Charges.\n\n' +
+        'Avec cet ordre : 1er appui, 2 s’affiche ; 2e appui, 1 ; 3e appui, 0, et la lumière s’éteint.\n\n' +
+        'Le piège : placer le Decrement après le Print String. On verrait 3, 2, 1 : l’affichage lirait la charge avant qu’elle soit retirée.',
     },
   ],
   objectives: [

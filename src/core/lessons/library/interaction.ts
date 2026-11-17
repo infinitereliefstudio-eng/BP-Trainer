@@ -95,23 +95,38 @@ export const lessonLook: Lesson = {
     'Un Line Trace va de Start à End, deux positions dans le monde : End = Start + direction × distance. Il renvoie le premier objet qui bloque le rayon ; un message d’interface vers cet objet le fait réagir, sans savoir ce qu’il est.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        'Le joueur est au milieu de trois objets, **sans aucune zone de collision** :\n\n' +
+        '- **BP_Levier** à sa droite (il regarde dans cette direction au départ), et, plus loin dans la même direction, un second **BP_Coffre** caché derrière le levier ;\n- **BP_Coffre** en dessous ;\n- **BP_Rocher** à gauche.\n\n' +
+        'Le levier et les coffres implémentent **BPI_Interactif** : leur Event Interagir affiche « Levier actionné » ou « Coffre ouvert ». Le rocher n’implémente rien. **BP_Joueur** a un événement **E**, relié à rien.',
+    },
+    {
       title: 'Viser au lieu de toucher',
       body:
-        'Une zone de collision dit « le joueur est près ». Elle ne dit pas ce qu’il **regarde**. Un jeu à la première personne lance un **rayon** depuis le joueur, droit devant : le premier objet touché est celui qu’il vise.\n\n' +
-        '**Line Trace By Channel** fait cela. **Return Value** dit si quelque chose a été touché ; **Out Hit Hit Actor** dit quoi.',
+        'Une zone de collision répond à « le joueur est-il **près** ? ». Elle ne dit pas ce qu’il **regarde**. Un jeu à la première personne lance un **rayon** depuis le joueur, droit devant : le premier objet touché est celui qu’il vise.\n\n' +
+        '**Line Trace By Channel** tire ce rayon de **Start** à **End** :\n\n' +
+        '- **Return Value** : vrai si quelque chose a été touché ;\n- **Out Hit Hit Actor** : l’acteur touché, le **premier** sur la ligne ;\n- **Draw Debug Type** : For Duration dessine le rayon pendant Play, en rouge jusqu’au point touché.',
     },
     {
       title: 'Start et End',
       body:
-        '**Start** : **Get Actor Location**.\n\n' +
-        '**End** : la même position, plus **Get Actor Forward Vector** (longueur 1) **× 300**. Il faut donc un **× (Vector * Float)** puis un **+ (Vector)**.\n\n' +
-        'End est une **position**, pas une direction : oublier le « + Start » est l’erreur la plus fréquente.',
+        'Start et End sont deux **positions** dans le monde.\n\n' +
+        '- **Start** = **Get Actor Location** (le joueur).\n- **End** = Start **+** **Get Actor Forward Vector** **×** 300.\n\n' +
+        '**Get Actor Forward Vector** donne la direction dans laquelle l’acteur regarde, un vecteur de **longueur 1**. Multiplié par 300 (**× (Vector * Float)**), il fait 300 cm. Ajouté à la position (**+ (Vector)**), il donne le point situé 300 cm devant le joueur.\n\n' +
+        'L’erreur la plus fréquente : mettre la direction seule sur End. Le rayon vise alors un point près de l’origine du niveau, pas devant le joueur.',
     },
     {
-      title: 'Voir le rayon, puis agir',
+      title: 'Agir sur ce qu’on vise',
       body:
-        'Règle **Draw Debug Type** sur *For Duration* : pendant Play, le rayon se dessine en rouge jusqu’au point touché, en vert au-delà.\n\n' +
-        'Relie **Out Hit Hit Actor** au Target de **Interagir (Message)** : le levier et le coffre implémentent déjà BPI_Interactif. Le rocher ne l’implémente pas, et un rayon dans le vide donne None : dans les deux cas le message ne fait rien, sans erreur.',
+        '**Line Trace** → **Interagir (Message)**, Target = **Out Hit Hit Actor**.\n\n' +
+        'Le message fait réagir le levier ou le coffre. Pour le rocher (pas d’interface) et pour un rayon dans le vide (Hit Actor = None), il ne fait rien, sans erreur : pas besoin de Cast ni de test.\n\n' +
+        'Le second coffre, derrière le levier, ne doit pas réagir : le rayon s’arrête au premier objet qui le bloque.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'C’est exactement le schéma d’interaction de la plupart des jeux à la première personne. Dans UE, on part en général de la **caméra** (Get Player Camera Manager › Camera Location et Forward Vector) plutôt que du centre du personnage, pour viser là où le joueur regarde vraiment, y compris en haut ou en bas.',
     },
   ],
   objectives: [
@@ -268,22 +283,39 @@ export const lessonCrate: Lesson = {
     'Event Hit se redéclenche à chaque image tant que le contact dure, et il n’existe pas d’événement de fin de contact. Un Do Once rouvert par un Retriggerable Delay donne « une fois par contact ».',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Caisse** : une caisse qui **bloque** le joueur, et une variable **Vitesse** (150). Son graphe : **Event Hit** → Print String « Poussée ! ».\n\n' +
+        'Le joueur est collé à gauche de la caisse. Lance Play et pousse vers la droite : « Poussée ! » s’affiche en rafale, et la caisse ne bouge pas.',
+    },
+    {
       title: 'Bloquer n’est pas chevaucher',
       body:
-        'Une Box Collision se **traverse** : elle donne des overlaps. Un Static Mesh qui **bloque** arrête le joueur : il donne **Event Hit**, chez les deux acteurs.\n\n' +
-        '**Other** est l’acteur d’en face. **Hit Normal** est un vecteur de longueur 1 : pour la caisse, la direction dans laquelle on la pousse.',
+        '- Une **Box Collision** se **traverse** : elle donne des overlaps (Begin, End).\n- Un **Static Mesh qui bloque** arrête le joueur : il donne **Event Hit**, chez les deux acteurs du contact.\n\n' +
+        'Les sorties de Event Hit :\n\n' +
+        '- **Other** : l’acteur d’en face ;\n- **Hit Normal** : un vecteur de **longueur 1**, perpendiculaire à la surface touchée. Pour la caisse poussée par la gauche, il pointe vers la droite : la direction dans laquelle on la pousse.',
     },
     {
       title: 'À chaque image',
       body:
-        'Tant que le joueur pousse, Event Hit arrive **à chaque image** : 60 fois par seconde. Le Print String du projet de départ le montre.\n\n' +
-        'Pour le déplacement, c’est parfait : **Add Actor World Offset** avec Hit Normal × Vitesse × **Get World Delta Seconds** (le Delta Seconds des événements qui ne sont pas Tick).',
+        'Tant que le joueur pousse, Event Hit arrive **à chaque image**. C’est ce que montre la rafale de messages.\n\n' +
+        'Pour le **déplacement**, c’est parfait : à chaque Hit, avancer un peu. Comme sur Tick, la vitesse doit tenir compte du temps : **Get World Delta Seconds** donne la durée de l’image, pour les événements qui n’ont pas de Delta Seconds à eux.\n\n' +
+        'Déplacement d’une image : Hit Normal **×** (Vitesse **×** Get World Delta Seconds), avec **Add Actor World Offset**.',
     },
     {
       title: 'Une fois par contact',
       body:
-        'Il n’y a **pas d’événement « fin de Hit »**. L’astuce : un **Do Once** laisse passer le premier Hit. À chaque Hit, un **Retriggerable Delay** (0,2 s) repart de zéro ; quand les Hits cessent, il arrive enfin au bout et entre dans le **Reset** du Do Once.\n\n' +
-        'Un **Sequence** en tête permet de faire les trois choses à chaque Hit.',
+        'Pour le **message**, c’est gênant : il faut « une fois par contact », et il n’existe **pas d’événement de fin de Hit**.\n\n' +
+        'L’astuce :\n\n' +
+        '- un **Do Once** laisse passer le premier Hit d’un contact ;\n- à **chaque** Hit, un **Retriggerable Delay** (0,2 s) repart de zéro ;\n- quand les Hits cessent, il arrive enfin au bout, et son Completed entre dans le **Reset** du Do Once.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**Event Hit** → **Sequence** (règle 3 sorties dans Details).\n\n' +
+        '- **Then 0** → Do Once → Print String « Poussée ! ».\n- **Then 1** → Add Actor World Offset (Delta Location = Hit Normal × (Vitesse × Get World Delta Seconds)).\n- **Then 2** → Retriggerable Delay (0,2) → **Reset** du Do Once.\n\n' +
+        'Le **Sequence** permet de faire les trois choses à chaque Hit : sans lui, le Do Once fermé bloquerait aussi le déplacement.\n\n' +
+        'La vérification pousse deux fois, la seconde à 30 images par seconde : un pas fixe par Hit ferait avancer la caisse deux fois moins vite.',
     },
   ],
   objectives: [
@@ -429,16 +461,32 @@ export const refactor3: Lesson = {
     'Une zone répond à « qui est près ? », un Line Trace à « que regarde-t-on ? ». Avec un message d’interface au bout du rayon, le joueur n’a plus besoin de connaître ni de Cast vers les objets avec lesquels il interagit.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        'Deux **BP_Bouton** côte à côte, chacun avec un **Voyant** éteint, une grande **Zone**, et un Custom Event **Basculer** qui bascule le voyant.\n\n' +
+        '**BP_Joueur**, sur E :\n\n' +
+        '**Get Overlapping Actors** → **For Each Loop** → **Cast To BP_Bouton** → **Basculer**.\n\n' +
+        'Le joueur est placé entre les deux boutons, dans les deux zones : E les bascule **tous les deux**.',
+    },
+    {
       title: 'Ce qui cloche',
       body:
-        'Le graphe de **BP_Joueur** parcourt les acteurs qui le chevauchent, fait un **Cast To BP_Bouton** et appelle **Basculer**. Entre les deux boutons, le joueur est dans les deux zones : les deux basculent.\n\n' +
-        'Et chaque nouveau type d’objet demanderait un Cast de plus.',
+        '- Une zone répond à « **qui est près** ? », pas à « **que vise-t-on** ? ». Deux zones qui se chevauchent, et l’interaction devient ambiguë.\n- Le joueur **connaît** BP_Bouton : chaque nouveau type d’objet interactif demanderait un Cast de plus, et une modification du joueur.\n\n' +
+        'Deux défauts, deux outils : le **Line Trace** pour viser, l’**interface** pour ne plus connaître la cible.',
     },
     {
       title: 'La réécriture',
       body:
-        'Côté **BP_Joueur** : E → **Line Trace By Channel** (300 cm devant) → **Interagir (Message)** vers **Out Hit Hit Actor**. Plus de Get Overlapping Actors, plus de Cast.\n\n' +
-        'Côté **BP_Bouton** : ajoute l’interface **BPI_Interactif** (Class Settings), puis **Event Interagir** → **Basculer**. La Zone ne sert plus : tu peux la supprimer.',
+        'Côté **BP_Bouton** :\n\n' +
+        '1. Class Settings › + Implemented Interface › **BPI_Interactif** (elle existe déjà).\n2. My Blueprint › Interfaces › Interagir › **Event** → **Basculer**.\n3. La Zone ne sert plus : tu peux la supprimer.\n\n' +
+        'Côté **BP_Joueur** :\n\n' +
+        '1. Supprime Get Overlapping Actors, le For Each Loop, le Cast et l’appel.\n2. **E** → **Line Trace By Channel** (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300).\n3. → **Interagir (Message)**, Target = **Out Hit Hit Actor**.\n\n' +
+        'Relance Play en visant chaque bouton : un seul bascule à la fois.',
+    },
+    {
+      title: 'Pourquoi c’est mieux',
+      body:
+        'Le joueur ne sait plus rien des boutons. Demain, un levier ou un terminal n’aura qu’à implémenter BPI_Interactif pour réagir à E, sans toucher une ligne de BP_Joueur : c’est le **découplage**.',
     },
   ],
   objectives: [

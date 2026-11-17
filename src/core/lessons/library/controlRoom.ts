@@ -71,19 +71,37 @@ export const lessonControlRoom: Lesson = {
   remember: 'Chaque outil à sa place : l’interface pour agir sur un objet sans le connaître, l’Enum pour son état, l’Event Dispatcher pour prévenir ceux qui écoutent.',
   cards: [
     {
-      title: 'Ce qui est prêt',
+      title: 'Ce qui est en place',
       body:
-        'Le joueur envoie déjà **Interagir (Message)** de `BPI_Interactif` à ce qu’il touche quand on appuie sur E. La console a sa variable **Mode** (`E_Mode` : Arret, Eco, Plein) et son Event Dispatcher **OnModeChange**, avec un paramètre `NouveauMode`.',
+        'Cette leçon réunit trois outils déjà vus. Sont prêts :\n\n' +
+        '- **BPI_Interactif** (Interagir), et **BP_Joueur** qui envoie Interagir (Message) sur E à ce qu’il touche ;\n- l’Enum **E_Mode** : Arret, Eco, Plein ;\n- **BP_Console** : un pupitre, une Zone, un écran, une variable **Mode** (E_Mode, Arret) et un Event Dispatcher **OnModeChange** avec un paramètre **NouveauMode** (E_Mode) ;\n- trois **BP_Lampe**, éteintes, sans logique.\n\n' +
+        'E près de la console fait tourner le mode : Arret → Eco → Plein → Arret. Les lampes suivent : éteintes, 1500, 5000.',
+    },
+    {
+      title: 'Chaque outil à sa place',
+      body:
+        '- **L’interface** pour **agir** : le joueur ne sait pas qu’il parle à une console. Il envoie Interagir, la console décide.\n- **L’Enum** pour l’**état** : trois noms clairs plutôt qu’un nombre, et un Switch qui a une sortie par état.\n- **L’Event Dispatcher** pour **prévenir** : la console n’a pas à connaître les lampes. Elle annonce, celles qui écoutent réagissent.\n\n' +
+        'Personne ne lit l’état d’un autre à chaque image : chacun réagit au bon moment.',
     },
     {
       title: 'La console',
       body:
-        'Implémente `BPI_Interactif` (Class Settings), puis sur **Event Interagir** : **Switch on E_Mode** (Mode). Arret → Set Mode = Eco, Eco → Plein, Plein → Arret. Après chaque Set : **Call OnModeChange** avec le nouveau Mode.',
+        '1. **Class Settings** › + Implemented Interface › BPI_Interactif.\n2. My Blueprint › Interfaces › Interagir › **Event**.\n3. **Event Interagir** → **Switch on E_Mode** (Selection = Get Mode).\n4. Arret → **Set Mode** = Eco ; Eco → Set Mode = Plein ; Plein → Set Mode = Arret.\n5. Les trois Set → **Call OnModeChange**, NouveauMode = Get Mode.\n\n' +
+        'Un seul Call suffit : les trois chemins y convergent après leur Set.',
     },
     {
       title: 'Les lampes',
       body:
-        'Au **BeginPlay** de BP_Lampe : **Get Actor Of Class** (BP_Console), puis **Bind Event to OnModeChange** avec un Custom Event qui reçoit `NouveauMode`. Là, un **Switch on E_Mode** : Arret → cacher la Lumiere ; Eco → la montrer et **Set Intensity** 1500 ; Plein → la montrer, intensité 5000.',
+        'Au **BeginPlay** de BP_Lampe :\n\n' +
+        '1. **Get Actor Of Class** (BP_Console) : il n’y a qu’une console, inutile de régler une référence par lampe.\n2. **Bind Event to OnModeChange**, Target = cette console ; depuis la pin Event, **Add Custom Event for OnModeChange**.\n3. Ce Custom Event → **Switch on E_Mode** (Selection = NouveauMode) :\n\n' +
+        '- Arret → **Set Visibility** (Lumiere, décoché) ;\n- Eco → Set Visibility (coché) → **Set Intensity** (Lumiere, 1500) ;\n- Plein → Set Visibility (coché) → Set Intensity (5000).',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '**Oublier un Set Mode.** Le Switch repasse sans cesse par la même sortie.\n\n' +
+        '**Appeler OnModeChange avant le Set.** Les lampes reçoivent l’ancien mode, avec un cran de retard.\n\n' +
+        '**Get Actor Of Class à chaque changement.** Ça marche, mais chercher la console une fois au BeginPlay suffit : la recherche parcourt tout le niveau.',
     },
   ],
   objectives: [
@@ -185,10 +203,29 @@ export const refactor1: Lesson = {
   remember: 'Chercher des acteurs coûte cher : on le fait une fois, au BeginPlay, et on garde le résultat dans une variable. Le Tick ne fait que ce qui change à chaque image.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        'Trois **BP_Lampe** et un **BP_Afficheur**. Le graphe de l’afficheur :\n\n' +
+        '**Event Tick** → **Get All Actors Of Class** (BP_Lampe) → **Set Text** (Ecran) = **Length** du résultat.\n\n' +
+        'L’écran affiche 3. Le graphe **marche**. Mais la recherche tourne **à chaque image** : 60 fois par seconde, pour un résultat qui ne change jamais.',
+    },
+    {
       title: 'Ce qui coûte',
       body:
-        '**Get All Actors Of Class** parcourt tout le niveau. Sur **Event Tick**, il le fait à chaque image : dans un vrai niveau de milliers d’acteurs, c’est une perte de temps qui se voit.\n\n' +
-        'Les lampes ne changent pas pendant le jeu : il suffit de les chercher **une fois**, au **BeginPlay**, et de garder la liste dans une variable (clic droit sur la pin Out Actors › Promote to Variable, ou crée-la).',
+        '**Get All Actors Of Class** parcourt **tout le niveau** pour trouver les acteurs d’une classe. Dans un vrai niveau de milliers d’acteurs, le faire à chaque image se voit dans les performances.\n\n' +
+        '**Event Tick**, lui, est fait pour ce qui change **à chaque image** : un mouvement, un compte à rebours affiché. Une recherche dont le résultat ne bouge pas n’a rien à y faire.\n\n' +
+        'La règle : on cherche **une fois**, au **BeginPlay**, et on **garde** le résultat dans une variable.',
+    },
+    {
+      title: 'La réécriture',
+      body:
+        '1. Pose **Event BeginPlay** → Get All Actors Of Class (BP_Lampe) → **Set Lampes**, une variable **tableau de BP_Lampe**. Le plus rapide : appui long sur la pin **Out Actors** › **Promouvoir en variable**.\n2. Supprime le Get All Actors Of Class du Tick.\n3. **Set Text** (Ecran) = Length de **Get Lampes**.\n\n' +
+        'Le Set Text peut rester sur le Tick, ou passer juste après le Set Lampes : les lampes ne changent pas, l’écran non plus. La vérification compte les recherches : une seule.',
+    },
+    {
+      title: 'Et si les lampes changeaient ?',
+      body:
+        'Si des lampes apparaissaient ou disparaissaient pendant le jeu, on ne relancerait pas la recherche au Tick pour autant : la lampe qui naît s’ajoute à la liste (Add), celle qui meurt s’en retire (Remove Item, voir « Détruire proprement »).',
     },
   ],
   objectives: ['L’Ecran affiche toujours 3.', 'Get All Actors Of Class ne s’exécute qu’une fois.', 'Touche Vérifier.'],

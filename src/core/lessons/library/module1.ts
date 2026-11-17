@@ -30,22 +30,37 @@ export const lesson1: Lesson = {
   remember: 'Rien ne s’exécute sans événement : le fil blanc part d’un événement (BeginPlay, une touche, un overlap…) et passe de nœud en nœud, dans l’ordre.',
   cards: [
     {
-      title: 'L’éditeur',
+      title: 'Ce qui est en place',
       body:
-        'Tu es dans l’éditeur du Blueprint **BP_Bonjour**. Au centre, l’**Event Graph** : c’est là qu’on écrit la logique avec des nœuds.\n\n' +
-        '☰ ouvre **My Blueprint** (composants, variables), ☷ ouvre **Details** (les propriétés de ce qui est sélectionné).',
+        'Le projet contient un Blueprint, **BP_Bonjour** : un simple cube. Un Blueprint est un **modèle** ; le cube posé dans le niveau en est une **instance**. Ce que tu écris dans BP_Bonjour, chaque instance l’exécutera.\n\n' +
+        'L’écran de l’éditeur :\n\n' +
+        '- au centre, l’**Event Graph**, où l’on écrit la logique avec des nœuds reliés par des fils ;\n- ☰ ouvre **My Blueprint** (composants, variables, fonctions) ;\n- ☷ ouvre **Details** : les réglages de ce qui est sélectionné ;\n- en haut, **Compile** vérifie le Blueprint, **▶ Play** lance le jeu, et les onglets passent du graphe au niveau.',
     },
     {
       title: 'Les événements et le fil blanc',
       body:
-        'Les nœuds à en-tête rouge sont des **événements** : ils démarrent l’exécution. **Event BeginPlay** se déclenche une seule fois, au lancement.\n\n' +
-        'Le **fil blanc** est le fil d’exécution : il dit dans quel ordre les nœuds s’exécutent, de gauche à droite.',
+        'Rien ne s’exécute tout seul. Tout part d’un **événement**, un nœud à en-tête rouge : le moteur le déclenche quand quelque chose arrive.\n\n' +
+        '**Event BeginPlay** se déclenche **une fois**, quand l’acteur commence à jouer. Pour un acteur posé dans le niveau, c’est au lancement de la partie.\n\n' +
+        'De sa pin blanche (le petit triangle à droite) part le **fil d’exécution**, le fil blanc. Il dit quels nœuds s’exécutent et dans quel ordre : de l’événement vers la droite, nœud après nœud. Un nœud qui n’est sur aucun fil blanc ne s’exécute **jamais**, même s’il est juste à côté.',
     },
     {
-      title: 'Ton premier nœud',
+      title: 'Print String et ses pins',
       body:
-        '**Print String** affiche un texte à l’écran pendant quelques secondes et l’écrit dans l’**Output Log**. C’est l’outil de base pour voir ce qui se passe.\n\n' +
-        'Touche le champ à côté de `In String` pour changer le texte.',
+        '**Print String** affiche un texte à l’écran pendant quelques secondes et l’écrit dans l’**Output Log** (le panneau du bas). C’est l’outil de base pour voir ce que fait un Blueprint.\n\n' +
+        '- **In String** : le texte à afficher. Touche le champ pour le changer.\n- **Print to Screen** et **Print to Log** : où l’afficher (les deux par défaut).\n- **Duration** : combien de secondes il reste à l’écran.\n\n' +
+        'Pour poser un nœud : **appui long sur le vide** du graphe, la palette s’ouvre, tape une partie du nom (« print »). Pour relier : tire un fil depuis une pin jusqu’à une autre.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '1. Pose un **Event BeginPlay** (palette, « begin »).\n2. Pose un **Print String** et relie la sortie blanche de BeginPlay à son entrée blanche.\n3. Écris « Bonjour » dans In String.\n4. Touche **Compile** : une coche verte dit que le Blueprint est correct. ▶ Play compile aussi avant de lancer.\n\n' +
+        'Le piège du débutant : poser les deux nœuds sans les relier. Rien ne s’affiche, et aucune erreur ne le signale.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Un nouveau Blueprint d’acteur a déjà trois événements grisés : BeginPlay, ActorBeginOverlap et Tick. Grisés veut dire « posés mais vides » : ils ne coûtent rien tant que rien n’y est relié.\n\n' +
+        'Print String est un outil de **développement** : il n’apparaît pas dans un jeu exporté (build Shipping). Pour un texte que le joueur doit voir, on passe par un widget (UMG).',
     },
   ],
   objectives: [
@@ -89,16 +104,36 @@ export const lesson2: Lesson = {
   remember: 'Un nœud agit sur ce qui est branché sur Target : pour agir sur un composant, place sa référence dans le graphe et relie-la à Target.',
   cards: [
     {
-      title: 'Les composants',
+      title: 'Ce qui est en place',
       body:
-        'Un Blueprint est fait de **composants** : ici un **Pied** (Static Mesh) et une **Lumiere** (Point Light). Ils sont listés dans My Blueprint.\n\n' +
-        'Sélectionne **Lumiere** : dans Details, sa case **Visible** est décochée. C’est son état au lancement.',
+        '**BP_Lampe** est posée au milieu du niveau. Elle est faite de deux **composants**, listés dans My Blueprint :\n\n' +
+        '- **Pied**, un Static Mesh : le poteau gris qu’on voit ;\n- **Lumiere**, une Point Light : la lumière.\n\n' +
+        'Sélectionne Lumiere : dans Details, sa case **Visible** est décochée. Les propriétés d’un composant sont son état **au lancement**. La lampe démarre donc éteinte, et c’est ta logique qui doit l’allumer.',
     },
     {
       title: 'Agir sur un composant',
       body:
-        'Pour changer un composant pendant le jeu, il faut une **référence** vers lui : touche **Get** à côté de Lumiere dans My Blueprint.\n\n' +
-        'Branche cette référence sur la pin **Target** de **Set Visibility**, et coche **New Visibility**.',
+        'Un nœud qui agit sur quelque chose a une pin **Target** : « sur qui j’agis ». Pour agir sur Lumiere, il faut placer dans le graphe une **référence** vers elle : dans My Blueprint, touche **Get** à côté de Lumiere. Un petit nœud bleu apparaît ; sa sortie se branche sur Target.\n\n' +
+        'Le bleu est la couleur des **références** (objets, composants, acteurs). Une référence n’est pas le composant lui-même : c’est une adresse qui permet de l’atteindre.',
+    },
+    {
+      title: 'Set Visibility',
+      body:
+        '**Set Visibility** rend un composant visible ou invisible. Pour une Point Light, cela revient à l’allumer ou l’éteindre.\n\n' +
+        '- **Target** : le composant (ici Lumiere). Obligatoire : sans lui, le nœud ne sait pas sur quoi agir.\n- **New Visibility** : coché = visible, décoché = caché.\n- **Propagate to Children** : appliquer aussi aux composants attachés en dessous. Inutile ici.\n\n' +
+        'C’est un nœud à fil blanc : il ne fait rien tant que l’exécution n’y passe pas.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '1. **Event BeginPlay**.\n2. → **Set Visibility**, New Visibility **coché**.\n3. Get **Lumiere** → pin Target.\n\n' +
+        'Ne coche pas Visible dans les propriétés de Lumiere : la lampe serait allumée, mais pas par la logique, et la vérification le refuse. C’est la différence entre un **réglage de départ** (Details) et une **action pendant le jeu** (le graphe).',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Dans UE, on obtient la référence d’un composant en le glissant depuis le panneau Components vers le graphe, ou par la palette (« Get Lumiere »). Le nœud est le même.\n\n' +
+        'Set Visibility cache aussi les ombres et la lumière émise. Pour seulement ne plus dessiner l’objet en jeu, UE a aussi **Set Hidden in Game** : un réglage distinct que l’éditeur continue de montrer.',
     },
   ],
   objectives: [
@@ -145,16 +180,35 @@ export const lesson3: Lesson = {
   remember: 'Un overlap ne se déclenche qu’avec une collision qui fait des requêtes (Query) : Begin quand on entre, End quand on sort, et Other Actor dit qui.',
   cards: [
     {
-      title: 'Les zones de collision',
+      title: 'Ce qui est en place',
       body:
-        'La lampe a maintenant une **Zone** (Box Collision), le carré en pointillés dans le niveau. Elle ne bloque rien : elle détecte qui la traverse.\n\n' +
-        'Quand un acteur y entre, le moteur déclenche un **Begin Overlap** ; quand il sort, un **End Overlap**.',
+        'La lampe a un troisième composant : **Zone**, une Box Collision, le carré en pointillés dans le niveau. Une zone de collision ne se voit pas en jeu et ne bloque rien : elle **détecte** qui la traverse.\n\n' +
+        'Quand un acteur y entre, le moteur déclenche un **Begin Overlap** ; quand il en sort, un **End Overlap**. Le joueur part à gauche de la lampe, hors de la zone.',
     },
     {
-      title: 'Deux façons de l’écouter',
+      title: 'Deux façons d’écouter',
       body:
-        '**Event ActorBeginOverlap** réagit à n’importe quelle zone de l’acteur. **On Component Begin Overlap (Zone)** réagit à cette zone précise : on l’obtient dans la palette, catégorie Collision.\n\n' +
-        'La pin **Other Actor** dit qui est entré. On s’en servira plus tard pour reconnaître le joueur.',
+        '- **Event ActorBeginOverlap** / **Event ActorEndOverlap** : réagissent à **n’importe quelle** zone de l’acteur. Simples, mais si la lampe avait deux zones, on ne saurait pas laquelle.\n- **On Component Begin Overlap (Zone)** / **On Component End Overlap (Zone)** : réagissent à **cette** zone précise. On les trouve dans la palette, catégorie Collision.\n\n' +
+        'Les deux ont une sortie **Other Actor** : l’acteur qui est entré ou sorti. On ne s’en sert pas encore ; elle servira à reconnaître le joueur.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Deux événements, deux chemins indépendants :\n\n' +
+        '1. **Begin Overlap** → **Set Visibility** (Target = Lumiere, coché).\n2. **End Overlap** → **Set Visibility** (Target = Lumiere, décoché).\n\n' +
+        'Tu peux réutiliser le même Get Lumiere pour les deux Target : une référence se lit autant de fois qu’on veut.\n\n' +
+        'Teste avec ▶ Play : déplace le joueur au joystick vers la lampe, puis éloigne-le.',
+    },
+    {
+      title: 'Le piège',
+      body:
+        'Oublier la sortie. Avec seulement Begin Overlap, la lampe s’allume et ne s’éteint plus jamais : la vérification « éteinte quand il en ressort » échoue.\n\n' +
+        'Une zone ne prévient que de ce qui **change** : on entre, on sort. Rester dedans ne déclenche rien de plus.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Un overlap n’arrive que si les **deux** acteurs ont **Generate Overlap Events** activé et que leurs réglages de collision se « chevauchent » (Overlap) au lieu de s’ignorer. C’est la première chose à vérifier quand un overlap ne se déclenche pas.',
     },
   ],
   objectives: [
@@ -207,16 +261,38 @@ export const lesson4: Lesson = {
   remember: 'Une variable garde un état d’un événement à l’autre ; Branch choisit le chemin selon un Boolean. Sans Auto Receive Input, un Blueprint n’entend pas les touches.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        'La même lampe, éteinte, sans zone. **Auto Receive Input** est déjà activé dans Class Settings : la lampe entend les touches. Sans ce réglage, un acteur du niveau n’entend rien, même avec un événement de touche dans son graphe.',
+    },
+    {
       title: 'Les touches',
       body:
-        'Un événement de touche (**E**) a deux sorties : **Pressed** quand on appuie, **Released** quand on relâche. En Play, les boutons E, F et Espace sont à l’écran.\n\n' +
-        'Dans UE, un acteur ne reçoit les touches que si **Auto Receive Input** est activé : c’est déjà fait ici, dans Class Settings.',
+        'Un événement de touche (**E**, dans la palette) a deux sorties blanches :\n\n' +
+        '- **Pressed** : au moment où l’on appuie ;\n- **Released** : au moment où l’on relâche.\n\n' +
+        'Ici, seul Pressed sert. En Play, les boutons E, F et Espace sont à l’écran.',
     },
     {
       title: 'Se souvenir avec une variable',
       body:
-        'Pour alterner, la lampe doit se souvenir de son état. Crée une **variable** Boolean (Variables › +), par exemple `bEstAllumee`.\n\n' +
-        '**Branch** choisit un chemin selon un booléen : si la lampe est allumée on l’éteint, sinon on l’allume, et on met la variable à jour avec **Set**.',
+        'Un appui sur E ne sait pas ce qui s’est passé avant. Pour alterner, la lampe doit **se souvenir** de son état : c’est le rôle d’une **variable**.\n\n' +
+        'Dans My Blueprint, Variables › **+**, type **Boolean**, nom `bEstAllumee` (le « b » est la convention d’UE pour un booléen). Sa valeur par défaut, décochée, dit « éteinte » au lancement.\n\n' +
+        '- **Get bEstAllumee** (vert, sans fil blanc) lit la valeur.\n- **Set bEstAllumee** (fil blanc) l’écrit.\n\n' +
+        '**Branch** reçoit un booléen sur **Condition** et envoie le fil blanc sur **True** ou sur **False**. Une seule des deux sorties s’exécute.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**E** (Pressed) → **Branch**, Condition = Get bEstAllumee.\n\n' +
+        '- **True** (elle est allumée) : Set Visibility décoché → **Set bEstAllumee** décoché.\n- **False** (elle est éteinte) : Set Visibility coché → **Set bEstAllumee** coché.\n\n' +
+        'Le piège : changer la lumière sans mettre la variable à jour. Le premier appui allume, puis la variable dit toujours « éteinte » et chaque appui rallume une lampe déjà allumée.',
+    },
+    {
+      title: 'D’autres façons',
+      body:
+        '- **FlipFlop** alterne tout seul entre ses sorties A et B à chaque passage, sans variable visible.\n- **Toggle Visibility** inverse la visibilité d’un composant en un nœud.\n\n' +
+        'Elles marchent, mais la variable est la plus utile : d’autres Blueprints pourront lire `bEstAllumee` pour savoir si la lampe est allumée. Un FlipFlop garde son état pour lui.\n\n' +
+        'Dans UE, les touches se gèrent aujourd’hui avec **Enhanced Input** (des Input Actions plutôt que des touches en dur). L’idée de Pressed / Released reste la même (Started / Completed).',
     },
   ],
   objectives: [

@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-17, V6.1 (les fiches « Comprendre » des anciennes leçons réécrites, voir « V6.1 »), poussée sur `main` à la demande de Tristan. Avant : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -266,6 +266,21 @@ Non fait, chacun de la taille d’une version : Enhanced Input (E30), Save Game 
 Vérification d’une leçon : après un « Infinite loop detected », `runner.playScenario` ne joue plus la suite du scénario (les points de contrôle restent évalués). Sans cela, chaque événement suivant repartait pour 100 000 nœuds : plusieurs secondes de gel sur téléphone pour « Le réseau en boucle », et un test trop lent pour la CI (le premier push de la V6 a échoué là-dessus, sans rien publier).
 
 Version 6.0.0. Travail fait dans une session Claude en ligne, sur la branche `exercices-recueil` (demande de fusion n° 1), puis poussé sur `main` le 2026-11-16 avec l’accord de Tristan.
+
+## V6.1 (2026-11-17) : les fiches « Comprendre » des anciennes leçons
+
+Tristan a validé la longueur des fiches de la V6 (« c’est mieux avec les nouvelles fiches ») et demandé de faire la même chose pour les fiches d’avant. Les 62 leçons et exercices antérieurs à la V6 ont été réécrits : environ 700 caractères en moyenne avant, 1 300 à 2 700 maintenant, 3 à 6 cartes par leçon.
+
+- Modèle suivi (celui de la V6) : **Ce qui est en place** (le projet de départ, ce que le test va faire), **les nœuds et leurs pins**, **le plan** (l’ordre sur le fil blanc), **le piège** (la mauvaise réponse tentante, celle que la vérification reconnaît), et souvent **Dans UE** (ce qui diffère ou ce qu’on fait dans un vrai projet).
+- **Prédis** : les cartes décrivent le graphe et le rôle de chaque nœud, et posent les questions à se poser, **sans donner la réponse**. Une carte commune `PREDICT_METHOD` (`library/kit.ts`) les termine.
+- **Débogue** : tous ouvrent par la carte commune `DEBUG_METHOD` (la constante locale `METHOD` de `debugs.ts` a disparu), puis décrivent ce qui est en place, la notion en cause et où regarder, sans écrire la correction.
+- Seuls les `cards` ont changé : objectifs, indices, scénarios et vérifications sont les mêmes.
+- Les textes ont été relus contre le code : noms de pins et de nœuds tels que l’appli les affiche (SpawnActor, Utilities › Map, Promouvoir en variable…), couleurs de pins tirées de `editor/theme.ts`, Content Browser ouvert par le nom du Blueprint dans la barre d’outils.
+- `RichText` ne fait une liste que d’un bloc dont **toutes** les lignes commencent par « - » ou « 1. » : une phrase d’introduction doit être séparée de sa liste par une ligne vide.
+
+Remarqué, non changé (fidélité à UE, à voir avec Tristan) : dans le simulateur, `Physics Only` bloque le joueur et `Query Only` ne le bloque pas (`types/enums.ts`, `collisionBlocks`). Dans UE, le déplacement d’un personnage passe par des requêtes (sweeps) : c’est l’inverse. Les fiches évitent donc de décrire ces deux valeurs et ne parlent que de No Collision et Query and Physics.
+
+Version 6.1.0.
 
 ## Méthode de travail
 

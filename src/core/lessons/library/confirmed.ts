@@ -9,6 +9,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, notUsing, PRESS_E, printedNumbers, usesNode, visible } from '../checks';
 import type { Lesson } from '../types';
+import { DEBUG_METHOD } from './kit';
 import { generatorBlueprint, lampBlueprint, referenceVariable } from './props';
 
 // ------------------------------------------------------------ Qui modifie quoi
@@ -49,22 +50,39 @@ export const lessonWhoChanges: Lesson = {
   remember: 'Chaque Blueprint garde la main sur ses propres variables : les autres lui demandent par une fonction (« fais ceci ») ou l’écoutent par un Event Dispatcher (« préviens-moi »).',
   cards: [
     {
-      title: 'Trois façons',
+      title: 'Ce qui est en place',
       body:
-        '1. **Set direct** : la borne écrit `Charge` dans la batterie. Simple, mais toute règle (le plafond à 100, le voyant) doit être copiée chez chaque Blueprint qui recharge.\n\n' +
-        '2. **Fonction** : la batterie a une fonction `Recharger`, la borne l’appelle. La règle vit à un seul endroit.\n\n' +
-        '3. **Event Dispatcher** : la batterie annonce un changement, ceux qui écoutent réagissent. Pour prévenir, pas pour demander.',
+        '- **BP_Batterie** : un corps, un **Voyant** vert éteint, et une variable **Charge** (Integer, 0) cochée **Private**.\n- **BP_Borne** : entend E, et a une variable **Batterie** (référence, Instance Editable) déjà réglée sur la batterie du niveau.\n\n' +
+        'Le graphe de la borne fait le travail elle-même : **E** → **Set Charge** (sur la Batterie) = Charge + 40. Mais Charge est Private : **ça ne compile pas**. Touche **Pourquoi ?** sous l’erreur.',
     },
     {
-      title: 'Private',
+      title: 'Private, et pourquoi',
       body:
-        'La case **Private** d’une variable interdit aux autres Blueprints de la lire ou de la modifier : c’est pour ça que le Set de la borne ne compile plus. Touche **Pourquoi ?** sous l’erreur.\n\n' +
-        '**Instance Editable** n’a rien à voir : elle permet de régler la valeur dans le niveau, acteur par acteur.',
+        'La case **Private** d’une variable interdit aux autres Blueprints de la lire ou de l’écrire. Seul son propriétaire y touche.\n\n' +
+        'L’intérêt : la batterie a des **règles** (pas plus de 100, voyant allumé à plein). Si n’importe qui peut écrire Charge, chaque Blueprint qui recharge doit recopier ces règles, et le jour où l’un les oublie, la batterie affiche 140.\n\n' +
+        '**Instance Editable** n’a rien à voir : c’est le droit de **régler** la valeur dans le niveau, acteur par acteur, avant le jeu.',
     },
     {
-      title: 'Une fonction appelée de l’extérieur',
+      title: 'Trois façons de communiquer',
       body:
-        'Dans BP_Batterie, crée la fonction `Recharger` (My Blueprint › Functions › +) avec une entrée `Quantite` (Integer). Depuis BP_Borne, tire un fil depuis la référence `Batterie` et cherche « Recharger » : le nœud a une pin **Target**.',
+        '1. **Set direct** : l’autre écrit la variable. Simple, mais les règles s’éparpillent.\n2. **Fonction** : le propriétaire offre une fonction (« recharge-toi de 40 »), l’autre l’appelle. La règle vit à **un seul** endroit.\n3. **Event Dispatcher** : le propriétaire **annonce** ce qui lui arrive, ceux que ça intéresse écoutent. Pour prévenir, pas pour demander.\n\n' +
+        'Ici, la borne **demande** quelque chose : c’est une fonction.',
+    },
+    {
+      title: 'La fonction Recharger',
+      body:
+        'Dans BP_Batterie, My Blueprint › Functions › **+**, nomme-la `Recharger`. Dans Details, ajoute une entrée **Quantite** (Integer). Le graphe de la fonction s’ouvre, avec son nœud d’entrée qui donne Quantite.\n\n' +
+        'Dedans :\n\n' +
+        '1. **Set Charge** = **Min** (Charge + Quantite, 100). **Min (Integer)** rend le plus petit des deux : il plafonne à 100.\n2. → **Branch** (Charge >= 100) → True : **Set Visibility** (Voyant, coché).\n\n' +
+        'Une fonction s’exécute **en entier, tout de suite**, puis rend la main à celui qui l’a appelée.',
+    },
+    {
+      title: 'Côté borne',
+      body:
+        'Supprime le Set Charge et ses nœuds de calcul. Puis :\n\n' +
+        '**E** (Pressed) → **Recharger** (Target = Get Batterie, Quantite = 40).\n\n' +
+        'Pour trouver le nœud : tire un fil depuis Get Batterie et cherche « Recharger ». La pin **Target** dit sur **quelle** batterie appeler la fonction ; une fonction appelée de l’extérieur en a toujours une.\n\n' +
+        'La borne ne sait plus rien du plafond ni du voyant : elle demande, la batterie décide.',
     },
   ],
   objectives: [
@@ -201,17 +219,29 @@ export const lessonBeginPlayOrder: Lesson = {
   remember: 'UE ne garantit pas l’ordre des BeginPlay entre acteurs : un Blueprint ne doit jamais compter sur le fait qu’un autre a déjà fait le sien.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '- Trois **BP_Lampe** : chacune, à son **BeginPlay**, met sa variable **bAllumee** à vrai et s’allume.\n- **BP_Tableau** : à son BeginPlay, **Get All Actors Of Class** (BP_Lampe) → **For Each Loop** → compte celles dont bAllumee est vrai → affiche le total (Print String et l’écran du tableau).\n\n' +
+        'Lance Play plusieurs fois : parfois 3, parfois 0.',
+    },
+    {
       title: 'Qui commence ?',
       body:
-        'Au lancement, chaque acteur fait son **BeginPlay**, l’un après l’autre. Dans UE, cet ordre **n’est pas garanti** : il peut changer d’une partie à l’autre, d’une machine à l’autre.\n\n' +
-        'Ici, Play le tire au hasard et l’écrit dans l’Output Log (menu ⋮ › Ordre des BeginPlay pour le fixer pendant que tu cherches).',
+        'Au lancement, chaque acteur du niveau fait son BeginPlay, **l’un après l’autre**. Dans UE, cet ordre **n’est pas garanti** : il peut changer d’une partie à l’autre, d’une machine à l’autre, ou dès qu’on déplace un acteur dans le niveau.\n\n' +
+        'Ici, Play le tire au hasard et l’écrit en tête de l’Output Log. Menu ⋮ › **Ordre des BeginPlay** › fixe, pour le figer pendant que tu cherches.\n\n' +
+        'Si le tableau passe **avant** les lampes, il les compte alors qu’aucune n’a encore mis bAllumee à vrai : 0.',
     },
     {
       title: 'Trois façons de s’en sortir',
       body:
-        '1. Ce qui est vrai **dès le départ** va dans la **valeur par défaut** de la variable : elle est posée avant tout BeginPlay.\n\n' +
-        '2. Celui qui change **prévient** : la lampe appelle une fonction du tableau, ou un Event Dispatcher.\n\n' +
-        '3. Celui qui lit **attend** que tout le monde ait démarré : un **Delay** de 0 seconde reporte la suite à l’image suivante, après tous les BeginPlay.',
+        '1. **La valeur par défaut.** Ce qui est vrai dès le départ (la lampe est allumée au démarrage) va dans la **valeur par défaut** de la variable. Elle est posée avant tout BeginPlay.\n2. **Prévenir.** Celui qui change prévient : la lampe appelle une fonction du tableau, ou un Event Dispatcher. Plus personne ne lit au mauvais moment.\n3. **Attendre.** Celui qui lit attend que tout le monde ait démarré : un **Delay** de **0** seconde reporte la suite à l’image suivante, quand tous les BeginPlay sont passés.',
+    },
+    {
+      title: 'Le plan le plus court',
+      body:
+        'Dans BP_Tableau : **Event BeginPlay** → **Delay** (Duration 0) → Get All Actors Of Class → … (le reste ne change pas).\n\n' +
+        'La vérification joue la partie dans l’ordre du niveau, **puis** dans l’ordre inverse : la solution doit tenir dans les deux.\n\n' +
+        'Le Delay 0 est un pansement pratique. Dans un vrai jeu, préfère la solution 1 ou 2 : un Delay 0 suppose que « une image plus tard » suffit, ce qui cesse d’être vrai dès que des acteurs apparaissent plus tard (Spawn).',
     },
   ],
   objectives: [
@@ -289,11 +319,30 @@ export const debug3: Lesson = {
   notions: ['Destroy Actor', 'Is Valid', 'Accessed None', 'Référence vers un acteur détruit'],
   remember: 'Détruire un acteur ne vide pas les références vers lui : elles pointent vers un acteur qui n’existe plus. Is Valid le détecte avant l’erreur.',
   cards: [
+    DEBUG_METHOD,
     {
-      title: 'Enquêter',
+      title: 'Ce qui est en place',
       body:
-        'Lance ▶ Play, attends un peu, appuie sur E, puis ouvre l’**Output Log** et touche **Pourquoi ?** sous l’erreur : elle nomme le nœud, et dit que l’acteur a été détruit.\n\n' +
-        'La variable `Cible` de la tourelle n’a pas changé : elle désigne toujours la cible… qui n’existe plus.',
+        '- **BP_Cible** : une cible rouge. Sur E, elle se détruit (Destroy Actor).\n- **BP_Tourelle** : une variable **Cible** (référence, réglée sur la cible du niveau). Au BeginPlay, **Set Timer by Event** (0,5 s, Looping) appelle le Custom Event **Viser** → Print String « Cible visée en X = … », avec la position lue par **Get Actor Location** sur la Cible.\n\n' +
+        'Lance Play, attends, appuie sur E : l’Output Log se remplit d’erreurs, deux par seconde.',
+    },
+    {
+      title: 'Une référence vers un acteur détruit',
+      body:
+        '**Destroy Actor** retire l’acteur du niveau. Mais il **ne vide pas** les variables qui pointaient vers lui : la variable Cible de la tourelle désigne toujours « la cible »… qui n’existe plus.\n\n' +
+        'Lire sa position donne alors une erreur, la même famille qu’Accessed None : la référence ne mène plus à rien d’utilisable. Touche **Pourquoi ?** sous l’erreur : l’appli dit que l’acteur a été détruit.',
+    },
+    {
+      title: 'Is Valid',
+      body:
+        '**Is Valid**, la version à pins blanches, examine **Input Object** et choisit un chemin :\n\n' +
+        '- **Is Valid** : la référence désigne un acteur qui existe encore ;\n- **Is Not Valid** : elle est vide (None), **ou** l’acteur a été détruit.\n\n' +
+        'C’est le seul test qui couvre les deux cas. Ce qu’attend la tourelle après la destruction : « Plus de cible », et aucune erreur.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Toute référence gardée longtemps (une cible, un objet porté, un ennemi suivi) peut devenir invalide pendant qu’on la garde. Le réflexe : Is Valid avant de s’en servir, surtout dans un Tick ou un timer qui revient sans cesse.',
     },
   ],
   objectives: [
@@ -368,11 +417,26 @@ export const debug4: Lesson = {
   notions: ['Ordre des BeginPlay', 'Valeur par défaut', 'Bug intermittent'],
   remember: 'Un bug qui n’arrive qu’une fois sur deux, sans erreur, vient souvent d’un ordre supposé entre acteurs. Ce qui est vrai au départ va dans la valeur par défaut.',
   cards: [
+    DEBUG_METHOD,
+    {
+      title: 'Ce qui est en place',
+      body:
+        '- **BP_Generateur** : variable **bEnMarche** (Boolean, décochée par défaut). À son BeginPlay, il la met à vrai : il démarre au lancement.\n- **BP_Lampe** : variable **Generateur** (réglée sur le générateur). À son BeginPlay : **Branch** (Generateur › bEnMarche) → True : Set Visibility (allumée).\n\n' +
+        'Lance Play plusieurs fois : la lampe s’allume une partie sur deux. Aucune erreur.',
+    },
     {
       title: 'Un bug qui se cache',
       body:
-        'Lance ▶ Play plusieurs fois. Regarde la première ligne de l’Output Log : l’**ordre des BeginPlay** tiré pour cette partie. Compare avec le résultat.\n\n' +
-        'Touche la lampe, puis Details › **Pourquoi ce nœud ne s’est pas exécuté ?** sur son Set Visibility.',
+        'Un bug **intermittent**, sans erreur, vient souvent d’un **ordre supposé** entre deux acteurs. Regarde la première ligne de l’Output Log : l’ordre des BeginPlay tiré pour cette partie. Compare-le avec le résultat, partie après partie.\n\n' +
+        'Puis touche le Set Visibility de la lampe › Details › « Pourquoi ce nœud ne s’est pas exécuté ? » : quelle valeur le Branch a-t-il lue ?\n\n' +
+        'Menu ⋮ › Ordre des BeginPlay › fixe, pour reproduire à coup sûr pendant que tu cherches.',
+    },
+    {
+      title: 'Action ou état de départ ?',
+      body:
+        'Pose-toi la question : « le générateur tourne au lancement » est-il une **action** (quelque chose qui arrive pendant le jeu) ou un **état de départ** ?\n\n' +
+        'Une action se fait dans un événement. Un état de départ se règle dans la **valeur par défaut** de la variable, posée avant tout BeginPlay, et donc vraie pour tout le monde, quel que soit l’ordre.\n\n' +
+        'La leçon « L’ordre des BeginPlay » détaille les autres façons d’en sortir.',
     },
   ],
   objectives: ['La lampe est allumée au démarrage, dans les deux ordres possibles.', 'Touche Vérifier : le test essaie les deux ordres.'],

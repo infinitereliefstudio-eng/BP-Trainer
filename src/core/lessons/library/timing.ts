@@ -41,16 +41,37 @@ export const lessonWaves: Lesson = {
   remember: 'Le BeginPlay d’un acteur créé par Spawn Actor a déjà tourné quand Return Value sort : ce qu’il doit savoir dès le départ se donne par Expose on Spawn, pas par un Set après.',
   cards: [
     {
-      title: 'Répéter dans le temps',
+      title: 'Ce qui est en place',
       body:
-        '**Set Timer by Event** appelle un Custom Event dans *Time* secondes, en boucle si **Looping** est coché. Tire un fil depuis sa pin **Event** pour créer ce Custom Event.\n\n' +
-        'Pour l’arrêter, garde son **Return Value** (un Timer Handle) dans une variable, puis **Clear and Invalidate Timer by Handle**.',
+        '- **BP_Ennemi** : un cylindre rouge et une variable **Vie** (Integer, 0). À son **BeginPlay**, il affiche « Vie : » suivi de sa Vie.\n- **BP_Spawner** : un socle et une variable **Vague** (Integer, 0). Graphe vide.\n\n' +
+        'Le but : un ennemi par seconde, trois vagues. L’ennemi de la vague N a N × 10 de vie (10, 20, 30) et l’affiche dès sa naissance. Puis le spawner s’arrête.',
     },
     {
-      title: 'Donner une valeur à la naissance',
+      title: 'Répéter dans le temps',
       body:
-        '**Spawn Actor** crée l’acteur, exécute son **BeginPlay**, puis seulement sort par sa pin blanche. Un **Set Vie** placé après arrive donc trop tard : le BeginPlay a déjà affiché 0.\n\n' +
-        'Dans BP_Ennemi, coche **Expose on Spawn** sur `Vie` : elle devient une pin du nœud Spawn Actor, posée **avant** le BeginPlay.',
+        '**Set Timer by Event** appelle un événement plus tard :\n\n' +
+        '- **Event** : tire un fil depuis cette pin rouge et crée un **Custom Event** (par exemple `NouvelleVague`) ;\n- **Time** : 1 seconde ;\n- **Looping** : coché, il le rappelle toutes les secondes ;\n- **Return Value** : le **Timer Handle**, le ticket qui permet de l’arrêter. Range-le dans une variable (type Timer Handle), par exemple `Minuteur`.\n\n' +
+        '**Clear and Invalidate Timer by Handle** (Handle = Get Minuteur) l’arrête.',
+    },
+    {
+      title: 'Spawn Actor et Expose on Spawn',
+      body:
+        '**SpawnActor** (tape « spawn » dans la palette ; dans UE, Spawn Actor from Class) crée un acteur pendant le jeu : **Class** (BP_Ennemi), **Spawn Transform Location** (où), et une sortie **Return Value**, le nouvel acteur.\n\n' +
+        'L’ordre est important : Spawn Actor crée l’acteur, exécute **son BeginPlay**, et **seulement ensuite** sort par sa pin blanche. Un Set Vie placé après arrive trop tard : l’ennemi a déjà affiché « Vie : 0 ».\n\n' +
+        'Dans BP_Ennemi, sélectionne Vie et coche **Expose on Spawn** (Instance Editable se coche avec). Vie devient une **pin du Spawn Actor**, posée **avant** le BeginPlay.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**BP_Spawner** :\n\n' +
+        '1. **BeginPlay** → Set Timer by Event (NouvelleVague, 1, Looping) → **Set Minuteur** (Return Value).\n2. **NouvelleVague** → **Increment Int** (Vague) → **Spawn Actor** BP_Ennemi, Vie = Vague **×** 10.\n3. → **Branch** (Vague **>=** 3) → True : **Clear and Invalidate Timer by Handle** (Minuteur).\n\n' +
+        'La sortie de l’Increment donne la nouvelle Vague : elle sert au calcul de la vie et au test.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Expose on Spawn est la façon propre de donner des paramètres de naissance : vie, équipe, couleur, cible. Pour un projectile ou un ennemi, c’est l’équivalent d’un constructeur avec arguments.\n\n' +
+        'Sans arrêt, le timer continuerait de créer des ennemis indéfiniment : un timer en Looping doit toujours avoir un moment où on l’arrête.',
     },
   ],
   objectives: [
@@ -151,15 +172,33 @@ export const lessonLift: Lesson = {
   remember: 'Sur Tick, une vitesse se multiplie par Delta Seconds : le mouvement dépend alors du temps écoulé, plus du nombre d’images par seconde.',
   cards: [
     {
-      title: 'À chaque image',
+      title: 'Ce qui est en place',
       body:
-        '**Event Tick** s’exécute à chaque image. Sa sortie **Delta Seconds** dit combien de temps s’est écoulé depuis la précédente : 1/60 s à 60 images par seconde, 1/30 s à 30.\n\n' +
-        'Avancer de 3 cm par Tick donne 180 cm/s à 60 images… et 90 cm/s à 30. Avancer de **Vitesse × Delta Seconds** donne toujours Vitesse cm/s.',
+        '**BP_Ascenseur** : une plateforme bleue et une variable **Vitesse** (Float, 200). Graphe vide.\n\n' +
+        'Elle doit avancer vers la droite à **200 cm/s** et s’arrêter à X = 600. Le test tourne à **30 images par seconde**, comme sur un appareil lent : un mouvement qui dépend du nombre d’images échouera.',
     },
     {
-      title: 'Déplacer et s’arrêter',
+      title: 'À chaque image',
       body:
-        '**Add Actor World Offset** déplace l’acteur de *Delta Location* (un vecteur : X, Y, Z). Pour s’arrêter à 600, regarde **Get Actor Location** › **Break Vector** › X, et ne bouge que si X < 600.',
+        '**Event Tick** s’exécute à **chaque image**. Sa sortie **Delta Seconds** dit combien de temps s’est écoulé depuis l’image précédente : environ 1/60 s à 60 images par seconde, 1/30 s à 30.\n\n' +
+        'Le piège classique : avancer de 3 cm par Tick. À 60 images, ça fait 180 cm/s ; à 30, 90 cm/s. Le jeu tourne deux fois moins vite sur un téléphone lent.\n\n' +
+        'La parade : avancer de **Vitesse × Delta Seconds**. À 60 images, 200 × 1/60 ≈ 3,3 cm, 60 fois ; à 30, 200 × 1/30 ≈ 6,7 cm, 30 fois. Toujours 200 cm en une seconde.',
+    },
+    {
+      title: 'Les nœuds',
+      body:
+        '- **Add Actor World Offset** : déplace l’acteur **de** Delta Location (un Vector), dans le repère du monde. C’est un ajout, pas une position.\n- **Make Vector** : assemble X, Y, Z. Ici X = Vitesse × Delta Seconds, Y = Z = 0.\n- **Get Actor Location** → **Break Vector** : la position actuelle, coupée en X, Y, Z.\n- **< (Float)** : vrai si A est plus petit que B.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**Event Tick** → **Branch** (X de Get Actor Location **<** 600) → True : **Add Actor World Offset** (Delta Location = Make Vector (Vitesse **×** Delta Seconds, 0, 0)).\n\n' +
+        'La plateforme peut dépasser 600 d’un petit pas à la dernière image : la vérification l’accepte. Pour un arrêt pile, on prendrait **Min** entre le pas et la distance restante.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Tick a un coût : chaque acteur qui tique travaille à chaque image, même quand il n’a rien à faire. Pour un mouvement qui a un début et une fin, une **Timeline** (voir « La porte qui glisse ») ou un **Interp To** sont souvent mieux ; Tick reste le bon outil pour ce qui bouge en continu.',
     },
   ],
   objectives: [

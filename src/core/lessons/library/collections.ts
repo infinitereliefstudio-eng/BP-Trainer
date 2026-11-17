@@ -70,16 +70,39 @@ export const lessonCodes: Lesson = {
   remember: 'Find sur une clé absente ne fait pas d’erreur : Return Value est faux et Value vaut la valeur par défaut. Teste toujours Return Value.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Digicode** : un boîtier et un écran. Trois variables :\n\n' +
+        '- **Codes** : une **Map** qui associe un nom de porte à son code. Elle contient Atelier → 1234 et Reserve → 5678.\n- **NomPorte** (Name) et **CodeTape** (Integer), **Instance Editable**.\n\n' +
+        'Trois digicodes sont posés : **Atelier** (CodeTape 1234), **Reserve** (CodeTape 1111) et **Cave** (CodeTape 0). La Cave n’est **pas** dans Codes.\n\n' +
+        'Au lancement, chacun doit afficher « NomPorte : ouverte » ou « NomPorte : refusée ».',
+    },
+    {
       title: 'Une Map',
       body:
-        'Ouvre la variable **Codes** de BP_Digicode : c’est une **Map**, une liste de paires clé → valeur. Ici, la clé est un **Name** (le nom de la porte) et la valeur un Integer (son code).\n\n' +
-        'Chaque clé n’y est qu’une fois. Dans Details, tu peux ajouter ou retirer des paires.',
+        'Une **Map** est une liste de paires **clé → valeur**. Ici la clé est un **Name** (le nom de la porte) et la valeur un Integer (le code).\n\n' +
+        '- On cherche **par la clé**, pas par une position : « le code de l’Atelier », pas « le 2e élément ».\n- Chaque clé n’y est **qu’une fois**. Ajouter une clé existante remplace sa valeur.\n\n' +
+        'Sélectionne la variable Codes : dans Details, tu peux lire, ajouter ou retirer des paires.',
     },
     {
       title: 'Find',
       body:
-        '**Find** (Utilities › Map) cherche une clé. Il donne deux sorties : **Value**, la valeur trouvée, et **Return Value**, vrai si la clé existe.\n\n' +
-        'Si la clé n’y est pas, il n’y a **pas d’erreur** : Value vaut la valeur par défaut du type, ici **0**.',
+        '**Find** (Utilities › Map) cherche **Key** dans la Map branchée sur **Target Map**. Il a deux sorties :\n\n' +
+        '- **Value** : la valeur trouvée ;\n- **Return Value** : un Boolean, **vrai si la clé existe**.\n\n' +
+        'Si la clé n’y est pas, il n’y a **pas d’erreur** : Return Value est faux, et Value vaut la **valeur par défaut** du type. Pour un Integer, **0**.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Au **BeginPlay** :\n\n' +
+        '1. **Find** (Target Map = Codes, Key = NomPorte).\n2. **Branch**, Condition = Return Value **AND** (Value **==** CodeTape).\n3. True : Print String de **Append** (NomPorte, « : ouverte »).\n4. False : Print String de **Append** (NomPorte, « : refusée »).\n\n' +
+        '**AND Boolean** est vrai seulement si ses deux entrées le sont. **Append** colle des textes bout à bout ; un Name relié à une pin String est converti automatiquement.',
+    },
+    {
+      title: 'Le piège',
+      body:
+        'Comparer Value à CodeTape **sans** regarder Return Value. Pour l’Atelier et la Réserve, ça marche. Pour la Cave : Find ne trouve rien et rend Value = 0… et son CodeTape vaut 0. La comparaison est vraie, la Cave s’ouvre.\n\n' +
+        'C’est un vrai bug de jeu : une valeur par défaut prise pour une vraie réponse. Dès qu’un nœud a une sortie « trouvé ? » (Find, Get Actor Of Class, Cast), lis-la avant d’utiliser le résultat.',
     },
   ],
   objectives: [
@@ -195,21 +218,28 @@ export const lessonBadges: Lesson = {
   remember: 'Un Set garde chaque valeur une seule fois, et un Name ignore les majuscules : « rouge » et « Rouge » sont le même badge.',
   cards: [
     {
-      title: 'Tableau ou Set ?',
+      title: 'Ce qui est en place',
       body:
-        'Un **tableau** (Array) garde tout, doublons compris, dans l’ordre d’ajout. Un **Set** garde chaque valeur **une seule fois**, sans ordre : ajouter un élément déjà présent ne change rien.\n\n' +
-        'Pour une liste de « ce que je possède », un Set évite de compter deux fois la même chose.',
+        '- **BP_Joueur** a une variable **Badges** : un **tableau de Name**, vide.\n- Trois **BP_Badge** sont posés sur la route, avec une variable **Couleur** réglée sur « Rouge », « Bleu » et « rouge » (minuscule). Leur graphe est fait : au contact, **Add** la Couleur aux Badges du joueur, affiche **Length**, puis disparaît.\n- **BP_Lecteur**, devant la porte bleue : il vérifie avec **Contains** que les Badges du joueur contiennent **BLEU** (majuscules), et affiche « Accès autorisé ».\n\n' +
+        'Lance Play : le compteur affiche 1, 2, puis **3**. Le joueur n’a pourtant que deux couleurs.',
     },
     {
-      title: 'Changer le conteneur',
+      title: 'Tableau ou Set ?',
       body:
-        'Dans Details de la variable **Badges** de BP_Joueur, la liste à côté du type choisit **Single**, **Array**, **Set** ou **Map**.\n\n' +
-        'Les nœuds de tableau ne vont pas sur un Set : remplace **Add**, **Length** et **Contains** par ceux de **Utilities › Set**, puis Compile.',
+        '- Un **tableau** (Array) garde **tout**, dans l’ordre d’ajout, doublons compris. Deux fois « rouge » fait deux éléments.\n- Un **Set** garde chaque valeur **une seule fois**, sans ordre. Ajouter une valeur déjà présente ne change rien.\n\n' +
+        'Pour une liste de « ce que je possède » (badges, succès débloqués, zones visitées), on veut un Set : la question est « l’ai-je ? », pas « combien de fois ? ».',
     },
     {
       title: 'Le Name',
       body:
-        'Un **Name** est un identifiant : il ignore les majuscules. « rouge », « Rouge » et « ROUGE » sont le même Name, donc le même élément d’un Set.',
+        'Un **Name** est un identifiant, pensé pour être comparé vite. Il **ignore les majuscules** : « rouge », « Rouge » et « ROUGE » sont le même Name. C’est pour ça que le lecteur trouve BLEU alors que le badge s’appelle « Bleu ».\n\n' +
+        'Un **String** est un texte qu’on manipule (découper, coller) ; un **Text** est un texte affiché au joueur, traduisible. Pour un identifiant, c’est le Name.',
+    },
+    {
+      title: 'Changer le conteneur',
+      body:
+        '1. Sélectionne **Badges** dans BP_Joueur. Dans Details, la liste à côté du type choisit **Single**, **Array**, **Set** ou **Map** : passe-la à **Set**.\n2. Les nœuds de tableau qui la recevaient ne lui conviennent plus : un Set n’a pas d’index, ni d’ordre.\n3. Remplace-les par ceux de **Utilities › Set** : **Add**, **Length** dans BP_Badge ; **Contains** dans BP_Lecteur. Mêmes fils, mêmes rôles. Compile ensuite chacun des deux Blueprints.\n\n' +
+        'Relance Play : 1, 2, puis 2.',
     },
   ],
   objectives: [

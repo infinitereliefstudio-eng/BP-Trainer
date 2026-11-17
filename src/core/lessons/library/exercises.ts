@@ -10,6 +10,7 @@ import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, visible } from '../checks';
 import type { Lesson } from '../types';
 import { interactionWorld, lampFollowsGenerator, playerInteracts, setReference } from './module3';
+import { DEBUG_METHOD, PREDICT_METHOD } from './kit';
 import { generatorBlueprint, lampBlueprint } from './props';
 
 const PREDICT_OBJECTIVES = [
@@ -41,9 +42,22 @@ export const predict1: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre l’Event Graph de **BP_Ordre**. **Sequence** exécute **Then 0**, puis **Then 1**, dans la même frame.\n\n' +
-        'Question : que fait l’exécution quand elle rencontre le **Delay** sur Then 0 ?',
+        'Ouvre l’Event Graph de **BP_Ordre**. Au lancement, **Event BeginPlay** entre dans un **Sequence**, qui a deux sorties :\n\n' +
+        '- **Then 0** : Print String « A » → **Delay** (1 seconde) → Print String « B » ;\n- **Then 1** : Print String « C ».',
     },
+    {
+      title: 'Sequence',
+      body:
+        '**Sequence** exécute ses sorties **l’une après l’autre**, dans l’ordre des numéros : tout ce qui part de Then 0, puis tout ce qui part de Then 1. C’est un moyen de ranger un long fil blanc en plusieurs morceaux lisibles, sans changer ce qu’il fait.\n\n' +
+        'Question clé : quand Sequence considère-t-il que Then 0 est « fini » pour passer à Then 1 ?',
+    },
+    {
+      title: 'Delay, un nœud latent',
+      body:
+        '**Delay** porte une petite horloge : c’est un nœud **latent**. Il ne fige pas le jeu pendant sa durée. Il met **la suite de sa chaîne** de côté, et le moteur la reprendra quand le temps sera écoulé.\n\n' +
+        'Pendant ce temps, l’exécution qui l’a atteint ne reste pas bloquée dessus. Que fait-elle alors ?',
+    },
+    PREDICT_METHOD,
   ],
   hints: [
     'Un nœud latent (avec une horloge) ne bloque pas le jeu : il met sa suite de côté.',
@@ -92,9 +106,22 @@ export const predict2: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Boucle**. **For Loop** exécute **Loop Body** pour chaque index de First à Last, puis **Completed**.\n\n' +
-        'Toute la boucle s’exécute d’un coup, dans la même frame. Et un Delay déjà en cours ignore les nouveaux appels…',
+        'Ouvre **BP_Boucle**. Au lancement, un **For Loop** va de **First = 0** à **Last = 2**.\n\n' +
+        '- **Loop Body** → **Delay** (1 seconde) → Print String qui affiche **Index**.\n- **Completed** → Print String « Fini ».',
     },
+    {
+      title: 'For Loop',
+      body:
+        '**For Loop** exécute **Loop Body** une fois pour chaque valeur de First à Last **comprises** (ici 0, 1, 2), puis sort par **Completed**. La sortie **Index** donne le numéro du tour en cours.\n\n' +
+        'Une boucle tourne **d’un coup** : tous ses tours, puis Completed, se font dans la même image, sans attendre ce qui se passe dans le corps.',
+    },
+    {
+      title: 'Ce que l’on sait déjà du Delay',
+      body:
+        '- Il met la suite de sa chaîne de côté pour plus tard, sans bloquer.\n- **Un Delay déjà en cours ignore les nouveaux appels** : il ne repart pas, il ne s’empile pas.\n- Le Print String placé après lui lit Index **au moment où il s’exécute**, pas au moment où le Delay a démarré.\n\n' +
+        'Trois questions : combien de fois le Delay démarre-t-il vraiment ? Quand « Fini » s’affiche-t-il ? Et que vaut Index quand le Delay se termine ?',
+    },
+    PREDICT_METHOD,
   ],
   hints: [
     'Combien de fois le Delay démarre-t-il vraiment ?',
@@ -142,9 +169,21 @@ export const predict3: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_De**. Le nœud vert **Random Integer in Range** n’a pas de pin d’exécution : c’est un nœud **pur**.\n\n' +
-        'Question : quand un nœud pur calcule-t-il sa valeur ?',
+        'Ouvre **BP_De**. Au lancement, deux **Print String** s’exécutent l’un après l’autre. Les deux lisent la sortie du **même** nœud **Random Integer in Range** (Min 1, Max 1000), relié par deux fils.',
     },
+    {
+      title: 'Nœud pur, nœud impur',
+      body:
+        'Un nœud **impur** a des pins blanches : il s’exécute quand le fil blanc passe, une fois, et son résultat reste disponible pour la suite.\n\n' +
+        'Un nœud **pur** (vert, sans pin blanche) n’a pas de moment à lui. Il calcule sa valeur **quand un autre nœud la lui demande**. Il ne garde rien en mémoire entre deux demandes.\n\n' +
+        'Ici, deux Print String demandent la valeur. Combien de fois le nœud calcule-t-il ? Et pour un tirage au hasard, qu’est-ce que ça change ?',
+    },
+    {
+      title: 'Pourquoi ça compte',
+      body:
+        'Le jour où l’on tire un nombre pour **choisir** et qu’on le relit pour **afficher**, le joueur risque de voir un autre nombre que celui qui a servi. La leçon « Les cartes tirées sans remise » en fait un vrai bug.',
+    },
+    PREDICT_METHOD,
   ],
   hints: [
     'Un nœud pur ne garde pas de résultat en mémoire.',
@@ -188,11 +227,28 @@ export const debug1: Lesson = {
   notions: ['Accessed None', 'Output Log', 'Details d’une instance'],
   remember: 'Accessed None nomme le nœud et la pin vides : remonte jusqu’à la référence, puis vérifie le niveau (Instance Editable) ou le Set qui devait la remplir.',
   cards: [
+    DEBUG_METHOD,
     {
-      title: 'Enquêter',
+      title: 'Ce qui est en place',
       body:
-        'Lance ▶ Play, appuie sur E, puis ouvre l’**Output Log** : l’erreur indique le **nœud**, le **graphe** et le **Blueprint** fautifs.\n\n' +
-        '« Accessed None » veut dire qu’une référence est vide. Laquelle des deux lampes n’a pas de générateur ?',
+        'Un **BP_Generateur** (E le démarre ou l’arrête, il affiche son état) et deux lampes, **BP_Lampe** et **BP_Lampe2**, instances du même Blueprint BP_Lampe.\n\n' +
+        'BP_Lampe a une variable **Generateur** (référence vers BP_Generateur, **Instance Editable**). Son graphe :\n\n' +
+        '- **Event Tick** → **Set Visibility** (Lumiere) ;\n- New Visibility = **Generateur › bEnMarche**, lu à travers la référence.\n\n' +
+        'Le graphe est le même pour les deux lampes : c’est le **réglage de chaque instance** qui diffère.',
+    },
+    {
+      title: 'Lire Accessed None',
+      body:
+        'Lance Play, appuie sur E, ouvre l’**Output Log**. L’erreur **Accessed None trying to read property…** dit :\n\n' +
+        '- quelle **variable** était vide ;\n- quel **nœud**, dans quel **graphe** et quel **Blueprint**.\n\n' +
+        '« None » veut dire « aucun acteur » : la référence ne désigne rien. Le nœud qui lit bEnMarche à travers elle n’a personne à qui demander.\n\n' +
+        'Touche **Pourquoi ?** sous l’erreur : l’appli remonte le fil jusqu’à la source de la référence vide.',
+    },
+    {
+      title: 'Où se règle une référence',
+      body:
+        'Une variable Instance Editable a une valeur **par instance**, réglée dans le **niveau** : onglet Niveau, touche une lampe, et regarde sa variable Generateur dans Details.\n\n' +
+        'Le graphe dit « lis le générateur de cette lampe ». Le niveau dit **lequel**. Quand une instance sur deux plante avec le même graphe, c’est ce réglage qu’il faut regarder en premier.',
     },
   ],
   objectives: ['Les deux lampes s’allument quand le générateur démarre.', 'Plus aucune erreur dans l’Output Log.'],
@@ -242,11 +298,26 @@ export const debug2: Lesson = {
   notions: ['Implemented Interfaces', 'Event d’interface ≠ Custom Event'],
   remember: 'Un message d’interface vers un Blueprint qui n’a pas l’interface dans Class Settings est ignoré sans erreur : c’est la première chose à vérifier.',
   cards: [
+    DEBUG_METHOD,
+    {
+      title: 'Ce qui est en place',
+      body:
+        'Une interface **BPI_Interactif** avec une fonction **Interagir**. Sur E, **BP_Joueur** envoie le message **Interagir** à tous les acteurs qu’il touche.\n\n' +
+        '- **BP_Lampe** et **BP_Porte** fonctionnent : E à côté d’elles les fait réagir.\n- **BP_Generateur** a un graphe qui semble faire la même chose : un nœud rouge nommé **Interagir** → inverse bEnMarche → affiche l’état. Pourtant, rien ne se passe.\n\n' +
+        'Et l’Output Log ne signale rien.',
+    },
     {
       title: 'Une panne silencieuse',
       body:
-        'Un **Interface Message** envoyé à un acteur qui n’implémente pas l’interface ne fait rien, **sans erreur**. C’est pratique… et c’est aussi un piège.\n\n' +
-        'Compare BP_Lampe, qui fonctionne, avec BP_Generateur : leurs **Class Settings**, et le nœud rouge de départ.',
+        'Un **message d’interface** envoyé à un acteur qui n’implémente pas l’interface **ne fait rien, sans erreur**. C’est voulu : c’est ce qui permet au joueur d’envoyer Interagir à tout ce qu’il touche sans se soucier de qui sait répondre.\n\n' +
+        'Le revers : quand un Blueprint « devrait » répondre et ne répond pas, aucune erreur ne pointe le problème.',
+    },
+    {
+      title: 'Où comparer',
+      body:
+        'Compare BP_Lampe, qui marche, avec BP_Generateur, sur deux points :\n\n' +
+        '1. **Class Settings** (dans Details) › **Implemented Interfaces** : l’interface est-elle listée ?\n2. Le nœud rouge de départ : touche-le et lis son titre dans Details. Un **Event Interagir** d’interface et un **Custom Event** nommé Interagir se ressemblent, mais seul le premier reçoit le message.\n\n' +
+        'Un nom identique ne crée aucun lien : c’est l’interface qui relie l’envoi et la réception.',
     },
   ],
   objectives: ['Le générateur démarre quand on appuie sur E à côté de lui.', 'La lampe et la porte fonctionnent toujours.'],

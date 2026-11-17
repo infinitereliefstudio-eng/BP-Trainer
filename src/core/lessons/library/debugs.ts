@@ -7,11 +7,9 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, notion, printedNumbers as numbers, usesNode, visible } from '../checks';
 import type { CheckContext, Lesson, ScenarioStep } from '../types';
+import { DEBUG_METHOD } from './kit';
 import { doorBlueprint } from './props';
 
-const METHOD =
-  '**Reproduis** le problème avec ▶ Play, **observe** (le niveau, l’Output Log), puis **remonte le fil blanc** depuis l’événement concerné en te demandant à chaque nœud : « fait-il ce que j’attends ? ».\n\n' +
-  'Touche un nœud, puis Details › « Pourquoi ce nœud ne s’est pas exécuté ? » : l’appli te dit où le fil s’est arrêté. Corrige une seule chose à la fois, puis revérifie.';
 
 // ----------------------------------------------------------------------- D7
 
@@ -27,12 +25,26 @@ export const debug7: Lesson = {
   notions: ['Begin / End Overlap', 'Set Visibility', 'Valeur par défaut'],
   remember: 'Deux nœuds identiques ne font pas la même chose si leurs pins n’ont pas les mêmes valeurs : quand un nœud « ne marche pas », lis ses valeurs avant de refaire le graphe.',
   cards: [
-    { title: 'Ta première enquête', body: METHOD },
+    DEBUG_METHOD,
+    {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Lampe** a un Pied, une **Lumiere** (éteinte au départ) et une **Zone**. Le graphe a deux chemins :\n\n' +
+        '- **Event ActorBeginOverlap** → Set Visibility (Target = Lumiere) ;\n- **Event ActorEndOverlap** → Set Visibility (Target = Lumiere).\n\n' +
+        'Lance Play, entre dans la zone, ressors : la lampe s’allume, puis reste allumée.',
+    },
     {
       title: 'Ce que tu sais déjà',
       body:
-        'L’allumage marche : l’événement d’entrée et son **Set Visibility** sont donc bons. Le problème est du côté de la **sortie**.\n\n' +
-        'Deux questions, dans l’ordre : l’événement de sortie se déclenche-t-il ? Si oui, que fait exactement le nœud qu’il exécute ?',
+        'L’allumage marche : l’événement d’entrée, son Set Visibility et la référence Lumiere sont donc bons. Le problème est du côté de la **sortie**.\n\n' +
+        'Deux questions, dans l’ordre :\n\n' +
+        '1. L’événement de sortie se déclenche-t-il ? Un breakpoint sur son Set Visibility (appui long) le dit : si Play s’arrête dessus en sortant de la zone, le fil arrive bien.\n2. Si oui, que demande exactement ce nœud ? Lis chacune de ses pins.',
+    },
+    {
+      title: 'Les valeurs des pins',
+      body:
+        'Une pin de donnée qui n’est reliée à aucun fil prend la **valeur écrite dans sa case** : un nombre, un texte, une case cochée ou non. C’est sa valeur par défaut, et le nœud l’utilise à chaque exécution.\n\n' +
+        'Deux nœuds au même titre peuvent donc faire l’inverse l’un de l’autre. Quand un nœud « ne marche pas », lis ses cases avant de refaire le graphe : c’est souvent là.',
     },
   ],
   objectives: ['La lampe s’allume quand le joueur entre dans la zone.', 'Elle s’éteint quand il en sort.'],
@@ -93,12 +105,31 @@ export const debug8: Lesson = {
   notions: ['DoOnce', 'Event ActorEndOverlap', 'Start Closed'],
   remember: 'Un DoOnce se ferme après le premier passage et le reste tant que le fil blanc n’entre pas par Reset. « Ça marche une fois, puis plus jamais, sans erreur » : cherche un DoOnce.',
   cards: [
-    { title: 'Enquêter', body: METHOD },
+    DEBUG_METHOD,
+    {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Porte**, la porte dans le mur, avec deux chemins :\n\n' +
+        '- **Event ActorBeginOverlap** → **DoOnce** → Print String « Ouverture » → Set Relative Rotation (Yaw 90) ;\n- **Event ActorEndOverlap** → Set Relative Rotation (Yaw 0).\n\n' +
+        'Le DoOnce a une bonne raison d’être là : pendant qu’on se tient dans la zone, la porte ne doit annoncer « Ouverture » qu’une fois.\n\n' +
+        'Lance Play, approche, éloigne-toi, reviens : la deuxième fois, rien.',
+    },
     {
       title: 'Une panne sans erreur',
       body:
-        'L’Output Log est vide : aucun nœud n’a planté. Un nœud a simplement **refusé de laisser passer** le fil blanc.\n\n' +
-        'Fais deux passages en Play, puis touche le **Set Relative Rotation** d’ouverture › « Pourquoi ce nœud ne s’est pas exécuté ? ». Quel nœud, juste avant lui, garde le fil ?',
+        'L’Output Log est vide : aucun nœud n’a planté. Un nœud a simplement **refusé de laisser passer** le fil blanc. C’est la signature des nœuds qui ont une **mémoire** : DoOnce, Gate, FlipFlop.\n\n' +
+        'Fais deux passages en Play, puis touche le Set Relative Rotation d’ouverture › Details › « Pourquoi ce nœud ne s’est pas exécuté ? ». L’appli remonte le fil et nomme le nœud qui l’a arrêté.',
+    },
+    {
+      title: 'Le cycle de DoOnce',
+      body:
+        '- Il démarre **ouvert** (sauf si Start Closed est coché).\n- Le premier passage sort par Completed, puis il se **ferme**.\n- Il ne se rouvre que si le fil blanc entre par **Reset**.\n\n' +
+        'Regarde la pin Reset de ce DoOnce : qui y amène le fil ? Puis demande-toi quel moment marque la **fin d’un passage**, celui où il serait juste de le rouvrir.',
+    },
+    {
+      title: 'À retenir pour d’autres bugs',
+      body:
+        '« Ça marche la première fois, puis plus jamais, sans erreur » : cherche un nœud à mémoire qu’on ne remet pas à zéro. Un DoOnce sans Reset, un booléen qu’on passe à vrai sans jamais le repasser à faux, un Gate qu’on ferme sans le rouvrir.',
     },
   ],
   objectives: ['La porte s’ouvre à chaque approche, pas seulement à la première.', '« Ouverture » s’affiche une fois par passage.', 'Elle se referme toujours quand le joueur s’éloigne.'],
@@ -160,18 +191,33 @@ export const debug9: Lesson = {
   notions: ['Set Timer by Event', 'Clear and Invalidate Timer by Handle', 'Branch'],
   remember: 'Un timer en Looping ne s’arrête jamais de lui-même : celui qui le lance garde son Handle et l’arrête (Clear and Invalidate Timer by Handle) quand le travail est fini.',
   cards: [
-    { title: 'Enquêter', body: METHOD },
+    DEBUG_METHOD,
     {
-      title: 'Ce qui tourne encore',
+      title: 'Ce qui est en place',
       body:
-        'Le graphe n’a pas d’erreur de logique dans son calcul : 3, 2, 1, Décollage est juste. Le défaut, c’est ce qui se passe **après**.\n\n' +
-        'Le **Set Timer by Event** est en **Looping** : il rappelle `Tic` chaque seconde, pour toujours. Son Handle est déjà rangé dans la variable `Minuteur` : il ne manque que le nœud qui s’en sert.',
+        '**BP_Fusee** a deux variables : **Compte** (Integer, 3) et **Minuteur** (un **Timer Handle**).\n\n' +
+        '- **BeginPlay** → **Set Timer by Event** (Time 1, **Looping** coché), Event = le Custom Event **Tic** → **Set Minuteur** (le Handle rendu par le timer).\n- **Tic** → **Branch** (Compte > 0) : True → Print String (Compte) → Decrement Int (Compte). False → Print String « Décollage ».\n\n' +
+        'Le calcul est juste : 3, 2, 1, Décollage. Le défaut est dans ce qui se passe **après**.',
     },
     {
-      title: 'Masquer n’est pas arrêter',
+      title: 'Le timer',
       body:
-        'Un DoOnce devant le Print String ferait disparaître les messages en trop… mais le timer continuerait de tourner et d’exécuter `Tic` chaque seconde, pour rien, jusqu’à la fin de la partie.\n\n' +
-        'Corriger un bug, c’est arrêter sa cause, pas cacher son effet.',
+        '**Set Timer by Event** appelle un événement **plus tard** :\n\n' +
+        '- **Event** : l’événement à appeler (pin rouge, reliée à Tic) ;\n- **Time** : au bout de combien de secondes ;\n- **Looping** : coché, il le rappelle **toutes les** Time secondes, sans fin ;\n- sortie **Return Value** : un **Timer Handle**, le « ticket » de ce timer. Il ne sert qu’à une chose : retrouver ce timer plus tard pour l’arrêter ou le mettre en pause.\n\n' +
+        'Le Handle est déjà rangé dans `Minuteur`. Le Blueprint a gardé le ticket… et ne s’en sert jamais.',
+    },
+    {
+      title: 'Arrêter, pas masquer',
+      body:
+        'Un timer en Looping ne s’arrête **jamais tout seul**. Celui qui le lance doit l’arrêter quand le travail est fini, avec **Clear and Invalidate Timer by Handle** (Handle = Get Minuteur).\n\n' +
+        'Tentation : poser un DoOnce devant « Décollage ». Le message ne se répète plus, mais le timer continue d’appeler Tic chaque seconde, jusqu’à la fin de la partie, pour rien. La vérification compte les appels de Tic : elle voit la différence.\n\n' +
+        'Corriger un bug, c’est arrêter sa **cause**, pas cacher son **effet**.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Les timers d’un acteur s’arrêtent avec lui quand il est détruit. Mais un timer qui tourne pour rien sur un acteur vivant coûte, et provoque souvent des effets fantômes difficiles à relier à leur cause.\n\n' +
+        'Un Handle se garde dans une **variable** : un Handle qu’on n’a pas rangé est un timer qu’on ne pourra plus arrêter.',
     },
   ],
   objectives: ['La fusée affiche 3, 2, 1, puis « Décollage » une seule fois.', 'Le timer est arrêté après le décollage.'],

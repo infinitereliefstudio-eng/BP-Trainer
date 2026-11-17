@@ -61,22 +61,36 @@ export const lesson9: Lesson = {
   remember: 'Une variable de référence est vide (None) tant qu’on ne lui donne pas d’acteur. Is Valid évite Accessed None quand elle peut l’être.',
   cards: [
     {
-      title: 'Une référence',
+      title: 'Ce qui est en place',
       body:
-        'Pour lire `bEnMarche`, la lampe doit savoir **quel** générateur regarder. Crée dans BP_Lampe une variable de type **BP_Generateur (Object Reference)**, par exemple `Generateur`.\n\n' +
-        'Coche **Instance Editable** : la variable apparaît alors dans le Details de chaque lampe placée dans le niveau.',
+        '- **BP_Generateur**, en haut : sa variable **bEnMarche** (Boolean) bascule à chaque appui sur E, et il affiche son état.\n- Deux lampes, **BP_Lampe** et **BP_Lampe2**, instances du même Blueprint **BP_Lampe**, éteintes au départ. Leur graphe est vide.\n\n' +
+        'La lampe doit suivre le générateur. Mais BP_Lampe ne sait pas encore **quel** générateur regarder : c’est tout le sujet.',
     },
     {
-      title: 'Régler l’instance',
+      title: 'Une variable de référence',
       body:
-        'Dans l’onglet **Niveau**, touche la première lampe : dans Details, choisis le générateur pour `Generateur`. La seconde lampe garde **None** : elle n’est reliée à rien.\n\n' +
-        'Dans le graphe, **Get Generateur** puis, en tirant un fil depuis sa sortie, **Get bEnMarche**.',
+        'Dans BP_Lampe, crée une variable `Generateur`, de type **BP_Generateur** › **Object Reference** (pin bleue). Elle ne contient pas un générateur : elle contient l’**adresse** d’un générateur du niveau. Au départ elle vaut **None** : aucune.\n\n' +
+        'Coche **Instance Editable** : chaque lampe posée dans le niveau peut alors avoir sa propre valeur, réglée dans son Details.\n\n' +
+        'Dans le graphe : **Get Generateur**, puis tire un fil depuis sa sortie et cherche **Get bEnMarche**. Ce Get lit la variable **du générateur désigné**.',
     },
     {
-      title: 'Accessed None',
+      title: 'Régler les instances',
       body:
-        'Lire une variable à travers une référence vide (None) produit l’erreur **Accessed None trying to read property…** dans l’Output Log.\n\n' +
-        '**Is Valid** vérifie la référence avant de s’en servir : **Is Valid** d’un côté, **Is Not Valid** de l’autre.',
+        'Onglet **Niveau**, touche la première lampe : dans Details, choisis le générateur pour `Generateur`. Une flèche relie alors la lampe au générateur.\n\n' +
+        'Laisse la **seconde** sur None : elle représente un oubli de réglage, courant dans un vrai niveau. Elle doit rester éteinte sans faire d’erreur.',
+    },
+    {
+      title: 'Is Valid',
+      body:
+        'Lire bEnMarche à travers une référence vide produit **Accessed None** dans l’Output Log : le nœud n’a personne à qui demander.\n\n' +
+        '**Is Valid** (la version avec des pins blanches) vérifie une référence avant de s’en servir :\n\n' +
+        '- **Is Valid** : elle désigne un acteur qui existe ;\n- **Is Not Valid** : elle est vide, ou l’acteur a été détruit.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**Event Tick** → **Is Valid** (Input Object = Get Generateur) → (Is Valid) **Set Visibility** (Target = Lumiere, New Visibility = Generateur › bEnMarche).\n\n' +
+        'Event Tick s’exécute **à chaque image** : la lampe recopie l’état du générateur 60 fois par seconde. Ça marche, mais c’est du travail pour rien quand le générateur ne change pas. « Le générateur prévient » montre la bonne façon.',
     },
   ],
   objectives: [
@@ -122,21 +136,36 @@ export const lesson10: Lesson = {
   remember: 'Celui qui change annonce (Call) ; ceux que ça intéresse s’abonnent (Bind), avant l’annonce. Le générateur n’a pas besoin de connaître les lampes.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '- **BP_Generateur** : E bascule bEnMarche et affiche l’état, comme avant.\n- Trois lampes **BP_Lampe**, éteintes. Leur variable **Generateur** est **déjà réglée** sur le générateur, pour les trois. Le graphe de BP_Lampe est vide.\n\n' +
+        'Le but : quand le générateur démarre, les trois lampes s’allument **dans la même image**, sans Tick.',
+    },
+    {
       title: 'Annoncer plutôt que surveiller',
       body:
-        'Dans « Générateur et lampe », la lampe interrogeait le générateur à chaque Tick. Avec un **Event Dispatcher**, c’est le générateur qui **annonce** son changement, une seule fois, à tous ceux qui écoutent.\n\n' +
-        'Dans BP_Generateur : My Blueprint › Event Dispatchers › **+**, nomme-le `OnEtatChange` et ajoute-lui un paramètre Boolean dans Details.',
+        'Avec un Tick, chaque lampe demande à chaque image « tu tournes ? ». Avec un **Event Dispatcher**, c’est l’inverse : le générateur **annonce** son changement une seule fois, et tous ceux qui se sont abonnés sont prévenus.\n\n' +
+        'Le générateur n’a pas besoin de connaître les lampes. Ajouter une quatrième lampe ne demande aucun changement de son côté.',
     },
     {
-      title: 'Call',
+      title: 'Côté générateur : déclarer et appeler',
       body:
-        'Après le Set de `bEnMarche`, ajoute **Call OnEtatChange** et donne-lui la nouvelle valeur. Tous les événements abonnés s’exécutent **immédiatement**, avant la suite du graphe.',
+        '1. My Blueprint › Event Dispatchers › **+**, nomme-le `OnEtatChange`.\n2. Dans Details, ajoute-lui un **paramètre** Boolean : la nouvelle valeur, transmise aux abonnés.\n3. À la fin de la chaîne de E (après le Print String) : **Call OnEtatChange**, avec la sortie du Set bEnMarche sur le paramètre.\n\n' +
+        '**Call** exécute **immédiatement** tous les événements abonnés, l’un après l’autre, avant de rendre la main à la suite du graphe.',
     },
     {
-      title: 'Bind',
+      title: 'Côté lampe : s’abonner',
       body:
-        'Dans BP_Lampe, au **BeginPlay** : **Bind Event to OnEtatChange**, avec Target = `Generateur` (la référence est déjà réglée sur les trois lampes).\n\n' +
-        'Tire un fil depuis la pin rouge **Event** et choisis **Add Custom Event for OnEtatChange** : ce Custom Event reçoit le paramètre et s’exécutera à chaque Call.',
+        'Au **BeginPlay** de BP_Lampe :\n\n' +
+        '1. **Bind Event to OnEtatChange**, Target = **Get Generateur** : « je m’abonne aux annonces de ce générateur-là ».\n2. Depuis sa pin rouge **Event**, tire un fil et choisis **Add Custom Event for OnEtatChange** : un Custom Event avec le même paramètre.\n3. Ce Custom Event → **Set Visibility** (Target = Lumiere, New Visibility = le paramètre).\n\n' +
+        'Le Bind ne fait rien sur le moment : il branche le Custom Event pour **les prochains** Call.',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '**S’abonner trop tard.** Un Call sans abonné ne fait rien, et un abonné arrivé après n’entend pas les annonces passées. BeginPlay est le bon moment.\n\n' +
+        '**Utiliser la variable plutôt que le paramètre.** Le paramètre donne la nouvelle valeur au moment de l’annonce ; inutile de relire bEnMarche à travers la référence.\n\n' +
+        'Dans UE, un Dispatcher est un **délégué multicast** : en C++, c’est `DECLARE_DYNAMIC_MULTICAST_DELEGATE` et `Broadcast`. Les boutons des widgets (OnClicked) fonctionnent ainsi.',
     },
   ],
   objectives: [
@@ -237,21 +266,36 @@ export const lesson11: Lesson = {
   remember: 'Un message d’interface part vers n’importe quel acteur : seuls ceux qui implémentent l’interface réagissent, les autres l’ignorent sans erreur.',
   cards: [
     {
-      title: 'Un contrat commun',
+      title: 'Ce qui est en place',
       body:
-        'Une **Blueprint Interface** est une liste de fonctions sans contenu. Crée-la dans le **Content Browser** (☰ du menu ⋮ › + Interface) : `BPI_Interactif`, avec la fonction `Interagir`.\n\n' +
-        'Chaque Blueprint qui l’**implémente** (Class Settings › Implemented Interfaces) décide de ce que fait Interagir chez lui.',
+        '- **BP_Joueur** : le joueur, graphe vide.\n- **BP_Porte**, **BP_Lampe** et **BP_Generateur**, chacun avec une zone autour de lui, graphes vides (le générateur n’a plus sa touche E).\n\n' +
+        'Le but : E agit sur l’objet à portée, quel qu’il soit. Le joueur ne doit pas avoir à savoir si c’est une porte ou une lampe : pas de Cast.',
     },
     {
-      title: 'Implémenter',
+      title: 'Une interface, un contrat',
       body:
-        'Dans BP_Porte, BP_Lampe et BP_Generateur : Class Settings › **+ Implemented Interface**. Puis My Blueprint › Interfaces › **Event** pour poser **Event Interagir** et y mettre l’action : tourner la porte, **Toggle Visibility** de la lumière, inverser `bEnMarche`.',
+        'Une **Blueprint Interface** est une liste de fonctions **sans contenu**. Elle dit « je sais répondre à Interagir », pas comment.\n\n' +
+        'Crée-la dans le **Content Browser** (touche le nom du Blueprint en haut de l’écran) › **+ Interface** : `BPI_Interactif`, avec une fonction `Interagir`.\n\n' +
+        'Chaque Blueprint qui l’**implémente** décide de ce que fait Interagir chez lui. Le joueur, lui, n’a qu’à envoyer le message.',
+    },
+    {
+      title: 'Implémenter, objet par objet',
+      body:
+        'Dans BP_Porte, BP_Lampe et BP_Generateur :\n\n' +
+        '1. **Class Settings** (dans Details) › **+ Implemented Interface** › BPI_Interactif.\n2. My Blueprint › Interfaces › Interagir › **Event** : pose **Event Interagir**.\n3. Mets l’action derrière : la porte **Set Relative Rotation** (Yaw 90), la lampe **Toggle Visibility** (Lumiere), le générateur **Set bEnMarche** = NOT bEnMarche.',
     },
     {
       title: 'Envoyer le message',
       body:
-        'Dans BP_Joueur, sur **E** : **Get Overlapping Actors** donne la liste des acteurs qui le touchent. **For Each Loop** les parcourt, et **Interagir (Message)** est envoyé à chacun.\n\n' +
-        'Un message envoyé à un acteur qui n’implémente pas l’interface ne fait **rien**, sans erreur. C’est ce qui évite tout Cast.',
+        'Dans BP_Joueur, sur **E** (Pressed) :\n\n' +
+        '1. **Get Overlapping Actors** : la liste (un tableau) des acteurs dont la zone touche le joueur.\n2. **For Each Loop** sur ce tableau : **Loop Body** s’exécute pour chaque élément, donné par **Array Element**.\n3. Dans Loop Body : **Interagir (Message)**, Target = Array Element.\n\n' +
+        'Un message envoyé à un acteur qui n’implémente pas l’interface (un mur, le sol) **ne fait rien, sans erreur**.',
+    },
+    {
+      title: 'Pourquoi c’est mieux qu’un Cast',
+      body:
+        'Avec des Cast, le joueur devrait tester chaque type un par un, et être modifié à chaque nouvel objet interactif. Avec l’interface, ajouter un coffre demande seulement de l’implémenter dans le coffre.\n\n' +
+        'Attention au nom : un **Custom Event** appelé « Interagir » n’est pas l’événement de l’interface et ne reçoit pas le message. Le débogue « Le message qui se perd » repose sur ce piège.',
     },
   ],
   objectives: [

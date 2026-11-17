@@ -7,6 +7,7 @@ import { readTimeline, timelineConfig } from '../../nodes/library/timeline';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, normText } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { DEBUG_METHOD, PREDICT_METHOD } from './kit';
 
 // ------------------------------------------------------------- Prédis P5
 
@@ -27,9 +28,16 @@ export const predict5: Lesson = {
     {
       title: 'À lire',
       body:
-        '**BP_Balise** a deux graphes : **ConstructionScript** (My Blueprint › Graphs) et l’**Event Graph**.\n\n' +
-        'Dans l’Event Graph : BeginPlay affiche un mot puis lance le Timeline **Signal** (0,2 s) ; **Finished** affiche « Fini » ; Tick passe par un **Do Once** pour n’afficher « Tick » qu’à la première image.',
+        '**BP_Balise** a **deux** graphes ; ouvre-les tous les deux (My Blueprint › Graphs).\n\n' +
+        '- **ConstructionScript** : Print String « Construction ».\n- **Event Graph**, premier fil : **Event BeginPlay** → Print String « BeginPlay » → **Play** du Timeline **Signal** (0,2 s) ; sa sortie **Finished** → Print String « Fini ».\n- **Event Graph**, second fil : **Event Tick** → **Do Once** → Print String « Tick », seulement à la première image.',
     },
+    {
+      title: 'Les moments de la vie d’un acteur',
+      body:
+        '- Le **Construction Script** s’exécute quand l’acteur est **construit** : dans l’éditeur à chaque réglage, et au lancement quand il apparaît.\n- **BeginPlay** s’exécute quand il **commence à jouer**.\n- **Tick** s’exécute à **chaque image** tant qu’il joue.\n- Un **Timeline** lancé par Play avance image après image ; **Finished** sort une fois, quand il arrive au bout de sa durée.\n\n' +
+        'Une question pour ordonner les quatre mots : quand BeginPlay lance le Timeline, la chaîne attend-elle que le Timeline soit fini, ou se termine-t-elle tout de suite ? Et combien d’images tiennent dans 0,2 s ?',
+    },
+    PREDICT_METHOD,
   ],
   objectives: ['Lis les deux graphes sans lancer Play.', 'Choisis l’ordre des quatre mots dans l’onglet Prédis.', 'Puis lance ▶ Play et regarde l’Output Log pour vérifier.'],
   hints: [
@@ -129,16 +137,34 @@ export const debug6: Lesson = {
   notions: ['Line Trace By Channel', 'Ignore Self', 'Out Hit Distance', 'Draw Debug Type'],
   remember: 'Un rayon s’arrête au premier objet qui le bloque, y compris l’acteur qui le lance : parti de son centre avec Ignore Self décoché, il se touche lui-même à la distance 0.',
   cards: [
+    DEBUG_METHOD,
     {
-      title: 'Ce que fait le graphe',
+      title: 'Ce qui est en place',
       body:
-        'Un timer appelle **Scanner** toutes les 0,5 s. Scanner lance un **Line Trace By Channel** de la tourelle vers le joueur (canal **Camera**, que la capsule du joueur bloque), puis compare **Out Hit Hit Actor** à **Get Player Pawn**.',
+        '**BP_Tourelle** (une base ronde) et un **mur** posé en biais. Le joueur se tient juste devant la tourelle.\n\n' +
+        'Un timer appelle **Scanner** toutes les 0,5 s. Scanner :\n\n' +
+        '1. lance un **Line Trace By Channel** : **Start** = Get Actor Location (la tourelle), **End** = la position du joueur (Get Player Pawn › Get Actor Location), canal **Camera** ;\n2. compare **Out Hit Hit Actor** à **Get Player Pawn** (== Object) ;\n3. **Branch** : « Cible en vue » si c’est le joueur, « Rien » sinon.\n\n' +
+        'Elle affiche toujours « Rien ».',
+    },
+    {
+      title: 'Le Line Trace',
+      body:
+        '**Line Trace By Channel** tire un rayon invisible de Start à End et s’arrête au **premier** objet qui le bloque sur ce canal. Ses sorties :\n\n' +
+        '- **Return Value** : vrai si quelque chose a été touché ;\n- **Out Hit Hit Actor** : l’acteur touché ;\n- **Out Hit Distance** : à quelle distance de Start ;\n- **Out Hit Location** : le point touché.\n\n' +
+        'Ses entrées à regarder : **Draw Debug Type** (For Duration : le rayon se dessine pendant Play, avec un carré au point touché) et **Ignore Self**.',
     },
     {
       title: 'Enquêter',
       body:
-        'Lance ▶ Play : **Draw Debug Type** est sur *For Duration*, le rayon devrait se dessiner jusqu’au joueur. Où est le carré rouge du point touché ?\n\n' +
-        'Pour en avoir le cœur net, affiche **Out Hit Hit Actor** ou **Out Hit Distance** avec un Print String : qui est touché, et à quelle distance ?',
+        'Lance Play et regarde le rayon dessiné : où est le carré du point touché ? Près du joueur, ou ailleurs ?\n\n' +
+        'Pour en avoir le cœur net, ajoute un Print String de **Out Hit Hit Actor** (ou de **Out Hit Distance**) juste après le trace. Qui est touché, et à quelle distance ? Une distance de 0 veut dire que le rayon s’est arrêté à son point de départ.\n\n' +
+        'Puis demande-toi : d’où part le rayon, exactement ? Qu’y a-t-il à cet endroit ?',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Partir du centre d’un acteur est très courant (Get Actor Location), et l’acteur a souvent une collision à cet endroit. UE coche **Ignore Self** par défaut sur ses traces pour cette raison ; le décocher sert rarement.\n\n' +
+        'L’autre parade, utile quand on ne veut ignorer qu’une partie : décaler Start un peu devant l’acteur, dans la direction du rayon. C’est le défi.',
     },
   ],
   objectives: [

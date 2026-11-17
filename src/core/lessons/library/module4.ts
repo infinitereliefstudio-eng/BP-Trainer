@@ -187,34 +187,44 @@ export const lesson12: Lesson = {
   remember: 'Un projet complet combine ces outils : une variable pour l’état, un timer pour le temps, une interface pour agir, un Dispatcher pour prévenir.',
   cards: [
     {
-      title: 'Ce qui est prêt',
+      title: 'Ce qui est en place',
       body:
-        'Le joueur envoie déjà **Interagir (Message)** de `BPI_Interactif` sur **E**, comme dans « Interagir avec tout ». Le générateur **implémente** l’interface et déclare l’Event Dispatcher `OnEtatChange` (paramètre `bEnMarche`).\n\n' +
-        'Les lampes et la porte ont une variable `Generateur` déjà réglée dans le niveau. Le joueur a `Fusibles` (Integer), le générateur `Carburant` (Float) et `TimerCarburant` (Timer Handle).',
+        'C’est la leçon de synthèse : quatre Blueprints à remplir, avec tout ce que tu as vu. Sont prêts :\n\n' +
+        '- **BP_Joueur** : envoie Interagir (Message) de **BPI_Interactif** sur E. Variable **Fusibles** (Integer, 0).\n- **BP_Generateur** : implémente BPI_Interactif. Variables **bEnMarche**, **Carburant** (Float) et **TimerCarburant** (Timer Handle). Event Dispatcher **OnEtatChange**, paramètre bEnMarche.\n- **BP_Lampe** (deux) et **BP_Porte** : variable **Generateur** déjà réglée dans le niveau.\n- Trois **BP_Fusible** à ramasser.\n\n' +
+        'Le scénario : E sur le générateur sans fusible (rien), ramasser les trois, E (tout s’allume, la porte s’ouvre), puis le carburant s’épuise et tout s’éteint.',
     },
     {
-      title: 'Compter les fusibles',
+      title: 'Par où commencer',
       body:
-        'Dans **BP_Fusible** : au **Begin Overlap**, **Cast To BP_Joueur**, puis **Increment Int** sur `Fusibles` du joueur, et **Destroy Actor**.\n\n' +
-        'La pin Value d’Increment Int est un **losange** : elle est passée **par référence**. Relie-y un **Get Fusibles** (tiré depuis As BP_Joueur) : c’est cette variable qui augmente.',
+        'Un Blueprint à la fois, et un Play après chacun :\n\n' +
+        '1. **BP_Fusible** : compter.\n2. **BP_Generateur**, Event Interagir : réparer.\n3. **BP_Generateur**, Consommer : le carburant.\n4. **BP_Lampe** et **BP_Porte** : écouter.\n\n' +
+        'Un Print String temporaire à chaque étape (Fusibles, Carburant) évite de chercher à l’aveugle à la fin.',
     },
     {
-      title: 'Réparer',
+      title: 'Fusibles et réparation',
       body:
-        'Dans **BP_Generateur**, **Event Interagir** : **Get Player Pawn** → **Cast To BP_Joueur** → `Fusibles` **>=** 3 → **Branch**.\n\n' +
-        'Si oui : `bEnMarche` à true, `Carburant` à 100, **Call OnEtatChange** (true), puis **Set Timer by Event** : Time 1, **Looping** coché, Event relié à un **Custom Event** `Consommer`. Garde le **Return Value** dans `TimerCarburant`.',
+        '**BP_Fusible** : Begin Overlap → **Cast To BP_Joueur** → **Increment Int** (Get Fusibles, tiré depuis As BP_Joueur, sur la pin en losange) → **Destroy Actor**.\n\n' +
+        '**BP_Generateur**, **Event Interagir** : **Get Player Pawn** → Cast To BP_Joueur → **Branch** (Fusibles **>=** 3). True :\n\n' +
+        '1. **Set bEnMarche** (vrai) → **Set Carburant** (100) ;\n2. **Call OnEtatChange** (vrai) ;\n3. **Set Timer by Event** (Time 1, **Looping**), Event = un Custom Event `Consommer` → **Set TimerCarburant** (Return Value).',
     },
     {
       title: 'Le carburant',
       body:
-        '`Consommer` s’exécute chaque seconde : `Carburant` ← **Clamp (Float)** (Carburant − 10, Min 0, Max 100). Clamp empêche de descendre sous 0.\n\n' +
-        'Puis, si `Carburant` **<=** 0 : `bEnMarche` à false, **Clear and Invalidate Timer by Handle** (`TimerCarburant`) et **Call OnEtatChange** (false).',
+        '**Consommer**, chaque seconde :\n\n' +
+        '1. **Set Carburant** = **Clamp (Float)** (Carburant − 10, 0, 100) : jamais sous 0.\n2. **Branch** (Carburant **<=** 0) → True :\n\n' +
+        '- **Set bEnMarche** (faux) ;\n- **Clear and Invalidate Timer by Handle** (TimerCarburant) : sinon Consommer tournerait pour rien jusqu’à la fin ;\n- **Call OnEtatChange** (faux).',
     },
     {
       title: 'Lampes et porte',
       body:
-        'Dans **BP_Lampe** et **BP_Porte**, au **BeginPlay** : **Bind Event to OnEtatChange** (Target `Generateur`) avec un Custom Event, comme dans « Le générateur prévient ».\n\n' +
-        'La lampe règle **Set Visibility** de sa Lumière avec le paramètre. La porte prend 90° ou 0° : **Select** (Index = bEnMarche) dans un **Make Rotator**, puis **Set Relative Rotation**.',
+        'Au **BeginPlay** de chacune : **Bind Event to OnEtatChange** (Target = Get Generateur) avec un Custom Event qui reçoit bEnMarche.\n\n' +
+        '- **Lampe** : Set Visibility (Lumiere, New Visibility = bEnMarche).\n- **Porte** : **Select** (Index = bEnMarche ; False → 0, True → 90) dans le Z d’un **Make Rotator**, puis **Set Relative Rotation** (Porte).\n\n' +
+        '**Select** choisit une valeur selon son Index sans dupliquer les nœuds : un seul Set Relative Rotation pour ouvrir et fermer.',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '- **Increment sans Target** dans le fusible : le compteur du joueur ne bouge pas.\n- **Handle non gardé** : impossible d’arrêter le timer, le générateur « consomme » à vide.\n- **Call avant le Set** : les abonnés reçoivent le nouvel état, mais bEnMarche dit encore l’ancien à qui le lit.\n- **Bind trop tard** : un abonné arrivé après l’annonce ne l’entend pas. BeginPlay est le bon moment.',
     },
   ],
   objectives: [

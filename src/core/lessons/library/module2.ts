@@ -61,16 +61,38 @@ export const lesson5: Lesson = {
   remember: 'Do Once laisse passer le premier passage, puis plus rien jusqu’à Reset : c’est le moyen simple d’empêcher une action de se répéter.',
   cards: [
     {
-      title: 'Tourner un composant',
+      title: 'Ce qui est en place',
       body:
-        'La **Porte** est un Static Mesh qui pivote sur ses gonds. **Set Relative Rotation** la tourne par rapport à l’acteur.\n\n' +
-        'Une rotation est un **Rotator** : Roll (X), Pitch (Y) et Yaw (Z), en degrés. Vue de dessus, seul **Yaw** compte : règle-le à 90 dans Details, ou utilise **Make Rotator**.',
+        'Un mur coupe le niveau en deux, avec une ouverture fermée par **BP_Porte**. Elle a deux composants :\n\n' +
+        '- **Porte**, un Static Mesh en forme de battant, qui pivote sur son gond comme une vraie porte ;\n- **Zone**, une Box Collision devant le passage.\n\n' +
+        'Le joueur part à gauche et avance vers la porte. Le graphe de BP_Porte est vide.',
     },
     {
-      title: 'Une seule fois',
+      title: 'Tourner un composant',
       body:
-        '**DoOnce** laisse passer l’exécution la première fois, puis plus jamais, jusqu’à ce qu’on passe par son entrée **Reset**.\n\n' +
-        'Place-le entre l’événement et Set Relative Rotation : la porte ne s’ouvrira qu’au premier passage.',
+        '**Set Relative Rotation** donne une nouvelle rotation à un composant :\n\n' +
+        '- **Target** : le composant à tourner (Get Porte) ;\n- **New Rotation** : un **Rotator**, trois angles en degrés : Roll (X), Pitch (Y) et Yaw (Z).\n\n' +
+        'Vue de dessus, seul **Yaw** compte : c’est la rotation autour de l’axe vertical. Écris 90 dans la case Z.\n\n' +
+        '**Relative** veut dire « par rapport à l’acteur » : 0 est la position fermée de la porte telle qu’on l’a posée, quelle que soit l’orientation de l’acteur dans le niveau. Ce n’est pas un ajout : Set Relative Rotation à 90 deux fois de suite laisse la porte à 90.',
+    },
+    {
+      title: 'DoOnce',
+      body:
+        '**DoOnce** est une porte sur le fil blanc qui ne s’ouvre qu’une fois :\n\n' +
+        '- le premier passage entre et ressort par **Completed** ;\n- les suivants s’arrêtent là, sans erreur ;\n- un passage par l’entrée **Reset** le rouvre pour un nouveau coup.\n\n' +
+        '**Start Closed** coché le fait démarrer fermé : il faudra un Reset avant le premier passage.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**Event ActorBeginOverlap** → **DoOnce** → **Set Relative Rotation** (Target = Porte, New Rotation = 0, 0, 90).\n\n' +
+        'Sans DoOnce, la porte s’ouvre aussi. Mais chaque nouvel overlap relancerait l’ouverture : sans effet visible ici, gênant dès que l’ouverture joue un son, compte un passage ou lance une animation. DoOnce dit clairement « une seule fois ».',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Une vraie porte ne pivote pas d’un coup : on anime la rotation avec une **Timeline** (voir « La porte qui glisse »). Le principe Target + New Rotation reste le même.\n\n' +
+        'DoOnce est une **macro** fournie par le moteur (dans StandardMacros) : un Branch et une variable cachée. Tu peux l’ouvrir dans UE par un double-clic pour voir comment elle est faite.',
     },
   ],
   objectives: [
@@ -133,20 +155,36 @@ export const lesson6: Lesson = {
   remember: 'Other Actor est un simple Actor : Cast To vérifie que c’est bien le joueur et donne accès à ses variables. Un Cast raté part par Cast Failed, sans erreur.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '- **BP_Joueur** : le joueur, avec une variable `bHasKey` (Boolean, faux au départ).\n- **BP_Cle** : une petite clé jaune avec une **Zone** autour.\n- **BP_Caisse** : une caisse posée **contre** la clé, avec sa propre zone de contact. Elle touche la clé dès le lancement.\n\n' +
+        'Le graphe de BP_Cle est vide. Le joueur part à gauche et marche vers la clé.',
+    },
+    {
       title: 'Qui me touche ?',
       body:
-        'Event ActorBeginOverlap donne **Other Actor** : l’acteur qui est entré dans la zone. Son type est simplement **Actor** : ce peut être le joueur… ou n’importe quoi d’autre, comme la caisse posée contre la clé.\n\n' +
-        'Ici, la caisse touche la clé dès le début : si la clé disparaît au lancement, c’est qu’elle ne vérifie pas qui la touche.',
+        '**Event ActorBeginOverlap** donne **Other Actor** : l’acteur qui vient d’entrer. Son type est simplement **Actor**, le plus général : ce peut être le joueur, la caisse, un projectile… Le moteur ne fait pas le tri.\n\n' +
+        'Si la clé réagit à n’importe quel overlap, la caisse la « ramasse » au lancement. La clé doit d’abord vérifier **qui** la touche.',
     },
     {
       title: 'Cast To',
       body:
-        '**Cast To BP_Joueur** vérifie que l’objet est bien un BP_Joueur. Si oui, l’exécution sort par le haut et **As BP_Joueur** donne une référence vers lui, avec accès à ses variables. Sinon, elle sort par **Cast Failed**.\n\n' +
-        'Tire un fil depuis **As BP_Joueur** et cherche `bHasKey` : tu peux lire ou changer la variable du joueur.',
+        '**Cast To BP_Joueur** pose la question « cet objet est-il un BP_Joueur ? » :\n\n' +
+        '- **Object** : l’objet à tester (Other Actor) ;\n- sortie blanche du haut : oui, c’est un BP_Joueur ;\n- **Cast Failed** : non. Pas d’erreur, juste l’autre chemin ;\n- **As BP_Joueur** : la même référence, mais **typée** BP_Joueur. C’est elle qui donne accès aux variables du joueur.\n\n' +
+        'Tire un fil depuis As BP_Joueur et cherche « bHasKey » : la palette propose **Set bHasKey** avec Target déjà relié.\n\n' +
+        '**Destroy Actor** retire un acteur du niveau. Sa Target vaut **self** quand elle n’est pas reliée : la clé se détruit elle-même.',
     },
     {
-      title: 'Disparaître',
-      body: '**Destroy Actor** retire un acteur du niveau. Sa Target vaut **self** par défaut : la clé se détruit elle-même.',
+      title: 'Le plan',
+      body:
+        '**Event ActorBeginOverlap** → **Cast To BP_Joueur** (Object = Other Actor) → **Set bHasKey** (Target = As BP_Joueur, coché) → **Destroy Actor**.\n\n' +
+        'Cast Failed ne mène nulle part : la caisse entre, le Cast échoue, il ne se passe rien.\n\n' +
+        'L’ordre compte : Destroy Actor en dernier. Ce qui suit la destruction d’un acteur ne doit plus compter sur lui.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Cast To n’est pas gratuit : il crée une **dépendance dure**. BP_Cle charge BP_Joueur en mémoire avec lui, même si le joueur n’est jamais là. Sur un petit projet c’est sans importance ; sur un gros, on préfère une **interface** (voir « Interagir avec tout ») ou un **tag** (Actor Has Tag).',
     },
   ],
   objectives: [
@@ -213,16 +251,31 @@ export const lesson7: Lesson = {
   remember: 'Lire la variable d’un autre Blueprint demande une référence vers lui. La lecture se fait au moment où le nœud qui l’utilise s’exécute.',
   cards: [
     {
-      title: 'Demander au joueur',
+      title: 'Ce qui est en place',
       body:
-        'La porte doit savoir si le joueur a la clé. Cette information est dans **BP_Joueur** (`bHasKey`) : comme pour la clé, un **Cast To BP_Joueur** sur Other Actor donne accès à ses variables.\n\n' +
-        'Depuis **As BP_Joueur**, tire un fil et cherche **Get bHasKey**.',
+        'Trois Blueprints :\n\n' +
+        '- **BP_Joueur** avec `bHasKey` ;\n- **BP_Cle**, posée en haut à gauche, **déjà programmée** : la toucher met bHasKey à vrai et la fait disparaître (c’est la solution de « Ramasser un objet ») ;\n- **BP_Porte**, avec sa Porte et sa Zone, graphe vide.\n\n' +
+        'Le test fait venir le joueur à la porte **sans** la clé, puis va chercher la clé, puis revient.',
     },
     {
-      title: 'Deux chemins',
+      title: 'Lire la variable d’un autre Blueprint',
       body:
-        '**Branch** envoie l’exécution vers **True** ou **False** selon la condition. True : la porte tourne. False : un **Print String** dit qu’il faut une clé.\n\n' +
-        'La clé de « Ramasser un objet » est déjà en place et fonctionne.',
+        'L’information « a-t-il la clé ? » n’est pas dans la porte, elle est dans le joueur. Pour la lire, la porte a besoin d’une **référence** vers le joueur, typée BP_Joueur.\n\n' +
+        'C’est le même chemin que pour la clé : **Cast To BP_Joueur** sur Other Actor, puis depuis **As BP_Joueur**, tire un fil et cherche **Get bHasKey**.\n\n' +
+        'Ce Get lit la valeur **au moment** où le Branch la demande, pas au lancement : quand le joueur revient avec la clé, la porte voit le nouveau vrai.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**Event ActorBeginOverlap** → **Cast To BP_Joueur** (Object = Other Actor) → **Branch** (Condition = Get bHasKey, depuis As BP_Joueur).\n\n' +
+        '- **True** : **Set Relative Rotation** (Target = Porte, Yaw 90).\n- **False** : **Print String** « Il faut une clé ».\n\n' +
+        'Le message doit contenir le mot « clé » : c’est ce que la vérification cherche.',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '**Brancher Get bHasKey sans Target.** Un Get de la variable d’un autre Blueprint demande sur **quel** joueur la lire. Sans Target relié, il n’a personne à qui demander.\n\n' +
+        '**Oublier le Cast.** Other Actor n’est qu’un Actor : la palette ne propose pas bHasKey depuis lui. Le Cast transforme « un acteur quelconque » en « le joueur, avec ses variables ».',
     },
   ],
   objectives: [
@@ -299,16 +352,35 @@ export const lesson8: Lesson = {
   remember: 'Un Delay en cours ignore les nouveaux appels ; Retriggerable Delay recommence l’attente à chaque appel.',
   cards: [
     {
-      title: 'Attendre',
+      title: 'Ce qui est en place',
       body:
-        '**Delay** met la suite en attente pendant une durée, sans bloquer le jeu. Les nœuds avec une petite horloge sont **latents** : ils reprennent plus tard.\n\n' +
-        'Piège : un Delay déjà en cours **ignore** les nouveaux appels. Si le joueur ressort une 2e fois, le Delay lancé à la 1re sortie continue et ferme la porte trop tôt.',
+        'La porte de « Ouvrir une porte », sans DoOnce : **Event ActorBeginOverlap** → Set Relative Rotation (Yaw 90) est déjà dans le graphe. Elle s’ouvre à chaque arrivée du joueur.\n\n' +
+        'Il manque la fermeture. Le test fait arriver le joueur, le fait partir, revenir une seconde après, repartir, puis attend.',
     },
     {
-      title: 'Recommencer le compte',
+      title: 'Attendre',
       body:
-        '**Retriggerable Delay** fait l’inverse : chaque nouvel appel **remet le compte à zéro**. La porte se ferme 3 s après la **dernière** sortie.\n\n' +
-        'L’ouverture est déjà faite. Ajoute la fermeture sur **Event ActorEndOverlap** (le joueur quitte la zone).',
+        '**Delay** suspend le fil blanc pendant **Duration** secondes, puis le reprend par **Completed**. Le jeu continue pendant ce temps : rien n’est gelé.\n\n' +
+        'Les nœuds avec une petite **horloge** sont **latents** : ils reprennent plus tard. Ils n’existent que dans l’Event Graph, pas dans une fonction (une fonction doit finir tout de suite).\n\n' +
+        'Le piège du Delay : **un Delay déjà en cours ignore les nouveaux appels**. Il ne repart pas, il ne s’empile pas.',
+    },
+    {
+      title: 'Retriggerable Delay',
+      body:
+        '**Retriggerable Delay** a les mêmes pins, avec l’inverse pour la règle : chaque nouvel appel **remet le compte à zéro**.\n\n' +
+        'Déroulons le test avec chacun :\n\n' +
+        '- Le joueur sort (t = 0), revient à t = 1, ressort à t = 2.\n- **Delay** : l’attente lancée à t = 0 ignore la sortie de t = 2 et ferme la porte à t = 3, une seconde après le départ réel du joueur.\n- **Retriggerable Delay** : la sortie de t = 2 relance le compte ; la porte se ferme à t = 5, 3 secondes après la **dernière** sortie.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**Event ActorEndOverlap** → **Retriggerable Delay** (Duration 3) → **Set Relative Rotation** (Target = Porte, Yaw **0**).\n\n' +
+        'Yaw 0 est la position fermée : la rotation relative revient à celle de départ.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Delay et Retriggerable Delay sont pratiques mais anonymes : on ne peut ni les annuler ni savoir combien de temps il reste. Quand il faut annuler une attente (le joueur revient : ne pas fermer du tout), on utilise un **timer** : Set Timer by Event donne un **Timer Handle** qu’on peut arrêter avec Clear and Invalidate Timer. Voir « Le four qui oublie son annulation ».',
     },
   ],
   objectives: [

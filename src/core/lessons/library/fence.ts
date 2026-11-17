@@ -50,22 +50,34 @@ export const lessonFence: Lesson = {
   remember: 'Dès qu’une suite de nœuds se répète avec un nombre qui change, c’est une boucle : For Loop, et Index dans le calcul. Changer le nombre de tours ne demande alors aucun nœud de plus.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '- **BP_Poteau** : un poteau, sans logique.\n- **BP_Chantier** : un plan au sol et une variable **Nombre** (Integer, **5**, Instance Editable). Graphe vide.\n\n' +
+        'Au lancement, le chantier doit planter `Nombre` poteaux, un tous les 150 cm à partir de X = 0, sur la ligne Y = 0.',
+    },
+    {
       title: 'Répéter sans copier',
       body:
-        'Cinq poteaux, c’est cinq fois **Spawn Actor**, chacun avec sa position. On peut poser cinq nœuds à la suite… jusqu’au jour où il en faut huit, ou cinquante.\n\n' +
-        '**For Loop** exécute sa sortie **Loop Body** une fois pour chaque nombre de **First Index** à **Last Index** compris, puis sort par **Completed**. Le nombre du tour en cours est sur la pin **Index**.',
+        'Cinq poteaux, c’est cinq **Spawn Actor**, chacun avec sa position. On peut poser cinq nœuds à la suite… et la vérification passera. Mais le jour où il en faut huit, il faut en poser trois de plus, et le graphe double de taille. La section « Et si… » essaie justement un autre Nombre.\n\n' +
+        '**For Loop** exécute **Loop Body** une fois pour chaque nombre de **First Index** à **Last Index** **compris**, puis sort par **Completed**. Le nombre du tour en cours est sur la pin **Index**.',
     },
     {
       title: 'Se servir de Index',
       body:
-        `Chaque tour doit produire une position différente : X = **Index × ${GAP}**. Au tour 0, X = 0 ; au tour 1, X = ${GAP} ; au tour 4, X = ${GAP * 4}.\n\n` +
-        '**Make Vector** fabrique la position à partir de X, Y et Z ; relie-le à **Spawn Transform Location** du Spawn Actor.',
+        'Chaque tour doit produire une position différente : X = **Index × 150**. Tour 0 : X = 0. Tour 1 : 150. Tour 4 : 600.\n\n' +
+        '- **× (Integer)** : Index × 150.\n- **Make Vector** : X = ce produit, Y = 0, Z = 0. Relier un Integer à une pin Float pose une conversion automatique.\n- **SpawnActor** : Class = BP_Poteau, **Spawn Transform Location** = le Make Vector.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**BeginPlay** → **For Loop** (First Index = 0, Last Index = Get Nombre **−** 1) → **Loop Body** → **Spawn Actor** BP_Poteau (Location = Make Vector (Index × 150, 0, 0)).',
     },
     {
       title: 'Le piège du dernier tour',
       body:
-        'De 0 à 5, la boucle fait **six** tours (0, 1, 2, 3, 4, 5). Pour en faire `Nombre`, elle va de 0 à **Nombre − 1**.\n\n' +
-        'Lis `Nombre` dans la variable plutôt que d’écrire 4 dans Last Index : le chantier pourra alors planter une autre quantité sans qu’on touche au graphe.',
+        'De 0 à 5, la boucle fait **six** tours : 0, 1, 2, 3, 4, 5. Last Index est **compris**. Pour faire `Nombre` tours en partant de 0, on va jusqu’à **Nombre − 1**.\n\n' +
+        'Lis Nombre dans la variable plutôt que d’écrire 4 dans Last Index : un level designer pourra planter une autre quantité, chantier par chantier, sans toucher au graphe.\n\n' +
+        'Dans UE, pour des centaines d’objets identiques (herbe, clôtures longues), on préfère un composant **Instanced Static Mesh** : un seul acteur qui dessine beaucoup de copies, bien moins coûteux que des centaines d’acteurs.',
     },
   ],
   objectives: [

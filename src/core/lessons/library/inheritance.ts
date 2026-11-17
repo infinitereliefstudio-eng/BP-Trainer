@@ -58,16 +58,37 @@ export const lessonInheritance: Lesson = {
   remember: 'Un Blueprint enfant a tout ce qu’a son parent. Redéfinir un événement remplace la version du parent : Parent: … la rappelle, à l’endroit voulu.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '- **BP_LampeBase** : un pied, une **Lumiere** (éteinte), une variable **Puissance** (3000) et une fonction **Allumer** (Set Visibility puis Set Intensity = Puissance). Son **BeginPlay** appelle Allumer.\n- **BP_Clignotante** : graphe vide, mais sa **Parent Class** est BP_LampeBase.\n- **BP_Tableau** : au BeginPlay, compte les BP_LampeBase du niveau et affiche le nombre.\n\n' +
+        'Une lampe de chaque est posée. Lance Play : les deux s’allument, le tableau affiche 2.',
+    },
+    {
       title: 'Un Blueprint enfant',
       body:
-        'Dans **Class Settings**, la **Parent Class** de BP_Clignotante est **BP_LampeBase**. Ouvre-le : My Blueprint montre ses composants, variables et fonctions **hérités**. Lance Play : elle s’allume déjà, grâce au BeginPlay du parent.\n\n' +
-        'Le tableau compte les **BP_LampeBase** du niveau et trouve 2 : un enfant **est** aussi un BP_LampeBase (Cast To BP_LampeBase réussit sur lui).',
+        '**BP_Clignotante** est un **enfant** de BP_LampeBase (Class Settings › Parent Class). Il **hérite** de tout ce qu’a son parent : composants, variables, fonctions, événements. Ouvre-le : My Blueprint les montre, marqués « hérité ».\n\n' +
+        'C’est pour ça qu’il s’allume sans une ligne de graphe : le BeginPlay du parent s’exécute pour lui.\n\n' +
+        'Un enfant **est** aussi un parent : le tableau, qui cherche des BP_LampeBase, trouve les deux lampes. Un Cast To BP_LampeBase réussit sur une BP_Clignotante.',
     },
     {
       title: 'Redéfinir un événement',
       body:
-        'Si BP_Clignotante a son propre **Event BeginPlay**, celui du parent **ne s’exécute plus** pour elle : il est remplacé. Pour garder les deux, place **Parent: BeginPlay** sur le fil (appui long sur ton BeginPlay › Ajouter l’appel au parent).\n\n' +
-        'Pareil pour une fonction : une fonction **Allumer** dans l’enfant remplace celle du parent, même quand c’est le graphe du parent qui l’appelle.',
+        'Si BP_Clignotante a son **propre** Event BeginPlay, celui du parent **ne s’exécute plus** pour elle : il est **remplacé** (redéfini).\n\n' +
+        'Pour garder les deux, place **Parent: BeginPlay** sur le fil, à l’endroit voulu : appui long sur ton BeginPlay › **Ajouter l’appel au parent**. Il exécute la version du parent, puis le fil continue.\n\n' +
+        'Pareil pour une fonction : une fonction **Allumer** dans l’enfant remplace celle du parent, **même** quand c’est le graphe du parent qui l’appelle. **Parent: Allumer** rappelle l’originale.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Dans **BP_Clignotante** :\n\n' +
+        '1. **Event BeginPlay** → **Parent: BeginPlay** (la lampe s’allume, comme avant).\n2. → **Set Timer by Event** (Time 0,5, **Looping**), Event = un Custom Event `Clignoter`.\n3. **Clignoter** → **Toggle Visibility** (Target = Lumiere, le composant hérité).\n\n' +
+        'BP_LampeBase ne change pas : elle reste allumée, sans clignoter.',
+    },
+    {
+      title: 'Le piège',
+      body:
+        'Oublier Parent: BeginPlay. La lampe clignote… à partir d’une lumière éteinte, et sans sa Puissance : Allumer n’a jamais été appelé pour elle.\n\n' +
+        'Dans UE, l’héritage sert à partager une base commune (un ennemi de base, des variantes rapides ou lourdes ; un objet ramassable, puis une clé, une pile). Préfère-le quand l’enfant « est un » parent ; quand il « a » seulement un comportement en plus, un **Actor Component** est souvent plus souple.',
     },
   ],
   objectives: [

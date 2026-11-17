@@ -5,6 +5,7 @@
 import { T } from '../../types/pins';
 import { ProjectBuilder } from '../builder';
 import type { Lesson } from '../types';
+import { PREDICT_METHOD } from './kit';
 
 const OBJECTIVES = [
   'Lis le graphe sans lancer Play : suis le fil blanc depuis l’événement.',
@@ -36,9 +37,22 @@ export const predict6: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Calcul**. Les deux nœuds **÷** se ressemblent, mais regarde la couleur de leurs pins : le premier travaille sur des **Integer** (nombres entiers), le second sur des **Float** (nombres à virgule).\n\n' +
-        'Le résultat d’un nœud a le type de sa pin de sortie. Question : que peut contenir un Integer ?',
+        'Ouvre **BP_Calcul**. Au lancement (**Event BeginPlay**), deux **Print String** s’exécutent l’un après l’autre. Chacun affiche le résultat d’une division de **7 par 2**.\n\n' +
+        'Les deux nœuds **÷** se ressemblent, mais regarde leurs pins :\n\n' +
+        '- le premier a des pins vert d’eau (vert tirant sur le bleu) : il travaille sur des **Integer**, des nombres entiers ;\n- le second a des pins vert-jaune : il travaille sur des **Float**, des nombres à virgule.',
     },
+    {
+      title: 'Le type décide',
+      body:
+        'Dans un Blueprint, chaque pin a un **type**, et le résultat d’un nœud a le type de sa pin de sortie. Ce n’est pas le nombre écrit dans la case qui décide, c’est le nœud.\n\n' +
+        'Question à te poser : quels nombres une variable ou une pin **Integer** peut-elle contenir ? Et si le vrai résultat ne rentre pas dedans, que devient la partie qui dépasse : arrondie, ou perdue ?',
+    },
+    {
+      title: 'Pourquoi ça compte',
+      body:
+        'Ce piège revient dans les vrais projets : un pourcentage calculé avec `Score / Total` en Integer donne 0 tant que Score est plus petit que Total, et la barre de progression reste vide. Savoir lire la couleur d’une pin évite des heures de recherche.',
+    },
+    PREDICT_METHOD,
   ],
   hints: [
     'Un Integer ne peut pas contenir 3,5.',
@@ -85,10 +99,28 @@ export const predict7: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Sas**. Un **Gate** est une porte sur le fil blanc : ce qui arrive par **Enter** ressort par **Exit** seulement si la porte est ouverte.\n\n' +
-        '**Open**, **Close** et **Toggle** l’ouvrent ou la ferment. Ici **Start Closed** est coché : au départ, elle est fermée.\n\n' +
+        'Ouvre **BP_Sas**. Au lancement, **Event BeginPlay** entre dans un **Sequence** à trois sorties, toutes reliées au **même Gate** :\n\n' +
+        '- **Then 0** → entrée **Enter** ;\n- **Then 1** → entrée **Open** ;\n- **Then 2** → entrée **Enter**, de nouveau.\n\n' +
+        'La sortie **Exit** du Gate mène à un Print String « Passe ». **Start Closed** est coché.',
+    },
+    {
+      title: 'Le Gate',
+      body:
+        'Un **Gate** est une porte posée sur le fil blanc, avec une mémoire : ouverte ou fermée.\n\n' +
+        '- **Enter** : le fil qui veut passer. Il ressort par **Exit** si la porte est ouverte ; sinon il s’arrête là, sans erreur.\n- **Open**, **Close**, **Toggle** : changent l’état de la porte. Ils ne font rien sortir par Exit.\n- **Start Closed** : l’état de départ. Coché, la porte commence fermée.\n\n' +
         'Sequence exécute Then 0, puis Then 1, puis Then 2, dans l’ordre.',
     },
+    {
+      title: 'Les questions à se poser',
+      body:
+        'Pour chacune des trois sorties du Sequence, dans l’ordre : par quelle entrée le fil arrive-t-il ? Dans quel état est la porte à ce moment-là ? Est-ce que quelque chose sort par Exit ?',
+    },
+    {
+      title: 'À quoi ça sert',
+      body:
+        'Un Gate laisse passer un flux **répété** (un Tick, une touche maintenue) seulement pendant une période : on l’ouvre en entrant dans une zone, on le ferme en sortant. DoOnce, lui, ne laisse passer qu’**une** fois.',
+    },
+    PREDICT_METHOD,
   ],
   hints: [
     'Suis les trois sorties du Sequence une par une, en notant l’état de la porte.',
@@ -135,9 +167,23 @@ export const predict8: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Coffre**. La variable **Sac** contient deux objets. Le graphe fait **Set Sauvegarde = Sac**, puis **Add** « Lampe » à Sac, puis affiche le nombre d’éléments de **Sauvegarde**, et celui de **Sac**.\n\n' +
-        'Question : après le Set, Sauvegarde et Sac sont-ils le même tableau, ou deux tableaux qui se ressemblent ?',
+        'Ouvre **BP_Coffre**. Deux variables de type **tableau de String** :\n\n' +
+        '- **Sac**, qui contient au départ « Clé » et « Pile » ;\n- **Sauvegarde**, vide.\n\n' +
+        'Au lancement, le fil blanc fait :\n\n' +
+        '1. **Set Sauvegarde** = Get Sac ;\n2. **Add** « Lampe » au tableau Sac ;\n3. Print String de **Length** (Sauvegarde) ;\n4. Print String de **Length** (Sac).',
     },
+    {
+      title: 'Ce que font ces nœuds',
+      body:
+        '- **Set** range une valeur dans une variable, au moment où le fil blanc passe.\n- **Add** (pin en losange) ajoute un élément au bout du tableau relié, et le modifie **sur place**.\n- **Length** donne le nombre d’éléments d’un tableau, au moment où on le lit.',
+    },
+    {
+      title: 'La question',
+      body:
+        'Après le Set, Sauvegarde et Sac sont-ils **le même tableau** vu par deux noms, ou **deux tableaux** qui ont le même contenu à cet instant ? Selon la réponse, l’Add sur Sac touche, ou non, Sauvegarde.\n\n' +
+        'Indice de lecture : en Blueprint, une variable de tableau contient-elle le tableau lui-même, ou un lien vers un tableau rangé ailleurs ? Compare avec une variable de **référence** (bleue), qui, elle, désigne un acteur sans le contenir.',
+    },
+    PREDICT_METHOD,
   ],
   hints: [
     'Une variable de tableau contient le tableau lui-même, pas un lien vers un tableau partagé.',

@@ -65,22 +65,37 @@ export const lessonSlidingDoor: Lesson = {
     'Un Timeline fait aller une valeur de 0 à 1 dans le temps ; Lerp la transforme en position. Play reprend là où il en est, Reverse revient en arrière : à eux deux, ils ouvrent et ferment sans à-coup.',
   cards: [
     {
-      title: 'Une valeur qui avance dans le temps',
+      title: 'Ce qui est en place',
       body:
-        'Un **Timeline** (palette : *Add Timeline*) contient une **piste** : ici **Alpha**, qui va de 0 à 1 en 1 seconde. Tant qu’il joue, sa sortie **Update** s’exécute à chaque image, avec la valeur de la piste à cet instant.\n\n' +
-        'Sélectionne le nœud puis *Éditer la piste* (Details) pour voir sa courbe, changer la durée ou ajouter des points clés.',
+        '**BP_PorteCoulissante** : un **Panneau** bleu entre deux murs, et une grande **Zone** devant. Le graphe :\n\n' +
+        '- **Event ActorBeginOverlap** → **Set Relative Location** (Panneau, X = 200) ;\n- **Event ActorEndOverlap**, posé mais relié à rien.\n\n' +
+        'La porte s’ouvre d’un coup et ne se referme jamais. Le but : qu’elle glisse en 1 seconde, se referme en douceur, et reparte de là où elle est si le joueur fait demi-tour.',
+    },
+    {
+      title: 'Le Timeline',
+      body:
+        'Un **Timeline** (palette › **Add Timeline**) fait évoluer une ou plusieurs valeurs dans le temps. Le sien a une **piste** **Alpha** qui va de 0 à 1 en 1 seconde.\n\n' +
+        '- Entrées : **Play** (avance depuis la position actuelle), **Reverse** (recule depuis la position actuelle), **Play from Start**, **Reverse from End**, **Stop**.\n- **Update** : s’exécute **à chaque image** tant qu’il joue, avec la valeur de la piste à cet instant sur la sortie **Alpha**.\n- **Finished** : une fois, en bout de course, dans un sens ou dans l’autre.\n\n' +
+        'Un Timeline ne déplace rien tout seul : c’est le nœud branché sur Update qui agit. Double-touche le nœud (ou Details › Éditer la piste) pour voir la courbe.',
     },
     {
       title: 'De 0–1 à une position',
       body:
-        '**Lerp** donne le point entre A et B à la proportion Alpha : avec A = 0 et B = 200, Alpha = 0,5 donne 100.\n\n' +
-        'Branche la piste sur **Alpha**, puis le résultat sur le X d’un **Make Vector**, relié à **Set Relative Location** du Panneau. Le fil blanc de Set Relative Location part de **Update**.',
+        '**Lerp** donne le point entre **A** et **B** à la proportion **Alpha** : A + (B − A) × Alpha. Avec A = 0 et B = 200 : Alpha 0 donne 0, Alpha 0,5 donne 100, Alpha 1 donne 200.\n\n' +
+        '**Make Vector** assemble X, Y, Z en un Vector : le résultat du Lerp sur X, 0 ailleurs. Il va sur **New Location** de Set Relative Location.',
     },
     {
-      title: 'Play, Reverse, Play from Start',
+      title: 'Le plan',
       body:
-        '**Play** avance depuis la position actuelle. **Reverse** recule depuis la position actuelle. Si le joueur fait demi-tour au milieu, la porte repart donc de là où elle est.\n\n' +
-        '**Play from Start** remet d’abord à 0 : la porte sauterait à sa position fermée. Et **Play** quand le Timeline est déjà à la fin ne rejoue rien : pour revenir, c’est Reverse.',
+        '1. Débranche le Set Relative Location de ActorBeginOverlap.\n2. **ActorBeginOverlap** → **Play** du Timeline.\n3. **ActorEndOverlap** → **Reverse**.\n4. **Update** → **Set Relative Location** (Target = Panneau, New Location = Make Vector (Lerp (0, 200, Alpha), 0, 0)).',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '**Play pour fermer.** Quand le Timeline est déjà au bout, Play n’a plus rien à jouer : la porte reste ouverte. Pour revenir, c’est **Reverse**.\n\n' +
+        '**Play from Start pour ouvrir.** Il remet d’abord le temps à 0. Si le joueur revient pendant la fermeture, la porte saute à sa position fermée avant de se rouvrir. Play, lui, repart d’où elle est.\n\n' +
+        '**Garder un Set direct.** Tout mouvement doit passer par Update, sinon la porte saute.\n\n' +
+        'Dans UE, on édite la courbe dans un éditeur dédié (double-clic sur le Timeline), avec des points arrondis et des pistes Vector, Color ou Event. Le principe Play / Reverse / Update est le même.',
     },
   ],
   objectives: [
@@ -248,16 +263,29 @@ export const complete3: Lesson = {
   remember: 'Un Timeline ne change rien tout seul : il donne une valeur à chaque image par Update. C’est le nœud branché sur Update qui agit, avec cette valeur.',
   cards: [
     {
-      title: 'Ce qui est déjà là',
+      title: 'Ce qui est en place',
       body:
-        'Le Timeline **Fondu** dure 2 s ; sa piste **Alpha** va de 0 à 1. La touche **E** et le Get **Lumiere** sont posés.\n\n' +
-        'Les nœuds à placer : **FlipFlop**, **Lerp**, **Set Intensity**.',
+        '**BP_Projecteur** : un pied et une **Lumiere** à intensité 0. Il entend E. Dans le graphe :\n\n' +
+        '- l’événement **E** ;\n- le Timeline **Fondu** : 2 secondes, piste **Alpha** de 0 à 1 ;\n- un **Get Lumiere** ;\n- trois cadres jaunes, et aucun fil.\n\n' +
+        'Le but : E allume en fondu sur 2 secondes, E de nouveau éteint en fondu.',
+    },
+    {
+      title: 'Les trois nœuds à placer',
+      body:
+        '- **FlipFlop** : à chaque passage, sort alternativement par **A**, puis **B**, puis A… Il a une sortie **Is A** si l’on a besoin de savoir laquelle.\n- **Lerp** : le nombre entre **A** et **B** à la proportion **Alpha**. Ici de 0 à 5000.\n- **Set Intensity** : règle la puissance d’une lumière. **Target** = la lumière, **New Intensity** = la valeur.',
     },
     {
       title: 'Trois branchements',
       body:
-        '**FlipFlop** sort par A, puis B, puis A… : A va sur **Play**, B sur **Reverse**.\n\n' +
-        '**Lerp** (A = 0, B = 5000) reçoit la piste sur Alpha. **Set Intensity** part de **Update**, avec la Lumiere en Target et le Lerp en New Intensity.',
+        '**Trou 1** : E (Pressed) → FlipFlop. **A** → **Play** du Fondu, **B** → **Reverse**. Le premier appui allume, le suivant éteint.\n\n' +
+        '**Trou 2** : la sortie **Alpha** du Timeline va sur l’Alpha du Lerp (A = 0, B = 5000).\n\n' +
+        '**Trou 3** : **Update** → Set Intensity, Target = Lumiere, New Intensity = le Lerp.\n\n' +
+        'Il y a donc **deux** fils blancs : celui de la touche, qui commande le Timeline, et celui d’Update, qui agit à chaque image.',
+    },
+    {
+      title: 'Le piège',
+      body:
+        'Relier B à **Play** au lieu de Reverse. Au deuxième appui, le Timeline est déjà au bout : Play n’a plus rien à jouer et la lumière reste allumée. C’est la même règle que pour « La porte qui glisse ».',
     },
   ],
   objectives: [
@@ -380,22 +408,36 @@ export const lessonLampRow: Lesson = {
     'Le Construction Script s’exécute dans l’éditeur à chaque placement ou réglage d’une instance, puis à l’apparition de l’acteur, avant BeginPlay. Il prépare l’acteur à partir de ses variables ; il ne tourne plus pendant la partie.',
   cards: [
     {
-      title: 'Avant le jeu',
+      title: 'Ce qui est en place',
       body:
-        'Chaque Blueprint a un second graphe : **ConstructionScript** (My Blueprint › Graphs). Il s’exécute **dans l’éditeur**, à chaque fois qu’une instance est placée, déplacée ou qu’une de ses variables **Instance Editable** change.\n\n' +
-        'C’est là qu’un acteur applique ses réglages : le niveau montre alors le résultat sans lancer Play.',
+        '**BP_Lampe** : un pied et une **Lumiere** éteinte, avec deux variables **Instance Editable** :\n\n' +
+        '- **Couleur** (Linear Color) ;\n- **Allumee** (Boolean).\n\n' +
+        'Trois lampes sont posées et réglées dans le niveau : rouge allumée, verte éteinte, bleue allumée. Pour l’instant, toutes les trois ont l’air identiques dans le niveau : rien n’applique leurs réglages.',
+    },
+    {
+      title: 'Le Construction Script',
+      body:
+        'Chaque Blueprint a un second graphe : **ConstructionScript** (My Blueprint › Graphs). Il s’exécute :\n\n' +
+        '- **dans l’éditeur**, chaque fois qu’une instance est placée, déplacée, ou qu’une de ses variables Instance Editable change ;\n- au lancement, quand l’acteur apparaît, **avant** tout BeginPlay.\n\n' +
+        'C’est là qu’un acteur **applique ses réglages** : le niveau montre le résultat sans lancer Play. Un level designer règle Couleur dans Details et voit la lampe changer aussitôt.',
     },
     {
       title: 'Ce qu’il ne fait pas',
       body:
-        'Il **ne tourne pas pendant la partie** : changer Allumee en jeu ne rallume rien, c’est le rôle de l’Event Graph.\n\n' +
-        'Quand il s’exécute, **aucun acteur n’a encore fait son BeginPlay** : ne lis pas dans un autre acteur une variable qu’il règle au BeginPlay. Et il n’accepte ni Delay, ni Timeline, ni événement.',
+        '- Il ne tourne **pas pendant la partie**. Changer Allumee en jeu ne rallume rien : c’est le rôle de l’Event Graph.\n- Quand il s’exécute, **aucun BeginPlay n’a eu lieu** : ne lis pas chez un autre acteur une valeur qu’il règle au BeginPlay.\n- Pas de nœud latent (Delay, Timeline) ni d’événement : il doit finir tout de suite.',
     },
     {
-      title: 'À faire',
+      title: 'Le plan',
       body:
-        'Dans le ConstructionScript de **BP_Lampe** : **Set Light Color** (Lumiere) avec **Get Couleur**, puis **Set Visibility** (Lumiere) avec **Get Allumee**.\n\n' +
-        'Reviens sur l’onglet Niveau : les lampes changent aussitôt. Sélectionne une lampe et modifie Allumee dans Details pour voir le script se relancer.',
+        'Dans le ConstructionScript de BP_Lampe, à partir du nœud **Construction Script** :\n\n' +
+        '1. **Set Light Color** (Target = Lumiere, New Light Color = Get Couleur).\n2. **Set Visibility** (Target = Lumiere, New Visibility = Get Allumee).\n\n' +
+        'Reviens sur l’onglet Niveau : les lampes changent aussitôt. Sélectionne-en une et décoche Allumee : le script se relance.\n\n' +
+        'Le piège : faire la même chose au **BeginPlay**. En jeu, tout est juste ; dans l’éditeur, le niveau ne montre rien. La vérification contrôle les deux.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Le Construction Script sert à tout ce qui se règle « à la pose » : la longueur d’une clôture, le nombre de marches d’un escalier, le matériau d’un mur. Attention au coût : il se relance à chaque déplacement dans l’éditeur, et un script lourd rend l’éditeur lent.',
     },
   ],
   objectives: [

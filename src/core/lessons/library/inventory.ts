@@ -39,22 +39,40 @@ export const lessonInventory: Lesson = {
   remember: 'Un tableau garde une liste dans une seule variable. Add, Remove, Clear le modifient (pin en losange) ; For Each le parcourt d’un coup ; Get donne une copie de l’élément.',
   cards: [
     {
-      title: 'Un tableau',
+      title: 'Ce qui est en place',
       body:
-        'Une variable peut contenir une **liste** : dans Details, à côté du type, coche **Array**. Crée dans **BP_Joueur** la variable `Inventaire`, type **String**, en tableau.\n\n' +
-        'Chaque élément a un **index** : 0 pour le premier, 1 pour le suivant…',
+        '- **BP_Joueur** : le joueur, graphe vide, aucune variable.\n- **BP_Objet** : un petit objet jaune avec une **Zone**, et une variable **Nom** (String, **Instance Editable**). Trois instances sont posées sur la route du joueur, réglées sur « Clé », « Fusible » et « Carte ».\n\n' +
+        'Le test fait marcher le joueur à travers les trois objets, puis appuie sur E.',
     },
     {
-      title: 'Ajouter',
+      title: 'Un tableau',
       body:
-        '**Add** ajoute un élément à la fin. Sa pin **Target Array** est en losange : elle modifie la variable elle-même. Depuis BP_Objet, la variable est celle du joueur : **Cast To BP_Joueur** sur Other Actor, puis **Get Inventaire** depuis la sortie du Cast.\n\n' +
-        'L’objet connaît son nom : sa variable **Nom** est réglée dans le niveau (Instance Editable).',
+        'Une variable peut contenir une **liste** de valeurs du même type : un **tableau** (Array). Crée dans BP_Joueur la variable `Inventaire`, type **String**, et choisis **Array** dans la liste à côté du type. Sa pin prend la forme d’une petite grille.\n\n' +
+        'Chaque élément a un **index**, sa position : **0** pour le premier, 1 pour le deuxième… Avec 3 éléments, les index vont de 0 à 2.\n\n' +
+        'Un tableau, c’est **une seule variable** : on peut la passer, la parcourir, la vider, sans savoir d’avance combien d’éléments elle contiendra.',
+    },
+    {
+      title: 'Ajouter depuis un autre Blueprint',
+      body:
+        '**Add** ajoute **New Item** à la fin du tableau branché sur **Target Array**. Cette pin est en **losange** : Add modifie la variable elle-même.\n\n' +
+        'Ici, le tableau est celui **du joueur**, et c’est l’objet qui ajoute :\n\n' +
+        '1. **Event ActorBeginOverlap** → **Cast To BP_Joueur** (Object = Other Actor).\n2. Depuis **As BP_Joueur**, tire un fil et cherche **Get Inventaire** : le tableau de ce joueur-là.\n3. **Add** : Target Array = cet Inventaire, New Item = **Get Nom** (le nom de l’objet).\n4. **Destroy Actor**.',
     },
     {
       title: 'Parcourir',
       body:
-        '**For Each Loop** exécute **Loop Body** une fois par élément, avec **Array Element** et **Array Index**, puis **Completed**. Tout se passe dans la même image.\n\n' +
+        '**For Each Loop** exécute **Loop Body** une fois par élément du tableau branché sur **Array** :\n\n' +
+        '- **Array Element** : l’élément de ce tour ;\n- **Array Index** : sa position ;\n- **Completed** : une fois, après le dernier tour.\n\n' +
+        'Tous les tours se font dans la même image.\n\n' +
+        'Dans BP_Joueur : **E** (Pressed) → **For Each Loop** (Array = Get Inventaire) → Loop Body → **Print String** (Array Element).\n\n' +
         '**Get (a copy)** lit un élément par son index… et en donne une **copie** : la modifier ne change pas le tableau.',
+    },
+    {
+      title: 'Les pièges',
+      body:
+        '**Un Get Inventaire sans Target.** Dans BP_Objet, un Get Inventaire doit savoir sur quel joueur lire : son Target vient de As BP_Joueur. Sans lui, Add n’a pas de tableau.\n\n' +
+        '**Le défi.** Retirer des éléments **pendant** qu’on parcourt le tableau décale ceux qui suivent : la boucle en saute. Pour tout vider, **Clear** fait le travail en un nœud.\n\n' +
+        'Dans UE, les inventaires sérieux rangent des **structures** (nom, quantité, icône) plutôt que de simples textes : voir « La fiche de l’objet ».',
     },
   ],
   objectives: [

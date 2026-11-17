@@ -39,26 +39,37 @@ export const lessonPureFunctions: Lesson = {
     'Une fonction pure calcule et rend un résultat, sans rien modifier ; elle s’exécute à chaque lecture de sa sortie. Une fonction impure agit (Set, Spawn…) et s’exécute une fois, quand le fil blanc passe. Ce dont elle a besoin le temps d’un appel va dans une variable locale.',
   cards: [
     {
-      title: 'Deux sortes de fonctions',
+      title: 'Ce qui est en place',
       body:
-        'Une fonction **impure** a des pins blanches : elle s’exécute quand le fil d’exécution passe par son nœud, une seule fois. Elle peut modifier des variables.\n\n' +
-        'Une fonction **pure** (case **Pure** dans Details de la fonction) n’a pas de pin blanche, comme Add ou Get : elle ne fait que **calculer** à partir de ses entrées, et ne doit rien modifier.',
+        '**BP_Personnage** : un corps et une variable **PV** (Integer, 100). Pas de fonction, graphe vide.\n\n' +
+        'Le scénario : il prend un coup critique de base 10, puis se soigne deux fois de 15, sans dépasser 100 PV. On attend l’affichage **80, 15, 5, 100** : PV après le coup, ce que chaque soin a **vraiment** rendu, puis PV à la fin.',
     },
     {
-      title: 'Le piège de la fonction pure',
+      title: 'Pure ou impure',
       body:
-        'Une fonction pure **s’exécute à chaque lecture de sa sortie**. Reliée à deux nœuds, elle tourne deux fois. Avec un Random dedans, elle donne deux résultats différents ; avec un Set dedans, elle modifierait deux fois.',
+        '- Une fonction **impure** a des pins blanches. Elle s’exécute **une fois**, quand le fil blanc passe par son nœud. Elle peut **agir** : modifier des variables, créer des acteurs.\n- Une fonction **pure** (case **Pure** dans Details de la fonction) n’a pas de pin blanche, comme + ou Get. Elle ne fait que **calculer** un résultat à partir de ses entrées, et ne doit rien modifier.\n\n' +
+        'Le piège : une fonction pure s’exécute **à chaque lecture de sa sortie**. Reliée à deux nœuds, elle tourne deux fois. Avec un Random dedans, deux résultats différents ; avec un Set dedans, deux modifications.',
     },
     {
-      title: 'Entrées, sorties, Return Node',
+      title: 'Créer une fonction',
       body:
-        'Dans My Blueprint › Functions › +, crée la fonction puis, dans Details, ajoute ses **Inputs** et **Outputs**. Le **Return Node** rend les sorties ; une fonction peut en avoir plusieurs (un par chemin d’un Branch).',
+        'My Blueprint › Functions › **+**, puis dans Details :\n\n' +
+        '- **Inputs** : ses entrées, qui apparaissent sur le nœud d’entrée de la fonction ;\n- **Outputs** : ses sorties, qui apparaissent sur le **Return Node**.\n\n' +
+        'Un Return Node termine l’appel et rend les sorties. Une fonction peut en avoir **plusieurs**, un par chemin d’un Branch : chacun rend ses propres valeurs.',
     },
     {
-      title: 'Se souvenir pendant un appel',
+      title: 'Les deux fonctions',
       body:
-        'Pour dire combien Soigner a vraiment rendu, il faut PV **avant** le soin. Une **variable locale** (My Blueprint › Local Variables, fonction ouverte) le garde le temps de l’appel : `Avant`, réglée au début, puis Soin = PV − Avant à la fin.\n\n' +
-        'Elle repart de zéro à chaque appel : aucune valeur ne traîne d’un soin à l’autre.',
+        '**CalculerDegats** (pure) : entrées **Base** (Integer) et **Critique** (Boolean), sortie **Degats** (Integer). Branch (Critique) → True : Return Node (Degats = Base × 2). False : Return Node (Degats = Base).\n\n' +
+        '**Soigner** (impure) : entrée **Montant**, sortie **Soin**.\n\n' +
+        '1. **Set Avant** = PV. `Avant` est une **variable locale** (Local Variables › +, fonction ouverte) : elle garde PV d’avant le soin, le temps de l’appel.\n2. **Set PV** = **Min** (PV + Montant, 100).\n3. **Return Node** : Soin = PV **−** Avant.\n\n' +
+        'Au second soin, PV passe de 95 à 100 : Soin vaut 5, pas 15. C’est pour ça qu’on a besoin d’Avant.',
+    },
+    {
+      title: 'Le BeginPlay',
+      body:
+        '1. **Set PV** = PV **−** CalculerDegats (Base 10, Critique coché) → Print String (PV) : 80.\n2. **Soigner** (15) → Print String (Soin) : 15.\n3. **Soigner** (15) → Print String (Soin) : 5.\n4. Print String (PV) : 100.\n\n' +
+        'CalculerDegats ne touche pas à PV : elle rend un nombre, et c’est le BeginPlay qui décide quoi en faire. Cette séparation rend la formule réutilisable : un autre Blueprint peut calculer des dégâts sans les appliquer.',
     },
   ],
   objectives: [
@@ -222,15 +233,36 @@ export const lessonCleanDestroy: Lesson = {
   remember: 'Un acteur détruit reste dans les listes et variables qui le désignent. Event Destroyed est le moment de dire aux autres de l’oublier.',
   cards: [
     {
-      title: 'Une liste qui ment',
+      title: 'Ce qui est en place',
       body:
-        'Le gardien remplit `Caisses` une fois, au BeginPlay. Quand une caisse est détruite, la liste la contient toujours : la ronde lit sa position… et obtient **Accessed None** (touche **Pourquoi ?** dans l’Output Log).',
+        '- Trois **BP_Caisse** : chacune se détruit quand le joueur la touche (ActorBeginOverlap → Destroy Actor).\n- **BP_Gardien** : au BeginPlay, **Get All Actors Of Class** (BP_Caisse) → range le résultat dans sa liste **Caisses** → lance un timer de 0,5 s en Looping. Le timer appelle **Ronde** : For Each Loop sur Caisses → affiche la position Y de chaque caisse.\n\n' +
+        'Le joueur avance et ramasse la caisse du milieu. Aussitôt, l’Output Log se remplit d’erreurs à chaque ronde.',
     },
     {
-      title: 'Prévenir en partant',
+      title: 'Une liste qui ment',
       body:
-        '**Event Destroyed** s’exécute juste avant que l’acteur disparaisse. C’est là que la caisse dit au gardien de la retirer : **Get Actor Of Class** (BP_Gardien), puis **Remove Item** sur sa liste `Caisses`, avec **Self** comme Item.\n\n' +
-        '**Is Valid** dans la ronde évite l’erreur, mais la liste garde la caisse morte : on ne règle que le symptôme.',
+        'Le gardien a rempli Caisses **une fois**, au début. Quand une caisse est détruite, **rien** ne la retire de la liste : elle y reste, comme une adresse qui ne mène plus à rien. La ronde lit sa position : erreur. Touche **Pourquoi ?** sous l’erreur.\n\n' +
+        'C’est vrai de toute variable ou tableau qui désigne un acteur : **Destroy Actor ne nettoie pas** les références des autres.',
+    },
+    {
+      title: 'Event Destroyed',
+      body:
+        '**Event Destroyed** s’exécute juste **avant** que l’acteur disparaisse du niveau, quelle que soit la raison de sa destruction. C’est le dernier moment où il existe encore : le bon moment pour **prévenir** ceux qui le connaissent.\n\n' +
+        'Ici, la caisse dit au gardien de l’oublier :\n\n' +
+        '- **Get Actor Of Class** (BP_Gardien) : trouve **le** gardien du niveau (le premier de cette classe) ;\n- depuis lui, **Get Caisses** : sa liste ;\n- **Remove Item** (Target Array = cette liste, Item = **Self**) : retire du tableau tous les éléments égaux à Item. **Self** est la référence de l’acteur qui exécute le graphe, ici la caisse elle-même.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Dans **BP_Caisse** :\n\n' +
+        '**Event Destroyed** → **Get Actor Of Class** (BP_Gardien) → **Remove Item** (Target Array = Get Caisses du gardien, Item = Self).\n\n' +
+        'Le gardien n’a pas à changer : sa liste est juste, donc sa ronde aussi.',
+    },
+    {
+      title: 'Symptôme ou cause ?',
+      body:
+        'Ajouter un **Is Valid** dans la ronde fait disparaître l’erreur. Mais la liste garde des caisses mortes : le gardien croit en avoir trois, une ronde de plus tourne pour rien, et un « Il reste N caisses » serait faux. On a caché le symptôme sans régler la cause.\n\n' +
+        'La règle générale : celui qui disparaît prévient (Event Destroyed, ou un Event Dispatcher auquel les autres sont abonnés), ou celui qui garde une liste la nettoie lui-même. Mais pas personne.',
     },
   ],
   objectives: ['Quand une caisse est détruite, elle est retirée de la liste Caisses du gardien.', 'Plus aucune erreur pendant la ronde.', 'Touche Vérifier.'],
@@ -320,10 +352,32 @@ export const complete2: Lesson = {
   remember: 'Une fonction qui s’appelle elle-même a besoin d’un cas où elle ne s’appelle plus : sans lui, elle tourne jusqu’à ce qu’UE l’arrête (Infinite loop detected).',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Calcul** a une fonction **Factorielle** : entrée **N**, sortie **Resultat**. Dans son graphe :\n\n' +
+        '- un appel à **Factorielle** elle-même, avec N **−** 1 ;\n- un **×** qui multiplie N par le résultat de cet appel ;\n- le **Return Node**, qui rend ce produit ;\n- un cadre jaune vide, juste après l’entrée de la fonction.\n\n' +
+        'Le BeginPlay affiche Factorielle(5). Lance Play : « Infinite loop detected ».',
+    },
+    {
       title: 'Une fonction qui s’appelle',
       body:
-        'Ouvre la fonction **Factorielle** (My Blueprint › Functions). Elle calcule 5 × 4 × 3 × 2 × 1 en s’appelant avec N − 1. Chaque appel a ses propres entrées : le N du 3e appel ne remplace pas celui du 1er.\n\n' +
-        'Il manque le cas où elle **ne s’appelle plus** : quand N vaut 1 (ou moins), le résultat est 1.',
+        'Factorielle(5) = 5 × 4 × 3 × 2 × 1 = 120. On peut l’écrire : Factorielle(N) = N × Factorielle(N − 1). La fonction s’appelle **elle-même** avec un N plus petit : c’est la **récursion**.\n\n' +
+        'Chaque appel a **ses propres entrées** : le N du 3e appel (3) ne remplace pas celui du 1er (5). Quand l’appel le plus profond rend son résultat, chaque appel reprend là où il attendait, avec son N à lui, et multiplie.',
+    },
+    {
+      title: 'La condition d’arrêt',
+      body:
+        'Sans cas où elle ne s’appelle plus, la fonction descend à 0, −1, −2… sans fin. UE coupe au bout d’un très grand nombre de nœuds : **Infinite loop detected**.\n\n' +
+        'Le cas de base : quand **N <= 1**, le résultat est **1**, et la fonction **ne s’appelle pas**.\n\n' +
+        'À placer dans le cadre jaune :\n\n' +
+        '- **<= (Integer)** : N <= 1 ;\n- **Branch** sur ce résultat ;\n- un second **Return Node** (appui long dans le vide du graphe de la fonction), avec Resultat = 1.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Entrée de la fonction → **Branch** (N <= 1).\n\n' +
+        '- **True** → **Return Node** (Resultat = 1).\n- **False** → l’appel Factorielle (N − 1) déjà en place → Return Node (N × résultat).\n\n' +
+        'Toute fonction récursive a cette forme : d’abord le cas où l’on s’arrête, ensuite seulement l’appel à soi-même, avec un problème plus petit.',
     },
   ],
   objectives: [

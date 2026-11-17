@@ -109,6 +109,14 @@ export function varOf(cx: CheckContext, className: string, name: string) {
   return a && v ? a.vars[v.id] : undefined;
 }
 
+/** The method every "Prédis" ends with. */
+export const PREDICT_METHOD: LessonCard = {
+  title: 'Méthode pour prédire',
+  body:
+    '- Trouve l’événement : c’est le départ.\n- Avance d’un nœud à la fois le long du fil blanc, sans sauter de nœud.\n- À chaque nœud qui lit une valeur (un Print String, une Condition), remonte ses fils de données pour savoir ce qu’il lit **à ce moment-là**, pas à la fin.\n- Note sur un coin de papier ce que valent les variables après chaque nœud.\n- Ignore ce que le fil blanc ne touche pas.\n\n' +
+    'Choisis ta réponse **avant** de lancer Play. Si Play te donne tort, cherche le nœud où ton tableau et la réalité se séparent : c’est là qu’est la notion à retenir.',
+};
+
 /** The method every "Débogue" opens with. */
 export const DEBUG_METHOD: LessonCard = {
   title: 'La méthode',

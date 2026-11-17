@@ -5,6 +5,7 @@
 import { T } from '../../types/pins';
 import { ProjectBuilder } from '../builder';
 import type { Lesson } from '../types';
+import { PREDICT_METHOD } from './kit';
 import { predictLesson } from './predicts';
 
 // ----------------------------------------------------------------------- P9
@@ -22,14 +23,17 @@ export const predict9: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Score**. Pars de **Event BeginPlay** et suis le **fil blanc** nœud après nœud, en notant sur un coin de papier ce que vaut `Score` à chaque étape.\n\n' +
-        'Regarde bien le **Set Score = 100** : par où le fil blanc y arrive-t-il ?',
+        'Ouvre **BP_Score**. La variable `Score` (Integer) vaut **10** au départ.\n\n' +
+        'Depuis **Event BeginPlay**, le fil blanc traverse trois nœuds : un **Print String** qui lit Score, un **Set Score** qui range Score + 5, puis un second **Print String** qui relit Score.\n\n' +
+        'Plus bas, un autre **Set Score** range **100**. Regarde bien ses pins blanches : où va-t-il chercher son exécution ?',
     },
     {
-      title: 'Méthode pour prédire',
+      title: 'Get et Set',
       body:
-        '- Trouve l’événement : c’est le départ.\n- Avance d’un nœud à la fois le long du fil blanc.\n- À chaque Print String, remonte ses fils de données pour savoir ce qu’il lit **à ce moment-là**.\n- Ignore tout ce que le fil blanc ne touche pas.',
+        '- **Get Score** n’a pas de fil blanc : il donne la valeur **au moment** où un nœud exécuté la lit. Trois Get différents dans le graphe peuvent donc donner trois valeurs différentes.\n- **Set Score** a des pins blanches : il ne range sa valeur que si le fil d’exécution passe par lui.\n\n' +
+        'Pour chaque Print String, la question est : quelle valeur a Score à l’instant où le fil blanc l’atteint ?',
     },
+    PREDICT_METHOD,
   ],
   hints: ['Un nœud à pins blanches ne s’exécute que si un fil blanc y arrive.', 'Le Set Score = 100 n’est relié à aucun événement : il ne s’exécute jamais.', 'Réponse : 10, puis 15.'],
   setup() {
@@ -76,15 +80,23 @@ export const predict10: Lesson = predictLesson({
     {
       title: 'À lire',
       body:
-        'Ouvre **BP_Recherche**. **For Loop with Break** est un For Loop avec une entrée de plus : **Break**. Quand le fil blanc y entre, la boucle ne fera pas de tour supplémentaire.\n\n' +
-        'Dans **Loop Body**, l’ordre compte : ici le **Print String** vient **avant** le Branch qui décide du Break.',
+        'Ouvre **BP_Recherche**. Au lancement, un **For Loop with Break** va de 1 à 10.\n\n' +
+        '- **Loop Body** → Print String (Index) → **Branch** (Index >= 3) → True : entrée **Break** de la boucle.\n- **Completed** → Print String « Fin ».\n\n' +
+        'Dans Loop Body, l’ordre compte : le Print String vient **avant** le Branch qui décide du Break.',
+    },
+    {
+      title: 'For Loop with Break',
+      body:
+        'C’est un For Loop avec une entrée de plus, **Break** : quand le fil blanc y entre, la boucle ne lance **plus de nouveau tour**.\n\n' +
+        'Deux points à préciser en lisant le graphe :\n\n' +
+        '- le tour pendant lequel on entre dans Break : ce qui est déjà fait est fait, mais la boucle est-elle interrompue au milieu, ou ce tour va-t-il jusqu’au bout ?\n- après un Break, la boucle sort-elle par **Completed**, comme une boucle qui finit normalement, ou pas du tout ?',
     },
     {
       title: 'À quoi ça sert',
       body:
-        'C’est la boucle de la **recherche** : parcourir une liste et s’arrêter dès qu’on a trouvé, au lieu de tout parcourir pour rien.\n\n' +
-        'Deux questions à se poser en lisant : le tour où l’on casse est-il affiché ? Et Completed sort-il après un Break ?',
+        'C’est la boucle de la **recherche** : parcourir une liste et s’arrêter dès qu’on a trouvé, au lieu de tout parcourir pour rien. Sa cousine **For Each Loop with Break** fait la même chose sur un tableau.',
     },
+    PREDICT_METHOD,
   ],
   hints: ['Déroule les tours un par un : Index = 1, puis 2, puis 3.', 'Au tour 3, le Print String s’exécute d’abord, puis le Branch envoie le fil dans Break.', 'Réponse : 1, 2, 3, Fin.'],
   setup() {

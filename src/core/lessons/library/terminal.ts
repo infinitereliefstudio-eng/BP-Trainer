@@ -66,22 +66,38 @@ export const lessonTerminal: Lesson = {
     'Une fonction d’interface qui renvoie une valeur s’implémente comme une fonction, pas comme un événement. Envoyée à un acteur qui ne l’implémente pas, elle renvoie la valeur par défaut, sans erreur : teste la réponse avant de t’en servir.',
   cards: [
     {
-      title: 'Donner et recevoir',
+      title: 'Ce qui est en place',
       body:
-        'Ouvre **BPI_Interactif** (Content Browser) : la fonction **Interagir** peut avoir des **Inputs** et des **Outputs**, comme une fonction.\n\n' +
-        'Ajoute l’entrée `Niveau` (Integer) et la sortie `Reponse` (String). Le nœud **Interagir (Message)** du joueur gagne aussitôt ces pins.',
+        'Le monde de « Interagir avec tout », en plus riche :\n\n' +
+        '- **BPI_Interactif** avec sa fonction **Interagir**, sans entrée ni sortie pour l’instant.\n- **BP_Joueur** : sur E, envoie Interagir (Message) à tout ce qu’il touche. Il a une variable **NiveauBadge** (Integer, 2).\n- **BP_Terminal** : implémente l’interface ; son Event Interagir affiche « Terminal ».\n- **BP_Porte** : implémente l’interface ; son Event Interagir l’ouvre.\n- **BP_Rocher** : n’implémente rien.\n\n' +
+        'Le but : un vrai échange. Le joueur **donne** son niveau de badge, l’objet **répond** un texte, et le joueur affiche la réponse.',
+    },
+    {
+      title: 'Une interface qui donne et reçoit',
+      body:
+        'Ouvre **BPI_Interactif** (Content Browser) : la fonction Interagir peut avoir des **Inputs** et des **Outputs**, comme une fonction ordinaire. Ajoute :\n\n' +
+        '- l’entrée **Niveau** (Integer) ;\n- la sortie **Reponse** (String).\n\n' +
+        'Le nœud **Interagir (Message)** du joueur gagne aussitôt une pin Niveau en entrée et une pin Reponse en sortie.',
     },
     {
       title: 'Un événement ne rend rien',
       body:
-        'Dès qu’Interagir a une sortie, **Event Interagir** ne compile plus : un événement ne peut rien renvoyer à celui qui envoie le message. UE implémente alors la fonction comme une **fonction**.\n\n' +
-        'Dans BP_Terminal et BP_Porte : My Blueprint › **Interfaces** › **Interagir** ouvre cette fonction, avec son **Return Node**. Déplace-y la logique, et supprime l’ancien Event Interagir.',
+        'Dès qu’Interagir a une **sortie**, les **Event Interagir** ne compilent plus. Un événement ne peut rien renvoyer : il part, et celui qui l’a déclenché n’attend pas de réponse.\n\n' +
+        'UE implémente alors la fonction d’interface comme une **fonction** : dans BP_Terminal et BP_Porte, My Blueprint › **Interfaces** › **Interagir** ouvre son graphe, avec un nœud d’entrée (qui donne Niveau) et un **Return Node** (qui prend Reponse). Déplace la logique dedans, et supprime l’ancien Event Interagir.\n\n' +
+        '- **Terminal** : Branch (Niveau **>=** 2) → Return Node « Accès autorisé » / un second Return Node « Accès refusé ».\n- **Porte** : Set Relative Rotation (Yaw 90) → Return Node « Porte ouverte ».',
     },
     {
       title: 'Le silence du rocher',
       body:
-        'Le message part aussi vers le rocher, qui n’implémente pas l’interface. Rien ne s’exécute chez lui, aucune erreur… et `Reponse` vaut sa **valeur par défaut** : un texte vide.\n\n' +
-        'Avant d’afficher, vérifie que la réponse n’est pas vide (**!=** String) ou que la cible implémente l’interface (**Does Implement Interface**).',
+        'Le message part aussi vers le rocher. Il n’implémente pas l’interface : rien ne s’exécute chez lui, aucune erreur… et **Reponse** vaut sa **valeur par défaut**, un texte vide. Afficher sans tester donne une ligne vide.\n\n' +
+        'Côté joueur :\n\n' +
+        '1. Interagir (Message), **Niveau** = Get NiveauBadge.\n2. → **Branch** (Reponse **!=** "") : le texte n’est pas vide.\n3. True → **Print String** (Reponse).\n\n' +
+        'C’est la même règle que pour Find sur une Map : une réponse par défaut n’est pas une vraie réponse.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Dans UE aussi, une fonction d’interface avec une valeur de retour apparaît sous Interfaces dans My Blueprint et s’implémente en double-cliquant dessus. **Does Implement Interface** permet de tester une cible avant de lui écrire, quand la réponse vide pourrait être une vraie réponse.',
     },
   ],
   objectives: [

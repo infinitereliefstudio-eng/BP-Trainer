@@ -40,20 +40,38 @@ export const lessonKeypad: Lesson = {
   remember: 'Switch on Int sort par la pin qui porte la valeur, et par Default pour toutes les autres : c’est là qu’on gère les cas qu’on n’a pas prévus.',
   cards: [
     {
+      title: 'Ce qui est en place',
+      body:
+        '**BP_Digicode** : un boîtier avec un **Voyant** vert (Point Light) éteint, et une variable **Essai** (Integer, 0). Il entend la touche E. Le graphe est vide.\n\n' +
+        'Chaque appui sur E est un essai, et chaque numéro d’essai a sa réaction :\n\n' +
+        '- 1 : « Code faux » ;\n- 2 : « Dernier essai » ;\n- 3 : le voyant s’allume ;\n- au-delà : « Bloqué ».',
+    },
+    {
       title: 'Plusieurs chemins',
       body:
-        'Avec des Branch, choisir entre 4 cas demande 3 Branch enchaînés. **Switch on Int** le fait en un nœud : une sortie par valeur, l’exécution sort par celle qui vaut **Selection**.\n\n' +
-        'Dans Details, **Start Index** est la première valeur (ici 1) et **Nombre de cas** combien de sorties (ici 3).',
+        'Avec des Branch, choisir entre quatre cas demande trois Branch à la suite (Essai == 1 ? sinon Essai == 2 ? sinon…). C’est long, et l’ordre des tests devient une source d’erreurs.\n\n' +
+        '**Switch on Int** fait ce choix en un nœud :\n\n' +
+        '- **Selection** : l’entier à examiner (Get Essai) ;\n- une **sortie blanche par valeur** : le fil sort par celle qui porte la valeur de Selection ;\n- **Default** : la sortie de toutes les autres valeurs.\n\n' +
+        'Sélectionne le Switch : dans Details, **Start Index** est la première valeur (règle-le à 1) et **Nombre de cas** combien de sorties (3). Il a alors les sorties 1, 2, 3 et Default.',
     },
     {
       title: 'Default',
       body:
-        'Toute valeur sans sortie à elle (0, 4, 5, −2…) sort par **Default**. Si Default n’est pas branché, rien ne se passe, sans erreur : c’est souvent là que se cache un « ça ne marche plus après quelques essais ».',
+        'Toute valeur sans sortie à elle (0, 4, 5, −2…) sort par **Default**. Ici, ce sont les essais 4 et 5.\n\n' +
+        'Si Default n’est pas branché, ces valeurs ne font **rien, sans erreur**. C’est souvent là que se cache un « ça ne marche plus après quelques essais » : le cas qu’on n’avait pas prévu.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        '**E** (Pressed) → **Increment Int** (Essai) → **Switch on Int** (Selection = Get Essai).\n\n' +
+        '- **1** → Print String « Code faux ».\n- **2** → Print String « Dernier essai ».\n- **3** → Set Visibility (Target = Voyant, coché).\n- **Default** → Print String « Bloqué ».\n\n' +
+        'Compter **avant** le Switch : au premier appui, Essai vaut 1 quand le Switch le lit. Dans l’autre ordre, le premier appui passerait par 0, donc par Default.',
     },
     {
       title: 'Et Select ?',
       body:
-        '**Select** fait le même choix pour une **valeur** au lieu d’un chemin : selon Index, il renvoie l’une de ses options. Pratique pour choisir un texte, une couleur, un nombre, sans dupliquer les nœuds.',
+        '**Select** fait le même genre de choix pour une **valeur** au lieu d’un chemin : selon son **Index**, il renvoie l’une de ses options. Un seul Print String avec un Select sur In String remplacerait les trois messages : c’est le défi.\n\n' +
+        'Règle utile : Switch quand les cas **font** des choses différentes, Select quand ils ne diffèrent que par une **valeur**.',
     },
   ],
   objectives: [
@@ -156,20 +174,34 @@ export const lessonDoorStates: Lesson = {
   remember: 'Une Enum nomme les états possibles ; Switch on Enum a une sortie par état. Chaque sortie doit aussi mettre à jour l’état (Set), sinon le prochain passage reprend la même sortie.',
   cards: [
     {
-      title: 'Une Enum, des états',
+      title: 'Ce qui est en place',
       body:
-        '**E_EtatPorte** (dans Content › Enums) liste les états qu’une porte peut avoir. La variable **Etat** de BP_Porte en contient un. Elle est **Instance Editable** : la 2e porte du niveau est réglée sur `Verrouillee`.',
+        '- Une **Enum** **E_EtatPorte** (dans le Content Browser) avec trois entrées : Fermee, Ouverte, Verrouillee.\n- **BP_Porte** : un battant (Porte) et une variable **Etat** de type E_EtatPorte, **Instance Editable**. Elle entend E.\n- Deux portes dans le niveau : la première a Etat = **Fermee**, la seconde est réglée sur **Verrouillee** dans son Details.\n\n' +
+        'Les deux reçoivent E en même temps : chacune doit réagir selon **son** état.',
+    },
+    {
+      title: 'Une Enum',
+      body:
+        'Une **Enum** (énumération) est une liste fermée de noms. Une variable de ce type contient **un** de ces noms, jamais autre chose.\n\n' +
+        'Pourquoi pas un Integer (0, 1, 2) ? Parce que `Etat == 2` ne dit rien à qui relit le graphe, alors que `Etat == Verrouillee` se lit tout seul. Et une faute de frappe sur un nombre passe inaperçue ; une Enum ne propose que les valeurs valides.',
     },
     {
       title: 'Switch on Enum',
       body:
-        '**Switch on E_EtatPorte** a une sortie par état. Branche **Get Etat** sur Selection : l’exécution sort par l’état actuel.\n\n' +
-        'Chaque sortie fait l’action **et change l’état** avec **Set Etat** : ouvrir → Etat = Ouverte. C’est une **machine à états**.',
+        '**Switch on E_EtatPorte** (choisis l’Enum dans Details après l’avoir posé) a **une sortie par entrée** de l’Enum. Branche **Get Etat** sur Selection : le fil sort par l’état actuel.\n\n' +
+        'Il n’a pas de sortie Default : chaque état a la sienne. Une sortie non branchée ne fait rien, sans erreur. Et si l’on ajoute un état à l’Enum, une nouvelle sortie apparaît sur tous les Switch, vide tant qu’on ne la branche pas.',
     },
     {
-      title: 'Une sortie oubliée',
+      title: 'Une machine à états',
       body:
-        'Une sortie non branchée ne fait rien, sans erreur. Et si on ajoute un état à l’Enum, le Switch gagne une sortie… vide tant qu’on ne la branche pas. Il n’y a pas de Default sur un Switch on Enum.',
+        'Chaque sortie fait deux choses : **l’action**, puis **le nouvel état**.\n\n' +
+        '- **Fermee** → Set Relative Rotation (Porte, Yaw 90) → **Set Etat** = Ouverte.\n- **Ouverte** → Set Relative Rotation (Porte, Yaw 0) → **Set Etat** = Fermee.\n- **Verrouillee** → Print String « Verrouillée ».\n\n' +
+        'Le piège : oublier le Set Etat. La porte s’ouvre, mais Etat dit toujours Fermee : le prochain appui repasse par la même sortie et la rouvre au lieu de la fermer.',
+    },
+    {
+      title: 'Dans UE',
+      body:
+        'Les machines à états sont partout : portes, ennemis (patrouille, alerte, attaque), menus, quêtes. Pour un personnage animé, UE a même un éditeur dédié, les **State Machines** de l’Animation Blueprint. L’idée reste celle-ci : un état courant, une réaction par état, et des transitions qui changent l’état.',
     },
   ],
   objectives: [
@@ -284,10 +316,28 @@ export const refactor2: Lesson = {
   remember: 'Refactorer, c’est réécrire sans changer ce que ça fait. Une chaîne de Branch qui compare la même variable à chaque valeur, c’est un Switch.',
   cards: [
     {
-      title: 'Même résultat, meilleur graphe',
+      title: 'Refactorer',
       body:
-        'Le graphe de **BP_Feu** compare **Couleur** à Vert, puis à Orange, puis à Rouge. Ajouter une couleur demanderait un 4e Branch, et l’ordre des comparaisons compte.\n\n' +
-        '**Switch on E_Couleur** fait tout en un nœud : une sortie par couleur. Supprime les Branch et les == (appui long › Supprimer, ou sélection multiple).',
+        'Un exercice **Refactor** donne un graphe qui **marche**. Le but n’est pas de changer ce qu’il fait, mais de le **réécrire mieux** : plus court, plus lisible, plus facile à faire évoluer. La vérification contrôle les deux : même comportement, et la contrainte de forme.\n\n' +
+        'Avant de toucher au graphe, lance Play et note ce qu’il affiche : c’est ce qu’il faudra retrouver à la fin.',
+    },
+    {
+      title: 'Ce qui est en place',
+      body:
+        '- Une Enum **E_Couleur** : Vert, Orange, Rouge.\n- **BP_Feu** avec une variable **Couleur** (Instance Editable). Trois feux dans le niveau, un par couleur.\n- Au BeginPlay : **Branch** (Couleur == Vert) → Print « Passe ». Sinon, **Branch** (Couleur == Orange) → « Ralentis ». Sinon, **Branch** (Couleur == Rouge) → « Stop ».\n\n' +
+        'Trois Branch et trois **== (Enum)** pour une seule question : « quelle couleur ? ».',
+    },
+    {
+      title: 'Ce qui cloche',
+      body:
+        '- Ajouter une couleur demande un quatrième Branch au bout de la chaîne.\n- L’ordre compte : une erreur dans le deuxième test empêche d’atteindre le troisième.\n- Pour savoir ce que fait le Rouge, il faut lire toute la chaîne.\n\n' +
+        'Une chaîne de Branch qui compare **la même variable** à chacune de ses valeurs, c’est la définition d’un Switch.',
+    },
+    {
+      title: 'La réécriture',
+      body:
+        '1. Garde **Event BeginPlay** et les **trois Print String** : seul le choix du chemin change.\n2. Supprime les trois Branch, les trois == et leurs Get (sélection multiple, puis Supprimer).\n3. Pose **Switch on E_Couleur** (choisis l’Enum dans Details), Selection = **Get Couleur**.\n4. Vert → « Passe », Orange → « Ralentis », Rouge → « Stop ».\n\n' +
+        'Relance Play : les trois mêmes messages, une fois chacun.',
     },
   ],
   objectives: [

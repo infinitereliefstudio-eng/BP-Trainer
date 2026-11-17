@@ -10,6 +10,7 @@ import { memberValue } from '../../types/structs';
 import { edit, ProjectBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, printedNumbers } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { DEBUG_METHOD } from './kit';
 
 /** S_Objet { Nom: String, Poids: Integer } (plus Charge in D5). */
 function objectStruct(pb: ProjectBuilder, withCharge: boolean) {
@@ -63,20 +64,35 @@ export const lessonRecord: Lesson = {
     'Pour changer un membre d’une structure, Set Members in : les autres gardent leur valeur. Make construit une structure entière : chaque membre non relié repart de sa valeur par défaut.',
   cards: [
     {
-      title: 'Une structure',
+      title: 'Ce qui est en place',
       body:
-        'Ouvre **S_Objet** dans le Content Browser (☰ du menu ⋮). Une structure regroupe plusieurs valeurs sous un seul type : une variable S_Objet contient un Nom **et** un Poids.\n\n' +
-        'Touche **+ Membre** pour ajouter `Charge` : type Integer, valeur par défaut 100. Toutes les variables S_Objet du projet l’ont aussitôt.',
+        '- Une **structure** **S_Objet**, dans le Content Browser, avec deux membres : **Nom** (String) et **Poids** (Integer).\n- **BP_Lampe** a une variable **Fiche** de type S_Objet, qui vaut Nom = « Lampe », Poids = 2. Le graphe est vide.\n\n' +
+        'La lampe a besoin d’un troisième membre, **Charge** (100 au départ). Au lancement, elle consomme deux fois 30 et affiche 70, puis 40. Sa fiche doit garder son nom et son poids.',
     },
     {
-      title: 'Lire et changer',
+      title: 'Une structure',
       body:
-        '**Break S_Objet** sépare une valeur en ses membres, pour les lire. **Set Members in S_Objet** en change certains : coche dans Details ceux à changer, ils ont alors une pin. Relie sa pin en losange au **Get Fiche** : c’est la variable qui change.',
+        'Une **structure** regroupe plusieurs valeurs sous **un seul type**. Une variable S_Objet contient un Nom **et** un Poids : on la passe, on la range dans un tableau, on la renvoie d’une fonction, d’un seul fil.\n\n' +
+        'Ouvre S_Objet (touche le nom du Blueprint en haut pour le Content Browser) et touche **+ Membre** : `Charge`, type Integer, valeur par défaut **100**. Toutes les variables S_Objet du projet ont aussitôt ce membre, à sa valeur par défaut.',
+    },
+    {
+      title: 'Trois nœuds',
+      body:
+        '- **Break S_Objet** : sépare une valeur en ses membres, pour les **lire**. Nœud pur.\n- **Set Members in S_Objet** : change **certains** membres d’une variable, et laisse les autres tels quels. Coche dans Details ceux à changer : ils gagnent une pin. Sa pin **Struct Ref**, en losange, se relie au **Get Fiche** : c’est la variable qui change.\n- **Make S_Objet** : construit une structure **neuve**, membre par membre. Nœud pur.',
+    },
+    {
+      title: 'Le plan',
+      body:
+        'Au **BeginPlay**, deux fois de suite :\n\n' +
+        '1. **Set Members in S_Objet** (Struct Ref = Get Fiche, Charge coché) avec Charge = Break(Fiche).Charge **−** 30.\n2. **Print String** de Break(Fiche).Charge.\n\n' +
+        'Le deuxième Break lit la Fiche **après** le premier changement : 70, puis 40.',
     },
     {
       title: 'Le piège de Make',
       body:
-        '**Make S_Objet** construit une structure neuve. Si tu ne relies que Charge, Nom et Poids prennent leur valeur par défaut : vide et 0. Un Set Fiche avec ce Make efface donc le nom de la lampe.',
+        '**Set Fiche** avec un **Make S_Objet** dont seul Charge est relié paraît plus court. Mais Make construit une fiche **entière** : les membres non reliés prennent leur valeur par défaut. Nom devient vide, Poids devient 0. La lampe a perdu son identité.\n\n' +
+        'Règle : pour changer un membre, Set Members in. Make, c’est pour créer une fiche de zéro.\n\n' +
+        'Dans UE, les structures définies dans le Content Browser s’appellent des **User Defined Structures**. Les plus courantes viennent du moteur : Vector, Rotator, Transform, Linear Color.',
     },
   ],
   objectives: [
@@ -207,11 +223,33 @@ export const debug5: Lesson = {
   remember:
     'Array Element (For Each) et Get (a copy) donnent une copie : la modifier ne change pas le tableau. Pour changer un élément, Get (a ref) ou Set Array Elem.',
   cards: [
+    DEBUG_METHOD,
+    {
+      title: 'Ce qui est en place',
+      body:
+        '- La structure **S_Objet** : Nom, Poids, **Charge**.\n- **BP_Chargeur** a un tableau **Lampes** de trois S_Objet (Torche, Frontale, Lanterne), chacune à Charge 10.\n\n' +
+        'Au BeginPlay :\n\n' +
+        '1. **For Each Loop** sur Lampes → **Set Members in S_Objet** (Charge = 100), Struct Ref = **Array Element**.\n2. Puis un second For Each additionne les charges dans **Total** et affiche « Charge totale : … ».\n\n' +
+        'On attend 300. Il affiche **30** : rien n’a été rechargé.',
+    },
     {
       title: 'Enquêter',
       body:
-        'Mets un breakpoint sur **Set Members in S_Objet** et regarde les valeurs : la Charge passe bien à 100… sur quoi ?\n\n' +
-        'Dans UE, **Array Element** de For Each Loop est une **copie** de l’élément, comme **Get (a copy)**. Set Members la change, puis elle est oubliée.',
+        'Mets un **breakpoint** sur Set Members in S_Objet (appui long) et lance Play. À l’arrêt, regarde les valeurs : la Charge passe bien à 100… mais sur quoi ? Puis regarde le tableau Lampes lui-même, dans Details de l’acteur ou par un Print String.\n\n' +
+        'Si les deux ne sont pas d’accord, c’est que Set Members n’a pas écrit dans le tableau.',
+    },
+    {
+      title: 'Copie ou référence',
+      body:
+        'Dans UE, deux nœuds donnent un élément de tableau :\n\n' +
+        '- **Array Element** de For Each Loop, et **Get (a copy)** : une **copie** de l’élément. La modifier change la copie, qui est ensuite oubliée. Le tableau ne bouge pas.\n- **Get (a ref)** : l’élément **lui-même**, dans le tableau. Le modifier modifie le tableau.\n\n' +
+        '**Set Array Elem** est l’autre voie : il remplace l’élément à une position donnée par une nouvelle valeur.\n\n' +
+        'Pour atteindre le bon élément pendant la boucle, For Each Loop donne aussi **Array Index**.',
+    },
+    {
+      title: 'À retenir',
+      body:
+        'Aucune erreur ne signale ce bug : changer une copie est parfaitement légal. Le symptôme est toujours le même, « le changement ne tient pas ». Quand ça arrive avec un tableau ou une structure, demande-toi si le nœud modifié reçoit l’original ou une copie.',
     },
   ],
   objectives: ['La charge totale affichée est 300.', 'Toujours sans erreur dans l’Output Log.'],

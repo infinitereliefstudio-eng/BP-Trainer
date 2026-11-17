@@ -320,14 +320,14 @@ describe('Line Trace By Channel', () => {
   });
 
   it('a mesh tracing from its own centre hits itself unless Ignore Self is checked', () => {
-    for (const [ignoreSelf, expected] of [[false, ['BP_Mur', '0.0']], [true, ['BP_Mur2', '180.0']]] as const) {
+    for (const [ignoreSelf, expected] of [[false, ['BP_Mur2', '0.0']], [true, ['BP_Mur', '180.0']]] as const) {
       const { pb, wall } = tracer({ fromWall: true, ignoreSelf });
-      pb.place(wall, 0, 0);
       pb.place(wall, 200, 0);
+      pb.place(wall, 0, 0);
       const sim = new Simulation(pb.project);
       sim.pressKey('E');
-      // Both walls trace: keep what the first one printed.
-      expect(prints(sim).slice(0, 2)).toEqual(expected);
+      // Consume Input: only the last placed wall (BP_Mur2, at 0) gets E.
+      expect(prints(sim)).toEqual(expected);
     }
   });
 

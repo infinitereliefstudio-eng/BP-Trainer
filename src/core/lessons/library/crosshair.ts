@@ -10,7 +10,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { noRuntimeErrors, normText } from '../checks';
 import type { CheckContext, Lesson } from '../types';
-import { gap, getVar, nodeOf, nodesOf, say, tap } from './kit';
+import { gap, getVar, nodeOf, nodesOf, say, tap, SHARED_KEYS } from './kit';
 
 const REACH = 200;
 
@@ -36,7 +36,7 @@ function crosshairProject() {
   chest.cls.autoReceiveInput = true;
   const fragile = chest.variable('Fragile', T.bool, false);
   chest.cls.variables.find((v) => v.id === fragile)!.instanceEditable = true;
-  const key = chest.node('event.inputKey', { key: 'F' }, {}, [64, 400]);
+  const key = chest.node('event.inputKey', { key: 'F', consumeInput: false }, {}, [64, 400]);
   const can = chest.node('flow.branch', {}, {}, [340, 400]);
   chest.link(key, 'pressed', can, 'exec').link(getVar(chest, 'Fragile', [160, 580]), 'value', can, 'condition').link(can, 'true', chest.node('actor.destroy', {}, {}, [640, 400]), 'exec');
   const wall = pb.blueprint('BP_Mur');
@@ -104,7 +104,7 @@ export const complete4: Lesson = {
         'Dans **BP_Joueur** : au BeginPlay, un **Set Timer by Event** en Looping appelle `Viser` toutes les 0,1 s. `Viser` lance un **Line Trace By Channel** dont **Start** est déjà relié à la position du joueur.\n\n' +
         'Deux **Set Text** attendent, reliés au Text Render `Viseur` : celui du haut pour écrire un nom, celui du bas pour vider le viseur.\n\n' +
         'Dans le niveau : un levier devant le joueur, un coffre sur le côté, un mur avec un second levier caché derrière, un second coffre au loin. Levier et coffre implémentent **BPI_Interactif** ; le mur, non.\n\n' +
-        'Pourquoi un timer et pas Event Tick ? Viser 10 fois par seconde suffit pour un affichage, et coûte six fois moins que 60 fois.',
+        'Pourquoi un timer et pas Event Tick ? Viser 10 fois par seconde suffit pour un affichage, et coûte six fois moins que 60 fois.\n\n' + SHARED_KEYS,
     },
     {
       title: 'Trou 1 : où finit le rayon',

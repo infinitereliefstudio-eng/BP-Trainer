@@ -50,7 +50,7 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
 export const ORDER_NOTE =
   'Ta solution marche quand les acteurs font leur BeginPlay dans l’ordre du niveau, mais pas dans l’ordre inverse. Dans UE cet ordre n’est pas garanti : un Blueprint ne doit pas compter sur le fait qu’un autre a déjà fait son BeginPlay.';
 
-function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots'>, source: Project, order: ActorOrder): LessonRun {
+function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'kind'>, source: Project, order: ActorOrder): LessonRun {
   const project = structuredClone(source);
   // The slots are those of the lesson, shared by every game of the scenario (restart keeps them).
   const slots = lesson.slots?.() ?? {};
@@ -131,6 +131,14 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots'>, sou
       if (sim.deafActors(step.press).length && !notes.length) {
         notes.push(
           'Un Blueprint a un événement de touche mais ne reçoit pas les entrées : active « Auto Receive Input » dans Class Settings.',
+        );
+      }
+      const kept = lesson.kind === 'debug' ? undefined : sim.keyKeptFrom(step.press);
+      const keyNote = 'Consume Input';
+      if (kept && !notes.some((n) => n.includes(keyNote))) {
+        const name = step.press === 'SpaceBar' ? 'Espace' : step.press;
+        notes.push(
+          `${kept.by.label} garde la touche ${name} (${keyNote} coché dans le Details de son événement) : ${kept.missed.map((a) => a.label).join(', ')} ne la ${kept.missed.length > 1 ? 'reçoivent' : 'reçoit'} pas. Si plusieurs acteurs doivent l’entendre, décoche ${keyNote}.`,
         );
       }
       sim.pressKey(step.press);

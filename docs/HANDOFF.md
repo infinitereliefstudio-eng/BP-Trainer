@@ -340,6 +340,19 @@ Non simulé : import CSV, Data Assets, versions Async, plusieurs niveaux et Game
 
 Version 7.0.0.
 
+## V7.1 (2026-11-17) : Consume Input
+
+Question de Tristan : l’event E des leçons est-il simplifié, alors que dans un vrai jeu on passe par une BPI ? Réponse : l’event est celui d’UE ; c’est le schéma « chaque objet écoute E » qui est un raccourci des premières leçons (le vrai schéma, joueur → Line Trace ou overlap → interface, est enseigné dans « Interagir avec tout » et « Regarder et interagir »). En vérifiant, un écart réel : l’appli envoyait la touche à tous les acteurs. Tristan a validé la correction.
+
+- **Consume Input** (`config.consumeInput`, case dans Details, cochée par défaut ; absente = cochée, comme les anciens projets) sur l’événement de touche. `ConfigField` accepte `kind: 'bool'` et un texte `help`.
+- **Pile des entrées** (`Simulation.inputStack`) : les acteurs qui reçoivent les entrées, le dernier enregistré en haut (le dernier posé, puis les acteurs créés par Spawn), le pion possédé tout en bas. L’ordre n’est plus mélangé par l’option d’ordre des acteurs. `Interpreter.fireKey` : une sortie Pressed ou Released reliée est une liaison ; avec Consume Input, elle arrête la touche (une sortie non reliée ne garde rien, comme l’expansion de K2Node_InputKey).
+- Leçons revues : les touches de test écoutées par plusieurs acteurs ont Consume Input décoché, avec une phrase dans la première carte (`SHARED_KEYS`) : D12, le standard, C4, les miroirs, le réseau. « Les états de la porte » pose l’événement E (décoché) et l’explique.
+- Vérification d’une leçon (sauf Débogue) : une note dit quel acteur a gardé la touche et lesquels ne l’ont pas reçue (`Simulation.keyKeptFrom`).
+- **Débogue D19 — Seule la dernière porte s’ouvre** (Intermédiaire, `library/inputs.ts`) : trois portes qui testent la distance au joueur ; la dernière posée garde E. Correction attendue : décocher Consume Input ; les cartes montrent aussi la correction d’un vrai jeu.
+- Fiche « Consume Input », fiche « Touches » complétée (Auto Receive Input), piège dans le Details du nœud, mémo Enhanced Input complété, une question de révision. Tests : `tests/consumeInput.test.ts`. `smoke.py` attend 87 étapes, capture 66.
+
+Version 7.1.0.
+
 ## Méthode de travail
 
 1. Annoncer l'étape, créer une liste de tâches, travailler par petits fichiers.

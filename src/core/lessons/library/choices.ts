@@ -6,6 +6,7 @@ import { addEnum } from '../../operations/enumOps';
 import { removeNodes } from '../../operations/graphOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
+import { nodeOf } from './kit';
 import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, visible, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 
@@ -153,6 +154,8 @@ function stateDoorsProject() {
   b.cls.autoReceiveInput = true;
   const etat = b.variable('Etat', T.enum('E_EtatPorte'), 0);
   b.cls.variables[0].instanceEditable = true;
+  // Both doors must hear E: the event comes with Consume Input unchecked.
+  b.node('event.inputKey', { key: 'E', consumeInput: false }, {}, [64, 96]);
   pb.place(b, 0, -200);
   const locked = pb.place(b, 0, 200);
   pb.project.level.actors.find((a) => a.id === locked)!.overrides[etat] = 2;
@@ -176,8 +179,9 @@ export const lessonDoorStates: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- Une **Enum** **E_EtatPorte** (dans le Content Browser) avec trois entrées : Fermee, Ouverte, Verrouillee.\n- **BP_Porte** : un battant (Porte) et une variable **Etat** de type E_EtatPorte, **Instance Editable**. Elle entend E.\n- Deux portes dans le niveau : la première a Etat = **Fermee**, la seconde est réglée sur **Verrouillee** dans son Details.\n\n' +
-        'Les deux reçoivent E en même temps : chacune doit réagir selon **son** état.',
+        '- Une **Enum** **E_EtatPorte** (dans le Content Browser) avec trois entrées : Fermee, Ouverte, Verrouillee.\n- **BP_Porte** : un battant (Porte) et une variable **Etat** de type E_EtatPorte, **Instance Editable**. Elle entend E : l’événement E est déjà posé, vide.\n- Deux portes dans le niveau : la première a Etat = **Fermee**, la seconde est réglée sur **Verrouillee** dans son Details.\n\n' +
+        'Les deux reçoivent E en même temps : chacune doit réagir selon **son** état.\n\n' +
+        'Pour que les deux l’entendent, l’événement E a **Consume Input** décoché (dans son Details). Coché, le réglage par défaut d’UE, le premier acteur qui reçoit la touche la garde : seule la dernière porte posée réagirait.',
     },
     {
       title: 'Une Enum',
@@ -212,7 +216,7 @@ export const lessonDoorStates: Lesson = {
   ],
   hints: [
     'Les deux portes reçoivent E : chacune passe par la sortie de son propre état.',
-    'Nœuds : Input E, Switch on E_EtatPorte (choisis l’Enum dans Details), Get Etat, 2 Set Relative Rotation (Target = Porte), 2 Set Etat, Print String.',
+    'Nœuds : l’événement E déjà posé, Switch on E_EtatPorte (choisis l’Enum dans Details), Get Etat, 2 Set Relative Rotation (Target = Porte), 2 Set Etat, Print String.',
     'Solution : E → Switch (Etat). Fermee → Set Relative Rotation (Z 90) → Set Etat = Ouverte. Ouverte → Set Relative Rotation (Z 0) → Set Etat = Fermee. Verrouillee → Print « Verrouillée ».',
   ],
   challenge: 'Ajoute l’état Bloquee à l’Enum : la nouvelle sortie apparaît sur le Switch. Fais-lui afficher « Bloquée ».',
@@ -254,7 +258,7 @@ export const lessonDoorStates: Lesson = {
   solve(p) {
     const b = edit(p, 'BP_Porte');
     const etat = b.cls.variables[0].id;
-    const key = b.node('event.inputKey', { key: 'E' });
+    const key = nodeOf(b.graph, 'event.inputKey');
     const sw = b.node('flow.switchEnum', { enum: 'E_EtatPorte' });
     b.link(key, 'pressed', sw, 'exec').link(b.node('var.get', { variable: etat }, {}, [300, 300]), 'value', sw, 'selection');
     const open = b.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [700, 0]);

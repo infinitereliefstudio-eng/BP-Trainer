@@ -356,10 +356,33 @@ export class Simulation implements InterpreterHost {
     if (!this.started) this.start();
     if (this.paused) return;
     this.record.keys.add(key);
-    for (const a of this.scripted()) {
-      if (a.receivesInput) this.fire(a, (n) => n.def === 'event.inputKey' && n.config.key === key, pin);
+    for (const a of this.inputStack()) {
+      if (this.interp.fireKey(a, key, pin)) break;
     }
     this.runPhases();
+  }
+
+  /**
+   * UE's input stack, from the top: the actors that receive input, the last
+   * registered first (the last placed in the level, then the spawned ones),
+   * and the possessed pawn, which "gets last dibs". Not shuffled by the
+   * actor order option: UE's stack order is fixed.
+   */
+  inputStack(): ActorRT[] {
+    const actors = this.actors.filter((a) => a.receivesInput && !a.destroyed).reverse();
+    return this.player.classId && this.player.receivesInput ? [...actors, this.player] : actors;
+  }
+
+  /**
+   * When an actor keeps the key (Consume Input), the actors below it on the
+   * input stack that also bind it: they will not hear it.
+   */
+  keyKeptFrom(key: InputKey): { by: ActorRT; missed: ActorRT[] } | undefined {
+    const stack = this.inputStack();
+    const i = stack.findIndex((a) => this.interp.keyBinding(a, key, 'pressed') === 'consume');
+    if (i < 0) return undefined;
+    const missed = stack.slice(i + 1).filter((a) => this.interp.keyBinding(a, key, 'pressed') !== 'none');
+    return missed.length ? { by: stack[i], missed } : undefined;
   }
 
   /** Actors with an input event that will not fire because input is off. */

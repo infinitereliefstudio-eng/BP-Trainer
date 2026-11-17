@@ -114,8 +114,14 @@ export const eventNodes: NodeDefinition[] = [
           { value: 'SpaceBar', label: 'Space Bar' },
         ],
       },
+      {
+        key: 'consumeInput',
+        label: 'Consume Input',
+        kind: 'bool',
+        help: 'Cochée (par défaut, comme dans UE) : le premier acteur qui reçoit la touche la garde, les autres ne la voient pas. Le dernier acteur posé dans le niveau passe en premier, le joueur en dernier.',
+      },
     ],
-    defaultConfig: { key: 'E' },
+    defaultConfig: { key: 'E', consumeInput: true },
     pins: [execOut('pressed', 'Pressed'), execOut('released', 'Released')],
   },
   {

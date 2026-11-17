@@ -244,6 +244,28 @@ export class Interpreter {
     if (frames.length) this.queue.push(frames);
   }
 
+  /**
+   * A key event: fire it, and tell whether it keeps the key. As in UE, a
+   * Pressed or Released that is wired is a binding, and Consume Input (on
+   * unless unchecked) stops the key for the actors below on the input stack.
+   */
+  fireKey(actor: ActorRT, key: string, pin: 'pressed' | 'released'): boolean {
+    const frames = this.keyFrames(actor, key, pin);
+    if (frames.length) this.queue.push(frames);
+    return this.keyBinding(actor, key, pin) === 'consume';
+  }
+
+  /** How the actor's Blueprint binds a key: not at all, or with Consume Input on or off. */
+  keyBinding(actor: ActorRT, key: string, pin: 'pressed' | 'released'): 'none' | 'consume' | 'share' {
+    const bound = this.keyFrames(actor, key, pin).filter((f) => (f.gi.execOut.get(`${f.node}:${pin}`)?.length ?? 0) > 0);
+    if (!bound.length) return 'none';
+    return bound.some((f) => f.gi.graph.nodes[f.node].config.consumeInput !== false) ? 'consume' : 'share';
+  }
+
+  private keyFrames(actor: ActorRT, key: string, pin: string): Frame[] {
+    return this.eventFrames(actor, (n) => n.def === 'event.inputKey' && (n.config.key ?? 'E') === key, pin, {});
+  }
+
   /** Count down latent actions and queue the ones that are due. */
   tickLatents(actor: ActorRT, dt: number): void {
     for (const [nodeId, action] of Object.entries(actor.latent)) {

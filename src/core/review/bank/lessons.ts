@@ -553,4 +553,10 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     ['Quand on le traverse : Event ActorBeginOverlap', 'Sur Event Tick, pour être toujours à jour', 'Au BeginPlay du checkpoint', 'Au moment où le joueur quitte le jeu'],
     'Écrire sur le disque prend du temps : on sauve au moment qui compte, une fois. Event Tick écrirait à chaque image.',
   ),
+  q(
+    'd19-derniere-porte',
+    'Trois portes du même Blueprint écoutent E, Consume Input coché (le réglage par défaut). Le joueur appuie sur E. Qui la reçoit ?',
+    ['Seulement la dernière porte posée dans le niveau', 'Les trois, dans l’ordre où elles sont posées', 'Seulement la plus proche du joueur', 'Aucune : il faut un Enable Input'],
+    'Les acteurs qui reçoivent les touches forment une pile ; le dernier abonné passe en premier et, avec Consume Input, garde la touche. Décoche Consume Input pour que la touche descende la pile.',
+  ),
 ];

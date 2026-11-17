@@ -122,8 +122,8 @@ export const MEMO: MemoCard[] = [
     theme: 'framework',
     title: 'Enhanced Input',
     summary: 'Input Actions et Mapping Contexts : la façon UE5 de lire les touches.',
-    keywords: ['input action', 'mapping context', 'triggered', 'started', 'completed', 'touche', 'manette'],
-    lessons: ['l04-touche'],
+    keywords: ['input action', 'mapping context', 'triggered', 'started', 'completed', 'touche', 'manette', 'consume input'],
+    lessons: ['l04-touche', 'd19-derniere-porte'],
     body:
       'Dans BP Trainer, un événement de touche (E, F, Espace) suffit. Dans un projet UE5, on passe par **Enhanced Input**, en trois pièces.\n\n' +
       '- **Input Action** (IA_Interagir, IA_Deplacer) : une intention, sans touche. Elle a un type de valeur : Bool pour un bouton, Axis2D pour un stick.\n' +
@@ -131,7 +131,8 @@ export const MEMO: MemoCard[] = [
       '- **Add Mapping Context** : au BeginPlay, sur l’Enhanced Input Local Player Subsystem du PlayerController. Sans lui, aucune action ne se déclenche : c’est l’oubli le plus courant.\n\n' +
       'Dans le graphe, l’événement de l’action a plusieurs sorties : **Started** (l’appui commence), **Triggered** (à chaque image tant que l’action est active), **Completed** (relâché), plus Ongoing et Canceled.\n\n' +
       'Pour « une fois à l’appui », utilise **Started**. Pour un déplacement continu, **Triggered** et sa pin Action Value.\n\n' +
-      'L’intérêt : changer une touche ou ajouter la manette se fait dans le Mapping Context, sans toucher aux graphes.',
+      'L’intérêt : changer une touche ou ajouter la manette se fait dans le Mapping Context, sans toucher aux graphes.\n\n' +
+      'Qui reçoit une touche ? Les acteurs abonnés aux entrées forment une pile : le dernier abonné en haut, le pion du joueur en bas. Un événement de touche avec **Consume Input** (coché par défaut) garde la touche : ceux d’en dessous ne la voient pas. D’où la règle des vrais projets : le joueur (ou son PlayerController) écoute les entrées, et parle aux objets.',
   },
   {
     id: 'm-umg',

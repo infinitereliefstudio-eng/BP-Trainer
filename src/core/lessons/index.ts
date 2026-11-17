@@ -44,6 +44,7 @@ import { lessonMirrors } from './library/mirrors';
 import { debug15 } from './library/gridFloor';
 import { lessonCatalog, debug16, lessonDialogueTable } from './library/tables';
 import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from './library/saves';
+import { debug19 } from './library/inputs';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import type { Lesson } from './types';
@@ -75,6 +76,7 @@ export const LESSONS: Lesson[] = [
   predict10,
   predict7,
   lessonDoorStates,
+  debug19,
   refactor2,
   lessonInventory,
   lessonCodes,

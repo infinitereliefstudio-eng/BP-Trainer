@@ -9,7 +9,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, notion, usesNode } from '../checks';
 import type { Check, Lesson } from '../types';
-import { DEBUG_METHOD, editable, getVar, nodeOf, nodesOf, override, ref, setVar, tap, varId } from './kit';
+import { DEBUG_METHOD, editable, getVar, nodeOf, nodesOf, override, ref, setVar, tap, varId, SHARED_KEYS } from './kit';
 
 function stageProject() {
   const pb = new ProjectBuilder('Débogue D12');
@@ -33,7 +33,7 @@ function stageProject() {
     ['E', 1, 96],
     ['F', 2, 340],
   ] as const) {
-    const k = desk.node('event.inputKey', { key }, {}, [64, y]);
+    const k = desk.node('event.inputKey', { key, consumeInput: false }, {}, [64, y]);
     const eq = desk.node('math.equalInt', {}, { b: num }, [220, y + 150]);
     const br = desk.node('flow.branch', {}, {}, [400, y]);
     const go = desk.node('call.custom', { event: 'Basculer' }, {}, [700, y]);
@@ -54,7 +54,7 @@ function stageProject() {
   const vis = panel.node('component.setVisibility', {}, {}, [400, 400]);
   panel.link(begin, 'then', bind, 'exec').link(getVar(panel, 'Regie', [160, 270]), 'value', bind, 'target').link(upd, 'delegate', bind, 'event');
   panel.link(upd, 'then', vis, 'exec').link(upd, d.params[0].id, vis, 'visible').target('Voyant', vis);
-  const space = panel.node('event.inputKey', { key: 'SpaceBar' }, {}, [64, 700]);
+  const space = panel.node('event.inputKey', { key: 'SpaceBar', consumeInput: false }, {}, [64, 700]);
   const isMobile = panel.node('flow.branch', {}, {}, [340, 700]);
   const change = setVar(panel, 'Regie', [640, 700]);
   const rebind = panel.node('dispatcher.bind', { owner: desk.cls.id, dispatcher: d.id }, {}, [960, 700]);
@@ -114,7 +114,7 @@ export const debug12: Lesson = {
         '**BP_Regie** garde `EnCours` (vrai pendant le spectacle). Son événement `Basculer` inverse `EnCours`, puis fait **Call OnEtatChange** : tous les abonnés reçoivent la nouvelle valeur.\n\n' +
         '**BP_Panneau** a une référence `Regie` (réglée dans le niveau). Au BeginPlay il fait **Bind Event to OnEtatChange** : son événement `Maj` sera appelé à chaque Call, avec le paramètre `EnCours`, et règle le Voyant.\n\n' +
         'Le panneau mobile a aussi `Autre` : sur **Espace**, il range `Autre` dans `Regie` et s’abonne à cette nouvelle régie.\n\n' +
-        'Dans le niveau, hors Play, une flèche relie chaque panneau à sa régie. La régie de gauche a `EnCours` coché dans Details : son spectacle est déjà lancé.',
+        'Dans le niveau, hors Play, une flèche relie chaque panneau à sa régie. La régie de gauche a `EnCours` coché dans Details : son spectacle est déjà lancé.\n\n' + SHARED_KEYS,
     },
     {
       title: 'Un Dispatcher ne raconte pas le passé',

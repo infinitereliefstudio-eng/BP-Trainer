@@ -7,7 +7,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, notion, usesNode } from '../checks';
 import type { CheckContext, Lesson } from '../types';
-import { editable, fnDef, fnOf, getVar, nodeOf, override, ref, say, setVar, tap, varId } from './kit';
+import { editable, fnDef, fnOf, getVar, nodeOf, override, ref, say, setVar, tap, varId, SHARED_KEYS } from './kit';
 
 /** Position of each node; N1 is the source's start, N4 the switch, N6 stands alone. */
 const NODES: [string, number, number][] = [
@@ -68,7 +68,7 @@ function gridProject() {
   const label = cs.b.node('component.setText', {}, {}, [360, 96]);
   cs.b.link(cs.entry, 'then', label, 'exec').target('Etiquette', label).link(getVar(cs.b, 'Nom', [160, 300]), 'value', label, 'value');
   // F opens or closes the switchable node.
-  const key = node.node('event.inputKey', { key: 'F' }, {}, [64, 96]);
+  const key = node.node('event.inputKey', { key: 'F', consumeInput: false }, {}, [64, 96]);
   const can = node.node('flow.branch', {}, {}, [340, 96]);
   const flip = setVar(node, 'Ferme', [640, 96]);
   const not = node.node('logic.not', {}, {}, [480, 300]);
@@ -152,7 +152,7 @@ export const lessonGrid: Lesson = {
         'Chaque **BP_Noeud** connaît ses `Voisins` (un tableau de références, réglé dans le niveau : les flèches du niveau les montrent hors Play), sait s’il est `Ferme` (il laisse passer le courant) et s’il est `Alimente`.\n\n' +
         'Sa fonction **SetAlimente** (déjà écrite) allume ou éteint son voyant, et affiche « N3 : alimenté » ou « N3 : coupé », **seulement si son état change**.\n\n' +
         '**BP_Source** connaît `Depart` (la borne N1) et `Tous` (les sept bornes, trouvées une fois au BeginPlay). Trois variables de travail l’attendent, vides : `Visites` (un **Set** de bornes), `AFaire` (un **Array** de bornes) et `Courant` (une borne).\n\n' +
-        'Ton travail : l’événement **Recalculer** de BP_Source.',
+        'Ton travail : l’événement **Recalculer** de BP_Source.\n\n' + SHARED_KEYS,
     },
     {
       title: 'L’idée du parcours',

@@ -8,7 +8,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, notion, notUsing, usesNode } from '../checks';
 import type { CheckContext, Lesson } from '../types';
-import { editable, fnDef, fnOf, getVar, override, ref, say, tap, varOf } from './kit';
+import { editable, fnDef, fnOf, getVar, override, ref, say, tap, varOf, SHARED_KEYS } from './kit';
 
 const ROOMS = ['101', '102', '103', '102'];
 
@@ -32,7 +32,7 @@ function switchboardProject() {
   for (const l of Object.values(ring.graph.links)) delete ring.graph.links[l.id];
   ring.f.link(ring.entry, 'then', on, 'exec').target('Sonnerie', on).link(on, 'then', tell, 'exec').link(tell, 'then', ring.ret, 'exec');
   ring.f.link(getVar(ring.f, 'Chambre', [260, 220]), 'value', text, 'in0').link(text, 'result', tell, 'text');
-  const f = phone.node('event.inputKey', { key: 'F' }, {}, [64, 700]);
+  const f = phone.node('event.inputKey', { key: 'F', consumeInput: false }, {}, [64, 700]);
   const can = phone.node('flow.branch', {}, {}, [340, 700]);
   const gone = phone.node('actor.destroy', {}, {}, [640, 700]);
   phone.link(f, 'pressed', can, 'exec').link(getVar(phone, 'Demontable', [160, 880]), 'value', can, 'condition').link(can, 'true', gone, 'exec');
@@ -97,7 +97,7 @@ export const lessonSwitchboard: Lesson = {
       body:
         'Le standard doit faire sonner **une chambre précise**, d’après son numéro. Il lui faut donc passer d’un numéro (`102`) à **l’acteur** qui porte ce numéro.\n\n' +
         'Mauvaise piste : chercher dans tout le niveau à chaque appel (Get All Actors Of Class, puis une boucle qui compare les numéros). C’est lent, et c’est le standard qui devrait connaître les entrailles des téléphones.\n\n' +
-        'Bonne piste : un **registre**. Le standard garde une **Map** `Registre` dont la clé est le numéro (Name) et la valeur le téléphone (référence BP_Telephone). Elle est déjà créée, vide.',
+        'Bonne piste : un **registre**. Le standard garde une **Map** `Registre` dont la clé est le numéro (Name) et la valeur le téléphone (référence BP_Telephone). Elle est déjà créée, vide.\n\n' + SHARED_KEYS,
     },
     {
       title: 'Les quatre nœuds d’une Map',

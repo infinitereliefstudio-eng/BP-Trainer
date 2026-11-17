@@ -26,7 +26,7 @@ import { ComponentDetails } from './ComponentDetails';
 import { EnumDetails } from './EnumDetails';
 import { DataTableDetails } from './DataTableDetails';
 import { StructDetails } from './StructDetails';
-import { Field, Group, TextCommit } from './fields';
+import { Check, Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
 import { NodeDiagnosis } from './NodeDiagnosis';
@@ -129,7 +129,12 @@ function NodeDetails({ run, onFocusNode, openOverlay }: Pick<DetailsProps, 'run'
         <Group title="Réglages">
           {def.config.map((c) => (
             <Field key={c.key} label={c.label}>
-              {c.kind === 'choice' ? (
+              {c.kind === 'bool' ? (
+                <Check
+                  checked={node.config[c.key] !== false}
+                  onChange={(v) => store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, v, ctx))}
+                />
+              ) : c.kind === 'choice' ? (
                 <select
                   class="field"
                   value={String(node.config[c.key] ?? '')}
@@ -164,6 +169,13 @@ function NodeDetails({ run, onFocusNode, openOverlay }: Pick<DetailsProps, 'run'
               )}
             </Field>
           ))}
+          {def.config
+            .filter((c) => c.help)
+            .map((c) => (
+              <p key={c.key} class="hint">
+                <b>{c.label}</b> : {c.help}
+              </p>
+            ))}
         </Group>
       )}
       {node.def === 'struct.setMembers' && <SetMembersFields nodeId={node.id} />}

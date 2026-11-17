@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 86:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 86")
+        if await page.locator('.lesson-item').count() != 87:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 87")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -601,6 +601,21 @@ async def main():
         await shot('65_save_slots')
         if await page.locator('.slot-item', has_text='Tirelire').count() != 1:
             errs.append('Save Game : le slot Tirelire n’apparaît pas dans le Content Browser après Play')
+
+        # V7.1: Consume Input in the Details of a key event (D19)
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Seule la dernière porte').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate("""() => { const s = window.bpStore; const n = Object.values(s.graph.nodes).find(n => n.def === 'event.inputKey'); s.selectNodes([n.id]); s.setFocus({ kind: 'nodes' }); }""")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('66_consume_input')
+        if await page.locator('.drawer.right', has_text='Consume Input').count() != 1:
+            errs.append('Event de touche : Consume Input absent des Details')
         print('errors', errs)
         await b.close()
         return errs

@@ -66,10 +66,18 @@ export const GLOSSARY: GlossaryEntry[] = [
   },
   {
     title: 'Touches',
-    names: ['Input E'],
-    what: 'Un événement de touche a deux sorties : Pressed à l’appui, Released au relâchement.',
-    when: 'Pour une action du joueur. Dans un vrai projet UE5, on passe par Enhanced Input ; le principe reste le même.',
-    trap: 'Un acteur qui n’est pas le pion du joueur n’entend les touches que si Auto Receive Input est activé dans Class Settings.',
+    names: ['Input E', 'Auto Receive Input'],
+    what: 'Un événement de touche a deux sorties : Pressed à l’appui, Released au relâchement. Le pion du joueur reçoit les touches ; un autre acteur seulement si Auto Receive Input (Class Settings) est sur Player 0.',
+    when: 'Pour une action du joueur. Dans un vrai projet UE5, on passe par Enhanced Input ; le principe reste le même. Dans un vrai jeu, c’est le joueur qui écoute les touches, et il parle aux objets ; faire écouter E à chaque objet est un raccourci des premières leçons.',
+    trap: 'Un acteur qui n’est pas le pion du joueur n’entend les touches que si Auto Receive Input est activé dans Class Settings. Et si plusieurs acteurs écoutent la même touche, voir Consume Input.',
+  },
+  {
+    title: 'Consume Input',
+    names: ['Consume Input', 'Pile des entrées'],
+    what: 'Une case du Details de chaque événement de touche, cochée par défaut. Les acteurs qui reçoivent les touches forment une pile : la touche part du dernier acteur abonné (le dernier posé dans le niveau) et descend jusqu’au pion du joueur, tout en bas. Cochée, le premier acteur qui a cette touche la garde : ceux d’en dessous ne la voient pas.',
+    when: 'Décoche-la quand plusieurs acteurs doivent entendre la même touche. Dans un vrai jeu, on évite le problème : seul le joueur écoute la touche, et il parle à l’objet visé (interface).',
+    trap: 'Plusieurs portes qui écoutent E : seule la dernière posée la reçoit, sans erreur. Et un acteur du niveau qui écoute E prive le joueur de cette touche.',
+    pattern: 'Joueur : E → Line Trace ou overlap → Interact (message d’interface) sur l’objet visé',
   },
   // -------------------------------------------------------------- variables
   {

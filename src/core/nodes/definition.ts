@@ -67,7 +67,9 @@ export interface NodeContext {
 export interface ConfigField {
   key: string;
   label: string;
-  kind: 'string' | 'int' | 'choice';
+  kind: 'string' | 'int' | 'choice' | 'bool';
+  /** Shown under the field in Details. */
+  help?: string;
   choices?: { value: string; label: string }[];
   /** Choices taken from the project instead of a fixed list. */
   choicesFrom?: 'enums' | 'classes' | 'dataTables' | 'saveGames';

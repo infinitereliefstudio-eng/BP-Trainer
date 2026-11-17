@@ -11,7 +11,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { noRuntimeErrors, notion, usesNode } from '../checks';
 import type { CheckContext, Lesson } from '../types';
-import { editable, getVar, nodesOf, override, setVar, tap } from './kit';
+import { editable, getVar, nodesOf, override, setVar, tap, SHARED_KEYS } from './kit';
 
 const MAX_BOUNCES = 4;
 
@@ -42,7 +42,7 @@ function mirrorsProject() {
   const turns = editable(mirror, 'Pivotant', T.bool, false);
   const angle = editable(mirror, 'AutreAngle', T.float, 0);
   answers(mirror, true);
-  const key = mirror.node('event.inputKey', { key: 'F' }, {}, [64, 96]);
+  const key = mirror.node('event.inputKey', { key: 'F', consumeInput: false }, {}, [64, 96]);
   const can = mirror.node('flow.branch', {}, {}, [340, 96]);
   const rot = mirror.node('actor.setRotation', {}, {}, [640, 96]);
   const make = mirror.node('math.makeRotator', {}, {}, [460, 320]);
@@ -118,7 +118,7 @@ export const lessonMirrors: Lesson = {
         '- **BP_Miroir** renvoie vrai.\n' +
         '- **BP_Recepteur** note qu’il a été touché (il s’allume) et renvoie faux.\n' +
         '- **BP_Mur** n’implémente pas l’interface : un message vers lui renvoie la valeur par défaut, faux, sans erreur.\n\n' +
-        'L’émetteur n’a donc jamais à savoir **ce** qu’il a touché : il demande « tu réfléchis ? » et suit la réponse.',
+        'L’émetteur n’a donc jamais à savoir **ce** qu’il a touché : il demande « tu réfléchis ? » et suit la réponse.\n\n' + SHARED_KEYS,
     },
     {
       title: 'Un segment',

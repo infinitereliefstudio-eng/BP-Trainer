@@ -31,9 +31,13 @@ import { timelineNodes } from './library/timeline';
 import { traceNodes } from './library/trace';
 import { randomStreamNodes } from './library/randomStream';
 import { transformNodes } from './library/transform';
+import { dataTableNodes } from './library/dataTables';
+import { saveGameNodes } from './library/saveGame';
 
 const ALL: NodeDefinition[] = [
   ...eventNodes,
+  ...dataTableNodes,
+  ...saveGameNodes,
   ...flowNodes,
   ...switchNodes,
   ...timeNodes,

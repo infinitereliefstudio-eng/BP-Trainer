@@ -18,7 +18,8 @@ export interface HistoryEntry {
 }
 
 export function snapshot(p: Project, scope: Scope): string {
-  if (scope.kind === 'project') return JSON.stringify(p);
+  // Save slots are the game's "disk", not an edit: undo never brings an old save back.
+  if (scope.kind === 'project') return JSON.stringify({ ...p, saveSlots: undefined });
   const cls = p.classes.find((c) => c.id === scope.id);
   return JSON.stringify(cls ?? null);
 }
@@ -26,7 +27,9 @@ export function snapshot(p: Project, scope: Scope): string {
 export function restore(p: Project, scope: Scope, json: string): void {
   if (scope.kind === 'project') {
     const data = JSON.parse(json) as Project;
+    const slots = p.saveSlots;
     Object.assign(p, data);
+    p.saveSlots = slots;
     return;
   }
   const cls = JSON.parse(json) as BlueprintClass | null;

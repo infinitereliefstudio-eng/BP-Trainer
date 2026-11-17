@@ -94,6 +94,11 @@ function migrate(p: Project, from: number): Project {
     // Nothing to convert: the bump only stops an older app from opening nodes it does not know.
     cur = 7;
   }
+  if (cur === 7) {
+    // v8: Data Table assets, SaveGame classes and save slots.
+    p.dataTables ??= [];
+    cur = 8;
+  }
   p.format = cur;
   return p;
 }

@@ -35,7 +35,7 @@ export function ValueInput({ type, value, onChange, autoFocus }: Props) {
     case 'enum':
       return <EnumValue type={type} value={value} onChange={onChange} />;
     case 'class':
-      return <ClassValue value={value} onChange={onChange} />;
+      return <ClassValue base={type.subtype} value={value} onChange={onChange} />;
     case 'struct':
       if (type.subtype === 'LinearColor') {
         return <input class="field color" type="color" value={String(value ?? '#ffffff')} onChange={(e) => onChange((e.target as HTMLInputElement).value)} />;
@@ -120,12 +120,14 @@ function EnumValue({ type, value, onChange }: { type: PinType; value: Value; onC
 }
 
 /** A Class Reference literal: a Blueprint of the project, stored by id. */
-function ClassValue({ value, onChange }: { value: Value; onChange: (v: Value) => void }) {
+/** A Class Reference: only the classes of the pin's family (SaveGame classes for Create Save Game Object, actors elsewhere). */
+function ClassValue({ base, value, onChange }: { base?: string; value: Value; onChange: (v: Value) => void }) {
   const store = useStore();
+  const fits = (parent: string) => (base === 'SaveGame' ? parent === 'SaveGame' : base === 'Object' || !base ? true : parent !== 'SaveGame');
   return (
     <select class="field" value={typeof value === 'string' ? value : ''} onChange={(e) => onChange((e.target as HTMLSelectElement).value || null)}>
       <option value="">None</option>
-      {store.project.classes.map((c) => (
+      {store.project.classes.filter((c) => fits(c.parent)).map((c) => (
         <option key={c.id} value={c.id}>
           {c.name}
         </option>

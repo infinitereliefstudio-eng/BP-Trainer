@@ -40,6 +40,8 @@ export type CompileCode =
   | 'wildcard'
   | 'pickClass'
   | 'pickEnum'
+  | 'pickTable'
+  | 'pickSaveGame'
   | 'targetRequired'
   | 'badLink'
   | 'unreachable'
@@ -226,6 +228,11 @@ function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, 
     if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id)) out.push(['pickClass', 'choisis une classe sur la pin Class.']);
   }
   if (n.def === 'flow.switchEnum' && !enumEntries(String(n.config.enum ?? ''), ctx.project)) out.push(['pickEnum', "choisis l'Enum dans Details."]);
+  if (n.def.startsWith('dataTable.') && !(ctx.project?.dataTables ?? []).some((t) => t.id === n.config.table)) out.push(['pickTable', 'choisis la Data Table dans Details.']);
+  if (n.def === 'save.create' && !linked('saveClass')) {
+    const id = n.defaults.saveClass;
+    if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id && c.parent === 'SaveGame')) out.push(['pickSaveGame', 'choisis une classe SaveGame sur la pin Save Game Class.']);
+  }
   return out;
 }
 

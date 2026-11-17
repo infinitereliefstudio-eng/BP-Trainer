@@ -43,8 +43,8 @@ export function noRuntimeErrors(id = 'no-errors'): Check {
     id,
     label: 'Aucune erreur pendant l’exécution',
     test: (cx: CheckContext) => {
-      const errs = cx.sim.log.filter((l) => l.level === 'error');
-      return errs.length ? errs[0].text : true;
+      const errs = cx.errors();
+      return errs.length ? errs[0] : true;
     },
   };
 }

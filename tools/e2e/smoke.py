@@ -10,7 +10,7 @@ tools/e2e/out/shots and prints page errors (expected: "errors []").
 Needs Python Playwright and Chrome (CHROME env var, default /usr/bin/google-chrome).
 The app exposes its store as window.bpStore when the URL contains "?e2e".
 """
-import asyncio, os, pathlib, sys
+import asyncio, os, pathlib, re, sys
 from playwright.async_api import async_playwright
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 78:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 78")
+        if await page.locator('.lesson-item').count() != 86:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 86")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -238,7 +238,7 @@ async def main():
             errs.append('Details : la variable locale ne s’affiche pas')
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le terminal').tap()
+        await page.locator('.lesson-item', has_text=re.compile(r'Le terminal(?! muet)')).tap()
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -567,6 +567,40 @@ async def main():
         await shot('63_random_stream_details')
         if await page.locator('.drawer.right', has_text='Initial Seed').count() != 1:
             errs.append('Random Stream : Initial Seed absent des Details de la variable')
+
+        # V7: a Data Table in the Content Browser and its Details; a Save Game slot written by Play
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Le catalogue').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tb.class-name').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.palette-item', has_text='DT_Objets').first.tap()
+        await page.wait_for_timeout(400)
+        await shot('64_data_table_details')
+        if await page.locator('.drawer.right', has_text='Row Structure').count() != 1:
+            errs.append('Data Table : Row Structure absent des Details')
+        await page.evaluate(PUT, ['project:lesson:l-tirelire', (HERE / 'out' / 'l-tirelire.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item:not(.exercise)', has_text='La tirelire').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(600)
+        for _ in range(3):
+            await page.locator('.key', has_text='E').first.dispatch_event('pointerdown')
+            await page.wait_for_timeout(120)
+            await page.locator('.key', has_text='E').first.dispatch_event('pointerup')
+            await page.wait_for_timeout(120)
+        await page.locator('.tb.stop').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.tb.class-name').tap()
+        await page.wait_for_timeout(300)
+        await shot('65_save_slots')
+        if await page.locator('.slot-item', has_text='Tirelire').count() != 1:
+            errs.append('Save Game : le slot Tirelire n’apparaît pas dans le Content Browser après Play')
         print('errors', errs)
         await b.close()
         return errs

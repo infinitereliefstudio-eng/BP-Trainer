@@ -1,5 +1,5 @@
 /** Lesson format: explanations, a starting project, a scenario and checks. */
-import type { NodeInstance, Project } from '../model/project';
+import type { NodeInstance, Project, SavedGame } from '../model/project';
 import type { Level } from './levels';
 import type { InputKey, Simulation } from '../runtime/simulation';
 import type { ActorRT, ComponentRT, RValue } from '../runtime/world';
@@ -21,15 +21,23 @@ export type ScenarioStep =
   /** Turn the player to face this yaw, in degrees (0 = +X, 90 = +Y, towards the bottom of the screen). */
   | { look: number }
   /** Frames per second from here on (60 by default): Delta Seconds changes with it, as on a slower device. */
-  | { fps: number };
+  | { fps: number }
+  /**
+   * Stop the game and press Play again: a new game on the same project, whose
+   * save slots are kept (Save Game). Checks after it see the new game.
+   */
+  | { restart: true };
 
 export interface CheckContext {
+  /** The game being played: the latest one after a restart step. */
   sim: Simulation;
   project: Project;
   actor(label: string): ActorRT | undefined;
   component(actorLabel: string, componentName: string): ComponentRT | undefined;
-  /** Texts printed with Print String so far. */
+  /** Texts printed with Print String so far (every game of the scenario, after a restart too). */
   prints(): string[];
+  /** Runtime errors so far, every game of the scenario. */
+  errors(): string[];
   /** A variable of an actor (level label, or "Joueur" for the player), by name. */
   variable(actorLabel: string, name: string): RValue | undefined;
   nodes(className: string): NodeInstance[];
@@ -145,6 +153,11 @@ export interface Lesson {
   robustness?: RobustnessCase[];
   alternatives?: Alternative[];
   avoid?: Avoid[];
+  /**
+   * Save slots the lesson starts with (a game saved "before"). A check run
+   * starts from these, not from the slots the learner's own Play left.
+   */
+  slots?: () => Record<string, SavedGame>;
 }
 
 /** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */

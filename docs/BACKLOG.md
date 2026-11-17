@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : motivation, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, technique. Mis à jour le 2026-11-16, après la V6 (les exercices du recueil), et le 2026-11-11, après la V4 et une discussion d'idées avec Tristan (séries avec notifications, nouvelles leçons, Enhanced Input et ce qui n'est pas encore géré). Rien ici n'est décidé : une idée ne se réalise que si Tristan la demande.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : motivation, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, technique. Mis à jour le 2026-11-17, après la V7 (Data Tables et Save Game), le 2026-11-16, après la V6 (les exercices du recueil), et le 2026-11-11, après la V4 et une discussion d'idées avec Tristan (séries avec notifications, nouvelles leçons, Enhanced Input et ce qui n'est pas encore géré). Rien ici n'est décidé : une idée ne se réalise que si Tristan la demande.
 
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
@@ -14,8 +14,8 @@ Un ordre proposé, par lots cohérents. À trancher avec Tristan.
 | 1 | Motivation | Objectif du jour, série avec gel, défi du jour, étoiles par leçon, rappels | ★★★ | M |
 | 2 | Entrées et contrôle | Enhanced Input, regard indépendant du déplacement, Tick maîtrisé et End Play, avec leurs leçons | ★★★ | M |
 | 3 | Synthèse | Leçon de synthèse de la V3, Débogue en série, « Montre-moi » après un échec | ★★★ | M |
-| 4 | Données d'un jeu | Data Tables, Actor Components, puis la suite « jeu narratif » pour Station enterrée | ★★★ | L |
-| 5 | Sauvegarde, puis niveaux | Save Game seul d'abord (M), puis plusieurs niveaux, Open Level, GameInstance (L). Voir « Sauvegarde et niveaux ». Demandé par Tristan le 2026-11-11 : peut passer avant le lot 4 | ★★★ | M puis L |
+| 4 | Données d'un jeu | Actor Components, puis la suite « jeu narratif » pour Station enterrée (les Data Tables sont faites, V7) | ★★★ | L |
+| 5 | Niveaux | Plusieurs niveaux, Open Level, GameInstance. Save Game est fait (V7). Voir « Sauvegarde et niveaux » | ★★★ | L |
 | 6 | Interface | Widgets (UMG), comme une version à part | ★★★ | XL |
 
 Questions ouvertes : la suite narrative pour Station enterrée passe-t-elle avant une appli plus généraliste ? Quel objectif du jour par défaut (une leçon, ou cinq questions de révision) ?
@@ -59,8 +59,8 @@ Proposition : commencer par le rappel dans l'appli et la voie A, qui ne coûtent
 | Leçon ou série | Contenu | Pertinence | Difficulté |
 |---|---|---|---|
 | Synthèse de la V3 | Un projet final : porte à Timeline, visée par Line Trace, fiche d'objet en structure, Construction Script | ★★★ | M |
-| Suite « jeu narratif » | Calquée sur Station enterrée : objet à examiner, dialogue ligne à ligne, porte à code, journal de quêtes par faits acquis (Set de Name), inventaire en composant. Demande les Data Tables | ★★★ | L |
-| Débogue en série | Des bugs réalistes non couverts : timer jamais arrêté, Bind fait deux fois, For Each qui retire des éléments pendant le parcours, Delay dans une boucle, Tick qui continue sur un acteur caché | ★★★ | S chacun |
+| Suite « jeu narratif » | Calquée sur Station enterrée. Déjà là : objet à examiner et dialogue ligne à ligne en Data Table (V7), porte à code (V3). Reste : journal de quêtes par faits acquis (Set de Name), inventaire en composant (demande les Actor Components), une synthèse qui assemble le tout | ★★★ | M à L |
+| Débogue en série | Des bugs réalistes non couverts : For Each qui retire des éléments pendant le parcours, Tick qui continue sur un acteur caché. Déjà couverts : le timer jamais arrêté (D9), le Delay dans une boucle (P2). Écarté : le Bind fait deux fois, sans effet dans UE (un même événement n'est lié qu'une fois) | ★★★ | S chacun |
 | Architecture | « Le Blueprint qui fait tout » à découper ; la même logique dans trois Blueprints à sortir dans un parent (puis dans un composant, quand ils existeront) | ★★★ | M |
 | Lecture de graphe | Un graphe touffu, trois questions dessus (que vaut X après Y ?). On lit plus de Blueprints qu'on n'en écrit | ★★ | M |
 | Performance | Remplacer un Tick par un timer ou un événement, avec un compteur de nœuds exécutés par seconde pour voir la différence | ★★ | M |
@@ -91,9 +91,7 @@ Proposition : commencer par le rappel dans l'appli et la voie A, qui ne coûtent
 | Enhanced Input | UE5 passe par des Input Actions. Assets Input Action (Bool, Axis2D) et Input Mapping Context dans le Content Browser ; nœud Add Mapping Context ; événement de l'action avec Started, Triggered, Completed et Action Value. Les touches et le joystick de Play deviennent des entrées du Mapping Context. Les événements de touche directs restent pour les premières leçons | ★★★ | M |
 | Regard indépendant du déplacement | Le joueur regarde là où il marche : viser avec un Line Trace oblige à bouger. Un second manche, ou tourner sur place | ★★★ | S à M |
 | Tick maîtrisé | Set Actor Tick Enabled, Tick Interval, Start with Tick Enabled, Event End Play (avec End Play Reason), Set Timer by Function Name | ★★ | S |
-| Data Tables | Dialogues, fiches d'objets, quêtes : la base d'un jeu narratif. Asset avec des lignes d'une structure, Get Data Table Row (Row Found / Not Found), Get Data Table Row Names | ★★★ | M à L |
 | Actor Components | Un morceau de logique réutilisable ajouté à plusieurs Blueprints (santé, inventaire) : la vraie réponse à la logique copiée. Un nouveau type de classe, avec Get Owner et Get Component by Class | ★★★ | L |
-| Gate : Start Closed | Dans l'appli il est décoché par défaut ; la macro d'UE le coche, sauf erreur. À vérifier dans UE puis corriger (aucune leçon n'en dépend, P7 le coche explicitement) | ★★ | S |
 | Sons | Play Sound 2D avec quelques sons intégrés. Rend les retours perceptibles et sert dans presque tous les vrais Blueprints | ★★ | S à M |
 | Macros et Collapse | Macros de l'utilisateur, « Collapse to Function », « Collapse to Macro » : ranger un graphe qui grossit | ★★ | M à L |
 | Copier-coller entre graphes | Aujourd'hui on duplique dans un même graphe seulement | ★★ | M |
@@ -101,7 +99,8 @@ Proposition : commencer par le rappel dans l'appli et la voie A, qui ne coûtent
 | Timeline complet | Points clés arrondis (Auto), pistes Vector, Color et Event, Play Rate, Set Timeline Length | ★★ | M |
 | Sweep et racine au choix | Sweep sur Set Actor Location et Add Actor World Offset. Dans UE il ne balaie que le composant racine : il faut pouvoir choisir un Static Mesh comme racine | ★★ | M |
 | Collision Presets | Réglage par composant et par canal (Block, Overlap, Ignore), au lieu de la seule case « bloque » | ★★ | M |
-| Save Game | Classe SaveGame, slots qui survivent à Stop, nœuds de sauvegarde et de chargement. Voir « Sauvegarde et niveaux », étape 1 | ★★★ | M |
+| Data Tables : la suite | Import d'un CSV dans une table, Data Assets, Get Data Table Column as String | ★ | S à M |
+| Save Game : la suite | Versions Async des nœuds, Delete Game in Slot dans un exercice, les deux exercices restants de l'étape 1 | ★★ | S |
 | Plusieurs niveaux | Open Level, GameInstance, GameMode léger : ce qui survit à un changement de niveau, et ce qui repart de zéro. Voir « Sauvegarde et niveaux », étape 2 | ★★★ | L |
 | Widgets (UMG) | Créer un widget, un texte, un bouton, le mettre à jour par événement : l'interface d'un jeu narratif. Un éditeur à part entière | ★★★ | XL |
 | Autres traces | Sphere Trace, Box Trace, Multi Line Trace, Line Trace For Objects | ★ | S à M |
@@ -114,9 +113,11 @@ Proposition : commencer par le rappel dans l'appli et la voie A, qui ne coûtent
 
 ## Sauvegarde et niveaux
 
-Demandé par Tristan le 2026-11-11 : des exercices sur Save Game, le chargement d'un niveau, etc. La sauvegarde peut se faire seule, avant les niveaux : il suffit que quelque chose survive entre deux Play.
+Demandé par Tristan le 2026-11-11 : des exercices sur Save Game, le chargement d'un niveau, etc.
 
-### Étape 1 : Save Game seul (M)
+### Étape 1 : Save Game seul — fait (V7, 2026-11-17)
+
+Les slots sont gardés avec le projet (`Project.saveSlots`) : ils survivent à Stop, partent avec un export, et Annuler ne les touche pas. Faits : la tirelire, D17, D18, P11, le checkpoint. Restent les deux dernières lignes du tableau.
 
 - Un nouveau type d'asset : une classe **SaveGame**, qui ne contient que des variables (pas de graphe, pas de composants), créée depuis le Content Browser.
 - Les nœuds d'UE : Create Save Game Object, Save Game to Slot, Load Game from Slot, Does Save Game Exist, Delete Game in Slot ; Cast To vers la classe SaveGame.
@@ -125,11 +126,11 @@ Demandé par Tristan le 2026-11-11 : des exercices sur Save Game, le chargement 
 
 | Exercice | Ce qu'il apprend |
 |---|---|
-| Le compteur de pièces qui survit | Créer, remplir, sauver ; charger au BeginPlay |
-| Débogue : la première partie plante | Load sans Does Save Game Exist renvoie None, puis Accessed None |
-| Débogue : la sauvegarde vide | Save Game to Slot appelé avant d'avoir rempli les variables |
-| Prédis : Load, Cast, lecture | Le Cast raté quand le slot contient une autre classe |
-| Le checkpoint | Sauver la position et l'état à un endroit précis, pas à chaque Tick |
+| ~~Le compteur de pièces qui survit~~ (la tirelire) | Créer, remplir, sauver ; charger au BeginPlay |
+| ~~Débogue : la première partie plante~~ (D17) | Load sans Does Save Game Exist renvoie None, puis Accessed None |
+| ~~Débogue : la sauvegarde vide~~ (D18, le record à zéro) | Save Game to Slot appelé avant d'avoir rempli les variables |
+| ~~Prédis : Load, Cast, lecture~~ (P11) | Le Cast raté quand le slot contient une autre classe |
+| ~~Le checkpoint~~ | Sauver la position et l'état à un endroit précis, pas à chaque Tick |
 | La porte ouverte qui le reste | On ne sauve pas une référence d'acteur, mais un identifiant et un état |
 | Refactor : un seul objet de sauvegarde | Trois Blueprints qui écrivent chacun leur slot, à regrouper |
 
@@ -149,7 +150,7 @@ Demandé par Tristan le 2026-11-11 : des exercices sur Save Game, le chargement 
 | Débogue : l'objet ramassé réapparaît | L'état du monde doit être gardé hors du niveau |
 | Synthèse : quitter, relancer, reprendre au bon niveau | GameInstance pour la session, SaveGame pour le disque |
 
-Hors de portée, à expliquer dans le mémo sans les simuler : les versions Async des nœuds de sauvegarde, le chargement de niveaux en streaming.
+Hors de portée, expliqué dans le mémo sans être simulé : les versions Async des nœuds de sauvegarde ; à faire de même pour le chargement de niveaux en streaming.
 
 ## Ergonomie et design sur téléphone
 
@@ -184,6 +185,7 @@ Hors de portée, à expliquer dans le mémo sans les simuler : les versions Asyn
 
 ## Déjà fait, noté ici auparavant
 
+- V7 (17 novembre 2026) : Data Tables (asset, éditeur de lignes, Get Data Table Row, Get Data Table Row Names, Does Data Table Row Exist) et Save Game (classe SaveGame, slots gardés avec le projet, Create Save Game Object, Save / Load Game to/from Slot, Does Save Game Exist, Delete Game in Slot, étape « relancer la partie » dans les scénarios) ; huit leçons et exercices : le catalogue, D16, le dialogue en Data Table, la tirelire, D17, P11, D18, le checkpoint. Du recueil : E16, E15 et E24 faits. Corrigé avant, en V6.2 : Gate Start Closed coché par défaut.
 - V6 (16 novembre 2026) : 16 leçons et exercices tirés du recueil de Tristan (Unbind, registre en Map, vagues, timer annulable, parcours de réseau, dialogue par les données, sac, transaction, annuler / refaire, viseur, miroirs, grille tournée, tirage sans remise, Random Stream), et les nœuds Dot Product, Get Reflection Vector, Snap To Grid, For Each Loop with Break, Random Stream, Transform. Du recueil, restent à faire avec leur chantier : E30 (Enhanced Input), E15 et E24 (Save Game), E16 (Data Tables), E14 (Actor Components), E40 (niveaux, GameInstance), E10, E27, E38 (UMG), E32 (Attach / Detach), E31 (caméras), E28 et E44 (Spline, instances de mesh). Noté au passage : un éditeur dans Details pour remplir un tableau de références sur une instance ; le dispatcher natif OnDestroyed ; Set Actor Transform ; des « Et si… » de plus (deux couples, porte tournée, écart nul).
 
 - V5 (12 novembre 2026) : bilan de la solution (étoiles, taille comparée aux solutions connues, nœuds déconseillés par leçon), autres règles de conseil (nœud jamais exécuté, variable jamais lue, Custom Event jamais appelé, Cast sur Tick…), fiches de notions dans les leçons, Débogue D7 à D9 (dont le timer jamais arrêté), Prédis P9 et P10 (For Loop with Break), trois leçons (Clamp, modulo, For Loop). Reste de ces lignes : étoiles gardées dans la progression, modificateurs de défi.

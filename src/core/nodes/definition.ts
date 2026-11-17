@@ -70,7 +70,7 @@ export interface ConfigField {
   kind: 'string' | 'int' | 'choice';
   choices?: { value: string; label: string }[];
   /** Choices taken from the project instead of a fixed list. */
-  choicesFrom?: 'enums' | 'classes';
+  choicesFrom?: 'enums' | 'classes' | 'dataTables' | 'saveGames';
   min?: number;
   max?: number;
 }

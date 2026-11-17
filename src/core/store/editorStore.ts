@@ -33,6 +33,7 @@ export type Focus =
   | { kind: 'interface'; id: string }
   | { kind: 'enum'; id: string }
   | { kind: 'struct'; id: string }
+  | { kind: 'dataTable'; id: string }
   | { kind: 'actor'; id: string }
   | { kind: 'playerStart' };
 
@@ -89,6 +90,12 @@ export class EditorStore {
   subscribe(fn: Listener): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /** Save slots changed (a game saved, or the Content Browser cleared one): saved, but not undoable. */
+  saveSlotsChanged(): void {
+    this.project.updatedAt = Date.now();
+    this.notify('model');
   }
 
   notify(kind: ChangeKind = 'view'): void {
@@ -213,6 +220,7 @@ export class EditorStore {
     if (f.kind === 'function' && !this.cls.graphs.some((g) => g.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'dispatcher' && !this.cls.dispatchers.some((d) => d.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'struct' && !this.project.structs.some((x) => x.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'dataTable' && !(this.project.dataTables ?? []).some((x) => x.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'interface' && !this.project.interfaces.some((i) => i.id === f.id)) this.focus = { kind: 'none' };
   }
 

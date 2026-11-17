@@ -125,6 +125,13 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
     out.push(entry(ctx, `sbreak:${st.id}`, 'struct.break', { struct: st.name }, { category: `Structures|${st.name}`, keywords: ['break', 'separer', ...kw] }));
     out.push(entry(ctx, `sset:${st.id}`, 'struct.setMembers', { struct: st.name }, { category: `Structures|${st.name}`, keywords: ['set members', 'modifier', 'membre', ...kw] }));
   }
+  for (const t of ctx.project?.dataTables ?? []) {
+    const kw = ['data table', 'table', 'donnees', 'ligne', 'row', t.name.toLowerCase()];
+    const cat = `Utilities|Data Table|${t.name}`;
+    out.push(entry(ctx, `dtrow:${t.id}`, 'dataTable.getRow', { table: t.id }, { category: cat, keywords: ['get', 'row', 'lire', ...kw] }));
+    out.push(entry(ctx, `dtnames:${t.id}`, 'dataTable.getRowNames', { table: t.id }, { category: cat, keywords: ['names', 'noms', ...kw] }));
+    out.push(entry(ctx, `dtexists:${t.id}`, 'dataTable.rowExists', { table: t.id }, { category: cat, keywords: ['exist', 'existe', ...kw] }));
+  }
   if (ctx.project) out.push(...communicationEntries(ctx, graphKind), ...parentEntries(ctx, graphKind));
   return out;
 }

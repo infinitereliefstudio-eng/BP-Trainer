@@ -155,13 +155,15 @@ export const MEMO: MemoCard[] = [
     title: 'Niveaux et sauvegarde',
     summary: 'Open Level, GameInstance, Save Game to Slot.',
     keywords: ['open level', 'save game', 'load game', 'slot', 'gameinstance', 'checkpoint'],
+    lessons: ['l-tirelire', 'd17-premiere-partie', 'p11-load-cast', 'd18-record', 'l-checkpoint'],
     body:
       '**Open Level** détruit tous les acteurs du niveau courant et charge le suivant. Ce qui doit traverser va dans le **GameInstance** (Get Game Instance, puis Cast To vers ta classe).\n\n' +
       'Pour garder des données après la fermeture du jeu, on crée une classe **SaveGame** : un Blueprint qui ne contient que des variables (position, inventaire, quêtes).\n\n' +
       '- Sauver : **Create Save Game Object**, remplir ses variables, puis **Save Game to Slot** (un nom de slot, un index utilisateur).\n' +
       '- Charger : **Does Save Game Exist**, puis **Load Game from Slot**, **Cast To** ta classe SaveGame, et lire ses variables.\n\n' +
       'On ne sauve pas des références d’acteurs (ils n’existeront plus) mais ce qui permet de les retrouver : un identifiant, un nom, un état.\n\n' +
-      'Les versions **Async** de ces nœuds évitent un à-coup pendant l’écriture.',
+      'Les versions **Async** de ces nœuds évitent un à-coup pendant l’écriture.\n\n' +
+      'Dans l’appli, la sauvegarde est simulée : **+ SaveGame** dans le Content Browser crée la classe, et la section **Slots de sauvegarde** montre ce qui est écrit, garde les slots d’un Play à l’autre et permet de les effacer. Open Level et le GameInstance ne sont pas simulés.',
   },
 
   // ---------------------------------------------------------- communication
@@ -222,7 +224,7 @@ export const MEMO: MemoCard[] = [
     title: 'Data Tables et Data Assets',
     summary: 'Sortir les données des graphes : objets, dialogues, quêtes.',
     keywords: ['data table', 'data asset', 'structure', 'row', 'csv', 'dialogue', 'quete'],
-    lessons: ['l-fiche', 'l-codes'],
+    lessons: ['l-fiche', 'l-codes', 'l-catalogue', 'd16-terminal-muet', 'l-dialogue-table'],
     body:
       'Les données d’un jeu (cent objets, deux cents lignes de dialogue) n’ont rien à faire dans des nœuds.\n\n' +
       'Une **Data Table** est un tableau dont chaque ligne suit une **structure** et porte un **Row Name** unique. On la remplit dans l’éditeur, ou on l’importe d’un fichier CSV ou JSON.\n\n' +
@@ -230,7 +232,8 @@ export const MEMO: MemoCard[] = [
       '- **Get Data Table Row Names** : la liste des lignes, pour les parcourir.\n\n' +
       'Une Data Table se lit, elle ne se modifie pas pendant le jeu : l’état qui change (quantité, quête finie) reste dans des variables.\n\n' +
       'Un **Data Asset** est un asset qui ne contient que des valeurs, un par objet (DA_Epee, DA_Potion). Plus pratique quand chaque entrée référence des meshes ou des sons, et qu’on veut les charger séparément.\n\n' +
-      'Pour un jeu narratif : une table de dialogues (ligne = personnage, texte, ligne suivante), une table d’objets à examiner, une table de quêtes. Le Blueprint ne garde qu’un Row Name.',
+      'Pour un jeu narratif : une table de dialogues (ligne = personnage, texte, ligne suivante), une table d’objets à examiner, une table de quêtes. Le Blueprint ne garde qu’un Row Name.\n\n' +
+      'Dans l’appli, **+ Data Table** dans le Content Browser crée une table (il faut une structure) ; ses nœuds apparaissent dans la palette, sous Utilities › Data Table. Les Data Assets et l’import CSV ne sont pas simulés.',
   },
   {
     id: 'm-conteneurs',

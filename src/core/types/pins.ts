@@ -147,6 +147,7 @@ export const BUILTIN_HIERARCHY: Record<string, string | undefined> = {
   Object: undefined,
   Actor: 'Object',
   Pawn: 'Actor',
+  SaveGame: 'Object',
   ActorComponent: 'Object',
   SceneComponent: 'ActorComponent',
   PrimitiveComponent: 'SceneComponent',

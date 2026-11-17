@@ -42,6 +42,8 @@ import { debug14 } from './library/workshop';
 import { complete6 } from './library/undo';
 import { lessonMirrors } from './library/mirrors';
 import { debug15 } from './library/gridFloor';
+import { lessonCatalog, debug16, lessonDialogueTable } from './library/tables';
+import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from './library/saves';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import type { Lesson } from './types';
@@ -93,6 +95,8 @@ export const LESSONS: Lesson[] = [
   lessonRecord,
   debug5,
   predict8,
+  lessonCatalog,
+  debug16,
   lessonCards,
   lessonSeed,
   lessonBadges,
@@ -106,6 +110,10 @@ export const LESSONS: Lesson[] = [
   lessonFence,
   debug3,
   lessonLift,
+  lessonPiggyBank,
+  debug17,
+  predict11,
+  debug18,
   // Avancé
   lessonPureFunctions,
   complete2,
@@ -127,6 +135,8 @@ export const LESSONS: Lesson[] = [
   debug14,
   complete5,
   lessonTalk,
+  lessonDialogueTable,
+  lessonCheckpoint,
   complete6,
   lessonGrid,
 ];

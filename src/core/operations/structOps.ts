@@ -26,6 +26,7 @@ export function structUsage(p: Project, name: string): number {
     return t;
   });
   eachStructNode(p, name, () => count++);
+  count += (p.dataTables ?? []).filter((t) => t.struct === name).length;
   return count;
 }
 
@@ -51,6 +52,7 @@ export function renameStruct(p: Project, id: string, name: string): OpResult {
   eachStructNode(p, old, (n) => {
     n.config.struct = s.name;
   });
+  for (const t of p.dataTables ?? []) if (t.struct === old) t.struct = s.name;
   return { ok: true, value: undefined };
 }
 
@@ -59,7 +61,7 @@ export function removeStruct(p: Project, id: string): OpResult {
   const s = p.structs.find((x) => x.id === id);
   if (!s) return { ok: false, reason: 'Structure introuvable.' };
   const used = structUsage(p, s.name);
-  if (used) return { ok: false, reason: `${s.name} est encore utilisée à ${used} endroit(s) : retire d'abord ces variables, paramètres et nœuds.` };
+  if (used) return { ok: false, reason: `${s.name} est encore utilisée à ${used} endroit(s) : retire d'abord ces variables, paramètres, nœuds et Data Tables.` };
   p.structs = p.structs.filter((x) => x.id !== id);
   return { ok: true, value: undefined };
 }

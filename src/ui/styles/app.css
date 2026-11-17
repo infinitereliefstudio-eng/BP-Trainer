@@ -512,3 +512,9 @@ select.field { padding-right: 4px; }
 .notion-card .pattern { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .node-pill { padding: 2px 8px; border-radius: 4px; background: #0e0e0e; border: 1px solid var(--line-2); font-size: 12px; }
 .pattern .arrow { color: var(--muted); }
+/* Content Browser: a save slot, with its Effacer button on the right. */
+.palette-item.slot-item { position: relative; padding-right: 96px; }
+.palette-item.slot-item .chip { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+.muted.small.pad { padding: 6px 12px; }
+/* Seven asset buttons do not fit one line on a phone. */
+.sheet.content .palette-head { flex-wrap: wrap; row-gap: 4px; }

@@ -1,6 +1,7 @@
-/** The project's assets: Blueprints, Blueprint Interfaces, Enums and Structures. */
+/** The project's assets: Blueprints, Blueprint Interfaces, Enums, Structures, Data Tables, and the save slots. */
 import { addEnum } from '@core/operations/enumOps';
 import { addStruct } from '@core/operations/structOps';
+import { addDataTable } from '@core/operations/dataTableOps';
 import { typeLabel } from '@core/types/pins';
 import { addClass, addInterface, addInterfaceFunction } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
@@ -49,6 +50,49 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
         return null;
       },
     });
+  const createSaveGame = () =>
+    openOverlay({
+      kind: 'prompt',
+      title: 'Nouveau Blueprint SaveGame',
+      initial: 'BP_Sauvegarde',
+      confirmLabel: 'Créer',
+      onSubmit: (name) => {
+        if (/\s/.test(name.trim())) return "Un nom de Blueprint ne peut pas contenir d'espace.";
+        const res = store.applyProject('Créer un SaveGame', (p) => addClass(p, name, 'SaveGame'));
+        if (!res.ok) return res.reason;
+        store.openClass(res.value.id);
+        return null;
+      },
+    });
+  const createTable = () => {
+    const first = store.project.structs[0];
+    if (!first) {
+      store.warn('Une Data Table range des lignes d’une structure : crée d’abord une Structure (+ Structure).');
+      return;
+    }
+    openOverlay({
+      kind: 'prompt',
+      title: `Nouvelle Data Table (lignes : ${first.name}, modifiable ensuite)`,
+      initial: 'DT_Objets',
+      confirmLabel: 'Créer',
+      onSubmit: (name) => {
+        if (/\s/.test(name.trim())) return "Un nom de Data Table ne peut pas contenir d'espace.";
+        const res = store.applyProject('Créer une Data Table', (p) => addDataTable(p, first.name, name));
+        if (!res.ok) return res.reason;
+        store.setFocus({ kind: 'dataTable', id: res.value.id });
+        onOpenDetails();
+        return null;
+      },
+    });
+  };
+  const slots = Object.entries(store.project.saveSlots ?? {});
+  const clearSlot = (key?: string) => {
+    const p = store.project;
+    if (!p.saveSlots) return;
+    if (key) delete p.saveSlots[key];
+    else p.saveSlots = {};
+    store.saveSlotsChanged();
+  };
   const createEnum = () =>
     openOverlay({
       kind: 'prompt',
@@ -96,6 +140,12 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
           </button>
           <button class="btn" onClick={createStruct}>
             + Structure
+          </button>
+          <button class="btn" onClick={createTable}>
+            + Data Table
+          </button>
+          <button class="btn" onClick={createSaveGame}>
+            + SaveGame
           </button>
           <button class="btn" onClick={onClose}>
             Fermer
@@ -165,6 +215,45 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
               <span class="pi-desc">{s.members.map((m) => `${m.name} (${typeLabel(m.type)})`).join(', ')}</span>
             </button>
           ))}
+          {(store.project.dataTables ?? []).length > 0 && <div class="palette-cat">Data Tables</div>}
+          {(store.project.dataTables ?? []).map((t) => (
+            <button
+              key={t.id}
+              class="palette-item"
+              onClick={() => {
+                store.setFocus({ kind: 'dataTable', id: t.id });
+                onClose();
+                onOpenDetails();
+              }}
+            >
+              <span class="pi-title">{t.name}</span>
+              <span class="pi-desc">
+                Lignes : {t.struct} · {t.rows.map((r) => r.name).join(', ') || 'aucune ligne'}
+              </span>
+            </button>
+          ))}
+          <div class="palette-cat">Slots de sauvegarde (hors UE : ce qui est écrit « sur le disque »)</div>
+          {slots.length === 0 && <p class="muted small pad">Aucun slot. Save Game to Slot en écrit un pendant Play ; il reste après Stop.</p>}
+          {slots.map(([key, s]) => (
+            <div key={key} class="palette-item slot-item">
+              <span class="pi-title">
+                {key.replace(/\|0$/, '').replace('|', ' · utilisateur ')} · {s.className}
+              </span>
+              <span class="pi-desc">
+                {Object.entries(s.values)
+                  .map(([k, v]) => `${k} = ${typeof v === 'object' ? JSON.stringify(v) : String(v)}`)
+                  .join(', ') || 'aucune variable'}
+              </span>
+              <button class="chip danger" aria-label={`Effacer le slot ${key}`} onClick={() => clearSlot(key)}>
+                Effacer
+              </button>
+            </div>
+          ))}
+          {slots.length > 1 && (
+            <button class="btn danger" onClick={() => clearSlot()}>
+              Effacer tous les slots
+            </button>
+          )}
         </div>
       </div>
     </div>

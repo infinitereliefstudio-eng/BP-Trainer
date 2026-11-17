@@ -59,6 +59,14 @@ export interface WorldApi {
   /** A Blueprint read, or a Set on another Blueprint wrote, a variable of `actor`. */
   varRead(actor: ActorRT, variable: string): void;
   varWritten(actor: ActorRT, variable: string): void;
+  /** A new SaveGame object (not an actor: never in the level), or null if the class is not a SaveGame. */
+  createSaveGame(classId: string): ActorRT | null;
+  /** Save Game to Slot: a copy of the object's variables, by name. False for an empty slot name. */
+  saveGame(obj: ActorRT, slot: string, user: number): boolean;
+  /** Load Game from Slot: a new object from what was saved, or null. */
+  loadGame(slot: string, user: number): ActorRT | null;
+  saveExists(slot: string, user: number): boolean;
+  deleteSave(slot: string, user: number): boolean;
 }
 
 export interface ValueCx {

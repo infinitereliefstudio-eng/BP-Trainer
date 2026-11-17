@@ -145,7 +145,15 @@ export interface ComponentProps {
   collision: number;
 }
 
-export type ParentClass = 'Actor' | 'Pawn';
+/**
+ * The native class at the top of a Blueprint. SaveGame is UE's USaveGame: an
+ * object, not an actor (no components, never placed), whose variables are
+ * written to a slot by Save Game to Slot.
+ */
+export type ParentClass = 'Actor' | 'Pawn' | 'SaveGame';
+
+/** Native parents a Blueprint can be created from. */
+export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'SaveGame'];
 
 /** A parameter of an Event Dispatcher (and of the events bound to it). */
 export interface Param {
@@ -235,6 +243,36 @@ export interface UserStruct {
   members: StructMember[];
 }
 
+/** A row of a Data Table: its Row Name and a value of the table's structure. */
+export interface DataTableRow {
+  name: string;
+  /** A structure value, indexed by member id (a missing member has its default). */
+  value: Record<string, Value>;
+}
+
+/**
+ * A Data Table asset (Content Browser › Data Table): rows of one structure,
+ * each with a unique Row Name. `struct` names the structure, like a pin type.
+ */
+export interface DataTable {
+  id: string;
+  name: string;
+  struct: string;
+  rows: DataTableRow[];
+}
+
+/**
+ * What Save Game to Slot wrote: the SaveGame class and its variables, by
+ * name (UE serializes properties by name: a renamed variable is not found).
+ */
+export interface SavedGame {
+  classId: string;
+  className: string;
+  values: Record<string, Value>;
+  /** Simulation time of the save, for the slots panel. */
+  savedAt?: number;
+}
+
 export interface Project {
   /** Format version of the saved file, see serialization/migrate. */
   format: number;
@@ -244,6 +282,12 @@ export interface Project {
   interfaces: BlueprintInterface[];
   enums: UserEnum[];
   structs: UserStruct[];
+  dataTables: DataTable[];
+  /**
+   * Save slots, by "slot name|user index". They outlive Play, as files on
+   * disk do in UE; a lesson's check starts from its own (Lesson.slots).
+   */
+  saveSlots?: Record<string, SavedGame>;
   /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
   playerClassId?: string;
   level: Level;
@@ -251,7 +295,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 7;
+export const PROJECT_FORMAT = 8;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -315,7 +359,8 @@ export function createClass(name: string, parent: ParentClass = 'Actor'): Bluepr
     name,
     parent,
     autoReceiveInput: false,
-    components: [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
+    // A SaveGame is an object, not an actor: no components at all.
+    components: parent === 'SaveGame' ? [] : [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
     variables: [],
     graphs: [createGraph('EventGraph', 'event')],
     dispatchers: [],
@@ -333,6 +378,7 @@ export function createProject(name = 'Mon projet'): Project {
     interfaces: [],
     enums: [],
     structs: [],
+    dataTables: [],
     level: createLevel(),
     createdAt: now,
     updatedAt: now,

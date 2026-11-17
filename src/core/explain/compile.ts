@@ -57,6 +57,14 @@ const COMPILE: Record<CompileCode, Explanation> = {
     why: 'Ce nœud travaille sur une classe précise de Blueprint : sans classe choisie, il ne sait pas quoi créer ou chercher.',
     fixes: ['Choisis la classe dans la liste de la pin Class.', 'Ou relie-y une variable de type Class Reference.'],
   },
+  pickTable: {
+    why: 'Ce nœud lit une Data Table précise : sans table choisie (ou si elle a été supprimée), il n’a aucune ligne où chercher.',
+    fixes: ['Sélectionne le nœud et choisis la Data Table dans Details.', 'Ou crée-en une : Content Browser › + Data Table.'],
+  },
+  pickSaveGame: {
+    why: 'Create Save Game Object fabrique un objet d’une classe SaveGame : il faut savoir laquelle, pour connaître ses variables.',
+    fixes: ['Choisis la classe dans la liste de la pin Save Game Class.', 'Pas de classe SaveGame ? Content Browser › + Blueprint, classe parente SaveGame.'],
+  },
   pickEnum: {
     why: 'Switch on Enum crée une sortie par valeur de l’Enum : il faut savoir lequel.',
     fixes: ['Sélectionne le nœud et choisis l’Enum dans Details.'],

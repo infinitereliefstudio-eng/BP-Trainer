@@ -505,4 +505,52 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     ['Inverse Transform Location, avec le Transform de la dalle', 'Transform Location, avec le Transform de la dalle', 'Get Actor Location de la dalle', 'Snap To Grid (Float)'],
     'Inverse Transform Location passe du monde au repère local ; Transform Location fait le chemin inverse.',
   ),
+  q(
+    'l-catalogue',
+    'Get Data Table Row cherche « Cartes » ; la table n’a qu’une ligne Carte. Que se passe-t-il ?',
+    ['Il sort par Row Not Found, sans erreur', 'Il prend la ligne la plus proche, Carte', 'Une erreur s’écrit dans l’Output Log', 'Il sort par Row Found avec une ligne vide'],
+    'Une ligne introuvable n’est pas une erreur : le nœud a une seconde sortie d’exécution, Row Not Found. Out Row garde alors les valeurs par défaut de la structure.',
+  ),
+  q(
+    'd16-terminal-muet',
+    'Un terminal affiche une ligne vide, sans aucune erreur. Sa Data Table est lue avec Get Data Table Row. Première chose à regarder ?',
+    ['Le Row Name demandé : existe-t-il dans la table ?', 'Les couleurs des pins', 'Si la table est trop longue', 'L’ordre des BeginPlay'],
+    'Une ligne vide sans erreur, c’est presque toujours Out Row lu après Row Not Found : le nom demandé n’est pas dans la table. Relier Row Not Found à un message le montre aussitôt.',
+  ),
+  q(
+    'l-dialogue-table',
+    'Un dialogue lit des lignes S_Replique dont Suivante donne le nom de la ligne d’après. Comment sait-on que c’est fini ?',
+    ['Suivante est vide (None), après avoir affiché la réplique', 'La table n’a plus de lignes', 'Get Data Table Row renvoie une erreur', 'On compte les répliques avec un Integer'],
+    'La fin est une donnée comme une autre : une Suivante vide. On affiche la réplique en cours, puis on teste Suivante ; tester avant d’afficher perd la dernière réplique.',
+  ),
+  q(
+    'l-tirelire',
+    'Save Game to Slot vient d’écrire l’objet. On fait ensuite Set Pieces sur ce même objet. Que contient le slot ?',
+    ['L’ancienne valeur : le slot est une copie faite au moment de l’écriture', 'La nouvelle valeur', 'Rien, l’objet n’est plus valide', 'Les deux valeurs'],
+    'Save Game to Slot copie l’objet quand le fil blanc passe par lui. Ce qu’on change après ne touche plus le slot, jusqu’à la prochaine écriture.',
+  ),
+  q(
+    'd17-premiere-partie',
+    'Load Game from Slot sur un slot qui n’existe pas encore. Que renvoie-t-il ?',
+    ['None, sans erreur', 'Un SaveGame neuf, avec les valeurs par défaut', 'Une erreur dans l’Output Log', 'Le dernier slot écrit'],
+    'Pas de slot, pas d’objet : Return Value vaut None et le Cast qui suit sort par Cast Failed. C’est le cas de tout nouveau joueur, à prévoir avec Create Save Game Object.',
+  ),
+  q(
+    'p11-load-cast',
+    'Le slot « Partie » contient un BP_Reglages. Load Game from Slot (« Partie ») → Cast To BP_Progression. Par où sort le Cast ?',
+    ['Cast Failed : l’objet recréé est un BP_Reglages', 'La sortie du haut, avec les valeurs par défaut', 'Une erreur Accessed None', 'La sortie du haut, avec les valeurs du slot'],
+    'Le slot garde la classe de l’objet écrit, et Load recrée cette classe-là. Un Cast vers une autre classe SaveGame échoue, en silence.',
+  ),
+  q(
+    'd18-record',
+    'Sur F : Create Save Game Object → Save Game to Slot → Set Record. Que contient le slot ?',
+    ['Record à sa valeur par défaut', 'Le score de la partie', 'Rien : le slot n’est pas écrit', 'Le score de la partie précédente'],
+    'Le Set arrive après l’écriture. Toujours remplir l’objet, puis l’écrire.',
+  ),
+  q(
+    'l-checkpoint',
+    'Où un checkpoint écrit-il la sauvegarde ?',
+    ['Quand on le traverse : Event ActorBeginOverlap', 'Sur Event Tick, pour être toujours à jour', 'Au BeginPlay du checkpoint', 'Au moment où le joueur quitte le jeu'],
+    'Écrire sur le disque prend du temps : on sauve au moment qui compte, une fois. Event Tick écrirait à chaque image.',
+  ),
 ];

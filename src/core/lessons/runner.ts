@@ -50,15 +50,22 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
 export const ORDER_NOTE =
   'Ta solution marche quand les acteurs font leur BeginPlay dans l’ordre du niveau, mais pas dans l’ordre inverse. Dans UE cet ordre n’est pas garanti : un Blueprint ne doit pas compter sur le fait qu’un autre a déjà fait son BeginPlay.';
 
-function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks'>, source: Project, order: ActorOrder): LessonRun {
+function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots'>, source: Project, order: ActorOrder): LessonRun {
   const project = structuredClone(source);
-  const sim = new Simulation(project, { order });
+  // The slots are those of the lesson, shared by every game of the scenario (restart keeps them).
+  const slots = lesson.slots?.() ?? {};
+  let sim = new Simulation(project, { order, slots });
+  // Prints and errors of the games before a restart.
+  const earlier: { prints: string[]; errors: string[] } = { prints: [], errors: [] };
   const cx: CheckContext = {
-    sim,
+    get sim() {
+      return sim;
+    },
     project,
     actor: (label) => sim.actors.find((a) => a.label === label),
     component: (label, name) => sim.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),
-    prints: () => sim.log.filter((l) => l.message !== undefined).map((l) => l.message!),
+    prints: () => [...earlier.prints, ...sim.log.filter((l) => l.message !== undefined).map((l) => l.message!)],
+    errors: () => [...earlier.errors, ...sim.log.filter((l) => l.level === 'error').map((l) => l.text)],
     variable: (label, name) => {
       const a = label === 'Joueur' ? sim.player : sim.actors.find((x) => x.label === label);
       const cls = a ? sim.classOf(a) : undefined;
@@ -104,7 +111,13 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks'>, source: Proje
       continue;
     }
     if (runaway) continue;
-    if ('fps' in step) dt = 1 / step.fps;
+    if ('restart' in step) {
+      earlier.prints = cx.prints();
+      earlier.errors.push(...sim.log.filter((l) => l.level === 'error').map((l) => l.text));
+      sim = new Simulation(project, { order, slots });
+      sim.start();
+      seen = 0;
+    } else if ('fps' in step) dt = 1 / step.fps;
     else if ('look' in step) sim.player.yaw = step.look;
     else if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += dt) sim.step(dt);
     else if ('teleport' in step) {
@@ -131,7 +144,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks'>, source: Proje
   evaluate(undefined);
 
   const ordered = lesson.checks.map((c) => results.get(c.id) ?? { check: c, ok: false, reason: 'Non vérifié.' });
-  const runtimeErrors = sim.log.filter((l) => l.level === 'error').map((l) => l.text);
+  const runtimeErrors = [...earlier.errors, ...sim.log.filter((l) => l.level === 'error').map((l) => l.text)];
   return {
     compileErrors: [],
     results: ordered,
@@ -160,7 +173,7 @@ export function runRobustness(lesson: Lesson, project: Project): RobustnessResul
     const p = structuredClone(project);
     c.mutate?.(p);
     for (const order of ['level', 'reversed'] as const) {
-      const bad = playScenario(c, p, order).results.find((r) => !r.ok);
+      const bad = playScenario({ ...c, slots: lesson.slots }, p, order).results.find((r) => !r.ok);
       if (bad) return { case: c, ok: false, reason: bad.reason };
     }
     return { case: c, ok: true };

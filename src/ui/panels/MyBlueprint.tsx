@@ -88,7 +88,8 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
 
   return (
     <div class="panel-scroll">
-      <Section
+      {cls.parent !== 'SaveGame' && (
+        <Section
         title="Components"
         onAdd={(e) => {
           const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -110,6 +111,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           );
         })}
       </Section>
+      )}
 
       <Section title="Graphs">
         {cls.graphs

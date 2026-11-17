@@ -290,7 +290,8 @@ export function actorMenu(store: EditorStore, actorId: string, openClass: (class
 
 /** Long press on empty floor: place an instance of a Blueprint. */
 export function placeMenu(store: EditorStore, world: { x: number; y: number }): MenuItem[] {
-  return store.project.classes.map((c) => ({
+  // A SaveGame is an object, not an actor: it is never placed.
+  return store.project.classes.filter((c) => c.parent !== 'SaveGame').map((c) => ({
     label: `Placer ${c.name}`,
     action: () => {
       const res = store.applyProject(`Placer ${c.name}`, (p) => placeActor(p, c.id, Math.round(world.x / 10) * 10, Math.round(world.y / 10) * 10));

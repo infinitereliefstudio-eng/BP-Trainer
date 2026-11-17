@@ -104,7 +104,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   },
   {
     title: 'Variable d’un autre Blueprint',
-    names: ['Variable d’un autre Blueprint', 'Lire la variable d’un autre Blueprint', 'Cast To'],
+    names: ['Variable d’un autre Blueprint', 'Lire la variable d’un autre Blueprint', 'Cast To', 'Cast Failed'],
     what: 'Pour lire ou changer la variable d’un autre acteur, il faut une référence du bon type vers lui. Cast To BP_Joueur prend une référence générale (Other Actor) et répond : « est-ce un BP_Joueur ? » ; si oui, sa sortie donne accès à ses variables et fonctions.',
     when: 'Cast To quand tu as un acteur sans savoir ce qu’il est (overlap, Line Trace). Si plusieurs sortes d’acteurs doivent répondre, une interface évite un Cast par sorte.',
     trap: 'Un Cast raté n’est pas une erreur : il sort par Cast Failed, en silence. Si rien ne se passe, regarde de ce côté.',
@@ -316,7 +316,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   // ------------------------------------------------- V6 : le recueil d’exercices
   {
     title: 'Ordre de lecture et d’écriture',
-    names: ['Ordre lecture / écriture'],
+    names: ['Ordre lecture / écriture', 'Ordre du fil blanc'],
     what: 'Une variable vaut ce qu’elle vaut au moment où le fil blanc passe. Un nœud vert (une comparaison, un calcul) la relit à l’instant où on lui demande son résultat ; un Set ou un Increment Int la change à l’instant où le fil blanc le traverse.',
     when: 'Dès qu’un seuil, un compteur ou un état se déclenche « un coup trop tôt » ou « un coup trop tard » : suis la valeur à la main, nœud après nœud, dans l’ordre du fil blanc.',
     trap: 'Tester avant de compter et compter avant de tester donnent deux résultats différents avec exactement les mêmes nœuds.',
@@ -375,7 +375,48 @@ export const GLOSSARY: GlossaryEntry[] = [
     what: 'Au lieu d’un Branch par cas, on range les cas dans des données (une Map ou une Data Table de structures) et on écrit un seul graphe qui sait lire une ligne. Un dialogue devient une table : identifiant, texte, où mènent les choix.',
     when: 'Dès qu’il y a « beaucoup de cas qui se ressemblent » : répliques, objets, recettes, niveaux. Ajouter un cas, c’est ajouter une ligne, sans toucher au graphe.',
     trap: 'Les données peuvent être fausses (un identifiant mal tapé) : le graphe doit prévoir la ligne introuvable et en sortir proprement.',
-    pattern: 'Find (Table, Id) → Branch (trouvé ?) → Break → afficher, suivre les choix',
+    pattern: 'Get Data Table Row (Row Name = Id) → Row Found : Break → afficher, suivre Suivante',
+  },
+  // ------------------------------------------------- V7 : Data Tables et sauvegarde
+  {
+    title: 'Data Table',
+    names: ['Data Table', 'Get Data Table Row'],
+    what: 'Une table de données, rangée dans le Content Browser : chaque ligne a un nom (Row Name) et une valeur d’une structure choisie à la création (Row Structure). Elle se remplit sans toucher au graphe ; le jeu ne fait que la lire, avec Get Data Table Row.',
+    when: 'Pour des données nombreuses et fixes : objets, répliques, ennemis, prix. Dans UE, elle s’importe aussi depuis un tableur (CSV). Pour des données qui changent pendant la partie, une variable (Map, Array) convient mieux : une Data Table ne s’écrit pas en jeu.',
+    trap: 'Changer la Row Structure d’une table efface les valeurs de ses lignes.',
+    pattern: 'Get Data Table Row (DT_Objets, Row Name) → Row Found → Break S_Fiche → Print String',
+  },
+  {
+    title: 'Row Name et ligne introuvable',
+    names: ['Row Name', 'Row Not Found'],
+    what: 'Row Name est un Name : la clé d’une ligne. Get Data Table Row a deux sorties d’exécution : Row Found si la ligne existe, Row Not Found sinon ; dans ce cas, Out Row garde les valeurs par défaut de la structure.',
+    when: 'Relie toujours Row Not Found : un message dans l’Output Log, une valeur de secours. Un nom mal tapé dans un réglage d’instance est l’erreur la plus fréquente.',
+    trap: 'Lire Out Row après Row Not Found donne une structure vide, sans erreur : le jeu affiche un texte blanc et personne ne sait pourquoi. Dans UE, la casse d’un Name est ignorée à la comparaison : « lampe » trouve la ligne Lampe.',
+    pattern: 'Get Data Table Row → Row Not Found → Print String (« Ligne introuvable : » + Row Name)',
+  },
+  {
+    title: 'SaveGame',
+    names: ['SaveGame'],
+    what: 'Une classe de Blueprint dont le parent est SaveGame. Elle ne contient que des variables : pas de composants, pas de place dans le niveau. Create Save Game Object en crée un objet, qu’on remplit avant de l’écrire.',
+    when: 'Tout ce qui doit survivre à la fin de la partie : progression, réglages, records, position de reprise. Une classe par sorte de données (réglages d’un côté, partie de l’autre) évite de tout réécrire à chaque fois.',
+    trap: 'On ne sauve pas une référence vers un acteur : à la partie suivante, l’acteur sera recréé. On sauve ce qui permet de le retrouver : une position, un Name, un état.',
+    pattern: 'Create Save Game Object (BP_Sauvegarde) → Set Pieces (sur l’objet) → Save Game to Slot',
+  },
+  {
+    title: 'Slot de sauvegarde',
+    names: ['Slot de sauvegarde', 'Slot'],
+    what: 'L’emplacement où Save Game to Slot écrit une copie de l’objet : un nom (Slot Name) et un numéro de joueur (User Index, 0 en solo). Dans UE, c’est un fichier .sav du dossier Saved/SaveGames. Le slot garde la classe de l’objet écrit.',
+    when: 'Load Game from Slot relit le slot et recrée l’objet ; Does Save Game Exist teste sa présence ; Delete Game in Slot l’efface. Dans l’appli, le Content Browser montre les slots et permet de les effacer.',
+    trap: 'Un slot absent n’est pas une erreur : Load Game from Slot renvoie None. Un nom de slot différent entre l’écriture et la lecture perd tout, sans un message.',
+    pattern: 'Load Game from Slot → Cast To BP_Sauvegarde → (Cast Failed : Create Save Game Object)',
+  },
+  {
+    title: 'Checkpoint',
+    names: ['Checkpoint'],
+    what: 'Un point de reprise : en le traversant, le jeu sauve de quoi y revenir (sa position, son identifiant). Au lancement suivant, on relit le slot et on y replace le joueur.',
+    when: 'Sauver au passage (Event ActorBeginOverlap), une fois, jamais sur Event Tick : une écriture sur le disque prend du temps. La position du checkpoint est plus sûre que celle du joueur, qui peut être en plein saut.',
+    trap: 'À la première partie, il n’y a pas de slot : le chargement doit laisser le joueur au départ.',
+    pattern: 'ActorBeginOverlap → Create Save Game Object → Set Position (Get Actor Location) → Save Game to Slot',
   },
   {
     title: 'Quantités qui se conservent',

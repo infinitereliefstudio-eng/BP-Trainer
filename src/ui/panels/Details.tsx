@@ -24,6 +24,7 @@ import { ValueInput } from '../widgets/ValueInput';
 import { NameField } from '../widgets/NameField';
 import { ComponentDetails } from './ComponentDetails';
 import { EnumDetails } from './EnumDetails';
+import { DataTableDetails } from './DataTableDetails';
 import { StructDetails } from './StructDetails';
 import { Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
@@ -57,6 +58,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   else if (f.kind === 'interface') body = <InterfaceDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'enum') body = <EnumDetails id={f.id} />;
   else if (f.kind === 'struct') body = <StructDetails id={f.id} />;
+  else if (f.kind === 'dataTable') body = <DataTableDetails id={f.id} />;
   else
     body = (
       <p class="hint">
@@ -279,7 +281,9 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
 
 
 /** Choices of a node setting that come from the project (Enums, Blueprints). */
-function projectChoices(from: 'enums' | 'classes', p: Project): { value: string; label: string }[] {
+function projectChoices(from: 'enums' | 'classes' | 'dataTables' | 'saveGames', p: Project): { value: string; label: string }[] {
+  if (from === 'dataTables') return [{ value: '', label: 'None' }, ...(p.dataTables ?? []).map((t) => ({ value: t.id, label: t.name }))];
+  if (from === 'saveGames') return [{ value: '', label: 'None' }, ...p.classes.filter((c) => c.parent === 'SaveGame').map((c) => ({ value: c.id, label: c.name }))];
   if (from === 'classes') return [{ value: '', label: '—' }, ...p.classes.map((c) => ({ value: c.id, label: c.name }))];
   return [{ value: '', label: '—' }, ...Object.keys(BUILTIN_ENUMS).map((n) => ({ value: n, label: n })), ...p.enums.map((e) => ({ value: e.name, label: e.name }))];
 }

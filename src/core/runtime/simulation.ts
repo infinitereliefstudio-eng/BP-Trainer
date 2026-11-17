@@ -10,7 +10,9 @@
  */
 import { explainRuntime } from '../explain/runtime';
 import { inheritedView, isA, lineage } from '../model/inheritance';
-import { findClass, type BlueprintClass, type NodeInstance, type Project } from '../model/project';
+import { findClass, type BlueprintClass, type NodeInstance, type Project, type SavedGame } from '../model/project';
+import type { Value } from '../types/values';
+import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
 import { createActor, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
@@ -69,6 +71,15 @@ export class Simulation implements InterpreterHost {
   readonly timers = new TimerSet();
   /** Everything that ran, for "why did this node not run?". */
   readonly record = new RunRecord();
+  /** Objects that are not actors (SaveGame): never in the level, found by reference only. */
+  readonly objects: ActorRT[] = [];
+  /**
+   * Save slots, by "slot|user index": written by Save Game to Slot, kept
+   * after the game. Play passes the project's own, so they outlive Stop.
+   */
+  readonly slots: Record<string, SavedGame>;
+  /** Did a node write or delete a slot during this game? */
+  slotsChanged = false;
 
   private readonly journal = new Journal();
   private interp: Interpreter;
@@ -88,9 +99,10 @@ export class Simulation implements InterpreterHost {
 
   constructor(
     readonly project: Project,
-    opts: { seed?: number; breakpoints?: Set<string>; order?: ActorOrder } = {},
+    opts: { seed?: number; breakpoints?: Set<string>; order?: ActorOrder; slots?: Record<string, SavedGame> } = {},
   ) {
     this.rng = opts.seed ?? 12345;
+    this.slots = opts.slots ?? {};
     this.interp = new Interpreter(project, this, opts.breakpoints);
     const ps = project.level.playerStart;
     const pawn = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
@@ -140,7 +152,8 @@ export class Simulation implements InterpreterHost {
   private spawnLevel(): void {
     for (const la of this.project.level.actors) {
       const cls = findClass(this.project, la.classId);
-      if (!cls) continue;
+      // A SaveGame is not an actor: it cannot be placed (the level panel does not offer it).
+      if (!cls || cls.parent === 'SaveGame') continue;
       const a = createActor(la.id, la.name, this.objectName(cls).name, inheritedView(cls, this.project, true), la.overrides);
       a.x = la.x;
       a.y = la.y;
@@ -386,7 +399,55 @@ export class Simulation implements InterpreterHost {
 
   private findActor(id: string): ActorRT | undefined {
     if (id === this.player.id) return this.player;
-    return this.actors.find((a) => a.id === id);
+    return this.actors.find((a) => a.id === id) ?? this.objects.find((o) => o.id === id);
+  }
+
+  // ---------------------------------------------------------- save games
+
+  createSaveGame(classId: string): ActorRT | null {
+    const cls = findClass(this.project, classId);
+    if (cls?.parent !== 'SaveGame') return null;
+    const obj = createActor(`obj_${nextId()}`, '', this.objectName(cls).name, inheritedView(cls, this.project, true), {});
+    obj.label = obj.objectName;
+    this.objects.push(obj);
+    return obj;
+  }
+
+  private static slotKey(slot: string, user: number): string {
+    return `${slot}|${user}`;
+  }
+
+  saveGame(obj: ActorRT, slot: string, user: number): boolean {
+    const cls = this.classOf(obj);
+    if (!slot || !cls || cls.parent !== 'SaveGame') return false;
+    const values: Record<string, Value> = {};
+    for (const v of cls.variables) values[v.name] = copyValue(obj.vars[v.id]) as Value;
+    this.slots[Simulation.slotKey(slot, user)] = { classId: cls.id, className: cls.name, values, savedAt: Math.round(this.time * 100) / 100 };
+    this.slotsChanged = true;
+    return true;
+  }
+
+  loadGame(slot: string, user: number): ActorRT | null {
+    const saved = this.slots[Simulation.slotKey(slot, user)];
+    if (!saved) return null;
+    const cls = findClass(this.project, saved.classId) ?? this.project.classes.find((c) => c.name === saved.className);
+    const obj = cls ? this.createSaveGame(cls.id) : null;
+    if (!obj) return null;
+    // Properties are matched by name, as UE's serializer does: a renamed or removed variable is not restored.
+    for (const v of this.classOf(obj)?.variables ?? []) if (v.name in saved.values) obj.vars[v.id] = copyValue(saved.values[v.name] as RValue);
+    return obj;
+  }
+
+  saveExists(slot: string, user: number): boolean {
+    return !!this.slots[Simulation.slotKey(slot, user)];
+  }
+
+  deleteSave(slot: string, user: number): boolean {
+    const key = Simulation.slotKey(slot, user);
+    if (!this.slots[key]) return false;
+    delete this.slots[key];
+    this.slotsChanged = true;
+    return true;
   }
 
   component(ref: RValue, pinName: string): ComponentRT | null {
@@ -452,6 +513,10 @@ export class Simulation implements InterpreterHost {
   spawn(classId: string, x: number, y: number, yaw: number): ActorRT | null {
     const cls = findClass(this.project, classId);
     if (!cls) return null;
+    if (cls.parent === 'SaveGame') {
+      this.runtimeError(`SpawnActor failed : ${cls.name} est un SaveGame, pas un acteur. Utilise Create Save Game Object.`);
+      return null;
+    }
     const { n, name } = this.objectName(cls);
     const a = createActor(`spawn_${nextId()}`, `${cls.name}${n + 1}`, name, inheritedView(cls, this.project, true), {});
     a.x = x;

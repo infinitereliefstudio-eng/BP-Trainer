@@ -28,6 +28,49 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
     });
   };
 
+  if (rootParent(project, cls) === 'SaveGame') {
+    return (
+      <Group title="Class Settings">
+        <Field label="Nom du Blueprint">
+          <NameField value={cls.name} onCommit={(name) => store.applyProject('Renommer le Blueprint', (p) => renameClass(p, cls.id, name))} />
+        </Field>
+        <Field label="Parent Class">
+          <select
+            class="field"
+            value={cls.parentClassId ?? cls.parent}
+            onChange={(e) => {
+              const res = store.applyProject('Changer la classe parente', (p) => setParentClass(p, cls.id, (e.target as HTMLSelectElement).value));
+              if (!res.ok) store.warn(res.reason);
+            }}
+          >
+            <option value="SaveGame">SaveGame</option>
+            {project.classes
+              .filter((c) => c.id !== cls.id && c.parent === 'SaveGame' && !isA(project, c.id, cls.id))
+              .map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+          </select>
+        </Field>
+        <p class="muted small">
+          Un SaveGame n’est pas un acteur : pas de composants, pas de place dans le niveau. Il ne contient que des <strong>variables</strong>, celles qu’on veut
+          retrouver à la partie suivante. Create Save Game Object en fabrique un, Save Game to Slot l’écrit, Load Game from Slot le relit (puis Cast To {cls.name}).
+        </p>
+        <p class="muted small">{cls.variables.length} variable(s).</p>
+        <button
+          class="btn danger"
+          onClick={() => {
+            const res = store.applyProject('Supprimer le Blueprint', (p) => removeClass(p, cls.id));
+            if (!res.ok) store.warn(res.reason);
+          }}
+        >
+          Supprimer ce Blueprint
+        </button>
+      </Group>
+    );
+  }
+
   return (
     <>
       <Group title="Class Settings">
@@ -47,7 +90,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             <option value="Actor">Actor</option>
             <option value="Pawn">Pawn</option>
             {store.project.classes
-              .filter((c) => c.id !== cls.id && !isA(store.project, c.id, cls.id))
+              .filter((c) => c.id !== cls.id && c.parent !== 'SaveGame' && !isA(store.project, c.id, cls.id))
               .map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

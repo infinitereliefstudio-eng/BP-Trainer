@@ -15,10 +15,14 @@ import { timelineBehaviors } from './timeline';
 import { traceBehaviors } from './trace';
 import { randomStreamBehaviors } from './randomStream';
 import { transformBehaviors } from './transform';
+import { dataTableBehaviors } from './dataTables';
+import { saveGameBehaviors } from './saveGame';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
   ...flowBehaviors,
+  ...dataTableBehaviors,
+  ...saveGameBehaviors,
   ...actionBehaviors,
   ...actorBehaviors,
   ...arrayBehaviors,

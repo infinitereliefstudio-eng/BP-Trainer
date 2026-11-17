@@ -12,7 +12,7 @@ export function pruneProject(p: Project): void {
   for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
 }
 
-const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Self'];
+const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'SaveGame', 'Self'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
   const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
@@ -56,6 +56,20 @@ export function removeClass(p: Project, id: string): OpResult {
 export function setParentClass(p: Project, classId: string, parent: string): OpResult {
   const cls = p.classes.find((c) => c.id === classId);
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
+  // A SaveGame is an object, an Actor lives in the level: one cannot become the other.
+  const saveFamily = rootParent(p, cls) === 'SaveGame';
+  const base = p.classes.find((c) => c.id === parent);
+  const wantsSave = parent === 'SaveGame' || (!!base && rootParent(p, base) === 'SaveGame');
+  if (saveFamily !== wantsSave) {
+    return { ok: false, reason: saveFamily ? 'Un SaveGame ne peut hériter que de SaveGame ou d’un autre SaveGame.' : 'Un acteur ne peut pas hériter d’un SaveGame : crée un Blueprint SaveGame à part (Content Browser › + SaveGame).' };
+  }
+  if (parent === 'SaveGame') {
+    delete cls.parentClassId;
+    cls.parent = 'SaveGame';
+    for (const c of descendants(p, cls)) c.parent = 'SaveGame';
+    pruneProject(p);
+    return { ok: true, value: undefined };
+  }
   if (parent === 'Actor' || parent === 'Pawn') {
     delete cls.parentClassId;
     cls.parent = parent;
@@ -75,7 +89,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
       }
     }
   }
-  if (!cls.parentClassId && cls.components.every((c) => !!c.parent)) {
+  if (!saveFamily && !cls.parentClassId && cls.components.every((c) => !!c.parent)) {
     // Back to a native parent: a root of its own again.
     const root = { id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene' as const, props: componentDefaults('Scene') };
     for (const c of cls.components) if (!cls.components.some((o) => o.id === c.parent)) c.parent = root.id;

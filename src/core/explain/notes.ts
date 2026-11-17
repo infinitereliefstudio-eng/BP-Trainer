@@ -35,6 +35,10 @@ const TRAPS: Record<string, string> = {
   'time.setTimerByEvent': 'Relancer le même événement remplace son timer au lieu d’en ajouter un. Garde le Return Value (Timer Handle) pour l’arrêter avec Clear Timer.',
   'dispatcher.bind': 'Seuls les appels faits après le Bind sont reçus : fais le Bind tôt, au BeginPlay, avant le premier Call.',
   'var.getLocal': 'Chaque appel de la fonction repart de la valeur par défaut : une variable locale ne garde rien d’un appel à l’autre. Pour compter entre deux appels, utilise une variable du Blueprint.',
+  'dataTable.getRow': 'Out Row n’a de sens que sur le chemin Row Found. Relier aussi Row Not Found au même Print String affiche une ligne vide, sans erreur : traite les deux sorties séparément.',
+  'save.fromSlot': 'Slot absent : Return Value vaut None, sans erreur, et le Cast qui suit échoue en silence. À la toute première partie, il n’y a encore rien : teste Does Save Game Exist et crée une sauvegarde neuve sinon.',
+  'save.toSlot': 'Il écrit les variables telles qu’elles sont à cet instant : un Set fait après n’est pas sauvé tant qu’on n’appelle pas Save Game to Slot une nouvelle fois.',
+  'save.create': 'L’objet créé n’est écrit nulle part : sans Save Game to Slot, il disparaît à la fin de la partie.',
   'map.find': 'Si la clé n’y est pas, il n’y a pas d’erreur : Value vaut la valeur par défaut (0, vide, None). Teste Return Value avant de te servir de Value.',
   'set.toArray': 'L’ordre des éléments d’un Set n’est pas garanti : ne compte pas sur la position d’un élément dans le tableau obtenu.',
   'struct.setMembers': 'Relié à Get (a copy) d’un tableau, il ne change que la copie : le tableau reste intact, sans erreur. Utilise Get (a ref), ou Set Array Elem avec la structure modifiée.',
@@ -51,6 +55,9 @@ const TRAPS: Record<string, string> = {
 const COPY_TRAP = 'Copie toute la valeur : deux variables qui contiennent le même tableau ou la même structure ne partagent rien, modifier l’une ne change pas l’autre.';
 
 const IN_UE: Record<string, string> = {
+  'dataTable.getRow': 'Dans UE, la Data Table se choisit sur une pin du nœud, et ses lignes se remplissent dans un éditeur de tableau ou en important un fichier CSV ou JSON. Ici, la table se choisit dans Details.',
+  'save.toSlot': 'Dans UE, le slot est un fichier .sav dans le dossier Saved du projet. Ici, il est gardé avec le projet, et le Content Browser montre son contenu (UE ne le fait pas).',
+  'save.fromSlot': 'Dans UE, Async Load Game from Slot fait la même chose sans bloquer le jeu, pour les grosses sauvegardes. Le principe est le même.',
   'text.format': 'Dans UE, les arguments de Format Text acceptent aussi des nombres directement, et le Text se traduit selon la langue du jeu. Ici, ils sont convertis en Text et rien n’est traduit.',
   'event.tick': 'Ici le jeu tourne toujours à 60 images par seconde. Dans UE, le nombre d’images varie d’un appareil à l’autre : Delta Seconds change à chaque Tick.',
   'event.actorOnClicked': 'Ici, il suffit de toucher l’acteur pendant Play. Dans UE, il faut aussi activer Enable Click Events sur le Player Controller et que l’acteur bloque le canal Visibility.',

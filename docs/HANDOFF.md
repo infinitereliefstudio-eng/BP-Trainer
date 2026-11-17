@@ -261,7 +261,7 @@ Adaptations par rapport au recueil, à connaître : les widgets sont remplacés 
 
 Tests : `tests/v6.test.ts` (les nouveaux nœuds, et pour sept leçons la mauvaise réponse tentante, qui doit échouer avec l’explication de la leçon : Random lu deux fois, Make Random Stream à chaque tirage, segment qui repart de la surface du miroir, Add sans Contains, pas d’Unbind, parcours sans Set, second appui qui relance le timer). 17 questions de révision et 12 fiches de notions en plus. `smoke.py` attend 78 étapes et a une suite V6 (captures 58 à 63), lancée ici avec « errors [] ».
 
-Non fait, chacun de la taille d’une version : Enhanced Input (E30), Save Game (E15, E24), Data Tables (E16, variante d’E43), Actor Components (E14), plusieurs niveaux et GameInstance (E40), widgets UMG (E10, E27, E38), Attach / Detach (E32), caméras (E31), Spline et instances de mesh (E28, E44). Idées tirées des doublons, non faites : un « Et si… » à deux couples sur « Le générateur prévient », une porte tournée sur « La porte qui glisse », un écart nul ou négatif sur « La clôture ».
+Non fait, chacun de la taille d’une version : Enhanced Input (E30), Save Game (E15, E24 : faits en V7), Data Tables (E16, variante d’E43 : faits en V7), Actor Components (E14), plusieurs niveaux et GameInstance (E40), widgets UMG (E10, E27, E38), Attach / Detach (E32), caméras (E31), Spline et instances de mesh (E28, E44). Idées tirées des doublons, non faites : un « Et si… » à deux couples sur « Le générateur prévient », une porte tournée sur « La porte qui glisse », un écart nul ou négatif sur « La clôture ».
 
 Vérification d’une leçon : après un « Infinite loop detected », `runner.playScenario` ne joue plus la suite du scénario (les points de contrôle restent évalués). Sans cela, chaque événement suivant repartait pour 100 000 nœuds : plusieurs secondes de gel sur téléphone pour « Le réseau en boucle », et un test trop lent pour la CI (le premier push de la V6 a échoué là-dessus, sans rien publier).
 
@@ -304,6 +304,41 @@ Non changé, à savoir :
 - Un Static Mesh ne déclenche jamais d’overlap dans l’appli (seules les Box Collision et le joueur), simplification assumée.
 
 Version 6.2.0.
+
+## V7 (2026-11-17) : Data Tables et Save Game
+
+Demande de Tristan, après la revue du backlog : « oui ok pour data table et save game, + implémentation des exercices et corrige le backlog ». Format de projet 8 (migration : `dataTables: []`).
+
+**Data Tables**
+- Modèle : `Project.dataTables` (`DataTable { id, name, struct, rows: { name, value }[] }`), la structure désignée par son nom. Opérations dans `operations/dataTableOps.ts` (Row Names uniques sans tenir compte de la casse, table en usage non supprimable, changer la Row Structure remet les valeurs à zéro). `structOps` suit les renommages et refuse de supprimer une structure utilisée par une table.
+- Nœuds (`nodes/library/dataTables.ts`) : Get Data Table Row (Row Found / Row Not Found, Out Row du type de la structure), Get Data Table Row Names, Does Data Table Row Exist. La table est un réglage du nœud (`config.table`) : la palette propose les trois nœuds par table, sous Utilities › Data Table › DT_….
+- Recherche d’une ligne sans tenir compte de la casse, comme un FName dans UE. Ligne introuvable : Row Not Found, Out Row aux valeurs par défaut, sans erreur.
+- Interface : + Data Table dans le Content Browser (demande une structure), `DataTableDetails.tsx` (nom, Row Structure, lignes : nom, ↑ ↓ ✕, valeur).
+
+**Save Game**
+- Une classe de parent **SaveGame** (`ParentClass`) : pas de composants, jamais posée dans le niveau, parents limités à la famille SaveGame. + SaveGame dans le Content Browser.
+- Nœuds (`nodes/library/saveGame.ts`) : Create Save Game Object, Save Game to Slot, Load Game from Slot, Does Save Game Exist, Delete Game in Slot. Les objets créés sont des `ActorRT` rangés dans `Simulation.objects` : Cast To, Get / Set d’un autre Blueprint et Is Valid marchent sans changement.
+- Slots : `Project.saveSlots`, clé « slot|user index », valeurs rangées par nom de variable (Load retrouve la classe par id, sinon par nom). Gardés avec le projet (survivent à Stop, partent avec l’export), exclus de l’historique (Annuler ne ramène pas une vieille sauvegarde), enregistrés à Stop par `store.saveSlotsChanged()`. Le Content Browser les montre et permet de les effacer.
+- Leçons : `Lesson.slots` donne les slots de départ (sinon aucun) ; l’étape de scénario `{ restart: true }` arrête la partie et en lance une nouvelle avec les mêmes slots. `prints()` et `errors()` cumulent les parties.
+
+**Leçons et exercices** (`library/tables.ts`, `library/saves.ts`)
+
+| Leçon | Niveau | Ce qu’elle apprend |
+|---|---|---|
+| Le catalogue | Confirmé | Get Data Table Row, Row Not Found relié (E16) |
+| Débogue D16 — Le terminal muet | Confirmé | Un Row Name absent de la table : ligne vide sans erreur |
+| La tirelire | Confirmé | Créer, remplir, sauver ; charger au BeginPlay (E15) |
+| Débogue D17 — La première partie plante | Confirmé | Pas de slot : Load renvoie None, il faut créer une sauvegarde neuve |
+| Prédis P11 — Load, Cast, lecture | Confirmé | Le slot garde la classe écrite ; Cast vers une autre classe : Cast Failed |
+| Débogue D18 — Le record à zéro | Confirmé | Save Game to Slot avant le Set : le slot est une copie à l’instant |
+| Le dialogue en Data Table | Avancé | Lignes chaînées par Suivante, fin sur None après l’affichage |
+| Le checkpoint | Avancé | Sauver au passage la position du point de reprise ; replacer le joueur au lancement (E24) |
+
+Tests : `tests/v7.test.ts` (opérations sur les tables, migration, pièges du catalogue et du dialogue, D17 qui plante, D18 à zéro, slots de départ d’une leçon, Annuler qui ne touche pas les slots). Questions de révision et fiches de notions pour chaque leçon ; mémos « Data Tables » et « Niveaux et sauvegarde » reliés aux leçons. `smoke.py` attend 86 étapes, captures 64 (Details d’une Data Table) et 65 (slot écrit par Play), lancé ici avec « errors [] ».
+
+Non simulé : import CSV, Data Assets, versions Async, plusieurs niveaux et GameInstance (étape 2 de « Sauvegarde et niveaux » dans le backlog).
+
+Version 7.0.0.
 
 ## Méthode de travail
 

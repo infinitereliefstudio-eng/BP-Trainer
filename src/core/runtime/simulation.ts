@@ -489,6 +489,7 @@ export class Simulation implements InterpreterHost {
       return;
     }
     actor.destroyed = true;
+    actor.destroyedInRun = this.interp.run;
     actor.latent = {};
     this.record.destroyed.add(actor.id);
   }

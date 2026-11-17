@@ -179,7 +179,7 @@ export const lesson6: Lesson = {
       body:
         '**Event ActorBeginOverlap** → **Cast To BP_Joueur** (Object = Other Actor) → **Set bHasKey** (Target = As BP_Joueur, coché) → **Destroy Actor**.\n\n' +
         'Cast Failed ne mène nulle part : la caisse entre, le Cast échoue, il ne se passe rien.\n\n' +
-        'L’ordre compte : Destroy Actor en dernier. Ce qui suit la destruction d’un acteur ne doit plus compter sur lui.',
+        'Destroy Actor en dernier, par habitude. Dans UE, la suite du fil s’exécute encore (l’acteur ne disparaît vraiment qu’en fin d’image), mais un Delay placé après ne reprendra jamais, et l’acteur ne compte déjà plus pour Is Valid.',
     },
     {
       title: 'Dans UE',

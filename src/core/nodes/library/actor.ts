@@ -32,7 +32,7 @@ export const actorNodes: NodeDefinition[] = [
     category: ACTOR,
     kind: 'function',
     description:
-      "Retire l'acteur du niveau. Son Event Destroyed s'exécute d'abord. Sans rien relier à Target, c'est cet acteur (self) qui est détruit.",
+      "Retire l'acteur du niveau. Son Event Destroyed s'exécute d'abord. Sans rien relier à Target, c'est cet acteur (self) qui est détruit. Comme dans UE, la suite du fil blanc en cours s'exécute encore, mais ses Delay et timers s'arrêtent, et Is Valid le dit déjà invalide.",
     keywords: ['destroy', 'detruire', 'supprimer', 'kill'],
     pins: [execIn(), dataIn('target', 'Target', T.object('Actor'), { defaultsToSelf: true }), execOut()],
   },

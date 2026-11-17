@@ -56,7 +56,9 @@ for (const k of ['Int', 'Float'] as const) {
   families[`math.clamp${k}`] = {
     pure: (cx) => {
       const n = (p: string) => (asInt ? toInt(cx.num(p)) : cx.num(p));
-      return { result: Math.min(Math.max(n('value'), n('min')), n('max')) };
+      // FMath::Clamp: X < Min ? Min : X < Max ? X : Max (Min wins when Min > Max and X is below it).
+      const [x, lo, hi] = [n('value'), n('min'), n('max')];
+      return { result: x < lo ? lo : x < hi ? x : hi };
     },
   };
   families[`math.abs${k}`] = { pure: (cx) => ({ result: Math.abs(asInt ? toInt(cx.num('a')) : cx.num('a')) }) };
@@ -65,7 +67,7 @@ for (const k of ['Int', 'Float'] as const) {
 export const mathBehaviors: Record<string, Behavior> = {
   ...families,
   'math.nearlyEqualFloat': {
-    pure: (cx) => ({ result: Math.abs(cx.num('a') - cx.num('b')) <= Math.abs(cx.num('tolerance')) }),
+    pure: (cx) => ({ result: Math.abs(cx.num('a') - cx.num('b')) < Math.abs(cx.num('tolerance')) }),
   },
   'math.moduloInt': binary((a, b, cx) => {
     if (b === 0) {
@@ -83,8 +85,9 @@ export const mathBehaviors: Record<string, Behavior> = {
     pure: (cx) => {
       const lo = toInt(cx.num('min'));
       const hi = toInt(cx.num('max'));
-      const [a, b] = lo <= hi ? [lo, hi] : [hi, lo];
-      return { result: a + Math.floor(cx.world.random() * (b - a + 1)) };
+      // FMath::RandRange: Max < Min gives Min (an empty range), not a swapped one.
+      if (hi < lo) return { result: lo };
+      return { result: lo + Math.floor(cx.world.random() * (hi - lo + 1)) };
     },
   },
   'math.randomFloatInRange': {

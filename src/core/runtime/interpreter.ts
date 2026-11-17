@@ -139,6 +139,8 @@ export class Interpreter {
   private stack: Frame[] = [];
   private queue: Frame[][] = [];
   private steps = 0;
+  /** Counts the chains of execution taken from the queue (see ActorRT.destroyedInRun). */
+  private runs = 0;
   private skipBreak = false;
   private stepping = false;
 
@@ -319,6 +321,16 @@ export class Interpreter {
 
   // ---------------------------------------------------------------- exec
 
+  /** The chain of execution running now. */
+  get run(): number {
+    return this.runs;
+  }
+
+  /** Destroyed before the current chain: its frames stop. Destroyed during it: the chain goes on. */
+  private gone(actor: ActorRT): boolean {
+    return actor.destroyed && actor.destroyedInRun !== this.runs;
+  }
+
   /**
    * Run queued work until there is none left (true) or a breakpoint stops
    * it (false; call continue()/step() then drain() again).
@@ -330,11 +342,12 @@ export class Interpreter {
         const next = this.queue.shift();
         if (!next) return true;
         this.steps = 0;
+        this.runs++;
         for (let i = next.length - 1; i >= 0; i--) this.stack.push(next[i]);
         continue;
       }
       const f = this.stack[this.stack.length - 1];
-      if (f.actor.destroyed) {
+      if (this.gone(f.actor)) {
         this.stack.pop();
         continue;
       }
@@ -596,7 +609,7 @@ export class Interpreter {
         this.stack.length = base;
         return {};
       }
-      if (!f.actor.destroyed) this.execute(f);
+      if (!this.gone(f.actor)) this.execute(f);
     }
     return scope.outputs[call.id] ?? {};
   }

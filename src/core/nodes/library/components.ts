@@ -129,7 +129,7 @@ export const componentNodes: NodeDefinition[] = [
     category: 'Collision',
     kind: 'function',
     description:
-      "Active ou coupe la collision du composant. No Collision : ni blocage ni overlap. Query Only : overlaps seulement. Physics Only : blocage seulement. Query and Physics : les deux.",
+      "Active ou coupe la collision du composant. No Collision : ni blocage ni overlap. Query Only : les requêtes (overlaps, Line Trace, et le déplacement du joueur, qui en est une). Physics Only : seulement les objets qui simulent la physique, que l’appli n’a pas : le joueur passe au travers. Query and Physics : tout.",
     keywords: ['collision', 'bloquer', 'traverser', 'overlap', 'desactiver'],
     pins: [
       execIn(),

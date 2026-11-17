@@ -378,7 +378,7 @@ describe('maths and text', () => {
     const r = connect(b.graph, { node: b.node('var.get', { variable: etat }), pin: 'value' }, { node: pr, pin: 'text' }, contextFor(b.cls, pb.project));
     expect(r.ok).toBe(true);
     pb.place(b, 0, 0);
-    expect(prints(run(pb.project))).toEqual(['100.000000', 'true', 'Marche']);
+    expect(prints(run(pb.project))).toEqual(['100.0', 'true', 'Marche']);
   });
 });
 
@@ -482,10 +482,13 @@ describe('a Blueprint player', () => {
 describe('float comparison', () => {
   it('== is exact; Nearly Equal takes a tolerance', () => {
     const { p } = world((b) => {
-      const eq = b.node('math.equalFloat', {}, { a: 0.10001, b: 0.1 });
-      const near = b.node('math.nearlyEqualFloat', {}, { a: 0.10001, b: 0.1 });
-      printOf(b, printOf(b, b.node('event.beginPlay'), eq, 'result'), near, 'result');
+      const eq = b.node('math.equalFloat', {}, { a: 0.1000001, b: 0.1 });
+      // UE 5: Error Tolerance 1e-6 by default, and |A − B| must be strictly below it.
+      const near = b.node('math.nearlyEqualFloat', {}, { a: 0.1000001, b: 0.1 });
+      const far = b.node('math.nearlyEqualFloat', {}, { a: 0.10001, b: 0.1 });
+      const wide = b.node('math.nearlyEqualFloat', {}, { a: 0.10001, b: 0.1, tolerance: 1e-4 });
+      printOf(b, printOf(b, printOf(b, printOf(b, b.node('event.beginPlay'), eq, 'result'), near, 'result'), far, 'result'), wide, 'result');
     });
-    expect(prints(run(p))).toEqual(['false', 'true']);
+    expect(prints(run(p))).toEqual(['false', 'true', 'false', 'true']);
   });
 });

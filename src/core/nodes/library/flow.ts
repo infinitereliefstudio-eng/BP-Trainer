@@ -67,14 +67,14 @@ export const flowNodes: NodeDefinition[] = [
     category: CAT,
     kind: 'flow',
     description:
-      "Une porte d'exécution : ce qui entre par Enter ne sort par Exit que si la porte est ouverte. Open, Close et Toggle changent son état.",
+      "Une porte d'exécution : ce qui entre par Enter ne sort par Exit que si la porte est ouverte. Open, Close et Toggle changent son état. Start Closed est coché par défaut, comme dans UE : la porte commence fermée.",
     keywords: ['porte', 'open', 'close'],
     pins: [
       execIn('enter', 'Enter'),
       execIn('open', 'Open'),
       execIn('close', 'Close'),
       execIn('toggle', 'Toggle'),
-      dataIn('startClosed', 'Start Closed', T.bool, { default: false }),
+      dataIn('startClosed', 'Start Closed', T.bool, { default: true }),
       execOut('exit', 'Exit'),
     ],
   },

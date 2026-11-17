@@ -296,7 +296,7 @@ describe('Line Trace By Channel', () => {
     pb.place(wall, 260, 0);
     const sim = new Simulation(pb.project);
     sim.pressKey('E');
-    expect(prints(sim)).toEqual(['BP_Mur', '180.000000']);
+    expect(prints(sim)).toEqual(['BP_Mur', '180.0']);
     expect(sim.runtimeErrors).toBe(0);
   });
 
@@ -307,7 +307,7 @@ describe('Line Trace By Channel', () => {
     pb.place(wall, 250, 0);
     const sim = new Simulation(pb.project);
     sim.pressKey('E');
-    expect(prints(sim)).toEqual(['None', '0.000000']);
+    expect(prints(sim)).toEqual(['None', '0.0']);
   });
 
   it('finds nothing beyond its length, or behind', () => {
@@ -320,7 +320,7 @@ describe('Line Trace By Channel', () => {
   });
 
   it('a mesh tracing from its own centre hits itself unless Ignore Self is checked', () => {
-    for (const [ignoreSelf, expected] of [[false, ['BP_Mur', '0.000000']], [true, ['BP_Mur2', '180.000000']]] as const) {
+    for (const [ignoreSelf, expected] of [[false, ['BP_Mur', '0.0']], [true, ['BP_Mur2', '180.0']]] as const) {
       const { pb, wall } = tracer({ fromWall: true, ignoreSelf });
       pb.place(wall, 0, 0);
       pb.place(wall, 200, 0);

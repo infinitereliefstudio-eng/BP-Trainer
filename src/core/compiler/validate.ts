@@ -182,7 +182,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     out.push({
       severity: 'warning',
       code: 'unreachable',
-      text: `${nodeTitle(n, ctx)} n'est relié à aucun fil d'exécution : il ne s'exécutera jamais.`,
+      text: `${nodeTitle(n, ctx)} n'est relié à aucun fil d'exécution : il ne s'exécutera jamais. (Aide de l'appli : UE, lui, ne le signale pas.)`,
       graphId: g.id,
       nodeId: n.id,
     });

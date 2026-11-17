@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-17, V6.1 (les fiches « Comprendre » des anciennes leçons réécrites, voir « V6.1 »), poussée sur `main` à la demande de Tristan. Avant : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-17, V6.2 (fidélité à UE, voir « V6.2 »), poussée sur `main` à la demande de Tristan. Avant : V6.1 (les fiches « Comprendre » des anciennes leçons réécrites, voir « V6.1 »), poussée sur `main` à la demande de Tristan. Avant : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -205,7 +205,7 @@ Choix : prendre le haut de BACKLOG.md (« Par où commencer ») et ce qui répon
 - **Trois Prédis** (`lessons/library/predicts.ts`) : P6 « Sept divisé par deux » (Débutant, division entière), P7 « Le Gate » (Intermédiaire), P8 « Deux tableaux, ou un seul ? » (Confirmé, Set copie un tableau). 54 leçons et exercices.
 - Tests : `tests/review.test.ts` (banque de questions, calendrier, mémo, index), `tests/backup.test.ts`. Le smoke test a une suite (captures 53 à 57) **écrite sans pouvoir être lancée** (pas de Python sur la machine de Tristan) : la CI la jouera au premier push ; si elle échoue, le déploiement est bloqué et l'APK garde l'ancienne version.
 
-Remarqué, non changé : le Gate de l'appli a Start Closed décoché par défaut, alors que la macro d'UE le coche. À vérifier puis corriger (aucune leçon n'en dépend ; P7 le coche explicitement).
+Remarqué alors : le Gate avait Start Closed décoché par défaut, alors que la macro d'UE le coche. Corrigé en V6.2.
 
 Reste du haut du backlog : regard du joueur indépendant du déplacement, leçon de synthèse de la V3, plusieurs projets en Simulation libre, sons, Data Tables.
 
@@ -278,9 +278,32 @@ Tristan a validé la longueur des fiches de la V6 (« c’est mieux avec les nou
 - Les textes ont été relus contre le code : noms de pins et de nœuds tels que l’appli les affiche (SpawnActor, Utilities › Map, Promouvoir en variable…), couleurs de pins tirées de `editor/theme.ts`, Content Browser ouvert par le nom du Blueprint dans la barre d’outils.
 - `RichText` ne fait une liste que d’un bloc dont **toutes** les lignes commencent par « - » ou « 1. » : une phrase d’introduction doit être séparée de sa liste par une ligne vide.
 
-Remarqué, non changé (fidélité à UE, à voir avec Tristan) : dans le simulateur, `Physics Only` bloque le joueur et `Query Only` ne le bloque pas (`types/enums.ts`, `collisionBlocks`). Dans UE, le déplacement d’un personnage passe par des requêtes (sweeps) : c’est l’inverse. Les fiches évitent donc de décrire ces deux valeurs et ne parlent que de No Collision et Query and Physics.
+Remarqué : `Physics Only` bloquait le joueur et `Query Only` non. Corrigé en V6.2.
 
 Version 6.1.0.
+
+## V6.2 (2026-11-17) : fidélité à UE
+
+Demande de Tristan : corriger l’écart Query Only / Physics Only, « et en profiter pour faire d’autres vérifications de ce type ». Les points douteux ont été vérifiés sur la documentation d’UE ou ses forums avant d’être changés ; chaque correction a son test dans `tests/fidelity.test.ts`.
+
+Corrigé :
+
+- **Collision Enabled** : le déplacement d’un pion est un balayage (une requête). Un Static Mesh qui bloque arrête le joueur avec **Query Only** ou **Query and Physics** ; **Physics Only** le laisse passer (il ne sert qu’aux corps simulés, absents ici). `collisionBlocks` vaut maintenant `collisionQueries` (`types/enums.ts`) ; description de Set Collision Enabled, aide de Details, explication d’Event Hit et fiche « Visible, caché, traversable » mises à jour.
+- **Destroy Actor** : dans UE l’acteur ne disparaît qu’en fin d’image, la suite du fil en cours s’exécute donc encore (note d’Epic sur UE-10329). L’interpréteur compte les chaînes d’exécution (`Interpreter.run`) ; `ActorRT.destroyedInRun` garde celle de la destruction, et seules les frames des chaînes suivantes (Delay, timers, événements) sont abandonnées. Is Valid le dit invalide tout de suite, comme avant.
+- **Gate** : Start Closed coché par défaut, comme la macro d’UE. Les graphes enregistrés qui n’avaient pas touché la case passent donc à « fermé » (les valeurs par défaut ne sont pas copiées dans les nœuds).
+- **Float affiché** (To String (Float), donc Print String) : `FString::SanitizeFloat`, soit 1.5, 3.0, 0.333333 au lieu de 1.500000 (`sanitizeFloat` dans `behaviors/pure.ts`). Vector (`X=1.000 …`) et Rotator (`P=0.000000 …`) gardent leur format, qui était déjà celui d’UE.
+- **Nearly Equal (Float)** : tolérance par défaut 1e-6 (UE 5) au lieu de 1e-4, et comparaison stricte (|A − B| < tolérance).
+- **Clamp** avec Min > Max (`FMath::Clamp` : Min sous Min, sinon Max), **Random Integer in Range** avec Max < Min (rend Min), **String to Float** sur « 3,5 » (rend 3, comme `Atof`).
+- L’avertissement « relié à aucun fil d’exécution » dit maintenant que c’est une aide de l’appli : UE ne le signale pas. Textes de P9 et du compteur alignés.
+
+Vérifié et déjà fidèle : overlaps (un seul Begin/End par acteur), Cast sur None, boucles (For Loop vide, Index après la boucle), débordement des Integer, division et modulo par zéro, arrondis, égalité des String (casse ignorée) et des Text, Delay / Retriggerable Delay, timers (remplacement, Time ≤ 0, Handle), Switch on String, Line Trace et le pion (Visibility ignorée, Camera bloquée), fonctions de tableau hors limites.
+
+Non changé, à savoir :
+- Map et Set : après un Remove, UE réutilise la place libérée pour l’ajout suivant, l’ordre de Keys ou To Array peut donc différer de celui de l’appli. UE ne garantit aucun ordre ; ne pas écrire de leçon qui en dépende.
+- To Text (Integer / Float) : UE groupe les milliers selon la langue (« 1,234 » ou « 1 234 ») ; l’appli ne le fait pas.
+- Un Static Mesh ne déclenche jamais d’overlap dans l’appli (seules les Box Collision et le joueur), simplification assumée.
+
+Version 6.2.0.
 
 ## Méthode de travail
 

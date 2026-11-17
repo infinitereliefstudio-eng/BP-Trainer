@@ -105,7 +105,7 @@ const helpers: NodeDefinition[] = (['Int', 'Float'] as const).flatMap((k): NodeD
 });
 
 const rounding: NodeDefinition[] = [
-  fn('math.nearlyEqualFloat', 'Nearly Equal (Float)', FLOAT, "Vrai si A et B diffèrent d'au plus Error Tolerance. Le bon test pour des Float issus de calculs.", ['nearly', 'presque', 'egal', 'tolerance', 'compare'], [['a', 'A', T.float, 0], ['b', 'B', T.float, 0], ['tolerance', 'Error Tolerance', T.float, 1e-4]], [['result', 'Return Value', T.bool]]),
+  fn('math.nearlyEqualFloat', 'Nearly Equal (Float)', FLOAT, "Vrai si A et B diffèrent de moins de Error Tolerance (0,000001 par défaut, comme dans UE 5). Le bon test pour des Float issus de calculs.", ['nearly', 'presque', 'egal', 'tolerance', 'compare'], [['a', 'A', T.float, 0], ['b', 'B', T.float, 0], ['tolerance', 'Error Tolerance', T.float, 1e-6]], [['result', 'Return Value', T.bool]]),
   fn('math.round', 'Round', FLOAT, "Arrondit à l'entier le plus proche (2,5 donne 3).", ['round', 'arrondir'], [['a', 'A', T.float, 0]], [['result', 'Return Value', T.int]]),
   fn('math.floor', 'Floor', FLOAT, "Arrondit à l'entier inférieur (2,9 donne 2 ; −2,1 donne −3).", ['floor', 'arrondir', 'inferieur'], [['a', 'A', T.float, 0]], [['result', 'Return Value', T.int]]),
   fn('math.ceil', 'Ceil', FLOAT, "Arrondit à l'entier supérieur (2,1 donne 3).", ['ceil', 'arrondir', 'superieur'], [['a', 'A', T.float, 0]], [['result', 'Return Value', T.int]]),

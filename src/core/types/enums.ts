@@ -25,6 +25,12 @@ export function enumLabel(name: string | undefined, index: number, project?: Pro
   return enumEntries(name, project)?.[index] ?? String(index);
 }
 
-/** ECollisionEnabled helpers: does a component answer overlaps / block movement? */
+/**
+ * ECollisionEnabled helpers. Queries are overlaps, traces and sweeps; a pawn
+ * moves by sweeping, so in UE a Static Mesh stops it only when its collision
+ * does queries (Query Only, or Query and Physics) and its response is Block.
+ * Physics Only is for simulated bodies, which the trainer does not have:
+ * the player goes through it.
+ */
 export const collisionQueries = (c: number) => c === 1 || c === 3;
-export const collisionBlocks = (c: number) => c === 2 || c === 3;
+export const collisionBlocks = collisionQueries;

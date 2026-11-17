@@ -46,7 +46,7 @@ function printPure(b: ClassBuilder, def: string, defaults: Record<string, unknow
 describe('vector and grid nodes', () => {
   it('Dot Product', () => {
     const s = run(world((b) => printPure(b, 'math.dotProduct', { a: { x: 1, y: 2, z: 3 }, b: { x: 4, y: -5, z: 6 } })));
-    expect(prints(s)).toEqual(['12.000000']);
+    expect(prints(s)).toEqual(['12.0']);
   });
 
   it('Get Reflection Vector mirrors a direction on a surface, whatever the length of the normal', () => {
@@ -56,11 +56,11 @@ describe('vector and grid nodes', () => {
 
   it('Snap To Grid (Float): nearest multiple, halves go up, a grid of 0 changes nothing', () => {
     for (const [loc, grid, want] of [
-      [130, 50, '150.000000'],
-      [124, 50, '100.000000'],
-      [-70, 50, '-50.000000'],
-      [25, 50, '50.000000'],
-      [37, 0, '37.000000'],
+      [130, 50, '150.0'],
+      [124, 50, '100.0'],
+      [-70, 50, '-50.0'],
+      [25, 50, '50.0'],
+      [37, 0, '37.0'],
     ] as const) {
       const s = run(world((b) => printPure(b, 'math.snapToGridFloat', { location: loc, grid })));
       expect(prints(s), `${loc} / ${grid}`).toEqual([want]);

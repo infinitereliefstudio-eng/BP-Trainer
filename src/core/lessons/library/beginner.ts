@@ -73,7 +73,7 @@ export const lessonCounter: Lesson = {
     {
       title: 'Les deux pièges',
       body:
-        '**Un Increment posé à côté du fil.** Il ne s’exécute jamais et Passages reste à 0, sans erreur à l’exécution (Compile l’avertit). Tout nœud à pins blanches doit être traversé par le fil.\n\n' +
+        '**Un Increment posé à côté du fil.** Il ne s’exécute jamais et Passages reste à 0, sans erreur (Compile l’avertit dans l’appli, mais pas dans UE). Tout nœud à pins blanches doit être traversé par le fil.\n\n' +
         '**Afficher avant de compter.** Si le Print String vient avant l’Increment, il lit l’ancienne valeur : on voit 0, 1, 2 au lieu de 1, 2, 3. Un Get donne la valeur du moment, pas celle de la fin de l’événement.',
     },
   ],
@@ -196,9 +196,9 @@ export const lessonBarrier: Lesson = {
     {
       title: 'Ce qui bloque',
       body:
-        'Un mesh bloque le joueur à cause de sa **collision**, réglée par **Collision Enabled**. La valeur qui nous intéresse :\n\n' +
-        '- **No Collision** : le composant n’existe plus pour les collisions. Ni blocage, ni overlap.\n- **Query and Physics** (Collision Enabled) : il bloque et il détecte. C’est le réglage de départ de la barrière.\n\n' +
-        '**Set Collision Enabled** change ce réglage pendant le jeu. **Target** attend le **composant** (Get Barriere), pas l’acteur : la collision appartient à chaque composant. **New Type** est une liste : choisis No Collision.',
+        'Un mesh bloque le joueur à cause de sa **collision**, réglée par **Collision Enabled** :\n\n' +
+        '- **No Collision** : le composant n’existe plus pour les collisions. Ni blocage, ni overlap, ni Line Trace.\n- **Query Only** : il répond aux **requêtes** : overlaps, Line Trace… et le déplacement du joueur, qui en est une (le moteur « balaie » le trajet avant de bouger).\n- **Physics Only** : il ne sert qu’aux objets qui **simulent la physique** (une caisse qui tombe et roule). Le joueur passe au travers.\n- **Query and Physics** : tout à la fois. C’est le réglage de départ de la barrière.\n\n' +
+        '**Set Collision Enabled** change ce réglage pendant le jeu. **Target** attend le **composant** (Get Barriere), pas l’acteur : la collision appartient à chaque composant. **New Type** est une liste : No Collision laisse passer à coup sûr.',
     },
     {
       title: 'Le plan',

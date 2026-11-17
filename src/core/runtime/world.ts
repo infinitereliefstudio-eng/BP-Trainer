@@ -82,6 +82,12 @@ export interface ActorRT {
   /** Set Actor Hidden In Game: not drawn, still colliding (as in UE). */
   hidden: boolean;
   destroyed: boolean;
+  /**
+   * The chain of execution (Interpreter.run) in which Destroy Actor hit it.
+   * As in UE, where the actor really goes at the end of the frame, the rest
+   * of that chain still runs; its latent actions and later events do not.
+   */
+  destroyedInRun?: number;
 }
 
 /** A timer set by Set Timer by Event: an event to call after Time seconds. */

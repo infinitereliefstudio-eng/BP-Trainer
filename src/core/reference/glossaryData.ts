@@ -135,7 +135,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   {
     title: 'Laisser passer une fois, ou alterner',
     names: ['DoOnce', 'Do Once et Retriggerable Delay', 'Start Closed', 'FlipFlop', 'Gate'],
-    what: 'DoOnce laisse passer le fil blanc une fois, puis se ferme jusqu’à Reset. FlipFlop alterne entre A et B. Gate laisse passer ce qui entre par Enter tant qu’il est ouvert. Start Closed les fait démarrer fermés.',
+    what: 'DoOnce laisse passer le fil blanc une fois, puis se ferme jusqu’à Reset. FlipFlop alterne entre A et B. Gate laisse passer ce qui entre par Enter tant qu’il est ouvert. Start Closed les fait démarrer fermés : décoché par défaut sur DoOnce, coché par défaut sur Gate, comme dans UE.',
     when: 'Quand un événement se répète (overlap, Event Hit) mais que l’effet ne doit arriver qu’une fois, ou une fois sur deux.',
     trap: 'Un DoOnce dont personne ne relie Reset ne se rouvre jamais : la deuxième fois, rien ne se passe, sans erreur.',
   },
@@ -258,7 +258,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   {
     title: 'Créer et détruire',
     names: ['Spawn Actor', 'Expose on Spawn', 'Destroy Actor'],
-    what: 'Spawn Actor crée un acteur d’une classe à une position ; son BeginPlay tourne avant que le nœud ne rende la main. Une variable Expose on Spawn devient une pin du nœud, réglée avant ce BeginPlay. Destroy Actor retire l’acteur du jeu.',
+    what: 'Spawn Actor crée un acteur d’une classe à une position ; son BeginPlay tourne avant que le nœud ne rende la main. Une variable Expose on Spawn devient une pin du nœud, réglée avant ce BeginPlay. Destroy Actor retire l’acteur du jeu : la suite du fil blanc en cours s’exécute encore (l’acteur ne disparaît qu’en fin d’image), mais ses Delay et timers s’arrêtent.',
     when: 'Pour tout ce qui apparaît en cours de partie : ennemis, projectiles, objets ramassables.',
     trap: 'Un Set fait après le Spawn arrive trop tard pour le BeginPlay du nouvel acteur.',
     pattern: 'Spawn Actor BP_Ennemi (Vie = 30) → Return Value',

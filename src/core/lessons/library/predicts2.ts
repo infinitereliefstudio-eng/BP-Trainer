@@ -60,7 +60,7 @@ export const predict9: Lesson = predictLesson({
     options: ['10, puis 100', '10, puis 15', '15, puis 15', '100, puis 105'],
     answer: 1,
     explanation:
-      'Le premier Print String lit Score avant tout changement : 10. Le Set relié au fil blanc range 10 + 5 : le second Print String lit 15. Le Set Score = 100 n’a aucun fil blanc : il ne s’exécute jamais. Compile le signale d’ailleurs par un avertissement.',
+      'Le premier Print String lit Score avant tout changement : 10. Le Set relié au fil blanc range 10 + 5 : le second Print String lit 15. Le Set Score = 100 n’a aucun fil blanc : il ne s’exécute jamais. Ici, Compile le signale par un avertissement ; UE, lui, ne dit rien.',
     verify: (p) => p.join(',') === '10,15',
   },
 });

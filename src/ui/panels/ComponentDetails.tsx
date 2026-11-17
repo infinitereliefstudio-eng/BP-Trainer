@@ -121,7 +121,7 @@ export function ComponentDetails({ id }: { id: string }) {
               ))}
             </select>
           </Field>
-          <p class="muted small">Query : déclenche les overlaps. Physics : bloque le joueur. Set Collision Enabled le change en jeu.</p>
+          <p class="muted small">Query : overlaps, Line Trace et déplacement du joueur (un mesh qui bloque l’arrête). Physics : objets qui simulent la physique, absents ici. Set Collision Enabled le change en jeu.</p>
         </Group>
       )}
 

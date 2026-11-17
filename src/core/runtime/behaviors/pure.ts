@@ -4,12 +4,17 @@ import { adoptedBy, decodeType } from '../../types/wildcard';
 import { toInt, toVec } from '../values';
 import type { Behavior } from './types';
 
-/** UE prints floats with six decimals (1.500000). */
-const formatFloat = (n: number) => n.toFixed(6);
+/** UE's FString::SanitizeFloat (To String (Float), Print String): six decimals, trailing zeros dropped, at least one kept: 1.5, 3.0, 0.333333. */
+export const sanitizeFloat = (n: number) => {
+  if (!Number.isFinite(n)) return Number.isNaN(n) ? 'nan' : n > 0 ? 'inf' : '-inf';
+  return n.toFixed(6).replace(/(\.\d*?[1-9])0+$|\.0+$/, (_m, kept) => kept ?? '.0');
+};
+/** printf("%f"), used by Rotator's ToString (P=0.000000 Y=90.000000 R=0.000000). */
+const fixed6 = (n: number) => n.toFixed(6);
 
 export const pureBehaviors: Record<string, Behavior> = {
   'conv.intToString': { pure: (cx) => ({ result: String(toInt(cx.num('in'))) }) },
-  'conv.floatToString': { pure: (cx) => ({ result: formatFloat(cx.num('in')) }) },
+  'conv.floatToString': { pure: (cx) => ({ result: sanitizeFloat(cx.num('in')) }) },
   'conv.boolToString': { pure: (cx) => ({ result: cx.bool('in') ? 'true' : 'false' }) },
   'conv.intToFloat': { pure: (cx) => ({ result: cx.num('in') }) },
   'conv.floatToInt': { pure: (cx) => ({ result: toInt(cx.num('in')) }) },
@@ -18,13 +23,13 @@ export const pureBehaviors: Record<string, Behavior> = {
   'conv.vectorToString': {
     pure: (cx) => {
       const v = toVec(cx.in('in'));
-      return { result: `X=${formatFloat(v.x).slice(0, -3)} Y=${formatFloat(v.y).slice(0, -3)} Z=${formatFloat(v.z).slice(0, -3)}` };
+      return { result: `X=${v.x.toFixed(3)} Y=${v.y.toFixed(3)} Z=${v.z.toFixed(3)}` };
     },
   },
   'conv.rotatorToString': {
     pure: (cx) => {
       const r = toVec(cx.in('in'));
-      return { result: `P=${formatFloat(r.y)} Y=${formatFloat(r.z)} R=${formatFloat(r.x)}` };
+      return { result: `P=${fixed6(r.y)} Y=${fixed6(r.z)} R=${fixed6(r.x)}` };
     },
   },
   'conv.stringToInt': {
@@ -35,7 +40,8 @@ export const pureBehaviors: Record<string, Behavior> = {
   },
   'conv.stringToFloat': {
     pure: (cx) => {
-      const n = parseFloat(cx.str('in').trim().replace(',', '.'));
+      // FCString::Atof: reads up to the first character that is not part of a number, so "3,5" gives 3.
+      const n = parseFloat(cx.str('in').trim());
       return { result: Number.isFinite(n) ? n : 0 };
     },
   },

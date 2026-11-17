@@ -5,7 +5,7 @@
  * actor that does not implement it…
  */
 import type { NodeRuns } from '../runtime/runRecord';
-import { collisionQueries } from '../types/enums';
+import { collisionBlocks, collisionQueries } from '../types/enums';
 import { type DiagnoseCx, type DiagnosisStep, secs, stepAt, times, whyNot } from './diagnose';
 import { delegateSource, findNodes, titleOf, type Site } from './where';
 
@@ -53,7 +53,7 @@ export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], 
       say(`Aucun ${cls.name} n’a été touché dans le niveau pendant la partie.`);
       return;
     case 'event.hit': {
-      const solid = cls.components.some((c) => c.kind === 'StaticMesh' && c.props.blocks && c.props.collision >= 2);
+      const solid = cls.components.some((c) => c.kind === 'StaticMesh' && c.props.blocks && collisionBlocks(c.props.collision));
       if (cx.project.playerClassId === cls.id) say('Le joueur n’a buté contre aucun Static Mesh qui bloque pendant la partie.');
       else if (!solid) say(`${cls.name} n’a aucun Static Mesh qui bloque le joueur : sans obstacle, rien ne peut le heurter. Traverser une Box Collision déclenche un overlap, pas un Hit.`);
       else say(`Le joueur n’a buté contre aucun ${cls.name} pendant la partie : Event Hit ne vient que d’un contact qui bloque.`);

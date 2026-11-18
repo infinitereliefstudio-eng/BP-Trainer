@@ -544,3 +544,36 @@ select.field { padding-right: 4px; }
 .mapping-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .mapping-row .field { width: auto; min-width: 90px; }
 .mapping-row .d-field { flex-basis: 100%; }
+
+/* ------------------------------------------------ editors laid out like UE (ui/editor/) */
+/* Amber marks what BP Trainer adds and UE does not have (lesson, home, app menu, Play speed). */
+.app-only, .tb.app-only, .pb-btn.app-only { border-color: #8a6d14; color: #ffd76a; }
+.doc-bar {
+  height: 36px; flex: none; display: flex; align-items: stretch; gap: 4px; background: #141517; border-bottom: 1px solid var(--line);
+  padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(4px, env(safe-area-inset-right));
+}
+.doc-bar .tb { height: 30px; align-self: center; }
+.doc-home { width: 36px; font-size: 18px; flex: none; }
+.doc-tabs { flex: 1; min-width: 0; display: flex; overflow-x: auto; scrollbar-width: none; }
+.doc-tabs::-webkit-scrollbar { display: none; }
+.doc-tab { display: inline-flex; align-items: center; gap: 6px; height: 100%; padding: 0 10px; border: 0; border-top: 2px solid transparent; color: var(--muted); white-space: nowrap; font-weight: 600; border-right: 1px solid var(--line); }
+.doc-tab.active { background: var(--panel); color: var(--text); border-top-color: var(--accent); }
+.doc-tab.bp { padding: 0 2px 0 0; }
+.doc-open { height: 100%; padding: 0 4px 0 10px; display: inline-flex; align-items: center; gap: 6px; }
+.doc-close { width: 28px; height: 100%; color: var(--muted); font-size: 16px; }
+.doc-icon { font-size: 11px; color: #85b7eb; }
+.doc-tab.level .doc-icon { color: #97c459; }
+.toolbar.bp-toolbar, .toolbar.level-toolbar { height: 40px; }
+.toolbar .tb { height: 30px; }
+.graph-tabs .tab { height: 30px; }
+.editor-body { flex: 1; min-height: 0; display: flex; }
+.editor-body .workspace { flex: 1; }
+.edge-handle { flex: none; width: 24px; background: var(--panel); color: var(--muted); font-size: 11px; display: flex; align-items: center; justify-content: center; border-color: var(--line); border-style: solid; border-width: 0; }
+.edge-handle.left { border-right-width: 1px; }
+.edge-handle.right { border-left-width: 1px; }
+.edge-label { writing-mode: vertical-rl; white-space: nowrap; letter-spacing: 0.02em; }
+.edge-label.flip { transform: rotate(180deg); }
+.panel-title { padding: 10px 12px 6px; font-weight: 700; font-size: 15px; border-top: 1px solid var(--line); background: #1d1e21; }
+.bottom-bar { display: flex; align-items: stretch; }
+.bottom-bar .bottom-handle { flex: 1; width: auto; }
+.content-drawer-btn { flex: none; height: 34px; padding: 0 12px; font-size: 13px; color: var(--text); border-right: 1px solid var(--line); white-space: nowrap; }

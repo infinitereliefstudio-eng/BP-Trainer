@@ -21,6 +21,14 @@ PUT = """([key, json]) => new Promise((res, rej) => { const r = indexedDB.open('
 OPEN = """(name) => { const s = window.bpStore; s.openClass(s.project.classes.find(c => c.name === name).id); }"""
 
 
+async def graph(page):
+    """Open the Event Graph of the Blueprint being edited (its editor tab first, from the level)."""
+    if await page.locator('.graph-tabs').count() == 0:
+        await page.locator('.doc-tab.current .doc-open').tap()
+        await page.wait_for_timeout(200)
+    await page.locator('.graph-tabs .tab', has_text='Event Graph').tap()
+
+
 async def main():
     OUT.mkdir(parents=True, exist_ok=True)
     async with async_playwright() as p:
@@ -42,7 +50,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
         await page.wait_for_timeout(500)
         await page.evaluate(OPEN, 'BP_Lampe')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('02_lamp_graph')
         await page.evaluate(OPEN, 'BP_Generateur')
@@ -96,7 +104,7 @@ async def main():
         await shot('10_class_settings')
         await page.locator('.drawer.right .drawer-head .btn').tap()
         await page.evaluate(OPEN, 'BP_Joueur')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('11_player_graph')
         await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
@@ -134,7 +142,7 @@ async def main():
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
         await page.evaluate("""() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Generateur'); s.openClass(c.id); s.openGraph(c.graphs[0].id); const n = Object.values(c.graphs[0].nodes).find(n => n.def === 'time.clearTimer'); s.selectNodes([n.id]); }""")
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.locator('button[aria-label="Ouvrir Details"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.details .btn', has_text='Pourquoi ce nœud').tap()
@@ -178,7 +186,7 @@ async def main():
         await shot('18_complete_sheet')
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('19_complete_graph')
 
@@ -201,7 +209,7 @@ async def main():
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
         await page.evaluate(OPEN, 'BP_Clignotante')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
         await page.wait_for_timeout(300)
         await shot('22_child_my_blueprint')
@@ -223,7 +231,9 @@ async def main():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
         await page.evaluate("""() => { const s = window.bpStore; s.openGraph(s.cls.graphs.find(g => g.name === 'AjouterArticle').id); }""")
         await page.wait_for_timeout(200)
-        await page.locator('.tab', has_text='AjouterArticle').tap()
+        await page.locator('.doc-tab.current .doc-open').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.graph-tabs .tab', has_text='AjouterArticle').tap()
         await page.wait_for_timeout(300)
         await shot('24_function_with_locals')
         await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
@@ -243,7 +253,7 @@ async def main():
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
         await page.evaluate(OPEN, 'BP_Joueur')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('27_message_with_pins')
         await page.evaluate(OPEN, 'BP_Terminal')
@@ -268,7 +278,7 @@ async def main():
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('31_map_find_graph')
         await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'variable', id: s.cls.variables.find(v => v.name === 'Codes').id }); }""")
@@ -283,7 +293,7 @@ async def main():
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('33_struct_graph')
         await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'struct', id: s.project.structs[0].id }); }""")
@@ -309,7 +319,7 @@ async def main():
         await page.wait_for_timeout(300)
         await shot('36_set_variable_details')
         await page.locator('.drawer.right .drawer-head .btn').tap()
-        await page.locator('.tb.class-name').tap()
+        await page.locator('.content-drawer-btn').tap()
         await page.wait_for_timeout(300)
         await shot('37_content_browser')
 
@@ -328,7 +338,7 @@ async def main():
         await page.locator('.lesson-item', has_text='La porte qui glisse').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('38_timeline_graph')
         await page.evaluate("() => { const s = window.bpStore; s.selectNodes([Object.values(s.graph.nodes).find(n => n.def === 'timeline.node').id]); }")
@@ -396,7 +406,7 @@ async def main():
         await page.locator('.tab', has_text='Niveau').tap()
         await page.wait_for_timeout(300)
         await shot('43_construction_level')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.drawer.left .mb-main', has_text='ConstructionScript').tap()
@@ -405,7 +415,7 @@ async def main():
         await page.locator('.drawer.left .drawer-head .btn').tap()
         await page.wait_for_timeout(300)
         await shot('45_construction_graph')
-        if await page.locator('.tab.active', has_text='ConstructionScript').count() != 1:
+        if await page.locator('.tab.active', has_text='Construction Script').count() != 1:
             errs.append('Construction Script : le graphe ne s’ouvre pas depuis My Blueprint')
         # Changing an instance in the level reruns the script: the editor preview follows.
         lit = await page.evaluate("""() => { const s = window.bpStore; const a = s.project.level.actors[1]; const on = s.cls.variables.find(v => v.name === 'Allumee').id; s.applyProject('test', p => { p.level.actors[1].overrides[on] = true; }); return a.name; }""")
@@ -420,7 +430,7 @@ async def main():
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.evaluate(OPEN, 'BP_Joueur')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('47_trace_graph')
         await page.locator('.tb.play').tap()
@@ -438,7 +448,7 @@ async def main():
         await page.locator('.lesson-item', has_text='La caisse qu’on pousse').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('49_hit_graph')
 
@@ -529,7 +539,7 @@ async def main():
         await shot('58_mirrors_sheet')
         await close_sheet()
         await page.evaluate(OPEN, 'BP_Emetteur')
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('59_mirrors_graph')
         await page.evaluate("() => { const s = window.bpStore; const n = Object.values(s.graph.nodes).find(n => n.def === 'trace.lineByChannel'); n.defaults.debug = 1; }")
@@ -552,7 +562,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Les meubles sur une grille tournée').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await shot('62_floor_graph')
         await page.goto(home)
@@ -560,6 +570,7 @@ async def main():
         await page.locator('.lesson-item', has_text='La même donne').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
+        await graph(page)
         await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.drawer.left .mb-main', has_text='Hasard').tap()
@@ -574,7 +585,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Le catalogue').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tb.class-name').tap()
+        await page.locator('.content-drawer-btn').tap()
         await page.wait_for_timeout(300)
         await page.locator('.palette-item', has_text='DT_Objets').first.tap()
         await page.wait_for_timeout(400)
@@ -596,7 +607,7 @@ async def main():
             await page.wait_for_timeout(120)
         await page.locator('.tb.stop').tap()
         await page.wait_for_timeout(300)
-        await page.locator('.tb.class-name').tap()
+        await page.locator('.content-drawer-btn').tap()
         await page.wait_for_timeout(300)
         await shot('65_save_slots')
         if await page.locator('.slot-item', has_text='Tirelire').count() != 1:
@@ -608,7 +619,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Seule la dernière porte').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Event Graph').tap()
+        await graph(page)
         await page.wait_for_timeout(300)
         await page.evaluate("""() => { const s = window.bpStore; const n = Object.values(s.graph.nodes).find(n => n.def === 'event.inputKey'); s.selectNodes([n.id]); s.setFocus({ kind: 'nodes' }); }""")
         await page.locator('button[aria-label="Ouvrir Details"]').tap()

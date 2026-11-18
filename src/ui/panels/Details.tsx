@@ -27,6 +27,7 @@ import { ComponentDetails } from './ComponentDetails';
 import { EnumDetails } from './EnumDetails';
 import { DataTableDetails } from './DataTableDetails';
 import { InputActionDetails, MappingContextDetails } from './InputDetails';
+import { ClassDefaults } from './ClassDefaults';
 import { StructDetails } from './StructDetails';
 import { Check, Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
@@ -53,6 +54,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
+  else if (f.kind === 'classDefaults') body = <ClassDefaults />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;
   else if (f.kind === 'playerStart') body = <PlayerStartDetails />;
   else if (f.kind === 'function') body = <FunctionDetails id={f.id} openOverlay={openOverlay} />;

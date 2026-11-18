@@ -113,6 +113,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
       </Section>
       )}
 
+      <div class="panel-title">My Blueprint</div>
       <Section title="Graphs">
         {cls.graphs
           .filter((g) => g.kind === 'event')

@@ -14,9 +14,11 @@ interface Props {
   onClose: () => void;
   openOverlay: OpenOverlay;
   onOpenDetails: () => void;
+  /** Open a Blueprint in its editor tab. */
+  onOpenBlueprint?: (classId: string) => void;
 }
 
-export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
+export function ContentBrowser({ onClose, openOverlay, onOpenDetails, onOpenBlueprint }: Props) {
   const store = useStore();
   const tap = useOwnTap();
   const create = () =>
@@ -189,7 +191,8 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
               key={c.id}
               class={`palette-item${c.id === store.classId ? ' current' : ''}`}
               onClick={() => {
-                store.openClass(c.id);
+                if (onOpenBlueprint) onOpenBlueprint(c.id);
+                else store.openClass(c.id);
                 onClose();
               }}
             >

@@ -115,7 +115,7 @@ export const lessonCatalog: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        'Dans le Content Browser (touche le nom du Blueprint en haut) :\n\n' +
+        'Dans le Content Browser (bouton **Content Drawer**, en bas à gauche, comme dans UE5) :\n\n' +
         '- la structure **S_Fiche** : Nom et Description, deux String ;\n- la Data Table **DT_Objets**, dont chaque ligne est une S_Fiche : **Lampe**, **Cle** et **Carte**.\n\n' +
         '**BP_Examinable** est un petit objet jaune avec une Zone, et une variable **IdObjet** (Name, Instance Editable). Trois sont posés, réglés sur « lampe », « Cle » et « Cartes ». Le graphe est vide.',
     },

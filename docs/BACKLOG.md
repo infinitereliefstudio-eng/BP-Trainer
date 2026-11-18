@@ -72,6 +72,18 @@ Choix du 18 novembre : Tristan en est vers l'étape 10 et ne pratique pas encore
 | Revoir le bilan de qualité | Dans `core/quality/review.ts`, le nombre de nœuds pèse sur le verdict et les étoiles. En faire un indicateur secondaire ; critères distincts : fonctionnement, robustesse, notion travaillée, lisibilité, coût d'exécution | ★★ | M |
 | Durée affinée | La durée est estimée d'après la taille de la solution ; l'affiner avec le temps réellement passé | ★ | S à M |
 
+## Interface à la manière d'UE (plan validé le 18 novembre)
+
+Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en tiroirs, appui long = clic droit ; ambre = propre à BP Trainer.
+
+| Étape | Contenu | État |
+|---|---|---|
+| 1 | Les deux éditeurs : onglets Niveau + un par Blueprint, barre d'outils de chacun (Class Settings, Class Defaults, Place Actors), onglets Construction Script / Event Graph, poignées Components · My Blueprint et Details, Content Drawer en bas, ambre | **Fait en V7.5** |
+| 2 | Content Drawer : + Add avec le menu d'UE (Blueprint Class, Input, Blueprint, Miscellaneous), Pick Parent Class, vignettes par type, ouverture par double toucher, poser un acteur depuis le Drawer | À faire |
+| 3 | Enhanced Input, point 1 : Player Controller, Get Player Controller / Get Controller, Cast To PlayerController, Enhanced Input Local Player Subsystem, Add Mapping Context avec Target ; leçons mises à jour | À faire |
+| 4 | Details à la manière d'UE (sections d'UE d'abord, aide de l'appli dans un bloc ambre repliable) ; palette « All Actions for this Blueprint » avec Context Sensitive et catégories repliables ; Find (Find Results) | À faire |
+| 5 | Viewport du Blueprint (composants seuls) ; Outliner permanent dans l'éditeur de niveau (tiroir Outliner / Details) | À faire |
+
 ## Lot 3 — Entrées et interaction
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
@@ -242,6 +254,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.5 (18 novembre 2026), interface à la manière d'UE, étape 1 : onglets Niveau et Blueprints, barres d'outils des deux éditeurs, Class Defaults, poignées nommées, Content Drawer en bas, ambre pour ce qui est propre à l'appli.
 - V7.4 (18 novembre 2026), Enhanced Input : Input Actions, Input Mapping Contexts, Add / Remove Mapping Context, déclencheurs Down, Pressed, Released et Hold, événements Started, Ongoing, Triggered, Canceled, Completed, Consume Input ; trois étapes (la lampe, D20, maintenir pour ouvrir).
 - V7.3 (18 novembre 2026), pilote du lot 2 : première leçon corrigée (nœuds purs), aide utilisée mémorisée (seul, avec indices, solution vue), notions de référence et prérequis sur les cartes, durée indicative, « Montre-moi » après un échec, chaîne Cast To avec T1 « Le terminal à badge » et A1 « Le piège » (différé de deux jours).
 - V7.2 (18 novembre 2026), lot 1 Fiabilité : un projet illisible, d'un format plus récent ou que le stockage ne rend pas n'est plus jamais remplacé (dialogue de récupération, copie `rescue:*` gardée dans la sauvegarde complète) ; une seule politique de stockage avec révisions (la copie la plus récente gagne, écritures ordonnées par clé) ; transactions IndexedDB attendues jusqu'au bout ; projets et progressions vérifiés en entier avant toute écriture ; sauvegarde immédiate à la fermeture d'un espace ; slots Save Game enregistrés pendant Play ; échec d'enregistrement de la progression signalé, avec Réessayer ; restauration écrite d'un bloc ; règles de simulation et révisions de leçon versionnées, avec un avis une fois ; service worker : copie en cache sur erreur 5xx, seuls ses propres caches supprimés, manifest et icônes rafraîchis ; avis « Nouvelle version disponible ».

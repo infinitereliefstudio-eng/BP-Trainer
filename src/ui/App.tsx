@@ -1,6 +1,9 @@
 /**
- * Editor shell for one workspace: toolbar, graph or level view, drawers
- * (My Blueprint, Details), bottom panel, Play and the lesson panel.
+ * Editor shell for one workspace, laid out like UE: tabs for the level and
+ * each open Blueprint, the toolbar of the editor shown, the graph or the
+ * level, drawers named and placed as UE's panels (Components and My
+ * Blueprint on the left, Details on the right), the bottom bar (Content
+ * Drawer, Compiler Results, Output Log), Play and the lesson panel.
  */
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { compileClass } from '@core/compiler/validate';
@@ -35,7 +38,8 @@ import { DebugBar } from './play/DebugBar';
 import { LiveOutliner } from './play/LiveOutliner';
 import { PlayOverlay } from './play/PlayOverlay';
 import { playOrder } from './playSettings';
-import { Toolbar, type MainView } from './Toolbar';
+import { DocumentTabs } from './editor/DocumentTabs';
+import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolbars';
 import { Toasts } from './widgets/Toasts';
 import { type LessonHelp, resetLesson, type Workspace, type WorkspaceRef } from './workspace';
 
@@ -68,8 +72,14 @@ export function App(props: Props) {
 function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
-  const [view, setView] = useState<MainView>(lesson && !alternative && !solution ? 'level' : 'graph');
+  const [view, setView] = useState<'graph' | 'level'>(lesson && !alternative && !solution ? 'level' : 'graph');
   const [left, setLeft] = useState(false);
+  // Blueprint editors open in tabs, as in UE; the one being edited is always among them.
+  const [tabs, setTabs] = useState<string[]>(() => [store.classId]);
+  useEffect(() => {
+    setTabs((t) => (t.includes(store.classId) ? t : [...t, store.classId]));
+  }, [store.classId]);
+  const openTabs = tabs.filter((id) => store.project.classes.some((c) => c.id === id));
   const [details, setDetails] = useState(false);
   const [bottom, setBottom] = useState<false | BottomTab>(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -240,22 +250,28 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
   return (
     <div class={`app${playing ? ' playing' : ''}`}>
-      <Toolbar
+      <DocumentTabs
         view={view}
-        playing={playing}
-        saveKey={workspace.key}
-        lessonLabel={lesson ? lessonLabel(lesson) : undefined}
-        onView={setView}
+        tabs={openTabs}
+        onLevel={() => setView('level')}
+        onOpenTab={(id) => {
+          if (id !== store.classId) store.openClass(id);
+          setView('graph');
+        }}
+        onCloseTab={(id) => {
+          const rest = openTabs.filter((t) => t !== id);
+          setTabs(rest);
+          if (id === store.classId && view === 'graph') {
+            if (rest.length) store.openClass(rest[rest.length - 1]);
+            else setView('level');
+          }
+        }}
         onHome={() => {
           stop();
           onHome();
         }}
-        onToggleLeft={() => setLeft((v) => !v)}
-        onToggleDetails={() => setDetails((v) => !v)}
-        onPlay={play}
-        onStop={stop}
+        lessonLabel={lesson ? lessonLabel(lesson) : undefined}
         onLesson={lesson ? () => setOverlay({ kind: 'lesson' }) : undefined}
-        openOverlay={setOverlay}
         onMoreMenu={(sx, sy) =>
           setOverlay({
             kind: 'menu',
@@ -271,6 +287,30 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           })
         }
       />
+      {view === 'graph' ? (
+        <BlueprintToolbar
+          playing={playing}
+          saveKey={workspace.key}
+          onPlay={play}
+          onStop={stop}
+          onClassSettings={() => {
+            store.setFocus({ kind: 'class' });
+            openDetails();
+          }}
+          onClassDefaults={() => {
+            store.setFocus({ kind: 'classDefaults' });
+            openDetails();
+          }}
+        />
+      ) : (
+        <LevelToolbar
+          playing={playing}
+          saveKey={workspace.key}
+          onPlay={play}
+          onStop={stop}
+          onPlaceActors={(sx, sy) => setOverlay({ kind: 'menu', sx, sy, title: 'Place Actors', items: placeMenu(store, { x: 0, y: 0 }) })}
+        />
+      )}
       {solution && (
         <div class="scratch-bar">
           <span>
@@ -314,6 +354,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           </button>
         </div>
       )}
+      <div class="editor-body">
+      <EdgeHandle side="left" label="Components · My Blueprint" aria="Ouvrir My Blueprint" hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
       <main class="workspace">
         {view === 'graph' ? (
           <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
@@ -395,24 +437,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir">
               ↷
             </button>
-            <button
-              class="fab wide"
-              onClick={(e) => {
-                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                setOverlay({ kind: 'menu', sx: r.left - 120, sy: r.top - 160, title: 'Placer dans le niveau', items: placeMenu(store, { x: 0, y: 0 }) });
-              }}
-            >
-              + Placer
-            </button>
-            <button class="fab primary wide" onClick={play}>
-              ▶ Play
-            </button>
           </div>
         )}
 
         <aside class={`drawer left${left ? ' open' : ''}`} aria-hidden={!left}>
           <div class="drawer-head">
-            <strong>My Blueprint</strong>
+            <strong>{store.cls.parent === 'SaveGame' ? 'My Blueprint' : 'Components · My Blueprint'}</strong>
             <button class="btn" onClick={() => setLeft(false)}>
               ✕
             </button>
@@ -431,10 +461,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         </aside>
 
         <div class={`bottom-wrap${bottom ? ' open' : ''}${playing ? ' playing' : ''}`}>
+          <div class="bottom-bar">
+          <button class="content-drawer-btn" disabled={playing} onClick={() => setOverlay({ kind: 'content' })}>
+            ▤ Content Drawer
+          </button>
           <button class="bottom-handle" onClick={() => setBottom((v) => (v ? false : 'compiler'))}>
             {bottom ? '▾' : '▴'} Compiler Results · Output Log · Debug
             {store.compileStatus === 'error' && <span class="pill error">erreurs</span>}
           </button>
+          </div>
           {bottom && (
             <BottomPanel
               key={bottom}
@@ -448,6 +483,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         <Toasts />
       </main>
+      <EdgeHandle side="right" label="Details" aria="Ouvrir Details" hidden={playing} onClick={() => setDetails((v) => !v)} />
+      </div>
 
       {overlay?.kind === 'palette' && <Palette req={overlay.req} onClose={close} onFocusNode={(id) => canvas.current?.focusNode(id)} />}
       {overlay?.kind === 'menu' && <ContextMenu sx={overlay.sx} sy={overlay.sy} title={overlay.title} items={overlay.items} onClose={close} />}
@@ -458,7 +495,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       {overlay?.kind === 'confirm' && (
         <ConfirmDialog title={overlay.title} text={overlay.text} confirmLabel={overlay.confirmLabel} onConfirm={overlay.onConfirm} onClose={close} />
       )}
-      {overlay?.kind === 'content' && <ContentBrowser onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} />}
+      {overlay?.kind === 'content' && <ContentBrowser onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} onOpenBlueprint={openClass} />}
       {overlay?.kind === 'about' && <AboutDialog onClose={close} />}
       {overlay?.kind === 'timeline' && <TimelineEditor nodeId={overlay.nodeId} onClose={close} />}
       {overlay?.kind === 'lesson' && lesson && (

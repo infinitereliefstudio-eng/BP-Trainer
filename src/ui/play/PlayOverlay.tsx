@@ -31,7 +31,7 @@ export function PlayOverlay({ session, onStop, onShowLog, onOutliner }: Props) {
           ▸|
         </button>
         {SPEEDS.map((s) => (
-          <button key={s} class={`pb-btn small${session.speed === s ? ' on' : ''}`} onClick={() => session.setSpeed(s)}>
+          <button key={s} class={`pb-btn small app-only${session.speed === s ? ' on' : ''}`} onClick={() => session.setSpeed(s)}>
             ×{s === 0.25 ? '¼' : s}
           </button>
         ))}

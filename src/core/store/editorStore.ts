@@ -29,6 +29,8 @@ export type Focus =
   | { kind: 'local'; graph: string; id: string }
   | { kind: 'component'; id: string }
   | { kind: 'class' }
+  /** Class Defaults: the default value of each variable of the class. */
+  | { kind: 'classDefaults' }
   | { kind: 'function'; id: string }
   | { kind: 'dispatcher'; id: string }
   | { kind: 'interface'; id: string }

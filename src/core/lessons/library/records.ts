@@ -73,7 +73,7 @@ export const lessonRecord: Lesson = {
       title: 'Une structure',
       body:
         'Une **structure** regroupe plusieurs valeurs sous **un seul type**. Une variable S_Objet contient un Nom **et** un Poids : on la passe, on la range dans un tableau, on la renvoie d’une fonction, d’un seul fil.\n\n' +
-        'Ouvre S_Objet (touche le nom du Blueprint en haut pour le Content Browser) et touche **+ Membre** : `Charge`, type Integer, valeur par défaut **100**. Toutes les variables S_Objet du projet ont aussitôt ce membre, à sa valeur par défaut.',
+        'Ouvre S_Objet (bouton Content Drawer, en bas à gauche) et touche **+ Membre** : `Charge`, type Integer, valeur par défaut **100**. Toutes les variables S_Objet du projet ont aussitôt ce membre, à sa valeur par défaut.',
     },
     {
       title: 'Trois nœuds',

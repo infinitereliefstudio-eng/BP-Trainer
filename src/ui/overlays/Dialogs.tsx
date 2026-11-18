@@ -115,15 +115,20 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
     <Dialog title="BP Trainer — aide et gestes" onClose={onClose}>
       <p>Créer des Blueprints, les faire communiquer, les lancer avec Play et les déboguer, au doigt.</p>
       <ul class="about-list">
+        <li>
+          Comme dans UE : un onglet pour le niveau, un onglet par Blueprint ouvert (depuis le Content Drawer, en bas à gauche). Components et My Blueprint à
+          gauche, Details à droite : touche leur nom sur le bord de l’écran.
+        </li>
+        <li>En ambre : ce qui est propre à BP Trainer et n’existe pas dans UE (la leçon, l’accueil, la vitesse de Play…).</li>
         <li>En leçon : la bande sous la barre d’outils garde l’objectif sous les yeux, et Vérifier teste ton travail sans ouvrir la fiche.</li>
-        <li>Appui long sur le vide : palette des nœuds.</li>
+        <li>Appui long sur le vide : palette des nœuds (dans UE, clic droit).</li>
         <li>Tirer depuis une pin : un fil. Relâcher dans le vide : palette filtrée.</li>
         <li>Toucher une pin puis une autre : relier sans glisser.</li>
         <li>Appui long sur un nœud, une pin ou un fil : options.</li>
         <li>Deux doigts : zoom et déplacement.</li>
         <li>Appui long sur un nœud › Ajouter un breakpoint : Play s’arrête juste avant lui.</li>
         <li>Double toucher un nœud : ses Details. Sur un Timeline : son éditeur de piste.</li>
-        <li>My Blueprint › Graphs › ConstructionScript : le graphe exécuté dans l’éditeur.</li>
+        <li>Onglet Construction Script : le graphe exécuté dans l’éditeur.</li>
         <li>Pendant Play : le joueur regarde dans la direction du joystick ; un Line Trace avec Draw Debug Type se dessine dans le niveau.</li>
         <li>Menu ⋮ › Conseils de construction : des pistes sur la façon dont les graphes sont bâtis.</li>
       </ul>

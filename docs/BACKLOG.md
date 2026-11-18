@@ -258,6 +258,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.12 (18 novembre 2026), plan du parcours, lot 1b : 14 étapes Avancé en Enhanced Input ; le lot 1 est fini.
 - V7.11 (18 novembre 2026), plan du parcours, lot 1a : 16 étapes Intermédiaire et Confirmé en Enhanced Input (template UE5 : IA, IMC_Joueur, BP_PlayerController), textes à jour (Content Drawer, Description, Pin Options), Find References et Outliner dans les indices de Débogue.
 - V7.10 (18 novembre 2026), plan du parcours, lot 0 : règle d'aide par niveau (ouverte jusqu'à l'Intermédiaire, verrouillée ensuite), rappels et test d'espacement à cliquet, échelle à cinq marches, niveau Expert, étape de synthèse conseillée.
 - V7.9 (18 novembre 2026), interface à la manière d'UE, étape 5 : onglet Viewport du Blueprint (composants vus de dessus, sélection, déplacement au doigt dans le repère du parent) ; Outliner permanent de l'éditeur de niveau (tiroir Outliner / Details, Item Label et Type, recherche, sélection partagée). Plan « Interface à la manière d'UE » terminé.

@@ -143,7 +143,7 @@ export const complete4: Lesson = {
     'Nœuds : Get Actor Forward Vector, Get Portee, Multiply (Vector * Float), Add (Vector) ; Does Implement Interface, AND Boolean, Branch ; Get Display Name.',
     'Solution : End = Get Actor Location + Get Actor Forward Vector × Portee. Line Trace → Branch (Return Value AND Does Implement Interface (Hit Actor)) → True : Set Text (Viseur, Get Display Name (Hit Actor)) ; False : Set Text (Viseur, vide).',
   ],
-  challenge: 'Ajoute la touche E : si le viseur n’est pas vide, envoie Interagir (Message) à l’objet visé. Il te faudra garder Hit Actor dans une variable… et vérifier qu’il est encore valide (Is Valid).',
+  challenge: 'Ajoute une action IA_Interagir sur E dans IMC_Joueur : si le viseur n’est pas vide, envoie Interagir (Message) à l’objet visé. Il te faudra garder Hit Actor dans une variable… et vérifier qu’il est encore valide (Is Valid).',
   setup: crosshairProject,
   scenario: [
     { wait: 0.3 },

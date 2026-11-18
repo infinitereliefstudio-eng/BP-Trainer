@@ -128,7 +128,7 @@ export const debug14: Lesson = {
       title: 'Ce qui est en place',
       body:
         '`Stock` et `Recette` sont deux **Map** de Name vers Integer : pour chaque ingrédient, combien on en a, combien il en faut.\n\n' +
-        'Sur **E** : `Possible` est mis à vrai, puis un **For Each Loop** parcourt les ingrédients de la recette. **Keys** donne la liste des clés d’une Map ; ici « Metal », puis « Batterie ».\n\n' +
+        'Sur **IA_Fabriquer** (E) : `Possible` est mis à vrai, puis un **For Each Loop** parcourt les ingrédients de la recette. **Keys** donne la liste des clés d’une Map ; ici « Metal », puis « Batterie ».\n\n' +
         'Pour chaque ingrédient, deux **Find** lisent la quantité en stock et la quantité demandée. S’il y en a assez (**>=**), un **Add** réécrit le stock diminué. Sinon `Possible` passe à faux et « Il manque : … » s’affiche.\n\n' +
         'Après la boucle (**Completed**) : si `Possible`, un outil de plus ; sinon « Fabrication refusée ».',
     },

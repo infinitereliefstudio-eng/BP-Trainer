@@ -190,7 +190,7 @@ export const lesson12: Lesson = {
       title: 'Ce qui est en place',
       body:
         'C’est la leçon de synthèse : quatre Blueprints à remplir, avec tout ce que tu as vu. Sont prêts :\n\n' +
-        '- **BP_Joueur** : envoie Interagir (Message) de **BPI_Interactif** sur E. Variable **Fusibles** (Integer, 0).\n- **BP_Generateur** : implémente BPI_Interactif. Variables **bEnMarche**, **Carburant** (Float) et **TimerCarburant** (Timer Handle). Event Dispatcher **OnEtatChange**, paramètre bEnMarche.\n- **BP_Lampe** (deux) et **BP_Porte** : variable **Generateur** déjà réglée dans le niveau.\n- Trois **BP_Fusible** à ramasser.\n\n' +
+        '- **BP_Joueur** : envoie Interagir (Message) de **BPI_Interactif** sur IA_Interagir (la touche E). Variable **Fusibles** (Integer, 0).\n- **BP_Generateur** : implémente BPI_Interactif. Variables **bEnMarche**, **Carburant** (Float) et **TimerCarburant** (Timer Handle). Event Dispatcher **OnEtatChange**, paramètre bEnMarche.\n- **BP_Lampe** (deux) et **BP_Porte** : variable **Generateur** déjà réglée dans le niveau.\n- Trois **BP_Fusible** à ramasser.\n\n' +
         'Le scénario : E sur le générateur sans fusible (rien), ramasser les trois, E (tout s’allume, la porte s’ouvre), puis le carburant s’épuise et tout s’éteint.',
     },
     {

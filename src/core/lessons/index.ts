@@ -167,8 +167,8 @@ for (const l of LESSONS) {
  * Steps after « Les contrôles au Player Controller » set up as a UE5 project
  * (lot 1 of docs/PLAN_PARCOURS.md): Enhanced Input, IMC_Joueur added by
  * BP_PlayerController, an Input Action per key (ue5Input.ts). The value
- * names an action when the key has a meaning in the lesson. First part:
- * Intermédiaire and Confirmé; Avancé comes next.
+ * names an action when the key has a meaning in the lesson. Every step
+ * after that lesson is listed (tests/ue5Input.test.ts checks none is missed).
  */
 const UE5_INPUT: Record<string, Partial<Record<KeyName, string>>> = {
   'l-inventaire': {},
@@ -187,6 +187,21 @@ const UE5_INPUT: Record<string, Partial<Record<KeyName, string>>> = {
   'l-tirelire': {},
   'd17-premiere-partie': {},
   'd18-record': { E: 'IA_Marquer', F: 'IA_Sauvegarder' },
+  // Avancé
+  'l-terminal': {},
+  'l-standard': { E: 'IA_Appeler', F: 'IA_Demonter', SpaceBar: 'IA_Appeler103' },
+  'l12-station': {},
+  'l-salle-controle': {},
+  'l-regarder': {},
+  'r3-bouton': {},
+  'c4-viseur': { F: 'IA_Detruire' },
+  'l-miroirs': { F: 'IA_Pivoter' },
+  'd15-grille': { E: 'IA_Poser' },
+  'd14-atelier': { E: 'IA_Fabriquer', F: 'IA_AjouterBatterie' },
+  'l-interrogatoire': { E: 'IA_Choix1', F: 'IA_Choix2', SpaceBar: 'IA_Parler' },
+  'l-dialogue-table': {},
+  'c6-annuler': { E: 'IA_Deplacer', F: 'IA_Annuler', SpaceBar: 'IA_Refaire' },
+  'l-reseau': { E: 'IA_Recalculer', F: 'IA_Basculer' },
 };
 
 for (const [i, l] of LESSONS.entries()) {

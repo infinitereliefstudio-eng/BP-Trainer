@@ -357,7 +357,7 @@ export const lessonDialogueTable: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- La structure **S_Replique** : **Personnage** (String), **Texte** (String), **Suivante** (Name).\n- La Data Table **DT_Dialogue** : trois lignes, **Debut**, **Station** et **Fenetre**. Debut nomme Station comme suivante, Station nomme Fenetre, et Fenetre n’a pas de suivante (None).\n- **BP_Radio** entend E et a une variable **Ligne** (Name) qui vaut **Debut**.\n\n' +
+        '- La structure **S_Replique** : **Personnage** (String), **Texte** (String), **Suivante** (Name).\n- La Data Table **DT_Dialogue** : trois lignes, **Debut**, **Station** et **Fenetre**. Debut nomme Station comme suivante, Station nomme Fenetre, et Fenetre n’a pas de suivante (None).\n- **BP_Radio** entend IA_Interagir (la touche E) et a une variable **Ligne** (Name) qui vaut **Debut**.\n\n' +
         'Le graphe est vide. « L’interrogatoire » faisait la même chose avec une Map : c’est ici la façon de faire d’un vrai projet.',
     },
     {
@@ -375,7 +375,7 @@ export const lessonDialogueTable: Lesson = {
     {
       title: 'Le plan',
       body:
-        '**E** (Pressed) → **Get Data Table Row** (Row Name = Ligne) :\n\n' +
+        '**IA_Interagir** (Started) → **Get Data Table Row** (Row Name = Ligne) :\n\n' +
         '1. **Row Found** → **Print String** (Personnage : Texte) → **Set Ligne** = Suivante.\n2. **Row Not Found** → **Print String** « Fin de la conversation ».\n\n' +
         'Le test appuie quatre fois : trois répliques, puis la fin.',
     },
@@ -388,15 +388,15 @@ export const lessonDialogueTable: Lesson = {
     },
   ],
   objectives: [
-    'Dans BP_Radio, sur E : Get Data Table Row (DT_Dialogue), Row Name = Ligne.',
+    'Dans BP_Radio, sur IA_Interagir : Get Data Table Row (DT_Dialogue), Row Name = Ligne.',
     'Row Found : affiche « Personnage : Texte », puis range Suivante dans Ligne.',
     'Row Not Found : affiche « Fin de la conversation ».',
     'Touche Vérifier : quatre appuis sur E.',
   ],
   hints: [
     'Ligne est le seul état du dialogue : la table dit le reste.',
-    'Nœuds : Input E, Get Ligne, Get Data Table Row (DT_Dialogue), Break S_Replique, Append (3 entrées), Print String, Set Ligne, un second Print String.',
-    'Solution : E → Get Data Table Row (Ligne) ; Row Found → Print String (Append(Personnage, « : », Texte)) → Set Ligne = Suivante ; Row Not Found → Print String « Fin de la conversation ».',
+    'Nœuds : IA_Interagir, Get Ligne, Get Data Table Row (DT_Dialogue), Break S_Replique, Append (3 entrées), Print String, Set Ligne, un second Print String.',
+    'Solution : IA_Interagir → Get Data Table Row (Ligne) ; Row Found → Print String (Append(Personnage, « : », Texte)) → Set Ligne = Suivante ; Row Not Found → Print String « Fin de la conversation ».',
   ],
   challenge: 'Ajoute à S_Replique un membre Duree (Float) et fais attendre la radio Duree secondes avant d’accepter l’appui suivant. Puis ajoute une réplique entre Station et Fenetre, sans toucher au graphe.',
   setup: dialogueProject,

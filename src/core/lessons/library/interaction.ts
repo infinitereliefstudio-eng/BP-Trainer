@@ -99,7 +99,7 @@ export const lessonLook: Lesson = {
       body:
         'Le joueur est au milieu de trois objets, **sans aucune zone de collision** :\n\n' +
         '- **BP_Levier** à sa droite (il regarde dans cette direction au départ), et, plus loin dans la même direction, un second **BP_Coffre** caché derrière le levier ;\n- **BP_Coffre** en dessous ;\n- **BP_Rocher** à gauche.\n\n' +
-        'Le levier et les coffres implémentent **BPI_Interactif** : leur Event Interagir affiche « Levier actionné » ou « Coffre ouvert ». Le rocher n’implémente rien. **BP_Joueur** a un événement **E**, relié à rien.',
+        'Le levier et les coffres implémentent **BPI_Interactif** : leur Event Interagir affiche « Levier actionné » ou « Coffre ouvert ». Le rocher n’implémente rien. **BP_Joueur** a un événement **IA_Interagir**, relié à rien.',
     },
     {
       title: 'Viser au lieu de toucher',
@@ -130,15 +130,15 @@ export const lessonLook: Lesson = {
     },
   ],
   objectives: [
-    'Dans BP_Joueur, sur E : Line Trace By Channel.',
+    'Dans BP_Joueur, sur IA_Interagir (Started) : Line Trace By Channel.',
     'Start = Get Actor Location ; End = Start + Get Actor Forward Vector × 300.',
     'Envoie Interagir (Message) à Out Hit Hit Actor.',
     'Touche Vérifier : le joueur regarde le levier, le coffre, le rocher, puis le vide.',
   ],
   hints: [
     'Trois nœuds de calcul entre le joueur et End : Get Actor Forward Vector, × (Vector * Float) avec 300, + (Vector) avec Get Actor Location.',
-    'Nœuds : Input E, Line Trace By Channel, Get Actor Location, Get Actor Forward Vector, Multiply (Vector * Float), Add (Vector), Interagir (Message).',
-    'Solution : E → Line Trace By Channel (Start = Get Actor Location ; End = Get Actor Location + Get Actor Forward Vector × 300) → Interagir (Message), Target = Out Hit Hit Actor.',
+    'Nœuds : IA_Interagir, Line Trace By Channel, Get Actor Location, Get Actor Forward Vector, Multiply (Vector * Float), Add (Vector), Interagir (Message).',
+    'Solution : IA_Interagir (Started) → Line Trace By Channel (Start = Get Actor Location ; End = Get Actor Location + Get Actor Forward Vector × 300) → Interagir (Message), Target = Out Hit Hit Actor.',
   ],
   challenge: 'Passe la portée dans une variable Portee, puis affiche Out Hit Distance : à quelle distance est le levier ?',
   setup: lookProject,
@@ -464,7 +464,7 @@ export const refactor3: Lesson = {
       title: 'Ce qui est en place',
       body:
         'Deux **BP_Bouton** côte à côte, chacun avec un **Voyant** éteint, une grande **Zone**, et un Custom Event **Basculer** qui bascule le voyant.\n\n' +
-        '**BP_Joueur**, sur E :\n\n' +
+        '**BP_Joueur**, sur IA_Interagir :\n\n' +
         '**Get Overlapping Actors** → **For Each Loop** → **Cast To BP_Bouton** → **Basculer**.\n\n' +
         'Le joueur est placé entre les deux boutons, dans les deux zones : E les bascule **tous les deux**.',
     },
@@ -480,7 +480,7 @@ export const refactor3: Lesson = {
         'Côté **BP_Bouton** :\n\n' +
         '1. Class Settings › Interfaces › Add › **BPI_Interactif** (elle existe déjà).\n2. My Blueprint › Interfaces › Interagir › **Event** → **Basculer**.\n3. La Zone ne sert plus : tu peux la supprimer.\n\n' +
         'Côté **BP_Joueur** :\n\n' +
-        '1. Supprime Get Overlapping Actors, le For Each Loop, le Cast et l’appel.\n2. **E** → **Line Trace By Channel** (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300).\n3. → **Interagir (Message)**, Target = **Out Hit Hit Actor**.\n\n' +
+        '1. Supprime Get Overlapping Actors, le For Each Loop, le Cast et l’appel.\n2. **IA_Interagir** (Started) → **Line Trace By Channel** (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300).\n3. → **Interagir (Message)**, Target = **Out Hit Hit Actor**.\n\n' +
         'Relance Play en visant chaque bouton : un seul bascule à la fois.',
     },
     {
@@ -491,14 +491,14 @@ export const refactor3: Lesson = {
   ],
   objectives: [
     'BP_Bouton implémente BPI_Interactif : Event Interagir appelle Basculer.',
-    'BP_Joueur : E → Line Trace 300 cm devant → Interagir (Message) vers l’acteur touché.',
+    'BP_Joueur : IA_Interagir → Line Trace 300 cm devant → Interagir (Message) vers l’acteur touché.',
     'Plus de Cast ni de Get Overlapping Actors dans BP_Joueur.',
     'Touche Vérifier : le joueur vise le bouton du haut, puis celui du bas.',
   ],
   hints: [
     'End = Get Actor Location + Get Actor Forward Vector × 300.',
     'BP_Bouton : Class Settings › Interfaces › BPI_Interactif, puis My Blueprint › Interfaces › Interagir › Event. BP_Joueur : Line Trace By Channel, Add (Vector), Multiply (Vector * Float), Interagir (Message).',
-    'Solution : BP_Bouton : Event Interagir → Basculer. BP_Joueur : E → Line Trace By Channel (Start = Get Actor Location, End = Start + Forward × 300) → Interagir (Message), Target = Out Hit Hit Actor.',
+    'Solution : BP_Bouton : Event Interagir → Basculer. BP_Joueur : IA_Interagir → Line Trace By Channel (Start = Get Actor Location, End = Start + Forward × 300) → Interagir (Message), Target = Out Hit Hit Actor.',
   ],
   setup: buttonsProject,
   scenario: [

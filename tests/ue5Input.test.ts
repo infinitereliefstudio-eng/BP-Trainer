@@ -5,8 +5,8 @@ import { PLAYER_CONTEXT, PLAYER_CONTROLLER } from '../src/core/lessons/ue5Input'
 import type { Project } from '../src/core/model/project';
 
 const after = LESSONS.slice(LESSONS.findIndex((l) => l.id === 'l-ei-controleur') + 1);
-/** Converted so far: Intermédiaire and Confirmé (Avancé comes next). */
-const converted = after.filter((l) => l.level === 'intermediaire' || l.level === 'confirme');
+/** Every step after it, whatever its level (Expert projects included, when they come). */
+const converted = after;
 const keyEvents = (p: Project) => p.classes.flatMap((c) => c.graphs.flatMap((g) => Object.values(g.nodes).filter((n) => n.def === 'event.inputKey')));
 const solved = (l: (typeof LESSONS)[number]) => {
   const p = l.setup();

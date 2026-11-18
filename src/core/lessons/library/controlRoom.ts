@@ -74,7 +74,7 @@ export const lessonControlRoom: Lesson = {
       title: 'Ce qui est en place',
       body:
         'Cette leçon réunit trois outils déjà vus. Sont prêts :\n\n' +
-        '- **BPI_Interactif** (Interagir), et **BP_Joueur** qui envoie Interagir (Message) sur E à ce qu’il touche ;\n- l’Enum **E_Mode** : Arret, Eco, Plein ;\n- **BP_Console** : un pupitre, une Zone, un écran, une variable **Mode** (E_Mode, Arret) et un Event Dispatcher **OnModeChange** avec un paramètre **NouveauMode** (E_Mode) ;\n- trois **BP_Lampe**, éteintes, sans logique.\n\n' +
+        '- **BPI_Interactif** (Interagir), et **BP_Joueur** qui envoie Interagir (Message) sur IA_Interagir (la touche E) à ce qu’il touche ;\n- l’Enum **E_Mode** : Arret, Eco, Plein ;\n- **BP_Console** : un pupitre, une Zone, un écran, une variable **Mode** (E_Mode, Arret) et un Event Dispatcher **OnModeChange** avec un paramètre **NouveauMode** (E_Mode) ;\n- trois **BP_Lampe**, éteintes, sans logique.\n\n' +
         'E près de la console fait tourner le mode : Arret → Eco → Plein → Arret. Les lampes suivent : éteintes, 1500, 5000.',
     },
     {

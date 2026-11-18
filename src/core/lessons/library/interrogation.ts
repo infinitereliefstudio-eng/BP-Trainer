@@ -145,7 +145,7 @@ export const lessonTalk: Lesson = {
       body:
         '**Terminer** : si un dialogue est ouvert, vide `Courante`, efface la Bulle et affiche « Fin du dialogue ». Sans dialogue ouvert, elle ne fait rien : on peut l’appeler sans précaution.\n\n' +
         '**Apprendre** (Fait) : ajoute le fait à `Faits` et l’annonce, la première fois seulement. Un fait vide est ignoré : on peut lui passer `Donne` tel quel.\n\n' +
-        '**Espace** appelle `Aller` avec `debut`. Le **BP_Ticket**, au sol, appelle Apprendre (`ticket`) quand le joueur marche dessus.\n\n' +
+        '**IA_Parler** (Espace) appelle `Aller` avec `debut`. Le **BP_Ticket**, au sol, appelle Apprendre (`ticket`) quand le joueur marche dessus.\n\n' +
         'Lis ces deux fonctions avant d’écrire : elles montrent les nœuds dont tu auras besoin (Is None, Contains, Set Text).',
     },
     {
@@ -161,8 +161,8 @@ export const lessonTalk: Lesson = {
       title: 'Les touches E et F',
       body:
         'Les deux partent de la réplique affichée : **Find** dans `Dialogue` avec `Courante` comme clé, puis **Break S_Replique**. Un seul Find et un seul Break servent aux deux touches.\n\n' +
-        '**E** : `Aller` avec `ChoixE`.\n\n' +
-        '**F** : `Aller` avec `ChoixF`, mais seulement si le choix est permis : `Exige` est vide (**Is None**) **OR** `Faits` contient `Exige` (**Contains**, Utilities › Set). Un **Branch** sur ce OR ; sur False, rien.\n\n' +
+        '**IA_Choix1** (E) : `Aller` avec `ChoixE`.\n\n' +
+        '**IA_Choix2** (F) : `Aller` avec `ChoixF`, mais seulement si le choix est permis : `Exige` est vide (**Is None**) **OR** `Faits` contient `Exige` (**Contains**, Utilities › Set). Un **Branch** sur ce OR ; sur False, rien.\n\n' +
         'Hors dialogue, `Courante` est vide : Find ne trouve rien, les choix sont vides, et `Aller` reçoit None… donc appelle Terminer, qui ne fait rien. Aucun cas particulier à écrire.',
     },
     {
@@ -175,14 +175,14 @@ export const lessonTalk: Lesson = {
   ],
   objectives: [
     'Écris Aller : Id vide → Terminer ; Id inconnu → « Réplique introuvable : … » puis Terminer ; sinon Courante, Bulle et Apprendre (Donne).',
-    'E : Aller au ChoixE de la réplique affichée.',
-    'F : Aller au ChoixF, seulement si Exige est vide ou connu (dans Faits).',
+    'IA_Choix1 (E) : Aller au ChoixE de la réplique affichée.',
+    'IA_Choix2 (F) : Aller au ChoixF, seulement si Exige est vide ou connu (dans Faits).',
     'Touche Vérifier : un premier dialogue sans le ticket, puis un second avec.',
   ],
   hints: [
-    'Commence par Aller et teste avec Espace : la Bulle doit afficher « Bonsoir inspecteur. ». Ajoute E, puis F.',
+    'Commence par Aller et teste avec Espace : la Bulle doit afficher « Bonsoir inspecteur. ». Ajoute IA_Choix1, puis IA_Choix2.',
     'Nœuds. Aller : Is None (Name), Branch, Terminer, Get Dialogue, Find, Branch, Append, Print String, Set Courante, Break S_Replique, Set Text (Bulle), Apprendre. Touches : Get Courante, Find, Break S_Replique, Aller, Is None, Get Faits, Contains, OR Boolean, Branch.',
-    'Solution. Aller : Branch (Is None (Id)) → True : Terminer ; False : Branch (Boolean de Find (Dialogue, Id)) → False : Print « Réplique introuvable : » + Id → Terminer ; True : Set Courante = Id → Set Text (Bulle, Texte) → Apprendre (Donne). E → Aller (ChoixE de Find (Dialogue, Courante)). F → Branch (Is None (Exige) OR Contains (Faits, Exige)) → Aller (ChoixF).',
+    'Solution. Aller : Branch (Is None (Id)) → True : Terminer ; False : Branch (Boolean de Find (Dialogue, Id)) → False : Print « Réplique introuvable : » + Id → Terminer ; True : Set Courante = Id → Set Text (Bulle, Texte) → Apprendre (Donne). IA_Choix1 → Aller (ChoixE de Find (Dialogue, Courante)). IA_Choix2 → Branch (Is None (Exige) OR Contains (Faits, Exige)) → Aller (ChoixF).',
   ],
   challenge: 'Ajoute dans Details de Dialogue la réplique « suite » (« Un homme en manteau gris. », sans choix) : le dialogue va plus loin sans un nœud de plus.',
   setup: talkProject,

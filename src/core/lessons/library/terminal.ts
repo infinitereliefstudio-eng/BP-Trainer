@@ -69,7 +69,7 @@ export const lessonTerminal: Lesson = {
       title: 'Ce qui est en place',
       body:
         'Le monde de « Interagir avec tout », en plus riche :\n\n' +
-        '- **BPI_Interactif** avec sa fonction **Interagir**, sans entrée ni sortie pour l’instant.\n- **BP_Joueur** : sur E, envoie Interagir (Message) à tout ce qu’il touche. Il a une variable **NiveauBadge** (Integer, 2).\n- **BP_Terminal** : implémente l’interface ; son Event Interagir affiche « Terminal ».\n- **BP_Porte** : implémente l’interface ; son Event Interagir l’ouvre.\n- **BP_Rocher** : n’implémente rien.\n\n' +
+        '- **BPI_Interactif** avec sa fonction **Interagir**, sans entrée ni sortie pour l’instant.\n- **BP_Joueur** : sur IA_Interagir (la touche E), envoie Interagir (Message) à tout ce qu’il touche. Il a une variable **NiveauBadge** (Integer, 2).\n- **BP_Terminal** : implémente l’interface ; son Event Interagir affiche « Terminal ».\n- **BP_Porte** : implémente l’interface ; son Event Interagir l’ouvre.\n- **BP_Rocher** : n’implémente rien.\n\n' +
         'Le but : un vrai échange. Le joueur **donne** son niveau de badge, l’objet **répond** un texte, et le joueur affiche la réponse.',
     },
     {

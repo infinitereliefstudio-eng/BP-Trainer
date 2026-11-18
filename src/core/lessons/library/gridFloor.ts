@@ -111,7 +111,7 @@ export const debug15: Lesson = {
     {
       title: 'Ce que fait le graphe',
       body:
-        'Dans **BP_Poseur**, sur E :\n\n' +
+        'Dans **BP_Poseur**, sur IA_Poser (la touche E) :\n\n' +
         '- **Get Player Pawn** puis **Get Actor Location** : la position du joueur, dans le monde.\n' +
         '- **Break Vector**, puis **Snap To Grid (Float)** sur X et sur Y avec Grid Size 50 : chaque coordonnée devient le multiple de 50 le plus proche (120 → 100, −70 → −50). **Make Vector** les réunit ; le résultat est rangé dans `Case`.\n' +
         '- **To String (Vector)** fabrique un texte unique pour cette case, cherché dans le Set `Occupees` (**Contains**). Déjà présent : « Case occupée ». Sinon **Add**, puis **Spawn Actor** d’un BP_Meuble à `Case`.\n\n' +

@@ -115,8 +115,8 @@ export const complete6: Lesson = {
     {
       title: 'Lire Refaire, écrire Annuler',
       body:
-        '**Refaire** (Espace) est écrit, lis-le d’abord. S’il reste une action devant (`Position < Length`), il prend l’action à l’index `Position` (**Get (a copy)**), l’éclate avec **Break S_Action**, vérifie que la `Cible` existe encore (**Is Valid**), la met à `Apres`, puis avance `Position` (**Increment Int**).\n\n' +
-        '**Annuler** (F) est son miroir, à écrire dans le Trou 2 :\n\n' +
+        '**Refaire** (IA_Refaire, Espace) est écrit, lis-le d’abord. S’il reste une action devant (`Position < Length`), il prend l’action à l’index `Position` (**Get (a copy)**), l’éclate avec **Break S_Action**, vérifie que la `Cible` existe encore (**Is Valid**), la met à `Apres`, puis avance `Position` (**Increment Int**).\n\n' +
+        '**Annuler** (IA_Annuler, F) est son miroir, à écrire dans le Trou 2 :\n\n' +
         '1. Rien à annuler si `Position` vaut 0 : un **Branch** sur `Position > 0`.\n' +
         '2. **Recule d’abord** : **Decrement Int** sur `Position`. La dernière action faite est maintenant à l’index `Position`.\n' +
         '3. Get (a copy) à cet index, Break S_Action, Is Valid sur `Cible`, puis **Set Actor Location** avec `Avant`.\n\n' +
@@ -141,14 +141,14 @@ export const complete6: Lesson = {
     },
   ],
   objectives: [
-    'Trou 2, sur F : si Position > 0, recule Position (Decrement Int), puis remets la Cible de l’action à cet index à sa position Avant (si elle est valide).',
+    'Trou 2, sur IA_Annuler (F) : si Position > 0, recule Position (Decrement Int), puis remets la Cible de l’action à cet index à sa position Avant (si elle est valide).',
     'Trou 1, dans Enregistrer : avant le Add, retire la dernière action tant que Length (Historique) > Position.',
     'Touche Vérifier : deux déplacements, deux annulations, deux rétablissements, puis une annulation suivie d’un nouveau déplacement.',
   ],
   hints: [
     'Commence par le Trou 2 en t’inspirant de Refaire, nœud pour nœud : seuls changent le sens (Decrement, et avant la lecture) et la position appliquée (Avant).',
     'Nœuds. Trou 2 : Get Position, Greater (Integer), Branch, Decrement Int, Get Historique, Get (a copy), Break S_Action, Is Valid, Set Actor Location. Trou 1 : While Loop, Length, Get Position, Greater (Integer), Remove Index, Last Index.',
-    'Solution. F → Branch (Position > 0) → Decrement Int (Position) → Is Valid (Cible de Historique[Position]) → Set Actor Location (Cible, Avant). Enregistrer : entrée → While Loop (Length (Historique) > Position) → Loop Body : Remove Index (Historique, Last Index (Historique)) ; Completed → Add.',
+    'Solution. IA_Annuler → Branch (Position > 0) → Decrement Int (Position) → Is Valid (Cible de Historique[Position]) → Set Actor Location (Cible, Avant). Enregistrer : entrée → While Loop (Length (Historique) > Position) → Loop Body : Remove Index (Historique, Last Index (Historique)) ; Completed → Add.',
   ],
   challenge: 'Limite l’historique à 10 actions : dans Enregistrer, après le Add, si Length dépasse 10, retire l’action d’index 0 et recule Position de 1.',
   setup: undoProject,

@@ -1,5 +1,5 @@
 /**
- * Enhanced Input assets (Content Browser › Input Action, Input Mapping
+ * Enhanced Input assets (Content Drawer › Input Action, Input Mapping
  * Context). Nodes name them by id in their config (`action`, `context`), so
  * renaming an asset keeps them, as UE keeps asset references.
  */

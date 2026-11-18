@@ -1,5 +1,5 @@
 /**
- * Data Table assets (Content Browser › Data Table): rows of one structure,
+ * Data Table assets (Content Drawer › Data Table): rows of one structure,
  * each named by a unique Row Name, read in a game with Get Data Table Row.
  * Nodes name their table by id in `config.table`, so renaming a table keeps
  * them; the structure is named like a pin type and follows its renames.

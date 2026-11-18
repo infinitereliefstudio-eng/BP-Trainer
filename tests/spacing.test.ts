@@ -26,7 +26,7 @@ const KNOWN_GAPS: Record<string, number> = {
   'data-tables': 39,
   destroy: 45,
   dispatchers: 33,
-  'enhanced-input': 65,
+  'enhanced-input': 53,
   enum: 48,
   events: 25,
   'flow-memory': 49,

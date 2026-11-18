@@ -419,7 +419,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   {
     title: 'Data Table',
     names: ['Data Table', 'Get Data Table Row'],
-    what: 'Une table de données, rangée dans le Content Browser : chaque ligne a un nom (Row Name) et une valeur d’une structure choisie à la création (Row Structure). Elle se remplit sans toucher au graphe ; le jeu ne fait que la lire, avec Get Data Table Row.',
+    what: 'Une table de données, rangée dans le Content Drawer : chaque ligne a un nom (Row Name) et une valeur d’une structure choisie à la création (Row Structure). Elle se remplit sans toucher au graphe ; le jeu ne fait que la lire, avec Get Data Table Row.',
     when: 'Pour des données nombreuses et fixes : objets, répliques, ennemis, prix. Dans UE, elle s’importe aussi depuis un tableur (CSV). Pour des données qui changent pendant la partie, une variable (Map, Array) convient mieux : une Data Table ne s’écrit pas en jeu.',
     trap: 'Changer la Row Structure d’une table efface les valeurs de ses lignes.',
     pattern: 'Get Data Table Row (DT_Objets, Row Name) → Row Found → Break S_Fiche → Print String',
@@ -444,7 +444,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     title: 'Slot de sauvegarde',
     names: ['Slot de sauvegarde', 'Slot'],
     what: 'L’emplacement où Save Game to Slot écrit une copie de l’objet : un nom (Slot Name) et un numéro de joueur (User Index, 0 en solo). Dans UE, c’est un fichier .sav du dossier Saved/SaveGames. Le slot garde la classe de l’objet écrit.',
-    when: 'Load Game from Slot relit le slot et recrée l’objet ; Does Save Game Exist teste sa présence ; Delete Game in Slot l’efface. Dans l’appli, le Content Browser montre les slots et permet de les effacer.',
+    when: 'Load Game from Slot relit le slot et recrée l’objet ; Does Save Game Exist teste sa présence ; Delete Game in Slot l’efface. Dans l’appli, le Content Drawer montre les slots et permet de les effacer.',
     trap: 'Un slot absent n’est pas une erreur : Load Game from Slot renvoie None. Un nom de slot différent entre l’écriture et la lecture perd tout, sans un message.',
     pattern: 'Load Game from Slot → Cast To BP_Sauvegarde → (Cast Failed : Create Save Game Object)',
   },

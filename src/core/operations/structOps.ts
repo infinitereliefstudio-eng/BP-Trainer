@@ -1,5 +1,5 @@
 /**
- * Structure assets (Content Browser › Structure) and their members. A
+ * Structure assets (Content Drawer › Structure) and their members. A
  * structure is named in pin types like an Enum; Make, Break and Set Members
  * nodes name it in `config.struct`. Members are found by id, so renaming one
  * keeps every wire.

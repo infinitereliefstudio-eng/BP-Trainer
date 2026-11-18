@@ -14,7 +14,8 @@ const NODE_NOTIONS: [RegExp, string][] = [
   [/^(component\.(setVisibility|toggleVisibility|setHiddenInGame)|actor\.setHidden)/, 'visibility'],
   [/^component\./, 'components'],
   [/Overlap$/, 'overlap'],
-  [/^event\.inputKey$/, 'input'],
+  // Receiving input on an actor (Auto Receive Input, Consume Input): with a key event, or an action event since UE5.
+  [/^(event\.inputKey|input\.action)$/, 'input'],
   [/^input\./, 'enhanced-input'],
   [/^(player|pawn)\.getController$/, 'player-controller'],
   [/^var\.(get|set)$/, 'variables'],

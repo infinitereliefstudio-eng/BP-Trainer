@@ -37,7 +37,7 @@ export const switchNodes: NodeDefinition[] = [
     category: CAT,
     kind: 'flow',
     description:
-      "Choisit une sortie selon un entier : la sortie qui porte la valeur de Selection, ou Default si aucune ne correspond. Réglages : première valeur et nombre de cas.",
+      "Choisit une sortie selon un entier : la sortie qui porte la valeur de Selection, ou Default si aucune ne correspond. Details › Pin Options : première valeur et nombre de cas.",
     keywords: ['switch', 'case', 'selon', 'entier', 'int'],
     config: [
       { key: 'start', label: 'Start Index', kind: 'int', min: -1000, max: 1000 },

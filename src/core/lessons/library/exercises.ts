@@ -254,7 +254,7 @@ export const debug1: Lesson = {
   objectives: ['Les deux lampes s’allument quand le générateur démarre.', 'Plus aucune erreur dans l’Output Log.'],
   hints: [
     'Le graphe de BP_Lampe est correct : le problème est dans le niveau.',
-    'Touche chaque lampe dans l’onglet Niveau et regarde sa variable Generateur dans Details.',
+    'Dans le Niveau, ouvre Outliner · Details (bord droit) et touche chaque lampe dans l’Outliner : regarde sa variable Generateur dans Details.',
     'Solution : sur BP_Lampe2, règle Generateur sur BP_Generateur.',
   ],
   setup() {
@@ -302,7 +302,7 @@ export const debug2: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        'Une interface **BPI_Interactif** avec une fonction **Interagir**. Sur E, **BP_Joueur** envoie le message **Interagir** à tous les acteurs qu’il touche.\n\n' +
+        'Une interface **BPI_Interactif** avec une fonction **Interagir**. Sur IA_Interagir (la touche E), **BP_Joueur** envoie le message **Interagir** à tous les acteurs qu’il touche.\n\n' +
         '- **BP_Lampe** et **BP_Porte** fonctionnent : E à côté d’elles les fait réagir.\n- **BP_Generateur** a un graphe qui semble faire la même chose : un nœud rouge nommé **Interagir** → inverse bEnMarche → affiche l’état. Pourtant, rien ne se passe.\n\n' +
         'Et l’Output Log ne signale rien.',
     },

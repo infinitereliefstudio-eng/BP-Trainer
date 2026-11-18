@@ -75,7 +75,7 @@ export const lessonTerminal: Lesson = {
     {
       title: 'Une interface qui donne et reçoit',
       body:
-        'Ouvre **BPI_Interactif** (Content Browser) : la fonction Interagir peut avoir des **Inputs** et des **Outputs**, comme une fonction ordinaire. Ajoute :\n\n' +
+        'Ouvre **BPI_Interactif** (Content Drawer) : la fonction Interagir peut avoir des **Inputs** et des **Outputs**, comme une fonction ordinaire. Ajoute :\n\n' +
         '- l’entrée **Niveau** (Integer) ;\n- la sortie **Reponse** (String).\n\n' +
         'Le nœud **Interagir (Message)** du joueur gagne aussitôt une pin Niveau en entrée et une pin Reponse en sortie.',
     },

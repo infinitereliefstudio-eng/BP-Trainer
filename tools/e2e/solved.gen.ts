@@ -15,6 +15,8 @@ it('generates solved lesson projects', () => {
     const lesson = getLesson(id)!;
     const p = lesson.setup();
     lesson.solve(p);
+    // As the app does when it creates the workspace: no « this lesson changed » notice.
+    p.lessonRevision = lesson.revision ?? 1;
     writeFileSync(new URL(`${id}.json`, OUT), serializeProject(p));
   }
 });

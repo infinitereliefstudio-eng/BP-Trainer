@@ -289,12 +289,14 @@ describe('the traps of the new lessons', () => {
     const r = spoiled('d11-four', (p) => {
       const b = edit(p, 'BP_Four');
       const g = b.graph;
-      const e = only(Object.values(g.nodes).filter((n) => n.def === 'event.inputKey' && n.config.key === 'E')).id;
+      // UE5 input since lot 1: E is IA_Lancer's action event, Started for Pressed.
+      const lancer = p.inputActions.find((x) => x.name === 'IA_Lancer')!.id;
+      const e = only(Object.values(g.nodes).filter((n) => n.def === 'input.action' && n.config.action === lancer)).id;
       const guard = Object.values(g.links).find((l) => l.from.node === e)!.to.node;
       const next = Object.values(g.links).find((l) => l.from.node === guard && l.from.pin === 'true')!.to;
       for (const l of Object.values(g.links)) if (l.from.node === guard && l.from.pin === 'true') delete g.links[l.id];
       for (const l of Object.values(g.links)) if (l.from.node === e) delete g.links[l.id];
-      b.link(e, 'pressed', next.node, next.pin);
+      b.link(e, 'started', next.node, next.pin);
     });
     expect(r.passed).toBe(false);
     expect(reasons(r)).toContain('second appui');

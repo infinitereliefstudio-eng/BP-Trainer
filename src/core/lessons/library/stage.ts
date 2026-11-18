@@ -145,9 +145,9 @@ export const debug12: Lesson = {
     'Il n’obéit plus à la première : seul le panneau fixe la suit encore.',
   ],
   hints: [
-    'Deux manques, tous deux dans BP_Panneau : rien ne lit l’état de la régie au moment de s’abonner, et rien ne retire l’abonnement à l’ancienne régie.',
+    'Deux manques, tous deux dans BP_Panneau : rien ne lit l’état de la régie au moment de s’abonner, et rien ne retire l’abonnement à l’ancienne régie. Pour voir qui s’abonne et qui annonce : appui long sur un nœud OnEtatChange › Find References, puis All Blueprints.',
     'Nœuds : Get EnCours (sur Regie), Set Visibility, Unbind Event from OnEtatChange, et un Custom Event pour ne pas recopier la lecture de l’état.',
-    'Solution : Custom Event Synchroniser → Set Visibility (Voyant) avec EnCours lu sur Regie. BeginPlay → Bind → Synchroniser. Espace → Branch (Mobile) → Unbind (Target = Regie, Event = Maj) → Set Regie = Autre → Bind → Synchroniser.',
+    'Solution : Custom Event Synchroniser → Set Visibility (Voyant) avec EnCours lu sur Regie. BeginPlay → Bind → Synchroniser. IA_ChangerDeRegie → Branch (Mobile) → Unbind (Target = Regie, Event = Maj) → Set Regie = Autre → Bind → Synchroniser.',
   ],
   challenge: 'Ajoute un Is Valid avant le Bind et avant l’Unbind : un panneau posé sans régie ne doit provoquer aucune erreur.',
   setup: stageProject,

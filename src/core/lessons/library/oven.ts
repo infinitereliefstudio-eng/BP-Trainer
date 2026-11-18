@@ -71,8 +71,8 @@ export const debug11: Lesson = {
     {
       title: 'Ce que fait le graphe',
       body:
-        '**E** : si rien ne cuit (`EnCuisson` faux), la cuisson démarre : `EnCuisson` passe à vrai, le voyant s’allume, puis un **Delay** de 3 secondes. Au bout du Delay, si `EnCuisson` est toujours vrai : « C’est prêt ! ».\n\n' +
-        '**F** : si une cuisson est en cours, `EnCuisson` repasse à faux et le voyant s’éteint. L’idée : au bout du Delay, le Branch verra `EnCuisson` faux et n’annoncera rien.\n\n' +
+        '**IA_Lancer** (E) : si rien ne cuit (`EnCuisson` faux), la cuisson démarre : `EnCuisson` passe à vrai, le voyant s’allume, puis un **Delay** de 3 secondes. Au bout du Delay, si `EnCuisson` est toujours vrai : « C’est prêt ! ».\n\n' +
+        '**IA_Annuler** (F) : si une cuisson est en cours, `EnCuisson` repasse à faux et le voyant s’éteint. L’idée : au bout du Delay, le Branch verra `EnCuisson` faux et n’annoncera rien.\n\n' +
         'L’idée marche tant qu’on ne relance pas. Reproduis : E, attends 1 seconde, F, puis E tout de suite. Chronomètre l’arrivée de « C’est prêt ! ».',
     },
     {
@@ -98,8 +98,8 @@ export const debug11: Lesson = {
         '1. Crée une variable `Minuteur` de type **Timer Handle**.\n' +
         '2. Remplace le Delay par **Set Timer by Event** (Time 3), et garde son Return Value dans `Minuteur`.\n' +
         '3. Ajoute un Custom Event `FinCuisson`, relié à la pin Event du timer : c’est lui qui annonce « C’est prêt ! », remet `EnCuisson` à faux et éteint le voyant.\n' +
-        '4. Sur F : **Clear and Invalidate Timer by Handle** avec `Minuteur`.\n\n' +
-        'Garde le Branch « rien ne cuit ? » sur E : relancer un timer déjà en route le ferait repartir de zéro, et un second appui pendant la cuisson la retarderait.',
+        '4. Sur IA_Annuler : **Clear and Invalidate Timer by Handle** avec `Minuteur`.\n\n' +
+        'Garde le Branch « rien ne cuit ? » sur IA_Lancer : relancer un timer déjà en route le ferait repartir de zéro, et un second appui pendant la cuisson la retarderait.',
     },
   ],
   objectives: [
@@ -110,7 +110,7 @@ export const debug11: Lesson = {
   hints: [
     'F ne peut pas arrêter un Delay, et un Delay déjà en attente ignore le E suivant. Il faut une attente qu’on peut arrêter.',
     'Nœuds : Set Timer by Event, un Custom Event, une variable Timer Handle (Set puis Get), Clear and Invalidate Timer by Handle. Le Delay et le Branch qui le suit disparaissent.',
-    'Solution : E → Branch (NOT EnCuisson) → Set EnCuisson → voyant → Print → Set Timer by Event (Time 3, Event = FinCuisson) → Set Minuteur. FinCuisson → Print « C’est prêt ! » → Set EnCuisson faux → voyant éteint. F → … → Clear and Invalidate Timer by Handle (Minuteur).',
+    'Solution : IA_Lancer → Branch (NOT EnCuisson) → Set EnCuisson → voyant → Print → Set Timer by Event (Time 3, Event = FinCuisson) → Set Minuteur. FinCuisson → Print « C’est prêt ! » → Set EnCuisson faux → voyant éteint. IA_Annuler → … → Clear and Invalidate Timer by Handle (Minuteur).',
   ],
   challenge: 'Ajoute un Text Render et affiche le temps restant deux fois par seconde : Get Timer Remaining Time by Handle sur Minuteur.',
   setup: ovenProject,

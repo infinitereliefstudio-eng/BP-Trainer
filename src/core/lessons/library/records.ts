@@ -66,7 +66,7 @@ export const lessonRecord: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- Une **structure** **S_Objet**, dans le Content Browser, avec deux membres : **Nom** (String) et **Poids** (Integer).\n- **BP_Lampe** a une variable **Fiche** de type S_Objet, qui vaut Nom = « Lampe », Poids = 2. Le graphe est vide.\n\n' +
+        '- Une **structure** **S_Objet**, dans le Content Drawer, avec deux membres : **Nom** (String) et **Poids** (Integer).\n- **BP_Lampe** a une variable **Fiche** de type S_Objet, qui vaut Nom = « Lampe », Poids = 2. Le graphe est vide.\n\n' +
         'La lampe a besoin d’un troisième membre, **Charge** (100 au départ). Au lancement, elle consomme deux fois 30 et affiche 70, puis 40. Sa fiche doit garder son nom et son poids.',
     },
     {
@@ -92,7 +92,7 @@ export const lessonRecord: Lesson = {
       body:
         '**Set Fiche** avec un **Make S_Objet** dont seul Charge est relié paraît plus court. Mais Make construit une fiche **entière** : les membres non reliés prennent leur valeur par défaut. Nom devient vide, Poids devient 0. La lampe a perdu son identité.\n\n' +
         'Règle : pour changer un membre, Set Members in. Make, c’est pour créer une fiche de zéro.\n\n' +
-        'Dans UE, les structures définies dans le Content Browser s’appellent des **User Defined Structures**. Les plus courantes viennent du moteur : Vector, Rotator, Transform, Linear Color.',
+        'Dans UE, les structures définies dans le Content Drawer s’appellent des **User Defined Structures**. Les plus courantes viennent du moteur : Vector, Rotator, Transform, Linear Color.',
     },
   ],
   objectives: [

@@ -112,7 +112,7 @@ export function varOf(cx: CheckContext, className: string, name: string) {
 /** The method every "Prédis" ends with. */
 /** For the cards of lessons whose test keys are heard by several actors. */
 export const SHARED_KEYS =
-  'Les événements de touche posés par la leçon ont **Consume Input** décoché : plusieurs acteurs écoutent la même touche. Coché, le réglage par défaut d’UE, seul le dernier acteur posé la recevrait.';
+  'Les événements d’entrée posés par la leçon (de touche ou d’action) ont **Consume Input** décoché : plusieurs acteurs écoutent la même entrée. Coché, le réglage par défaut d’UE, seul le dernier acteur posé la recevrait.';
 
 export const PREDICT_METHOD: LessonCard = {
   title: 'Méthode pour prédire',

@@ -97,7 +97,7 @@ export class EditorStore {
     return () => this.listeners.delete(fn);
   }
 
-  /** Save slots changed (a game saved, or the Content Browser cleared one): saved, but not undoable. */
+  /** Save slots changed (a game saved, or the Content Drawer cleared one): saved, but not undoable. */
   saveSlotsChanged(): void {
     this.project.updatedAt = Date.now();
     this.notify('model');

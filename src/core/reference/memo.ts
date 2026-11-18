@@ -353,7 +353,7 @@ export const MEMO: MemoCard[] = [
       '- un Boolean se lit comme une question : `bEstOuverte`, `bALaCle` (UE masque le « b » à l’affichage) ;\n' +
       '- une fonction commence par un verbe : Ouvrir, CalculerDegats ;\n' +
       '- un Event Dispatcher dit ce qui vient d’arriver : OnPorteOuverte ;\n' +
-      '- range les variables par **Category**, et donne-leur une **Tooltip**.\n\n' +
+      '- range les variables par **Category**, et donne-leur une **Description** (l’info-bulle).\n\n' +
       'Pour les graphes : le fil blanc va de gauche à droite, un **Comment** par intention, des **Reroute** plutôt que des fils qui passent sous les nœuds, et une fonction dès qu’un morceau se répète.',
   },
   {

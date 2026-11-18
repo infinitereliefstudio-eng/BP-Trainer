@@ -179,7 +179,7 @@ export const lessonDoorStates: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- Une **Enum** **E_EtatPorte** (dans le Content Browser) avec trois entrées : Fermee, Ouverte, Verrouillee.\n- **BP_Porte** : un battant (Porte) et une variable **Etat** de type E_EtatPorte, **Instance Editable**. Elle entend E : l’événement E est déjà posé, vide.\n- Deux portes dans le niveau : la première a Etat = **Fermee**, la seconde est réglée sur **Verrouillee** dans son Details.\n\n' +
+        '- Une **Enum** **E_EtatPorte** (dans le Content Drawer) avec trois entrées : Fermee, Ouverte, Verrouillee.\n- **BP_Porte** : un battant (Porte) et une variable **Etat** de type E_EtatPorte, **Instance Editable**. Elle entend E : l’événement E est déjà posé, vide.\n- Deux portes dans le niveau : la première a Etat = **Fermee**, la seconde est réglée sur **Verrouillee** dans son Details.\n\n' +
         'Les deux reçoivent E en même temps : chacune doit réagir selon **son** état.\n\n' +
         'Pour que les deux l’entendent, l’événement E a **Consume Input** décoché (dans son Details). Coché, le réglage par défaut d’UE, le premier acteur qui reçoit la touche la garde : seule la dernière porte posée réagirait.',
     },

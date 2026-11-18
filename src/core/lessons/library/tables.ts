@@ -115,7 +115,7 @@ export const lessonCatalog: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        'Dans le Content Browser (bouton **Content Drawer**, en bas à gauche, comme dans UE5) :\n\n' +
+        'Ouvre le **Content Drawer** (bouton en bas à gauche, comme dans UE5) :\n\n' +
         '- la structure **S_Fiche** : Nom et Description, deux String ;\n- la Data Table **DT_Objets**, dont chaque ligne est une S_Fiche : **Lampe**, **Cle** et **Carte**.\n\n' +
         '**BP_Examinable** est un petit objet jaune avec une Zone, et une variable **IdObjet** (Name, Instance Editable). Trois sont posés, réglés sur « lampe », « Cle » et « Cartes ». Le graphe est vide.',
     },
@@ -243,7 +243,7 @@ export const debug16: Lesson = {
       title: 'Où regarder',
       body:
         'Le graphe est le même pour les deux terminaux : la différence vient de leur **réglage** dans le niveau, et de ce que la table contient.\n\n' +
-        'Deux vérifications :\n1. Quelles lignes a DT_Messages ? (Content Browser › DT_Messages.)\n2. Get Data Table Row a **deux** sorties blanches. Suis le fil de chacune : où va-t-il ?\n\n' +
+        'Deux vérifications :\n1. Quelles lignes a DT_Messages ? (Content Drawer › DT_Messages.)\n2. Get Data Table Row a **deux** sorties blanches. Suis le fil de chacune : où va-t-il ?\n\n' +
         'Un breakpoint sur le Print String (appui long), puis Play : pour chaque terminal, regarde par quelle sortie le fil est arrivé.',
     },
     {

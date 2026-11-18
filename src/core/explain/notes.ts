@@ -59,7 +59,7 @@ const COPY_TRAP = 'Copie toute la valeur : deux variables qui contiennent le mê
 
 const IN_UE: Record<string, string> = {
   'dataTable.getRow': 'Dans UE, la Data Table se choisit sur une pin du nœud, et ses lignes se remplissent dans un éditeur de tableau ou en important un fichier CSV ou JSON. Ici, la table se choisit dans Details.',
-  'save.toSlot': 'Dans UE, le slot est un fichier .sav dans le dossier Saved du projet. Ici, il est gardé avec le projet, et le Content Browser montre son contenu (UE ne le fait pas).',
+  'save.toSlot': 'Dans UE, le slot est un fichier .sav dans le dossier Saved du projet. Ici, il est gardé avec le projet, et le Content Drawer montre son contenu (UE ne le fait pas).',
   'save.fromSlot': 'Dans UE, Async Load Game from Slot fait la même chose sans bloquer le jeu, pour les grosses sauvegardes. Le principe est le même.',
   'text.format': 'Dans UE, les arguments de Format Text acceptent aussi des nombres directement, et le Text se traduit selon la langue du jeu. Ici, ils sont convertis en Text et rien n’est traduit.',
   'event.tick': 'Ici le jeu tourne toujours à 60 images par seconde. Dans UE, le nombre d’images varie d’un appareil à l’autre : Delta Seconds change à chaque Tick.',

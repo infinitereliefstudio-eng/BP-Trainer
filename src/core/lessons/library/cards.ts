@@ -109,7 +109,7 @@ export const lessonCards: Lesson = {
     {
       title: 'L’ordre des opérations',
       body:
-        'Sur **E** (Pressed) :\n\n' +
+        'Sur **IA_Tirer** (Started, la touche E) :\n\n' +
         '1. **Branch** sur Is Empty. True : Print String « Paquet vide », et c’est tout.\n' +
         '2. False : **Set Index** = Random Integer in Range (Min 0, Max = Last Index).\n' +
         '3. **Print String** de la carte : Get (a copy) à la position `Index`.\n' +
@@ -118,7 +118,7 @@ export const lessonCards: Lesson = {
     },
   ],
   objectives: [
-    'Sur E, si le paquet est vide : affiche « Paquet vide ».',
+    'Sur IA_Tirer, si le paquet est vide : affiche « Paquet vide ».',
     'Sinon : tire une position au hasard (de 0 à Last Index) et range-la dans Index.',
     'Affiche la carte à cette position, puis retire-la du paquet.',
     'Touche Vérifier : 13 appuis sur E.',
@@ -126,9 +126,9 @@ export const lessonCards: Lesson = {
   hints: [
     'Le Random ne doit être lu qu’une fois par tirage : par le Set Index, et par lui seul.',
     'Nœuds : Get Cartes, Is Empty, Branch, Print String, Last Index, Random Integer in Range, Set Index, Get (a copy), Print String, Remove Index, Get Index.',
-    'Solution : E → Branch (Is Empty (Cartes)) → True : Print « Paquet vide ». False : Set Index = Random Integer in Range (0, Last Index (Cartes)) → Print String (Get (a copy) (Cartes, Index)) → Remove Index (Cartes, Index).',
+    'Solution : IA_Tirer → Branch (Is Empty (Cartes)) → True : Print « Paquet vide ». False : Set Index = Random Integer in Range (0, Last Index (Cartes)) → Print String (Get (a copy) (Cartes, Index)) → Remove Index (Cartes, Index).',
   ],
-  challenge: 'Ajoute la touche F : elle remet les 12 cartes dans le paquet. Il te faut un second tableau, Depart, et un Set Cartes.',
+  challenge: 'Ajoute une action IA_Remettre sur F dans IMC_Joueur : elle remet les 12 cartes dans le paquet. Il te faut un second tableau, Depart, et un Set Cartes.',
   setup: cardsProject,
   scenario: [{ wait: 0.2 }, ...draws(12), { checkpoint: 'douze' }, ...tap('E')],
   checks: [
@@ -215,7 +215,7 @@ export const lessonSeed: Lesson = {
       title: 'Le brancher',
       body:
         'Deux changements :\n\n' +
-        '1. Sur **Espace**, après avoir remis les cartes : **Set Random Stream Seed** sur `Hasard`, avec la variable `Graine` (42, réglable sur l’instance). Chaque nouvelle partie repart ainsi du début de la même suite.\n' +
+        '1. Sur **IA_NouvellePartie** (Espace), après avoir remis les cartes : **Set Random Stream Seed** sur `Hasard`, avec la variable `Graine` (42, réglable sur l’instance). Chaque nouvelle partie repart ainsi du début de la même suite.\n' +
         '2. Dans le tirage, remplace **Random Integer in Range** par **Random Integer in Range from Stream**, avec Min 0, Max = Last Index, et Stream = **Get Hasard**.\n\n' +
         'Ne touche pas au Random Float du voyant : c’est de la décoration, elle peut rester sur le hasard global. Mieux, elle **doit** y rester : si elle tirait dans `Hasard`, activer ou couper l’effet changerait l’ordre des cartes.',
     },
@@ -229,14 +229,14 @@ export const lessonSeed: Lesson = {
   ],
   objectives: [
     'Crée une variable Hasard de type Random Stream.',
-    'Sur Espace : Set Random Stream Seed (Hasard, Graine), après la remise des cartes.',
+    'Sur IA_NouvellePartie (Espace) : Set Random Stream Seed (Hasard, Graine), après la remise des cartes.',
     'Le tirage utilise Random Integer in Range from Stream, avec Get Hasard.',
     'Touche Vérifier : deux parties de 12 tirages, qui doivent donner le même ordre.',
   ],
   hints: [
     'Le stream doit être une variable, remise à sa graine au début de chaque partie, et le tirage doit puiser dedans.',
     'Nœuds : une variable Random Stream, Set Random Stream Seed, Get Graine, Random Integer in Range from Stream, Get Hasard.',
-    'Solution : Espace → Set Cartes → Print → Set Random Stream Seed (Stream = Hasard, New Seed = Graine). Tirage : Set Index = Random Integer in Range from Stream (0, Last Index (Cartes), Hasard).',
+    'Solution : IA_NouvellePartie → Set Cartes → Print → Set Random Stream Seed (Stream = Hasard, New Seed = Graine). Tirage : Set Index = Random Integer in Range from Stream (0, Last Index (Cartes), Hasard).',
   ],
   challenge: 'Change Graine sur l’instance (Details, dans le niveau) : l’ordre change, mais reste le même d’une partie à l’autre. Puis fais afficher la graine au début de chaque partie.',
   setup: seedProject,

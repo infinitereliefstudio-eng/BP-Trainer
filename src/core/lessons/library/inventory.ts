@@ -64,7 +64,7 @@ export const lessonInventory: Lesson = {
         '**For Each Loop** exécute **Loop Body** une fois par élément du tableau branché sur **Array** :\n\n' +
         '- **Array Element** : l’élément de ce tour ;\n- **Array Index** : sa position ;\n- **Completed** : une fois, après le dernier tour.\n\n' +
         'Tous les tours se font dans la même image.\n\n' +
-        'Dans BP_Joueur : **E** (Pressed) → **For Each Loop** (Array = Get Inventaire) → Loop Body → **Print String** (Array Element).\n\n' +
+        'Dans BP_Joueur : **IA_Interagir** (Started) → **For Each Loop** (Array = Get Inventaire) → Loop Body → **Print String** (Array Element).\n\n' +
         '**Get (a copy)** lit un élément par son index… et en donne une **copie** : la modifier ne change pas le tableau.',
     },
     {
@@ -78,15 +78,15 @@ export const lessonInventory: Lesson = {
   objectives: [
     'Dans BP_Joueur, crée Inventaire : String, en tableau (Array).',
     'Dans BP_Objet, quand le joueur le touche : ajoute son Nom à l’Inventaire du joueur, puis détruis l’objet.',
-    'Dans BP_Joueur, sur E : affiche chaque élément de l’Inventaire avec For Each Loop.',
+    'Dans BP_Joueur, sur IA_Interagir (Started) : affiche chaque élément de l’Inventaire avec For Each Loop.',
     'Touche Vérifier.',
   ],
   hints: [
     'Comme pour la clé : Begin Overlap → Cast To BP_Joueur. Puis Add, avec Inventaire lu depuis le joueur.',
-    'BP_Objet : ActorBeginOverlap, Cast To BP_Joueur, Get Inventaire (Target = As BP Joueur), Add (New Item = Nom), Destroy Actor. BP_Joueur : Input E, Get Inventaire, For Each Loop, Print String.',
-    'Solution : BeginOverlap → Cast To BP_Joueur → Add (Target Array = Inventaire du joueur, New Item = Nom) → Destroy Actor. Et E → For Each Loop (Inventaire) → Print String (Array Element).',
+    'BP_Objet : ActorBeginOverlap, Cast To BP_Joueur, Get Inventaire (Target = As BP Joueur), Add (New Item = Nom), Destroy Actor. BP_Joueur : IA_Interagir, Get Inventaire, For Each Loop, Print String.',
+    'Solution : BeginOverlap → Cast To BP_Joueur → Add (Target Array = Inventaire du joueur, New Item = Nom) → Destroy Actor. Et IA_Interagir (Started) → For Each Loop (Inventaire) → Print String (Array Element).',
   ],
-  challenge: 'Sur F, retire chaque élément avec un For Each Loop et Remove Item : il en reste un ! Retirer décale les suivants, la boucle en saute un. Fais-le avec Clear.',
+  challenge: 'Ajoute une action IA_Vider sur F dans IMC_Joueur ; sur IA_Vider, retire chaque élément avec un For Each Loop et Remove Item : il en reste un ! Retirer décale les suivants, la boucle en saute un. Fais-le avec Clear.',
   setup: inventoryProject,
   scenario: [{ wait: 0.2 }, { walk: [1, 0], seconds: 1.4 }, { checkpoint: 'ramasse' }, ...press, { checkpoint: 'liste' }],
   checks: [

@@ -265,8 +265,8 @@ export const complete3: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '**BP_Projecteur** : un pied et une **Lumiere** à intensité 0. Il entend E. Dans le graphe :\n\n' +
-        '- l’événement **E** ;\n- le Timeline **Fondu** : 2 secondes, piste **Alpha** de 0 à 1 ;\n- un **Get Lumiere** ;\n- trois cadres jaunes, et aucun fil.\n\n' +
+        '**BP_Projecteur** : un pied et une **Lumiere** à intensité 0. Il entend IA_Interagir (la touche E). Dans le graphe :\n\n' +
+        '- l’événement **IA_Interagir** ;\n- le Timeline **Fondu** : 2 secondes, piste **Alpha** de 0 à 1 ;\n- un **Get Lumiere** ;\n- trois cadres jaunes, et aucun fil.\n\n' +
         'Le but : E allume en fondu sur 2 secondes, E de nouveau éteint en fondu.',
     },
     {
@@ -277,7 +277,7 @@ export const complete3: Lesson = {
     {
       title: 'Trois branchements',
       body:
-        '**Trou 1** : E (Pressed) → FlipFlop. **A** → **Play** du Fondu, **B** → **Reverse**. Le premier appui allume, le suivant éteint.\n\n' +
+        '**Trou 1** : IA_Interagir (Started) → FlipFlop. **A** → **Play** du Fondu, **B** → **Reverse**. Le premier appui allume, le suivant éteint.\n\n' +
         '**Trou 2** : la sortie **Alpha** du Timeline va sur l’Alpha du Lerp (A = 0, B = 5000).\n\n' +
         '**Trou 3** : **Update** → Set Intensity, Target = Lumiere, New Intensity = le Lerp.\n\n' +
         'Il y a donc **deux** fils blancs : celui de la touche, qui commande le Timeline, et celui d’Update, qui agit à chaque image.',
@@ -289,15 +289,15 @@ export const complete3: Lesson = {
     },
   ],
   objectives: [
-    'Trou 1 : un FlipFlop entre E et le Timeline (A → Play, B → Reverse).',
+    'Trou 1 : un FlipFlop entre IA_Interagir (Started) et le Timeline (A → Play, B → Reverse).',
     'Trou 2 : un Lerp de 0 à 5000, piloté par la piste Alpha.',
     'Trou 3 : un Set Intensity sur la Lumiere, exécuté par Update.',
     'Touche Vérifier : E, 2 secondes, E, 2 secondes.',
   ],
   hints: [
-    'Le fil blanc va de E au FlipFlop, puis au Timeline. Un second fil blanc part de Update.',
+    'Le fil blanc va de IA_Interagir (Started) au FlipFlop, puis au Timeline. Un second fil blanc part de Update.',
     'FlipFlop.A → Play, FlipFlop.B → Reverse ; Alpha → Lerp.Alpha ; Update → Set Intensity ; Lerp → New Intensity ; Lumiere → Target.',
-    'Solution : E Pressed → FlipFlop ; A → Fondu.Play, B → Fondu.Reverse ; Fondu.Update → Set Intensity (Lumiere, Lerp (0, 5000, Alpha)).',
+    'Solution : IA_Interagir Started → FlipFlop ; A → Fondu.Play, B → Fondu.Reverse ; Fondu.Update → Set Intensity (Lumiere, Lerp (0, 5000, Alpha)).',
   ],
   challenge: 'Dans l’éditeur de piste, coche Loop et ajoute un point clé (1 s ; 1) puis (2 s ; 0) : le projecteur pulse sans fin dès le premier appui.',
   setup: () => spotProject().pb.project,

@@ -50,6 +50,8 @@ import { debugMappingContext, lessonInputController, lessonInputHold, lessonInpu
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
+import { asEnhancedInput } from './ue5Input';
+import type { KeyName } from '../model/project';
 
 export const LESSONS: Lesson[] = [
   // Débutant
@@ -159,6 +161,37 @@ for (const l of LESSONS) {
   if (q?.robustness) l.robustness = [...(l.robustness ?? []), ...q.robustness];
   if (q?.alternatives) l.alternatives = [...(l.alternatives ?? []), ...q.alternatives];
   if (AVOID[l.id]) l.avoid = [...(l.avoid ?? []), ...AVOID[l.id]];
+}
+
+/**
+ * Steps after « Les contrôles au Player Controller » set up as a UE5 project
+ * (lot 1 of docs/PLAN_PARCOURS.md): Enhanced Input, IMC_Joueur added by
+ * BP_PlayerController, an Input Action per key (ue5Input.ts). The value
+ * names an action when the key has a meaning in the lesson. First part:
+ * Intermédiaire and Confirmé; Avancé comes next.
+ */
+const UE5_INPUT: Record<string, Partial<Record<KeyName, string>>> = {
+  'l-inventaire': {},
+  'c3-projecteur': {},
+  'l09-generateur': {},
+  'd1-accessed-none': {},
+  'l10-dispatcher': {},
+  'l11-interface': {},
+  'd2-interface-oubliee': {},
+  'l-qui-modifie': {},
+  'd12-regie': { E: 'IA_Regie1', F: 'IA_Regie2', SpaceBar: 'IA_ChangerDeRegie' },
+  'l-cartes': { E: 'IA_Tirer' },
+  'l-meme-donne': { E: 'IA_Tirer', SpaceBar: 'IA_NouvellePartie' },
+  'd11-four': { E: 'IA_Lancer', F: 'IA_Annuler' },
+  'd3-tourelle': {},
+  'l-tirelire': {},
+  'd17-premiere-partie': {},
+  'd18-record': { E: 'IA_Marquer', F: 'IA_Sauvegarder' },
+};
+
+for (const [i, l] of LESSONS.entries()) {
+  const names = UE5_INPUT[l.id];
+  if (names) LESSONS[i] = asEnhancedInput(l, names);
 }
 
 export function getLesson(id: string): Lesson | undefined {

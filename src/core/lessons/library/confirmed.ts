@@ -52,8 +52,8 @@ export const lessonWhoChanges: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- **BP_Batterie** : un corps, un **Voyant** vert éteint, et une variable **Charge** (Integer, 0) cochée **Private**.\n- **BP_Borne** : entend E, et a une variable **Batterie** (référence, Instance Editable) déjà réglée sur la batterie du niveau.\n\n' +
-        'Le graphe de la borne fait le travail elle-même : **E** → **Set Charge** (sur la Batterie) = Charge + 40. Mais Charge est Private : **ça ne compile pas**. Touche **Pourquoi ?** sous l’erreur.',
+        '- **BP_Batterie** : un corps, un **Voyant** vert éteint, et une variable **Charge** (Integer, 0) cochée **Private**.\n- **BP_Borne** : entend IA_Interagir (la touche E), et a une variable **Batterie** (référence, Instance Editable) déjà réglée sur la batterie du niveau.\n\n' +
+        'Le graphe de la borne fait le travail elle-même : **IA_Interagir** → **Set Charge** (sur la Batterie) = Charge + 40. Mais Charge est Private : **ça ne compile pas**. Touche **Pourquoi ?** sous l’erreur.',
     },
     {
       title: 'Private, et pourquoi',
@@ -80,7 +80,7 @@ export const lessonWhoChanges: Lesson = {
       title: 'Côté borne',
       body:
         'Supprime le Set Charge et ses nœuds de calcul. Puis :\n\n' +
-        '**E** (Pressed) → **Recharger** (Target = Get Batterie, Quantite = 40).\n\n' +
+        '**IA_Interagir** (Started) → **Recharger** (Target = Get Batterie, Quantite = 40).\n\n' +
         'Pour trouver le nœud : tire un fil depuis Get Batterie et cherche « Recharger ». La pin **Target** dit sur **quelle** batterie appeler la fonction ; une fonction appelée de l’extérieur en a toujours une.\n\n' +
         'La borne ne sait plus rien du plafond ni du voyant : elle demande, la batterie décide.',
     },
@@ -88,13 +88,13 @@ export const lessonWhoChanges: Lesson = {
   objectives: [
     'Dans BP_Batterie : une fonction Recharger (entrée Quantite, Integer) qui ajoute Quantite à Charge sans dépasser 100.',
     'Dans Recharger : si Charge atteint 100, le Voyant s’allume.',
-    'Dans BP_Borne : sur E, appelle Recharger (40) sur la Batterie, à la place du Set direct.',
+    'Dans BP_Borne : sur IA_Interagir, appelle Recharger (40) sur la Batterie, à la place du Set direct.',
     'Charge reste Private. Touche Vérifier : 3 appuis sur E.',
   ],
   hints: [
-    'Toute la règle (ajouter, plafonner, allumer) va dans la fonction de la batterie. La borne ne fait que demander.',
-    'Dans Recharger : Get Charge + Quantite → Min (Integer) avec 100 → Set Charge → Branch (Charge >= 100) → Set Visibility (Voyant). Dans BP_Borne : supprime le Set, puis E → Recharger (Target = Batterie, Quantite = 40).',
-    'Solution : Recharger : Set Charge = Min(Charge + Quantite, 100) → Branch(Charge >= 100) → True : Set Visibility (Voyant, coché). BP_Borne : E Pressed → Recharger (Target = Batterie, Quantite 40).',
+    'Toute la règle (ajouter, plafonner, allumer) va dans la fonction de la batterie. La borne ne fait que demander. Pour trouver qui écrit Charge : appui long sur Set Charge › Find References, puis All Blueprints.',
+    'Dans Recharger : Get Charge + Quantite → Min (Integer) avec 100 → Set Charge → Branch (Charge >= 100) → Set Visibility (Voyant). Dans BP_Borne : supprime le Set, puis IA_Interagir → Recharger (Target = Batterie, Quantite = 40).',
+    'Solution : Recharger : Set Charge = Min(Charge + Quantite, 100) → Branch(Charge >= 100) → True : Set Visibility (Voyant, coché). BP_Borne : IA_Interagir Started → Recharger (Target = Batterie, Quantite 40).',
   ],
   challenge: 'Ajoute à la batterie un Event Dispatcher OnPleine, appelé à 100, et fais réagir un autre Blueprint sans qu’il lise Charge.',
   setup: batteryProject,
@@ -323,7 +323,7 @@ export const debug3: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- **BP_Cible** : une cible rouge. Sur E, elle se détruit (Destroy Actor).\n- **BP_Tourelle** : une variable **Cible** (référence, réglée sur la cible du niveau). Au BeginPlay, **Set Timer by Event** (0,5 s, Looping) appelle le Custom Event **Viser** → Print String « Cible visée en X = … », avec la position lue par **Get Actor Location** sur la Cible.\n\n' +
+        '- **BP_Cible** : une cible rouge. Sur IA_Interagir (la touche E), elle se détruit (Destroy Actor).\n- **BP_Tourelle** : une variable **Cible** (référence, réglée sur la cible du niveau). Au BeginPlay, **Set Timer by Event** (0,5 s, Looping) appelle le Custom Event **Viser** → Print String « Cible visée en X = … », avec la position lue par **Get Actor Location** sur la Cible.\n\n' +
         'Lance Play, attends, appuie sur E : l’Output Log se remplit d’erreurs, deux par seconde.',
     },
     {

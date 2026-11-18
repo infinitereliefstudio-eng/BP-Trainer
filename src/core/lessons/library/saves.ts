@@ -82,7 +82,7 @@ export const lessonPiggyBank: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- **BP_Sauvegarde** : un Blueprint de classe parente **SaveGame**, avec une variable **Pieces** (Integer). Ouvre-le : pas de composants, pas de place dans le niveau, seulement des variables.\n- **BP_Tirelire** : entend E. Sa variable **Pieces** compte les pièces ; le graphe fait déjà E → Increment Int → Print String.\n\n' +
+        '- **BP_Sauvegarde** : un Blueprint de classe parente **SaveGame**, avec une variable **Pieces** (Integer). Ouvre-le : pas de composants, pas de place dans le niveau, seulement des variables.\n- **BP_Tirelire** : entend IA_Interagir (la touche E). Sa variable **Pieces** compte les pièces ; le graphe fait déjà IA_Interagir → Increment Int → Print String.\n\n' +
         'Lance Play, appuie trois fois, Stop, Play : on repart de 1. Tout ce que contient un acteur disparaît à la fin de la partie.',
     },
     {
@@ -90,12 +90,12 @@ export const lessonPiggyBank: Lesson = {
       body:
         'Un **SaveGame** est un objet qui n’existe que pour être écrit. Le moteur sait le copier dans un **slot**, un fichier sur le disque désigné par un nom (**Slot Name**) et un numéro de joueur (**User Index**, 0 en solo).\n\n' +
         '- **Create Save Game Object** : crée un objet de la classe choisie (pin Save Game Class), variables à leur valeur par défaut. Sa sortie est déjà du type BP_Sauvegarde.\n- **Save Game to Slot** : écrit une copie de ses variables dans le slot.\n- **Load Game from Slot** : relit le slot et crée un objet avec ce qui y était. Sa sortie est un simple **SaveGame** : un **Cast To BP_Sauvegarde** est nécessaire pour lire Pieces.\n\n' +
-        'Dans l’appli, Content Browser › Slots de sauvegarde montre ce qui est écrit, et permet d’effacer.',
+        'Dans l’appli, Content Drawer › Slots de sauvegarde montre ce qui est écrit, et permet d’effacer.',
     },
     {
       title: 'Sauver',
       body:
-        'Après le Print String de E :\n\n' +
+        'Après le Print String de IA_Interagir :\n\n' +
         '1. **Create Save Game Object** (Save Game Class = BP_Sauvegarde).\n2. **Set Pieces** sur cet objet : tire un fil depuis Return Value et cherche « Set Pieces ». Valeur = Get Pieces de la tirelire.\n3. **Save Game to Slot** : Save Game Object = le même Return Value, Slot Name = « Tirelire ».\n\n' +
         'Les deux variables s’appellent Pieces, mais ce sont deux variables : celle de la tirelire (dans le niveau) et celle du SaveGame (dans l’objet à écrire).',
     },
@@ -121,9 +121,9 @@ export const lessonPiggyBank: Lesson = {
   hints: [
     'Deux moments : écrire (après chaque pièce) et relire (au début de chaque partie). Même Slot Name des deux côtés.',
     'Nœuds : Create Save Game Object, Set Pieces (tiré depuis l’objet), Save Game to Slot ; Event BeginPlay, Load Game from Slot, Cast To BP_Sauvegarde, Get Pieces (depuis As BP_Sauvegarde), Set Pieces.',
-    'Solution : E → … → Print String → Create Save Game Object (BP_Sauvegarde) → Set Pieces (Target = l’objet, = Pieces) → Save Game to Slot (l’objet, « Tirelire »). BeginPlay → Load Game from Slot (« Tirelire ») → Cast To BP_Sauvegarde → Set Pieces = As BP_Sauvegarde › Pieces.',
+    'Solution : IA_Interagir → … → Print String → Create Save Game Object (BP_Sauvegarde) → Set Pieces (Target = l’objet, = Pieces) → Save Game to Slot (l’objet, « Tirelire »). BeginPlay → Load Game from Slot (« Tirelire ») → Cast To BP_Sauvegarde → Set Pieces = As BP_Sauvegarde › Pieces.',
   ],
-  challenge: 'Ajoute la touche F : elle vide la tirelire et efface la sauvegarde (Delete Game in Slot).',
+  challenge: 'Ajoute une action IA_Vider sur F dans IMC_Joueur : elle vide la tirelire et efface la sauvegarde (Delete Game in Slot).',
   setup: piggyProject,
   scenario: [{ wait: 0.2 }, ...tap('E'), ...tap('E'), ...tap('E'), ...RESTART, ...tap('E')],
   checks: [
@@ -220,7 +220,7 @@ export const debug17: Lesson = {
       body:
         '- **BP_Sauvegarde** (SaveGame) : une variable **Pieces**.\n- **BP_Tirelire** : une variable **Sauvegarde**, une référence vers un BP_Sauvegarde.\n\n' +
         'Au **BeginPlay** : Load Game from Slot (« Tirelire ») → Cast To BP_Sauvegarde → **Set Sauvegarde** = As BP_Sauvegarde. La sortie **Cast Failed** n’est reliée à rien.\n\n' +
-        'Sur **E** : Pieces de la Sauvegarde + 1 → Print String → Save Game to Slot (Sauvegarde, « Tirelire »).',
+        'Sur **IA_Interagir** (E) : Pieces de la Sauvegarde + 1 → Print String → Save Game to Slot (Sauvegarde, « Tirelire »).',
     },
     {
       title: 'Pourquoi « chez le développeur, ça marche »',
@@ -295,7 +295,7 @@ export const predict11: Lesson = {
       title: 'À lire',
       body:
         'Deux classes **SaveGame** :\n- **BP_Reglages** : une variable **Volume** (Integer) ;\n- **BP_Progression** : une variable **Niveau** (Integer, 1 par défaut).\n\n' +
-        'Ouvre le **Content Browser** : la section Slots de sauvegarde montre le slot **Partie**, déjà écrit avant cette partie. Regarde quelle classe il contient.\n\n' +
+        'Ouvre le **Content Drawer** : la section Slots de sauvegarde montre le slot **Partie**, déjà écrit avant cette partie. Regarde quelle classe il contient.\n\n' +
         'Au **BeginPlay** de **BP_Menu** : **Load Game from Slot** (« Partie ») → **Cast To BP_Progression**.\n- Sortie du haut → Print String de **Niveau** (As BP_Progression).\n- **Cast Failed** → Print String « Pas une progression ».',
     },
     {
@@ -410,14 +410,14 @@ export const debug18: Lesson = {
       title: 'Ce qui est en place',
       body:
         '- **BP_Record** (SaveGame) : une variable **Record**.\n- **BP_Borne** : une variable **Score**.\n\n' +
-        '- **E** : Score + 10, affiché.\n- **F** : Create Save Game Object (BP_Record), Save Game to Slot (« Records »), Set Record = Score.\n- **BeginPlay** : si le slot « Records » existe (Does Save Game Exist), Load, Cast To BP_Record, et affiche « Record : » suivi de Record.',
+        '- **IA_Marquer** (E) : Score + 10, affiché.\n- **IA_Sauvegarder** (F) : Create Save Game Object (BP_Record), Save Game to Slot (« Records »), Set Record = Score.\n- **BeginPlay** : si le slot « Records » existe (Does Save Game Exist), Load, Cast To BP_Record, et affiche « Record : » suivi de Record.',
     },
     {
       title: 'Enquêter',
       body:
         'Lance Play, trois fois E, F, Stop, Play : « Record : 0 ».\n\n' +
-        'Le slot a bien été écrit : sinon BeginPlay n’afficherait rien du tout. Ouvre le Content Browser, section Slots de sauvegarde : que contient Records ?\n\n' +
-        'Puis suis le fil blanc de **F**, nœud par nœud. À l’instant où Save Game to Slot copie l’objet, que vaut Record dedans ?',
+        'Le slot a bien été écrit : sinon BeginPlay n’afficherait rien du tout. Ouvre le Content Drawer, section Slots de sauvegarde : que contient Records ?\n\n' +
+        'Puis suis le fil blanc de **IA_Sauvegarder**, nœud par nœud. À l’instant où Save Game to Slot copie l’objet, que vaut Record dedans ?',
     },
     {
       title: 'Une copie, à un instant',
@@ -429,8 +429,8 @@ export const debug18: Lesson = {
   objectives: ['Après trois appuis sur E, F, puis Stop et Play : « Record : 30 ».'],
   hints: [
     'Le slot contient Record = 0 : il a été écrit avant d’être rempli.',
-    'L’ordre sur le fil de F : Create, puis Save, puis Set Record. Le Set arrive trop tard.',
-    'Solution : F → Create Save Game Object → Set Record (= Score) → Save Game to Slot.',
+    'L’ordre sur le fil de IA_Sauvegarder : Create, puis Save, puis Set Record. Le Set arrive trop tard.',
+    'Solution : IA_Sauvegarder → Create Save Game Object → Set Record (= Score) → Save Game to Slot.',
   ],
   setup: () => recordProject(),
   scenario: [{ wait: 0.2 }, ...tap('E'), ...tap('E'), ...tap('E'), ...tap('F'), ...RESTART],

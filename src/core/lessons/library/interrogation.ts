@@ -132,7 +132,7 @@ export const lessonTalk: Lesson = {
     {
       title: 'Les données',
       body:
-        'Ouvre **S_Replique** (Content Browser) : c’est la structure d’une réplique.\n\n' +
+        'Ouvre **S_Replique** (Content Drawer) : c’est la structure d’une réplique.\n\n' +
         '- `Texte` (String) : ce que dit le témoin.\n' +
         '- `ChoixE`, `ChoixF` (Name) : l’identifiant de la réplique où mène chaque touche. Vide (None) : le dialogue se termine.\n' +
         '- `Exige` (Name) : le fait que le joueur doit connaître pour prendre le choix F. Vide : aucun.\n' +

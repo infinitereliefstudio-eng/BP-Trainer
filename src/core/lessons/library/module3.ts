@@ -150,7 +150,7 @@ export const lesson10: Lesson = {
     {
       title: 'Côté générateur : déclarer et appeler',
       body:
-        '1. My Blueprint › Event Dispatchers › **+**, nomme-le `OnEtatChange`.\n2. Dans Details, ajoute-lui un **paramètre** Boolean : la nouvelle valeur, transmise aux abonnés.\n3. À la fin de la chaîne de E (après le Print String) : **Call OnEtatChange**, avec la sortie du Set bEnMarche sur le paramètre.\n\n' +
+        '1. My Blueprint › Event Dispatchers › **+**, nomme-le `OnEtatChange`.\n2. Dans Details, ajoute-lui un **paramètre** Boolean : la nouvelle valeur, transmise aux abonnés.\n3. À la fin de la chaîne de IA_Interagir (après le Print String) : **Call OnEtatChange**, avec la sortie du Set bEnMarche sur le paramètre.\n\n' +
         '**Call** exécute **immédiatement** tous les événements abonnés, l’un après l’autre, avant de rendre la main à la suite du graphe.',
     },
     {
@@ -268,7 +268,7 @@ export const lesson11: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- **BP_Joueur** : le joueur, graphe vide.\n- **BP_Porte**, **BP_Lampe** et **BP_Generateur**, chacun avec une zone autour de lui, graphes vides (le générateur n’a plus sa touche E).\n\n' +
+        '- **BP_Joueur** : le joueur, graphe vide.\n- **BP_Porte**, **BP_Lampe** et **BP_Generateur**, chacun avec une zone autour de lui, graphes vides (le générateur n’écoute plus IA_Interagir).\n\n' +
         'Le but : E agit sur l’objet à portée, quel qu’il soit. Le joueur ne doit pas avoir à savoir si c’est une porte ou une lampe : pas de Cast.',
     },
     {
@@ -287,7 +287,7 @@ export const lesson11: Lesson = {
     {
       title: 'Envoyer le message',
       body:
-        'Dans BP_Joueur, sur **E** (Pressed) :\n\n' +
+        'Dans BP_Joueur, sur **IA_Interagir** (Started) :\n\n' +
         '1. **Get Overlapping Actors** : la liste (un tableau) des acteurs dont la zone touche le joueur.\n2. **For Each Loop** sur ce tableau : **Loop Body** s’exécute pour chaque élément, donné par **Array Element**.\n3. Dans Loop Body : **Interagir (Message)**, Target = Array Element.\n\n' +
         'Un message envoyé à un acteur qui n’implémente pas l’interface (un mur, le sol) **ne fait rien, sans erreur**.',
     },
@@ -305,8 +305,8 @@ export const lesson11: Lesson = {
   ],
   hints: [
     'Le joueur ne connaît pas le type de ce qu’il touche : il envoie un message, et chacun y répond à sa façon.',
-    'Nœuds : (joueur) Input E, Get Overlapping Actors, For Each Loop, Interagir (Message). (objets) Event Interagir, puis Set Relative Rotation / Toggle Visibility / Set bEnMarche.',
-    'Solution : joueur : E → Get Overlapping Actors → For Each Loop → Interagir (Message), Target = Array Element. Chaque objet implémente BPI_Interactif et réagit dans Event Interagir.',
+    'Nœuds : (joueur) IA_Interagir, Get Overlapping Actors, For Each Loop, Interagir (Message). (objets) Event Interagir, puis Set Relative Rotation / Toggle Visibility / Set bEnMarche.',
+    'Solution : joueur : IA_Interagir (Started) → Get Overlapping Actors → For Each Loop → Interagir (Message), Target = Array Element. Chaque objet implémente BPI_Interactif et réagit dans Event Interagir.',
   ],
   challenge: 'Ajoute un Blueprint de ton choix (un coffre ?) qui réagit à E, sans modifier BP_Joueur.',
   setup: () => interactionWorld('Leçon 11').pb.project,

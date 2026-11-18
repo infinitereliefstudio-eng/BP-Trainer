@@ -242,7 +242,7 @@ export interface StructMember {
   defaultValue: Value;
 }
 
-/** A Structure asset (Content Browser › Structure): named members, no logic. */
+/** A Structure asset (Content Drawer › Structure): named members, no logic. */
 export interface UserStruct {
   id: string;
   name: string;
@@ -257,7 +257,7 @@ export interface DataTableRow {
 }
 
 /**
- * A Data Table asset (Content Browser › Data Table): rows of one structure,
+ * A Data Table asset (Content Drawer › Data Table): rows of one structure,
  * each with a unique Row Name. `struct` names the structure, like a pin type.
  */
 export interface DataTable {

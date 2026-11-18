@@ -1,7 +1,7 @@
 /**
  * The second row: the toolbar of the editor shown, as in UE. The Blueprint
  * editor has Compile, Save, Find, Class Settings, Class Defaults and Play, then
- * its graph tabs (Construction Script, Event Graph, the function opened).
+ * the Viewport tab and its graph tabs (Construction Script, Event Graph, the function opened).
  * The level editor has Save, Place Actors and Play.
  */
 import type { CompileStatus } from '@core/compiler/validate';
@@ -51,7 +51,9 @@ function PlayButton({ playing, onPlay, onStop }: Common) {
   );
 }
 
-export function BlueprintToolbar(p: Common & { onClassSettings: () => void; onClassDefaults: () => void; onFind: () => void }) {
+export function BlueprintToolbar(
+  p: Common & { onClassSettings: () => void; onClassDefaults: () => void; onFind: () => void; viewport: boolean; onViewport: () => void; onGraph: () => void },
+) {
   const store = useStore();
   const cls = store.cls;
   const st = COMPILE_ICON[store.compileStatus];
@@ -77,10 +79,16 @@ export function BlueprintToolbar(p: Common & { onClassSettings: () => void; onCl
       <span class="tb-sep" />
       <div class="tabs graph-tabs" role="tablist">
         {cls.parent !== 'SaveGame' && (
+          <button role="tab" class={`tab${p.viewport ? ' active' : ''}`} disabled={p.playing} onClick={p.onViewport}>
+            Viewport
+          </button>
+        )}
+        {cls.parent !== 'SaveGame' && (
           <button
             role="tab"
-            class={`tab${current.kind === 'construction' ? ' active' : ''}`}
+            class={`tab${current.kind === 'construction' && !p.viewport ? ' active' : ''}`}
             onClick={() => {
+              p.onGraph();
               // Every Blueprint has one in UE; here it is created the first time it is opened.
               const g = construction ?? store.apply('Ouvrir le Construction Script', (c) => ensureConstructionScript(c));
               store.openGraph(g.id);
@@ -90,12 +98,20 @@ export function BlueprintToolbar(p: Common & { onClassSettings: () => void; onCl
           </button>
         )}
         {events.map((g) => (
-          <button key={g.id} role="tab" class={`tab${current.id === g.id ? ' active' : ''}`} onClick={() => current.id !== g.id && store.openGraph(g.id)}>
+          <button
+            key={g.id}
+            role="tab"
+            class={`tab${current.id === g.id && !p.viewport ? ' active' : ''}`}
+            onClick={() => {
+              p.onGraph();
+              if (current.id !== g.id) store.openGraph(g.id);
+            }}
+          >
             {g.name === 'EventGraph' ? 'Event Graph' : g.name}
           </button>
         ))}
         {current.kind === 'function' && (
-          <button role="tab" class="tab active">
+          <button role="tab" class={`tab${p.viewport ? '' : ' active'}`} onClick={p.onGraph}>
             {current.name}
           </button>
         )}

@@ -36,6 +36,8 @@ export interface WorldScene {
   debugLines?: DebugLine[];
   /** Editor only: an actor's Instance Editable variable points at another actor. */
   references?: { from: string; to: string; label: string }[];
+  /** The Blueprint editor's Viewport: one actor at the origin, its components selectable. */
+  viewport?: { selectedComponent?: string };
 }
 
 const DEG = Math.PI / 180;
@@ -71,13 +73,73 @@ export function renderWorld(c: CanvasRenderingContext2D, s: WorldScene, dpr: num
     }
   }
 
+  // The Viewport's origin and forward axis lie under the components, as UE's grid gizmo.
+  if (s.viewport) drawViewportAxis(c, s.camera.zoom);
   for (const a of shown) drawActor(c, a, s);
   if (player) drawActor(c, player, s);
 
+  if (s.viewport) drawViewportSelection(c, s);
   if (!s.playing && s.references?.length) drawReferences(c, s);
   if (!s.playing && s.playerStart) drawPlayerStart(c, s.playerStart, cam.zoom, s.selectedId === 'playerStart');
   if (player) drawPlayer(c, player);
   if (s.playing && s.debugLines?.length) drawDebugLines(c, s.debugLines, cam.zoom);
+}
+
+/** The Viewport's origin (the actor's root) and its forward axis, +X, where a Yaw of 0 looks. */
+function drawViewportAxis(c: CanvasRenderingContext2D, z: number): void {
+  c.save();
+  c.globalAlpha = 0.75;
+  c.lineWidth = 2 / z;
+  c.strokeStyle = '#e04a4a';
+  c.fillStyle = '#e04a4a';
+  const len = 70 / z;
+  c.beginPath();
+  c.moveTo(0, 0);
+  c.lineTo(len, 0);
+  c.stroke();
+  c.beginPath();
+  c.moveTo(len + 10 / z, 0);
+  c.lineTo(len, -6 / z);
+  c.lineTo(len, 6 / z);
+  c.closePath();
+  c.fill();
+  c.font = `${11 / z}px system-ui, sans-serif`;
+  c.textBaseline = 'bottom';
+  c.fillText('X', len + 12 / z, -4 / z);
+  c.strokeStyle = '#ffffff';
+  c.beginPath();
+  c.arc(0, 0, 6 / z, 0, Math.PI * 2);
+  c.stroke();
+  c.restore();
+}
+
+/** The Viewport's selected component, outlined. */
+function drawViewportSelection(c: CanvasRenderingContext2D, s: WorldScene): void {
+  const z = s.camera.zoom;
+  c.save();
+  const a = s.actors[0];
+  const comp = a?.components.find((k) => k.id === s.viewport?.selectedComponent);
+  if (a && comp) {
+    c.strokeStyle = WORLD.selected;
+    c.lineWidth = 3 / z;
+    const shape = comp.kind === 'StaticMesh' || comp.kind === 'BoxCollision' ? componentShape(a, comp) : undefined;
+    if (shape?.kind === 'circle') {
+      c.beginPath();
+      c.arc(shape.cx, shape.cy, shape.r + 4 / z, 0, Math.PI * 2);
+      c.stroke();
+    } else if (shape) {
+      c.translate(shape.cx, shape.cy);
+      c.rotate(shape.angle);
+      const m = 4 / z;
+      c.strokeRect(-shape.hx - m, -shape.hy - m, (shape.hx + m) * 2, (shape.hy + m) * 2);
+    } else {
+      const t = componentTransform(a, comp);
+      c.beginPath();
+      c.arc(t.x, t.y, 16 / z, 0, Math.PI * 2);
+      c.stroke();
+    }
+  }
+  c.restore();
 }
 
 /** A trace as UE draws it: red up to the hit, green beyond, a square on the hit point. */
@@ -256,6 +318,7 @@ function drawActor(c: CanvasRenderingContext2D, a: ActorRT, s: WorldScene): void
     }
   }
 
+  if (s.viewport) return;
   const r = actorRadius(a);
   if (s.selectedId === a.id) {
     c.save();

@@ -651,3 +651,18 @@ select.field { padding-right: 4px; }
 .pi-icon.flow { color: #b5b5b5; font-style: normal; }
 .pi-icon.var { font-style: normal; font-size: 12px; }
 .palette .pi-desc { padding-left: 22px; }
+
+/* ------------------------------------- V7.9: level Outliner and Blueprint Viewport */
+.drawer-tabs { display: flex; gap: 2px; flex: 1; min-width: 0; }
+.drawer-tab { height: 34px; padding: 0 12px; font-weight: 700; color: var(--muted); border-bottom: 2px solid transparent; }
+.drawer-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.outliner-cols { display: flex; padding: 4px 12px; font-size: 11.5px; color: var(--muted); border-bottom: 1px solid var(--line); background: #1b1b1b; }
+.outliner-cols span:first-child, .ol-label { flex: 1.3; min-width: 0; }
+.outliner-cols span:last-child, .ol-type { flex: 1; min-width: 0; }
+.outliner-line { display: flex; align-items: center; gap: 6px; padding-right: 8px; border-bottom: 1px solid #191919; }
+.outliner-line.selected { background: var(--accent-soft); }
+.outliner-pick { flex: 1; min-width: 0; min-height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; text-align: left; font-size: 13px; }
+.ol-label { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ol-type { color: #85b7eb; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.outliner-count { padding: 6px 12px; font-size: 12px; color: var(--muted); margin: 0; }
+.graph-canvas.viewport { background: #1b1d21; }

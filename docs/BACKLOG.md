@@ -82,7 +82,7 @@ Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en ti
 | 2 | Content Drawer : + Add avec le menu d'UE (Blueprint Class, Input, Blueprint, Miscellaneous), Pick Parent Class, vignettes par type, ouverture par double toucher, poser un acteur depuis le Drawer | **Fait en V7.6** (dossiers non simulés) |
 | 3 | Enhanced Input, point 1 : Player Controller, Get Player Controller / Get Controller, Cast To PlayerController, Enhanced Input Local Player Subsystem, Add Mapping Context avec Target ; leçons mises à jour | **Fait en V7.7** (une étape de plus : « Les contrôles au Player Controller ») |
 | 4 | Details à la manière d'UE (sections d'UE d'abord, aide de l'appli dans un bloc ambre repliable) ; palette « All Actions for this Blueprint » avec Context Sensitive et catégories repliables ; Find (Find Results) | **Fait en V7.8** (plus : Search Details, Find References) |
-| 5 | Viewport du Blueprint (composants seuls) ; Outliner permanent dans l'éditeur de niveau (tiroir Outliner / Details) | À faire |
+| 5 | Viewport du Blueprint (composants seuls) ; Outliner permanent dans l'éditeur de niveau (tiroir Outliner / Details) | **Fait en V7.9** |
 
 ## Lot 3 — Entrées et interaction
 
@@ -254,6 +254,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.9 (18 novembre 2026), interface à la manière d'UE, étape 5 : onglet Viewport du Blueprint (composants vus de dessus, sélection, déplacement au doigt dans le repère du parent) ; Outliner permanent de l'éditeur de niveau (tiroir Outliner / Details, Item Label et Type, recherche, sélection partagée). Plan « Interface à la manière d'UE » terminé.
 - V7.8 (18 novembre 2026), interface à la manière d'UE, étape 4 : Details en sections d'UE repliables avec Search Details et aide ambre, palette « All Actions for this Blueprint » en arbre de catégories, Find Results (Find, Find in all Blueprints, Find References) ; revue des étapes 1 à 3 : Player Index de Get Player Controller et Get Player Pawn.
 - V7.7 (18 novembre 2026), interface à la manière d'UE, étape 3 : Player Controller (classe parente, Player Controller Class, sur la pile des entrées), Get Player Controller, Get Controller, Cast To PlayerController, Enhanced Input Local Player Subsystem, Target d'Add / Remove Mapping Context (format 10) ; leçons Enhanced Input mises à jour et nouvelle étape « Les contrôles au Player Controller ».
 - V7.6 (18 novembre 2026), interface à la manière d'UE, étape 2 : Content Drawer (vignettes, + Add avec le menu d'UE, Pick Parent Class, Pick Row Structure, ouvrir, placer, supprimer).

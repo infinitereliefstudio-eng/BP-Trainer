@@ -20,6 +20,7 @@ import { GraphCanvas, type CanvasRequests, type GraphCanvasHandle } from '@edito
 import { haptic } from '@editor/haptics';
 import { PlaySession } from '@editor/world/playSession';
 import { WorldCanvas, type WorldRequests } from '@editor/world/WorldCanvas';
+import { ViewportCanvas, type ViewportHandle, type ViewportRequests } from '@editor/viewport/ViewportCanvas';
 import { StoreContext, useStore } from './hooks';
 import { GoalStrip } from './lesson/GoalStrip';
 import { LessonSheet, type LessonCheck } from './lesson/LessonSheet';
@@ -37,6 +38,7 @@ import { Details } from './panels/Details';
 import { MyBlueprint } from './panels/MyBlueprint';
 import { DebugBar } from './play/DebugBar';
 import { LiveOutliner } from './play/LiveOutliner';
+import { LevelOutliner } from './panels/LevelOutliner';
 import { PlayOverlay } from './play/PlayOverlay';
 import { playOrder } from './playSettings';
 import { DocumentTabs } from './editor/DocumentTabs';
@@ -74,6 +76,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
   const [view, setView] = useState<'graph' | 'level'>(lesson && !alternative && !solution ? 'level' : 'graph');
+  // The Blueprint editor shows its Viewport (components) instead of a graph, as UE's Viewport tab.
+  const [viewport, setViewport] = useState(false);
+  /** The Blueprint editor on a graph (leaving the Viewport). */
+  const showGraph = () => {
+    setView('graph');
+    setViewport(false);
+  };
+  // Another Blueprint opens on its graph.
+  useEffect(() => setViewport(false), [store.classId]);
   const [left, setLeft] = useState(false);
   // Blueprint editors open in tabs, as in UE; the one being edited is always among them.
   const [tabs, setTabs] = useState<string[]>(() => [store.classId]);
@@ -82,6 +93,9 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   }, [store.classId]);
   const openTabs = tabs.filter((id) => store.project.classes.some((c) => c.id === id));
   const [details, setDetails] = useState(false);
+  // The level editor's right drawer: UE's Outliner and Details, one tab each on a phone.
+  const [levelPanel, setLevelPanel] = useState<'outliner' | 'details'>('outliner');
+  const [centerOn, setCenterOn] = useState<{ id: string; n: number } | undefined>(undefined);
   const [bottom, setBottom] = useState<false | BottomTab>(false);
   // Find References: the search Find Results opens with (a new one remounts the tab).
   const [find, setFind] = useState<{ query?: string; n: number }>({ n: 0 });
@@ -148,13 +162,14 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   };
 
   const openDetails = () => {
+    setLevelPanel('details');
     setDetails(true);
     setLeft(false);
   };
 
   const openClass = (classId: string) => {
     store.openClass(classId);
-    setView('graph');
+    showGraph();
   };
 
   const graphRequests: CanvasRequests = useMemo(
@@ -166,6 +181,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       editValue: (nodeId, spec) => setOverlay({ kind: 'value', nodeId, spec }),
       openDetails,
       openTimeline: (nodeId) => setOverlay({ kind: 'timeline', nodeId }),
+    }),
+    [store],
+  );
+
+  const viewportCanvas = useRef<ViewportHandle>(null);
+  const viewportRequests: ViewportRequests = useMemo(
+    () => ({
+      openDetails,
+      inherited: (name, owner) => store.info(`${name} vient de ${owner} : ouvre ${owner} pour le modifier.`),
     }),
     [store],
   );
@@ -194,7 +218,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
   /** Drop a node at the centre of the graph view (from My Blueprint). */
   const placeNode = (def: string, config: Record<string, Value>) => {
-    setView('graph');
+    showGraph();
     const c = canvas.current?.viewCenter() ?? { x: 0, y: 0 };
     const res = store.apply('Ajouter un nœud', (_cl, g) => addNode(g, def, c.x - 60, c.y - 20, config));
     if (res.ok) store.selectNodes([res.value.id]);
@@ -203,7 +227,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   };
 
   const focusNode = (graphId: string, nodeId: string, classId?: string, inset?: { top?: number; right?: number }) => {
-    setView('graph');
+    showGraph();
     if (classId && classId !== store.classId) store.openClass(classId);
     store.openGraph(graphId);
     requestAnimationFrame(() => canvas.current?.focusNode(nodeId, inset));
@@ -232,7 +256,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       if (compileClass(cls, store.project).status === 'error') {
         store.openClass(cls.id);
         store.compile();
-        setView('graph');
+        showGraph();
         setBottom('compiler');
         haptic('fail');
         store.error(`Play impossible : ${cls.name} contient des erreurs de compilation.`);
@@ -275,6 +299,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         tabs={openTabs}
         onLevel={() => setView('level')}
         onOpenTab={(id) => {
+          // The Blueprint shown already: back to it as it was (Viewport or graph).
           if (id !== store.classId) store.openClass(id);
           setView('graph');
         }}
@@ -322,6 +347,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             openDetails();
           }}
           onFind={() => openFind()}
+          viewport={viewport && !playing}
+          onViewport={() => {
+            setView('graph');
+            setViewport(true);
+          }}
+          onGraph={() => setViewport(false)}
         />
       ) : (
         <LevelToolbar
@@ -378,10 +409,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       <div class="editor-body">
       <EdgeHandle side="left" label="Components · My Blueprint" aria="Ouvrir My Blueprint" hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
       <main class="workspace">
-        {view === 'graph' ? (
+        {view === 'graph' && viewport && !playing ? (
+          <ViewportCanvas ref={viewportCanvas} store={store} requests={viewportRequests} />
+        ) : view === 'graph' ? (
           <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
         ) : (
-          <WorldCanvas store={store} session={session ?? undefined} requests={worldRequests} />
+          <WorldCanvas store={store} session={session ?? undefined} requests={worldRequests} center={centerOn} />
         )}
 
         {playing && session && view === 'level' && (
@@ -423,7 +456,20 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           </aside>
         )}
 
-        {!playing && view === 'graph' && (
+        {!playing && view === 'graph' && viewport && (
+          <div class="fabs">
+            <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler">
+              ↶
+            </button>
+            <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir">
+              ↷
+            </button>
+            <button class="fab" onClick={() => viewportCanvas.current?.fitView()} aria-label="Recentrer la vue">
+              ⌖
+            </button>
+          </div>
+        )}
+        {!playing && view === 'graph' && !viewport && (
           <div class="fabs">
             <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler">
               ↶
@@ -473,12 +519,27 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         <aside class={`drawer right${details ? ' open' : ''}`} aria-hidden={!details}>
           <div class="drawer-head">
-            <strong>Details</strong>
+            {view === 'level' ? (
+              <div class="drawer-tabs" role="tablist">
+                <button role="tab" class={`drawer-tab${levelPanel === 'outliner' ? ' active' : ''}`} onClick={() => setLevelPanel('outliner')}>
+                  Outliner
+                </button>
+                <button role="tab" class={`drawer-tab${levelPanel === 'details' ? ' active' : ''}`} onClick={() => setLevelPanel('details')}>
+                  Details
+                </button>
+              </div>
+            ) : (
+              <strong>Details</strong>
+            )}
             <button class="btn" onClick={() => setDetails(false)}>
               ✕
             </button>
           </div>
-          <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} />
+          {view === 'level' && levelPanel === 'outliner' ? (
+            <LevelOutliner onCenter={(id) => setCenterOn((c) => ({ id, n: (c?.n ?? 0) + 1 }))} onDetails={() => setLevelPanel('details')} />
+          ) : (
+            <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} />
+          )}
         </aside>
 
         <div class={`bottom-wrap${bottom ? ' open' : ''}${playing ? ' playing' : ''}`}>
@@ -509,7 +570,17 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         <Toasts />
       </main>
-      <EdgeHandle side="right" label="Details" aria="Ouvrir Details" hidden={playing} onClick={() => setDetails((v) => !v)} />
+      <EdgeHandle
+        side="right"
+        label={view === 'level' ? 'Outliner · Details' : 'Details'}
+        aria="Ouvrir Details"
+        hidden={playing}
+        onClick={() => {
+          // In the level: the selection's Details if there is one, else the Outliner.
+          if (!details && view === 'level') setLevelPanel(store.focus.kind === 'none' ? 'outliner' : 'details');
+          setDetails((v) => !v);
+        }}
+      />
       </div>
 
       {overlay?.kind === 'palette' && <Palette req={overlay.req} onClose={close} onFocusNode={(id) => canvas.current?.focusNode(id)} />}

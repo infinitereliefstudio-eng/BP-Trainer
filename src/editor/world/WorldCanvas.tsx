@@ -26,11 +26,13 @@ interface Props {
   store: EditorStore;
   session?: PlaySession;
   requests: WorldRequests;
+  /** Bring an actor (or « playerStart ») to the middle of the view: picked in the Outliner. `n` changes on every request. */
+  center?: { id: string; n: number };
 }
 
 const noop = () => undefined;
 
-export function WorldCanvas({ store, session, requests }: Props) {
+export function WorldCanvas({ store, session, requests, center }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const live = useRef({
@@ -255,6 +257,18 @@ export function WorldCanvas({ store, session, requests }: Props) {
       if (live.current.frame) cancelAnimationFrame(live.current.frame);
     };
   }, [store]);
+
+  useEffect(() => {
+    if (!center || live.current.session) return;
+    const ps = store.project.level.playerStart;
+    const a = center.id === 'playerStart' ? ps : actors().find((x) => x.id === center.id);
+    const { w, h } = live.current.size;
+    if (!a || !w) return;
+    const cam = camera();
+    cam.x = a.x - w / 2 / cam.zoom;
+    cam.y = a.y - h / 2 / cam.zoom;
+    invalidate();
+  }, [center?.n]);
 
   // Redraw every animation frame while playing.
   useEffect(() => {

@@ -34,6 +34,35 @@ Une notion nouvelle par étape ; une échelle par notion (découvrir, guidé, mo
 | 3 — Confirmé | Choisis ton outil, Le menu pause, Qui a éteint la lumière (Find), Interagir comme dans UE5, rappels, synthèse ; composants et fonctions créés par l'apprenant | À faire |
 | 4 — Avancé et Expert | Cahiers des charges, Le levier universel, projets Expert (suite « jeu narratif »), entraînement mélangé | À faire |
 
+## Ce qui reste (pour la reprise)
+
+État au 2026-11-18 : lots 0, 1 et 2 faits (V7.10 à V7.14). Tristan n'a pas encore validé la V7.14 sur son téléphone ; le lot 3 ne commence qu'avec son feu vert explicite. Les lots 2 et 1 ont été faits en deux temps avec sa validation entre les deux : proposer la même chose pour le lot 3 (par exemple 3a : nouvelles étapes ; 3b : rappels et synthèse S3).
+
+### Lot 3 — Confirmé (32 étapes aujourd'hui, de « Générateur et lampe » à D18)
+
+Repères du Claude Doc, colonne « Confirmé » : fiche = situation + ce qui est nouveau ; pas de liste des nœuds ; indices après un essai ; solution après réussite ou trois échecs (déjà dans `helpPolicy.ts`) ; **niveau et Blueprints vides** au départ ; solutions de 8 à 15 nœuds ; l'apprenant crée **ses composants dans le Viewport et ses fonctions**.
+
+Étapes prévues :
+- **« Choisis ton outil »** : un même besoin (prévenir d'autres acteurs), trois variantes ; l'apprenant choisit Cast, Event Dispatcher ou Interface selon la variante. Idée fausse visée : « ils font la même chose ».
+- **« Le menu pause »** : contenu à préciser avec Tristan (le Doc ne donne que le titre ; le nœud Set Game Paused n'existe pas encore dans l'appli : il faudrait l'ajouter, définition et comportement).
+- **« Qui a éteint la lumière ? »** : un Débogue qui se résout avec Find References / Find in all Blueprints (outils livrés en V7.8).
+- **« Interagir comme dans UE5 »** : le joueur reçoit IA_Interagir (overlap ou Line Trace) et prévient l'objet visé par une interface, au lieu des objets qui écoutent eux-mêmes l'action (Auto Receive Input, gardé dans les étapes converties au lot 1 ; voir l'écart noté en V7.11 dans HANDOFF.md).
+- **Rappels** dans les étapes Confirmé existantes : faire redescendre les six écarts montés en V7.14 (`KNOWN_GAPS` commentés `V7.14` : timers, enum, switch, maps, player-controller, timeline), plus ceux au-dessus de la cible (enhanced-input, input, construction, data-tables, sequence, random…).
+- Notions difficiles du Doc concernées : « Ordre et cycle de vie » (un Prédis Construction Script ou BeginPlay, des rappels de Construction Script et de Tick) ; « Choisir Cast, Dispatcher ou Interface ».
+- **Synthèse S3** en fin de Confirmé, qui impose le choix de l'outil.
+
+### Lot 4 — Avancé et Expert
+
+Repères : Avancé = cahier des charges, aucune liste des nœuds, indices sous forme de questions (où regarder), solution après réussite, **niveau seul** au départ (l'apprenant crée ses Blueprints et ses assets), 12 à 25 nœuds. Expert = cahier des charges + scénario de test, aucun indice (« Montre-moi » après un échec), bilan après réussite, **décor seul**, 25 nœuds et plus, sur plusieurs séances (décision de Tristan).
+
+Étapes prévues : cahiers des charges pour les étapes Avancé ; « Le levier universel » ; projets Expert, dont la suite « jeu narratif » calquée sur Station enterrée (déjà au BACKLOG) ; entraînement mélangé (étapes qui mélangent plusieurs notions sans dire laquelle utiliser) ; rappels de tableaux et copies dans les étapes qui manipulent des listes ; une sauvegarde dans la synthèse Avancé (S4) ; héritage repris en Expert.
+
+### Non attribué à un lot (demander à Tristan avant)
+
+- « S'adapter à l'apprenant » (point 6 du Doc) : une notion fragile (solution vue, révision ratée) déclencherait un transfert de plus proposé par « Continuer ».
+- L'apprenant crée ses variables dès l'Intermédiaire : fait seulement dans les étapes ajoutées au lot 2.
+- Déclencheur Tap d'Enhanced Input (absent ; T2 utilise Hold + Canceled).
+
 ## Règle d'aide (core/lessons/helpPolicy.ts)
 
 | Niveau | Indice | Liste des nœuds | Solution |

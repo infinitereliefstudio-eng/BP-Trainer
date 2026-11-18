@@ -1,8 +1,62 @@
 # Reprise du projet
 
-Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
+Ce fichier suffit pour reprendre le travail sans l'historique des conversations. **Commencer par « Reprise rapide » ci-dessous** : c'est l'état réel au 2026-11-18. Les sections suivantes (« État », V2 à V7.x) sont l'historique, gardé pour les décisions qu'il explique ; quand elles contredisent la reprise rapide, c'est la reprise rapide qui fait foi.
 
-Dernière mise à jour : 2026-11-18, V7.14 (lot 2b : l'Intermédiaire, voir « V7.14 » ; le lot 2 est fini), lancée par Tristan (« tu peux passer à la suite »). Avant : 2026-11-18, V7.13 (lot 2a : le Débutant, voir « V7.13 »), lancée par Tristan (« tu peux passer au lot 2 »). Avant : 2026-11-18, V7.12 (lot 1b : Enhanced Input dans les étapes Avancé, voir « V7.12 » ; le lot 1 est fini), lancée par Tristan (« tu peux enchaîner »). Avant : 2026-11-18, V7.11 (lot 1a du plan du parcours : textes et Enhanced Input dans les étapes Intermédiaire et Confirmé, voir « V7.11 »), lancée par Tristan (« tu peux passer à la suite »). Avant : 2026-11-18, V7.10 (lot 0 du plan du parcours : le cadre pédagogique, voir « V7.10 » et [PLAN_PARCOURS.md](PLAN_PARCOURS.md)), lancée par Tristan après ses décisions sur le plan (« ok pour conseillée »). Avant : 2026-11-18, V7.9 (interface à la manière d'UE, étape 5 : Viewport du Blueprint et Outliner du niveau, voir « V7.9 »), lancée par Tristan (« ok tu peux passer à l'étape 5 »). Le plan « Interface à la manière d'UE » est terminé. Avant : 2026-11-18, V7.8 (interface à la manière d'UE, étape 4 : Details, palette All Actions, Find Results, voir « V7.8 »), lancée par Tristan après la revue des étapes 1 à 3 (« fais une review des étapes 1 à 3, si tout est bon on passe à la 4 »). Avant : 2026-11-18, V7.7 (interface à la manière d'UE, étape 3 : le Player Controller et la vraie chaîne d'Enhanced Input, voir « V7.7 »), lancée par Tristan (« tu peux passer à l'étape 3 »). Avant : 2026-11-18, V7.6 (interface à la manière d'UE, étape 2 : le Content Drawer, voir « V7.6 »), lancée par Tristan (« passe à l'étape 2 »). Avant : 2026-11-18, V7.5 (interface à la manière d'UE, étape 1 : les deux éditeurs, voir « V7.5 »), lancée par Tristan (« ok ça me va on peut lancer »). Avant : 2026-11-18, V7.4 (Enhanced Input, première partie du lot 3, voir « V7.4 »), lancée par Tristan (« ok pour implémenter les Enhanced Input »). Avant : 2026-11-18, V7.3 (lot 2 du backlog : vers l'autonomie, chaîne pilote Cast To, voir « V7.3 »), lancée par Tristan (« ok ça me va, lance ») après avoir validé la V7.2 (« ok tout est bon »). Avant : 2026-11-18, V7.2 (fiabilité des sauvegardes et des mises à jour, lot 1 du backlog, voir « V7.2 »), lancée par Tristan (« ok pour lot 1 »). Avant : 2026-11-17, V6.2 (fidélité à UE, voir « V6.2 »), poussée sur `main` à la demande de Tristan. Avant : V6.1 (les fiches « Comprendre » des anciennes leçons réécrites, voir « V6.1 »), poussée sur `main` à la demande de Tristan. Avant : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
+
+## Reprise rapide (2026-11-18, après la V7.14)
+
+### Où on en est
+
+- **Version en ligne : 7.14.0**, commit `17cd9bd` sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
+  - lot 0 (le cadre) : fait, V7.10 ;
+  - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
+  - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
+  - **lot 3 (Confirmé) : à faire, prochain**, seulement quand Tristan le demande ;
+  - lot 4 (Avancé et Expert) : à faire ensuite.
+- **En attente de Tristan** : sa validation de la V7.14 sur son téléphone (il a lancé 2b par « tu peux passer à la suite » sans retour sur 2a ; aucune version depuis V7.8 n'a de retour explicite). Points à lui faire tester : « La porte sur son gond » (Scene, Attach Parent, Viewport), le Transfert T2 (déclencheur Hold dans IMC_Joueur), les synthèses S1 et S2 sans aide, « Construis ta lampe ».
+- **Ne rien commencer du lot 3 sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
+
+### Le parcours aujourd'hui
+
+103 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 32, Avancé 24, Expert 0 (le niveau existe, vide jusqu'au lot 4). 133 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+
+Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
+- **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
+- **Échelle par notion** (`Lesson.chain` : discover, guided, modify, transfer, autonomy ; `LADDER`) ; l'autonomie est différée (`chain.after`).
+- **Rappels** (`Lesson.recalls`) : notions anciennes que la solution de référence réécrit vraiment (vérifié par `tests/spacing.test.ts`).
+- **Espacement** : cible 15 étapes ; `KNOWN_GAPS` dans `tests/spacing.test.ts` est un cliquet. Le test dit la valeur exacte à mettre quand un écart baisse. En V7.14, six écarts ont dû **monter** (commentés `V7.14` dans le fichier : timers 44, enum 50, switch 50, maps 43, player-controller 66, timeline 60) : à faire redescendre au lot 3 par des rappels dans les étapes Confirmé (index 47 à 78 environ).
+- **Synthèse** (`kind: 'synthesis'`, `library/synthesis.ts`) : cahier des charges en fin de niveau, conseillé (Home.tsx le propose avant le niveau suivant), jamais bloquant ; elle n'enseigne rien (`teaches: []`) et peut durer 45 min.
+- **Projets UE5 après « Les contrôles au Player Controller »** (`l-ei-controleur`) : plus aucun événement de touche. Une leçon écrite avec la touche E passe par `UE5_INPUT` dans `index.ts` (`asEnhancedInput`, `core/lessons/ue5Input.ts`) ; une leçon native appelle `ensurePlayerInput(p, ['E'], { E: 'IA_…' })` dans son setup (exemple : `library/chest.ts`). `tests/ue5Input.test.ts` le vérifie.
+
+### Ce qui reste à faire
+
+Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
+
+1. **Lot 3 — Confirmé** : aide réduite (déjà en place par la règle), « Choisis ton outil » (Cast, Dispatcher ou Interface), « Le menu pause », « Qui a éteint la lumière ? » (Find), « Interagir comme dans UE5 » (le joueur reçoit l'action et prévient l'objet visé, au lieu de l'Auto Receive Input des objets), composants et fonctions créés par l'apprenant, rappels (faire redescendre les six écarts montés en V7.14), synthèse S3. Probablement en deux temps, comme le lot 2.
+2. **Lot 4 — Avancé et Expert** : cahiers des charges en Avancé, « Le levier universel », projets Expert sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), entraînement mélangé, synthèse S4.
+3. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
+
+### Ajouter ou modifier une étape : la liste à cocher
+
+Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) :
+1. La définition dans `src/core/lessons/library/<thème>.ts` (petits fichiers par thème) : `setup` (le projet doit contenir au moins un Blueprint, sinon `validateProject` le refuse), `scenario`, `checks` (messages qui disent quoi faire), `solve` (solution de référence), `hints` (3), `cards`, `remember` (> 30 caractères, pas de `\n` littéral dans les fiches). Un Prédis passe par `predictLesson` (`library/predicts.ts`) avec `predict.verify`.
+2. Sa place dans `LESSONS` (`index.ts`).
+3. `LESSON_NOTIONS` (`core/notions/lessonNotions.ts`) : `teaches` non vide (sauf synthèse), `requires` déjà enseigné plus tôt. Nouvelle notion : `core/notions/catalogue.ts`.
+4. Chaque libellé de `Lesson.notions` doit exister dans le glossaire (`core/reference/glossaryData.ts`, champ `names`).
+5. Une question de révision (`core/review/bank/lessons.ts`, bonne réponse en premier).
+6. `recalls` si la solution réécrit une notion ancienne ; relancer `tests/spacing.test.ts` et suivre ses messages.
+7. Si la leçon change le projet de départ d'une étape existante : `revision` + 1 (l'appli signale alors la leçon comme changée).
+8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~255 (nombre d'étapes attendu) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
+9. Les textes qui renvoient à une leçon la nomment par son **titre**, jamais par son numéro (les numéros bougent).
+
+### Livrer une version
+
+Commandes dans « Méthode de travail » plus bas. Récapitulatif :
+`npm run lint && npx tsc --noEmit && npm test && npm run build && npx vitest run --config tools/e2e/vitest.config.ts && python3 tools/e2e/smoke.py` (attendre `errors []`), puis version dans `package.json`, une section `V7.x` ici, une ligne dans BACKLOG.md (« Déjà fait »), README.md (nombre d'étapes et de questions), PLAN_PARCOURS.md (état du lot), ARCHITECTURE.md si nouveaux fichiers. Commit sur `main` avec les lignes d'attribution, `git -c push.negotiate=true push origin main`, `gh run watch` (déploiement Pages). Page de test : `python3 tools/make-test-page.py /home/claude/publish/index.html`, puis l'outil Artifact `publish_files` sur le slug `5781960b-ee1f-4517-a493-be206fea22a8` (lien https://claude.ai/artifact/BojAfVYPuqnJcK49BLzdfd) avec la version en cours en `base_version` (la lire avec `get_artifact` ; dernière connue : `1795017603-1b0e`). Résumer à Tristan en français, sans jargon, avec quoi tester.
+
+Tristan teste surtout sur son téléphone (APK) ; depuis le 2026-11-11 il a aussi l'appli de bureau Claude sur Windows (Node, pas de Python). Les sections plus bas qui disent qu'il n'a qu'un téléphone datent d'avant.
 
 ## Le projet
 
@@ -22,7 +76,7 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 - Il ne veut pas avancer le packaging APK avant l'étape 4.
 - Les retours sur la qualité des solutions (au-delà de « ça marche ») sont notés dans BACKLOG.md ; il a demandé de **ne pas les implémenter maintenant**.
 
-## État
+## État (historique : étapes du plan V1, toutes livrées depuis)
 
 | Étape | Contenu | État |
 |---|---|---|

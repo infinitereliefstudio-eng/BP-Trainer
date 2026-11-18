@@ -123,7 +123,7 @@ export const lessonCatalog: Lesson = {
       title: 'Une Data Table',
       body:
         'Une **Data Table** est un tableau de données. Chaque ligne suit une **structure** (ici S_Fiche) et porte un nom unique, son **Row Name**.\n\n' +
-        'Touche DT_Objets dans le Content Browser : Details montre ses lignes, et tu peux les modifier, en ajouter, en retirer. Les données vivent là, pas dans les nœuds.\n\n' +
+        'Touche deux fois DT_Objets dans le Content Drawer (comme le double-clic d’UE) : Details montre ses lignes, et tu peux les modifier, en ajouter, en retirer. Les données vivent là, pas dans les nœuds.\n\n' +
         'L’intérêt : cent objets, c’est cent lignes, pas cent Blueprints. Et changer une description ne touche à aucun graphe.',
     },
     {

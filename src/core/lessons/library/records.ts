@@ -114,7 +114,7 @@ export const lessonRecord: Lesson = {
       label: 'S_Objet a un membre Charge (Integer, 100 par défaut)',
       test: (cx) => {
         const m = member(cx.project, 'Charge');
-        if (!m) return 'Ajoute à S_Objet un membre Charge (Content Browser › S_Objet › + Membre).';
+        if (!m) return 'Ajoute à S_Objet un membre Charge (Content Drawer › S_Objet › + Membre).';
         if (m.type.category !== 'int' || m.type.container) return 'Le membre Charge doit être un Integer.';
         return m.defaultValue === 100 ? true : 'Mets la valeur par défaut de Charge à 100 : c’est la charge de départ de toutes les lampes.';
       },

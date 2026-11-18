@@ -108,9 +108,9 @@ export const lessonInputLamp: Lesson = {
       title: 'Créer les deux assets',
       body:
         'Ouvre le **Content Drawer** (bouton en bas à gauche, comme dans UE5) :\n\n' +
-        '1. **+ Input Action**, nomme-la `IA_Interagir`.\n' +
-        '2. **+ Mapping Context**, nomme-le `IMC_Joueur`. Dans son Details, **+ Mapping** : action IA_Interagir, touche **E**, déclencheur **Aucun**.\n\n' +
-        'Dans UE, c’est clic droit dans le Content Browser › Input › Input Action ou Input Mapping Context, et le contexte s’édite dans sa propre fenêtre.',
+        '1. **+ Add** › Input › **Input Action**, nomme-la `IA_Interagir`.\n' +
+        '2. **+ Add** › Input › **Input Mapping Context**, nomme-le `IMC_Joueur`. Dans son Details, **+ Mapping** : action IA_Interagir, touche **E**, déclencheur **Aucun**.\n\n' +
+        'Dans UE, c’est le même menu (+ Add, ou clic droit dans le Content Drawer), et le contexte s’édite dans sa propre fenêtre.',
     },
     {
       title: 'Activer le contexte',

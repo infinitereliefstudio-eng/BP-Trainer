@@ -165,7 +165,7 @@ export const MEMO: MemoCard[] = [
       '- Charger : **Does Save Game Exist**, puis **Load Game from Slot**, **Cast To** ta classe SaveGame, et lire ses variables.\n\n' +
       'On ne sauve pas des références d’acteurs (ils n’existeront plus) mais ce qui permet de les retrouver : un identifiant, un nom, un état.\n\n' +
       'Les versions **Async** de ces nœuds évitent un à-coup pendant l’écriture.\n\n' +
-      'Dans l’appli, la sauvegarde est simulée : **+ SaveGame** dans le Content Browser crée la classe, et la section **Slots de sauvegarde** montre ce qui est écrit, garde les slots d’un Play à l’autre et permet de les effacer. Open Level et le GameInstance ne sont pas simulés.',
+      'Dans l’appli, la sauvegarde est simulée : **+ Add › Blueprint Class › SaveGame** dans le Content Drawer crée la classe, et la section **Slots de sauvegarde** montre ce qui est écrit, garde les slots d’un Play à l’autre et permet de les effacer. Open Level et le GameInstance ne sont pas simulés.',
   },
 
   // ---------------------------------------------------------- communication
@@ -235,7 +235,7 @@ export const MEMO: MemoCard[] = [
       'Une Data Table se lit, elle ne se modifie pas pendant le jeu : l’état qui change (quantité, quête finie) reste dans des variables.\n\n' +
       'Un **Data Asset** est un asset qui ne contient que des valeurs, un par objet (DA_Epee, DA_Potion). Plus pratique quand chaque entrée référence des meshes ou des sons, et qu’on veut les charger séparément.\n\n' +
       'Pour un jeu narratif : une table de dialogues (ligne = personnage, texte, ligne suivante), une table d’objets à examiner, une table de quêtes. Le Blueprint ne garde qu’un Row Name.\n\n' +
-      'Dans l’appli, **+ Data Table** dans le Content Browser crée une table (il faut une structure) ; ses nœuds apparaissent dans la palette, sous Utilities › Data Table. Les Data Assets et l’import CSV ne sont pas simulés.',
+      'Dans l’appli, **+ Add › Miscellaneous › Data Table** dans le Content Drawer crée une table (il faut une structure) ; ses nœuds apparaissent dans la palette, sous Utilities › Data Table. Les Data Assets et l’import CSV ne sont pas simulés.',
   },
   {
     id: 'm-conteneurs',

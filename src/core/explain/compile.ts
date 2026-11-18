@@ -59,15 +59,15 @@ const COMPILE: Record<CompileCode, Explanation> = {
   },
   pickTable: {
     why: 'Ce nœud lit une Data Table précise : sans table choisie (ou si elle a été supprimée), il n’a aucune ligne où chercher.',
-    fixes: ['Sélectionne le nœud et choisis la Data Table dans Details.', 'Ou crée-en une : Content Browser › + Data Table.'],
+    fixes: ['Sélectionne le nœud et choisis la Data Table dans Details.', 'Ou crée-en une : Content Drawer › + Add › Miscellaneous › Data Table.'],
   },
   pickInputAsset: {
     why: 'Ce nœud travaille sur un asset Enhanced Input précis (une Input Action ou un Mapping Context) : sans asset choisi, ou s’il a été supprimé, il ne sait pas lequel.',
-    fixes: ['Sélectionne le nœud et choisis l’asset dans Details.', 'Ou crée-le : Content Browser › + Input Action ou + Mapping Context.'],
+    fixes: ['Sélectionne le nœud et choisis l’asset dans Details.', 'Ou crée-le : Content Drawer › + Add › Input.'],
   },
   pickSaveGame: {
     why: 'Create Save Game Object fabrique un objet d’une classe SaveGame : il faut savoir laquelle, pour connaître ses variables.',
-    fixes: ['Choisis la classe dans la liste de la pin Save Game Class.', 'Pas de classe SaveGame ? Content Browser › + Blueprint, classe parente SaveGame.'],
+    fixes: ['Choisis la classe dans la liste de la pin Save Game Class.', 'Pas de classe SaveGame ? Content Drawer › + Add › Blueprint Class › All Classes › SaveGame.'],
   },
   pickEnum: {
     why: 'Switch on Enum crée une sortie par valeur de l’Enum : il faut savoir lequel.',

@@ -577,3 +577,21 @@ select.field { padding-right: 4px; }
 .bottom-bar { display: flex; align-items: stretch; }
 .bottom-bar .bottom-handle { flex: 1; width: auto; }
 .content-drawer-btn { flex: none; height: 34px; padding: 0 12px; font-size: 13px; color: var(--text); border-right: 1px solid var(--line); white-space: nowrap; }
+
+/* -------------------------------------------- Content Drawer (ui/content/), from the bottom as in UE5 */
+.sheet-backdrop.from-bottom { align-items: flex-end; }
+.sheet.content-drawer { width: 100%; max-width: none; height: min(78vh, 420px); max-height: none; border-radius: 12px 12px 0 0; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+.drawer-sheet-head { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.cd-path { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.cd-search { flex: 1; min-width: 120px; height: 32px; }
+.cd-body { flex: 1; min-height: 0; overflow-y: auto; }
+.cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; padding: 10px; }
+.cd-tile { display: flex; flex-direction: column; align-items: stretch; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; text-align: center; }
+.cd-tile.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.cd-thumb { height: 48px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: #1b1c1f; }
+.cd-name { padding: 4px 4px 2px; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cd-type { padding: 0 4px 4px; font-size: 10.5px; color: var(--muted); border-top: 2px solid; padding-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cd-selection { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); min-height: 44px; }
+.cd-sel-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.add-menu .add-item { padding-left: 28px; }
+.palette-cat.app-only { color: #ffd76a; }

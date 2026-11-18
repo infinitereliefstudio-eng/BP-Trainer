@@ -104,7 +104,7 @@ export function addMapping(p: Project, contextId: string, action?: string, key: 
   const c = findMappingContext(p, contextId);
   if (!c) return { ok: false, reason: 'Mapping Context introuvable.' };
   const a = action ?? p.inputActions[0]?.id;
-  if (!a) return { ok: false, reason: 'Crée d’abord une Input Action (Content Browser › + Input Action).' };
+  if (!a) return { ok: false, reason: 'Crée d’abord une Input Action (Content Drawer › + Add › Input › Input Action).' };
   const m: InputMapping = { action: a, key, triggers: [] };
   c.mappings.push(m);
   return { ok: true, value: m };

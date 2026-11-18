@@ -13,6 +13,7 @@ import { newAdvice } from '@core/quality/lessonAdvice';
 import { avoidHits, sizeReport, verdict } from '@core/quality/review';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
 import { addNode } from '@core/operations/graphOps';
+import { placeActor } from '@core/operations/levelOps';
 import type { Simulation } from '@core/runtime/simulation';
 import type { Value } from '@core/types/values';
 import { GraphCanvas, type CanvasRequests, type GraphCanvasHandle } from '@editor/GraphCanvas';
@@ -24,7 +25,7 @@ import { GoalStrip } from './lesson/GoalStrip';
 import { LessonSheet, type LessonCheck } from './lesson/LessonSheet';
 import { actorMenu, linkMenu, moreMenu, nodeMenu, pinMenu, placeMenu } from './menus';
 import type { Overlay } from './overlayTypes';
-import { ContentBrowser } from './overlays/ContentBrowser';
+import { ContentDrawer } from './content/ContentDrawer';
 import { ContextMenu } from './overlays/ContextMenu';
 import { AdviceDialog } from './overlays/AdviceDialog';
 import { AboutDialog, ConfirmDialog, PromptDialog, ValueDialog } from './overlays/Dialogs';
@@ -171,6 +172,19 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
     }),
     [store],
   );
+
+  /** Content Drawer › Place in level: next to the Player Start, then shown in the level with its Details. */
+  const placeFromDrawer = (classId: string) => {
+    const start = store.project.level.playerStart;
+    const res = store.applyProject('Placer un acteur', (p) => placeActor(p, classId, Math.round((start.x + 200) / 10) * 10, Math.round(start.y / 10) * 10));
+    if (!res.ok) {
+      store.warn(res.reason);
+      return;
+    }
+    setView('level');
+    store.setFocus({ kind: 'actor', id: res.value.id });
+    openDetails();
+  };
 
   /** Drop a node at the centre of the graph view (from My Blueprint). */
   const placeNode = (def: string, config: Record<string, Value>) => {
@@ -495,7 +509,9 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       {overlay?.kind === 'confirm' && (
         <ConfirmDialog title={overlay.title} text={overlay.text} confirmLabel={overlay.confirmLabel} onConfirm={overlay.onConfirm} onClose={close} />
       )}
-      {overlay?.kind === 'content' && <ContentBrowser onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} onOpenBlueprint={openClass} />}
+      {overlay?.kind === 'content' && (
+        <ContentDrawer onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} onOpenBlueprint={openClass} onPlaceActor={placeFromDrawer} />
+      )}
       {overlay?.kind === 'about' && <AboutDialog onClose={close} />}
       {overlay?.kind === 'timeline' && <TimelineEditor nodeId={overlay.nodeId} onClose={close} />}
       {overlay?.kind === 'lesson' && lesson && (

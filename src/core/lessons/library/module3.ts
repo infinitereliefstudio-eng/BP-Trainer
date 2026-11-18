@@ -275,7 +275,7 @@ export const lesson11: Lesson = {
       title: 'Une interface, un contrat',
       body:
         'Une **Blueprint Interface** est une liste de fonctions **sans contenu**. Elle dit « je sais répondre à Interagir », pas comment.\n\n' +
-        'Crée-la dans le **Content Browser** (bouton **Content Drawer**, en bas à gauche) › **+ Interface** : `BPI_Interactif`, avec une fonction `Interagir`.\n\n' +
+        'Crée-la dans le **Content Drawer** (bouton en bas à gauche) › **+ Add** › Blueprint › **Blueprint Interface** : `BPI_Interactif`, avec une fonction `Interagir`.\n\n' +
         'Chaque Blueprint qui l’**implémente** décide de ce que fait Interagir chez lui. Le joueur, lui, n’a qu’à envoyer le message.',
     },
     {

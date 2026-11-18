@@ -61,7 +61,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   const base = p.classes.find((c) => c.id === parent);
   const wantsSave = parent === 'SaveGame' || (!!base && rootParent(p, base) === 'SaveGame');
   if (saveFamily !== wantsSave) {
-    return { ok: false, reason: saveFamily ? 'Un SaveGame ne peut hériter que de SaveGame ou d’un autre SaveGame.' : 'Un acteur ne peut pas hériter d’un SaveGame : crée un Blueprint SaveGame à part (Content Browser › + SaveGame).' };
+    return { ok: false, reason: saveFamily ? 'Un SaveGame ne peut hériter que de SaveGame ou d’un autre SaveGame.' : 'Un acteur ne peut pas hériter d’un SaveGame : crée un Blueprint SaveGame à part (Content Drawer › + Add › Blueprint Class › SaveGame).' };
   }
   if (parent === 'SaveGame') {
     delete cls.parentClassId;

@@ -587,7 +587,10 @@ async def main():
         await close_sheet()
         await page.locator('.content-drawer-btn').tap()
         await page.wait_for_timeout(300)
-        await page.locator('.palette-item', has_text='DT_Objets').first.tap()
+        await page.wait_for_timeout(200)
+        await shot('63b_content_drawer')
+        await page.locator('.cd-tile', has_text='DT_Objets').first.tap()
+        await page.locator('.cd-selection .btn', has_text='Ouvrir').tap()
         await page.wait_for_timeout(400)
         await shot('64_data_table_details')
         if await page.locator('.drawer.right', has_text='Row Structure').count() != 1:

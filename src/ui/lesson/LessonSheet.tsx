@@ -2,7 +2,8 @@
  * The lesson panel: explanations, objectives with the automatic check,
  * and three levels of help.
  */
-import { useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
+import { whereItStopped } from '@core/explain/stops';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
 import type { LessonRun } from '@core/lessons/runner';
 import type { QualityParts, Verdict } from '@core/quality/review';
@@ -18,6 +19,11 @@ interface Props {
   done: boolean;
   onClose: () => void;
   onPassed: () => void;
+  /** Hints shown so far (kept in the progress: 3 = the solution). */
+  hints: number;
+  /** Vérifier was pressed at least once: transfer and autonomy exercises open their hints only then. */
+  tried: boolean;
+  onHint: (shown: number) => void;
   /** The last check and what it found, kept by the editor so the goal strip shows it too. */
   check: LessonCheck | null;
   onVerify: () => void;
@@ -54,6 +60,9 @@ export function LessonSheet({
   done,
   onClose,
   onPassed,
+  hints,
+  tried,
+  onHint,
   check,
   onVerify,
   initialTab,
@@ -66,7 +75,7 @@ export function LessonSheet({
 }: Props) {
   const tap = useOwnTap();
   const [tab, setTab] = useState<Tab>(initialTab ?? 'learn');
-  const [hints, setHints] = useState(0);
+  const hintsLocked = !!lesson.chain && lesson.chain.step !== 'guided' && !tried && !done;
   const run = check?.run ?? null;
   const quality = check?.quality ?? null;
   const verify = onVerify;
@@ -128,7 +137,15 @@ export function LessonSheet({
               <button class="btn primary big" onClick={verify}>
                 Vérifier
               </button>
-              {run && <RunResult run={run} />}
+              {run && (
+                <RunResult
+                  run={run}
+                  onShow={(s) => {
+                    onClose();
+                    onFocusNode(s.graphId, s.nodeId, s.classId);
+                  }}
+                />
+              )}
               {run?.passed && (
                 <div class="success">
                   <strong>{lesson.kind === 'debug' ? 'Réparé !' : lesson.kind === 'complete' || lesson.kind === 'refactor' ? 'Exercice réussi.' : 'Leçon réussie.'}</strong>
@@ -175,8 +192,14 @@ export function LessonSheet({
                   Ouvrir la solution dans l’éditeur
                 </button>
               )}
-              {hints < 3 && (
-                <button class="btn" onClick={() => setHints(hints + 1)}>
+              {hints < 3 && hintsLocked && (
+                <p class="note">
+                  {lesson.chain?.step === 'autonomy' ? 'Exercice en autonomie' : 'Exercice de transfert'} : les indices s’ouvrent après un premier essai. Construis
+                  ce que tu peux, puis touche Vérifier. Le résultat te dira ce qui manque.
+                </p>
+              )}
+              {hints < 3 && !hintsLocked && (
+                <button class="btn" onClick={() => onHint(hints + 1)}>
                   {['Afficher un indice', 'Quels nœuds utiliser ?', 'Voir la solution'][hints]}
                 </button>
               )}
@@ -259,7 +282,8 @@ function PredictPanel({
   );
 }
 
-function RunResult({ run }: { run: LessonRun }) {
+function RunResult({ run, onShow }: { run: LessonRun; onShow: (s: { graphId: string; nodeId: string; classId: string }) => void }) {
+  const stops = useMemo(() => (!run.passed && run.sim ? whereItStopped(run.sim.project, run.sim) : []), [run]);
   if (run.compileErrors.length) {
     return (
       <div class="results">
@@ -305,10 +329,23 @@ function RunResult({ run }: { run: LessonRun }) {
           {n}
         </p>
       ))}
+      {stops.length > 0 && (
+        <div class="stops">
+          <p class="eyebrow results-head">Où ça coince</p>
+          {stops.map((st) => (
+            <div key={`${st.graphId}:${st.nodeId}`} class={`stop ${st.kind}`}>
+              <span class="stop-text">{st.text}</span>
+              <button class="btn small-btn" onClick={() => onShow(st)}>
+                Montre-moi
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       {!run.passed && run.results.some((r) => !r.ok) && (
         <p class="muted small">
-          Pour comprendre un échec, ferme ce panneau, touche le nœud qui aurait dû agir, puis Details › « Pourquoi ce nœud ne s’est pas exécuté ? » : la
-          réponse s’appuie sur cette vérification.
+          Pour aller plus loin, touche le nœud qui aurait dû agir, puis Details › « Pourquoi ce nœud ne s’est pas exécuté ? » : la réponse s’appuie sur
+          cette vérification.
         </p>
       )}
     </div>

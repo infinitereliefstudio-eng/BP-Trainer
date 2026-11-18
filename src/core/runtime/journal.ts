@@ -23,6 +23,8 @@ export interface SimLogEntry {
   message?: string;
   /** For errors: the "Pourquoi ?" shown under the line. */
   explain?: Explanation;
+  /** For runtime errors: the node that failed (for « Montre-moi »). */
+  site?: { graphId: string; nodeId: string };
 }
 
 let seq = 0;
@@ -45,11 +47,11 @@ export class Journal {
     }
   }
 
-  error(time: number, text: string, explain?: Explanation): void {
+  error(time: number, text: string, explain?: Explanation, site?: { graphId: string; nodeId: string }): void {
     const count = (this.errorCounts.get(text) ?? 0) + 1;
     this.errorCounts.set(text, count);
     this.runtimeErrors++;
-    if (count <= 3) this.log.push({ id: nextId(), time, level: 'error', text, explain });
+    if (count <= 3) this.log.push({ id: nextId(), time, level: 'error', text, explain, site });
     else if (count === 4) this.log.push({ id: nextId(), time, level: 'warning', text: `(erreur répétée, masquée) ${text}` });
   }
 

@@ -146,6 +146,7 @@ export const lesson5: Lesson = {
 
 export const lesson6: Lesson = {
   id: 'l06-cle',
+  chain: { notion: 'cast', step: 'guided' },
   module: MODULE,
   level: 'intermediaire',
   number: 6,
@@ -242,6 +243,7 @@ export const lesson6: Lesson = {
 
 export const lesson7: Lesson = {
   id: 'l07-verrou',
+  chain: { notion: 'cast', step: 'guided' },
   module: MODULE,
   level: 'intermediaire',
   number: 7,

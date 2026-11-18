@@ -112,7 +112,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   },
   {
     title: 'Variable d’un autre Blueprint',
-    names: ['Variable d’un autre Blueprint', 'Lire la variable d’un autre Blueprint', 'Cast To', 'Cast Failed'],
+    names: ['Variable d’un autre Blueprint', 'Lire la variable d’un autre Blueprint', 'Écrire la variable d’un autre Blueprint', 'Cast To', 'Cast Failed'],
     what: 'Pour lire ou changer la variable d’un autre acteur, il faut une référence du bon type vers lui. Cast To BP_Joueur prend une référence générale (Other Actor) et répond : « est-ce un BP_Joueur ? » ; si oui, sa sortie donne accès à ses variables et fonctions.',
     when: 'Cast To quand tu as un acteur sans savoir ce qu’il est (overlap, Line Trace). Si plusieurs sortes d’acteurs doivent répondre, une interface évite un Cast par sorte.',
     trap: 'Un Cast raté n’est pas une erreur : il sort par Cast Failed, en silence. Si rien ne se passe, regarde de ce côté.',

@@ -89,6 +89,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Lire la variable d’un autre Blueprint demande une référence vers lui (par exemple le résultat d’un Cast To sur Other Actor).',
   ),
   q(
+    't1-badge',
+    'Un terminal doit lire le niveau du badge du joueur qui entre dans sa zone. Par quoi commencer ?',
+    ['Cast To BP_Joueur sur Other Actor', 'Get NiveauBadge directement sur Other Actor', 'Une variable NiveauBadge dans le terminal', 'Get Player Pawn, sans vérifier qui entre'],
+    'Other Actor n’est qu’un Actor : seul le Cast vérifie que c’est le joueur et donne accès à ses variables. Une caisse qui entre fait échouer le Cast, sans erreur.',
+  ),
+  q(
+    'a1-piege',
+    'Le piège doit retirer 1 point de Vie au joueur. Où la Vie doit-elle être rangée ?',
+    ['Dans le joueur : le piège la modifie à travers As BP_Joueur', 'Dans le piège, qui la décrémente', 'Dans une variable locale du piège', 'Nulle part : un Print String suffit'],
+    'La donnée vit chez son propriétaire, le joueur. Un second piège la modifie alors aussi : chacun enlève son point de la même Vie.',
+  ),
+  q(
     'l08-refermer',
     'Un Delay de 2 s est en cours depuis 1 s quand le fil blanc y entre à nouveau. Quand sort-il par Completed ?',
     ['1 s plus tard : le second appel est ignoré', '2 s plus tard : l’attente repart de zéro', 'Deux fois : à 1 s puis à 2 s', 'Jamais'],

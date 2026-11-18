@@ -1,18 +1,18 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18, puis mis à jour après la V7.2 (lot 1 fait) : la revue de Codex du 17 novembre (V7.1) est maintenant fondue dans les sections, les doublons sont fusionnés, et l'ordre des trois premiers lots a été choisi par Tristan. Chaque lot attend son feu vert.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18, puis mis à jour après la V7.2 (lot 1 fait) et la V7.3 (pilote du lot 2) : la revue de Codex du 17 novembre (V7.1) est maintenant fondue dans les sections, les doublons sont fusionnés, et l'ordre des trois premiers lots a été choisi par Tristan. Chaque lot attend son feu vert.
 
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
 
 ## Par où commencer
 
-Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Le lot 1 est fait (V7.2, 18 novembre) ; le lot 2 attend son feu vert. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
+Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Le lot 1 est fait (V7.2) et le pilote du lot 2 aussi (V7.3, chaîne Cast To) ; la suite du lot 2 dépendra de ce que donne le pilote. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
 | 1 | ~~Fiabilité~~ **fait en V7.2** (sauf H4) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
-| 2 | **Autonomie et transfert vers UE** (retenu) | Guidé → transfert → autonomie différée, d'abord sur une notion pilote ; prérequis et « Montre-moi » ; passerelle vers l'éditeur d'Unreal | ★★★ | M à L |
+| 2 | ~~Autonomie et transfert vers UE~~ **pilote fait en V7.3** | Guidé → transfert → autonomie différée, d'abord sur une notion pilote ; prérequis et « Montre-moi » ; passerelle vers l'éditeur d'Unreal | ★★★ | M à L |
 | 3 | **Entrées et interaction** (retenu) | Enhanced Input, regard indépendant du déplacement, interaction plus complète ; Tick maîtrisé en complément | ★★★ | M |
 | 4 | Navigation et prise en main | Recherche et filtres dans les 87 étapes, gestes guidés | ★★★ | M |
 | 5 | Composition | Actor Components : santé, inventaire, interaction, énergie | ★★★ | L |
@@ -53,20 +53,24 @@ D1 à D8, H1, H2, H3, H5 et le versionnement des règles et des leçons sont fai
 
 ## Lot 2 — Autonomie et transfert vers UE
 
-Principe, pour une même notion : **guidé → transfert → autonomie différée**. Exemple : porte à Timeline avec plan détaillé ; projecteur qui utilise la même notion avec moins d'aide ; quelques jours plus tard, une nouvelle situation sans liste de nœuds. Réutiliser les formats existants plutôt qu'ajouter seulement des étapes. **Commencer par une notion pilote** (Timeline ou interfaces) pour valider le principe avant de l'étendre aux 87 étapes.
+**Fait en V7.3 (pilote)** : correction de la première leçon (nœuds purs), aide utilisée mémorisée et affichée, 46 notions de référence avec prérequis, durée indicative, « Montre-moi » (erreurs, fil blanc arrêté, événement muet), format des chaînes guidé → transfert → autonomie avec la chaîne Cast To (leçons 9 et 10, T1 « Le terminal à badge », A1 « Le piège » deux jours après).
+
+Choix du 18 novembre : Tristan en est vers l'étape 10 et ne pratique pas encore dans Unreal. Pilote sur Cast To, qu'il rencontre tout de suite ; passerelle vers UE reportée.
+
+À décider après le pilote (selon ce qu'en dit Tristan) :
 
 | Amélioration | Travail | Pertinence | Difficulté |
 |---|---|---|---|
-| Corriger la première leçon | « Un nœud qui n'est sur aucun fil blanc ne s'exécute jamais » est faux pour les nœuds purs (un Get n'a pas de fil blanc et s'exécute quand on le lit). Dire « un nœud qui a des pins d'exécution », expliquer les nœuds purs au bon moment, et corriger les autres endroits qui généralisent pareil (`module1.ts`, `beginner.ts`, banque de révision) | ★★★ | S |
-| Prérequis et durée sur les cartes | « 10 min · après Cast To » sur chaque étape, sans fermer l'accès libre aux niveaux | ★★★ | S à M |
-| « Montre-moi » après un échec | Un échec dit quoi, pas où : ouvrir le graphe cadré sur le nœud en cause (le diagnostic sait déjà le trouver) | ★★★ | M |
-| Révision variée | Deux ou trois questions par notion, sous des angles différents, dont de petits graphes à lire, pour qu'on ne retienne pas une réponse par cœur | ★★★ | M et contenu |
-| Reprise différée des erreurs | Plus tard, une variante qui cible l'erreur réellement commise | ★★★ | M |
+| Autres chaînes | Interfaces en deuxième chaîne (transfert naturel : remplacer un Cast par un message d'interface), puis Branch et variables, Timeline, Event Dispatchers… | ★★★ | M par chaîne (contenu) |
+| « Montre-moi » pour les autres échecs | Aujourd'hui tiré de l'exécution (erreur, fil arrêté, événement muet). Pour un comportement faux sans rien de tel, chaque vérification pourrait désigner les nœuds à montrer | ★★ | M et contenu |
+| Révision par notion | Les notions existent : regrouper les questions par notion, proposer la révision d'une notion pas revue depuis longtemps | ★★★ | M |
+| Révision variée | Deux ou trois questions par notion, sous des angles différents, dont de petits graphes à lire (demande un mini-éditeur en lecture seule) | ★★★ | M et contenu |
+| Reprise différée des erreurs | Une étape réussie avec la solution, ou ratée, revient plus tard sous une autre forme (la donnée existe : `passedWith`) | ★★★ | M |
 | Mini-projets autonomes | Un cahier des charges sans étapes, validé par le comportement seul, avec variantes de robustesse | ★★★ | M et contenu |
-| Passerelle vers Unreal | Pour chaque leçon : où trouver les nœuds dans l'éditeur, réglages, différences avec la simulation, défi à refaire dans UE. Plus utile maintenant que Tristan a un ordinateur | ★★★ | M (contenu) |
-| Même problème, trois architectures | Référence directe, Event Dispatcher, Blueprint Interface : qui connaît qui, qui prévient qui, combien de destinataires, ce qu'on peut remplacer et tester | ★★ | M |
-| Suivi de l'aide | Distinguer réussite autonome, avec indices, après solution consultée, et garder ces résultats dans la progression, sans faire de l'aide une sanction | ★★★ | M |
-| Revoir le bilan de qualité | Dans `core/quality/review.ts`, le nombre de nœuds comparé aux solutions connues pèse sur le verdict et les étoiles. En faire un indicateur secondaire ; critères distincts : fonctionnement, robustesse, notion travaillée, lisibilité, coût d'exécution. Plus court n'est pas forcément meilleur | ★★ | M |
+| Passerelle vers Unreal | Pour chaque leçon : où trouver les nœuds dans l'éditeur, réglages, différences avec la simulation, défi à refaire dans UE. Quand Tristan pratiquera dans UE | ★★★ | M (contenu) |
+| Même problème, trois architectures | Référence directe, Event Dispatcher, Blueprint Interface : qui connaît qui, qui prévient qui | ★★ | M |
+| Revoir le bilan de qualité | Dans `core/quality/review.ts`, le nombre de nœuds pèse sur le verdict et les étoiles. En faire un indicateur secondaire ; critères distincts : fonctionnement, robustesse, notion travaillée, lisibilité, coût d'exécution | ★★ | M |
+| Durée affinée | La durée est estimée d'après la taille de la solution ; l'affiner avec le temps réellement passé | ★ | S à M |
 
 ## Lot 3 — Entrées et interaction
 
@@ -238,6 +242,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.3 (18 novembre 2026), pilote du lot 2 : première leçon corrigée (nœuds purs), aide utilisée mémorisée (seul, avec indices, solution vue), notions de référence et prérequis sur les cartes, durée indicative, « Montre-moi » après un échec, chaîne Cast To avec T1 « Le terminal à badge » et A1 « Le piège » (différé de deux jours).
 - V7.2 (18 novembre 2026), lot 1 Fiabilité : un projet illisible, d'un format plus récent ou que le stockage ne rend pas n'est plus jamais remplacé (dialogue de récupération, copie `rescue:*` gardée dans la sauvegarde complète) ; une seule politique de stockage avec révisions (la copie la plus récente gagne, écritures ordonnées par clé) ; transactions IndexedDB attendues jusqu'au bout ; projets et progressions vérifiés en entier avant toute écriture ; sauvegarde immédiate à la fermeture d'un espace ; slots Save Game enregistrés pendant Play ; échec d'enregistrement de la progression signalé, avec Réessayer ; restauration écrite d'un bloc ; règles de simulation et révisions de leçon versionnées, avec un avis une fois ; service worker : copie en cache sur erreur 5xx, seuls ses propres caches supprimés, manifest et icônes rafraîchis ; avis « Nouvelle version disponible ».
 - Réorganisation du backlog (18 novembre 2026) : revue Codex intégrée, doublons fusionnés, lots 1 à 3 retenus par Tristan.
 - V7.1 (17 novembre 2026) : Consume Input sur les événements de touche et pile des entrées comme dans UE, Débogue D19 (seule la dernière porte s'ouvre).

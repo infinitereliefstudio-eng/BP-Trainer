@@ -643,6 +643,6 @@ export class Simulation implements InterpreterHost {
     const s = this.site;
     const where = s ? ` Node: ${s.nodeTitle} Graph: ${s.graphName} Blueprint: ${s.className}` : '';
     const explain = explainRuntime(message, s && { project: this.project, graphId: s.graphId, nodeId: s.nodeId });
-    this.journal.error(this.time, `Blueprint Runtime Error: "${message}".${where}`, explain);
+    this.journal.error(this.time, `Blueprint Runtime Error: "${message}".${where}`, explain, s && { graphId: s.graphId, nodeId: s.nodeId });
   }
 }

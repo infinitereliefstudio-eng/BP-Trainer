@@ -187,8 +187,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 87:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 87")
+        if await page.locator('.lesson-item').count() != 89:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 89")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -238,7 +238,7 @@ async def main():
             errs.append('Details : la variable locale ne s’affiche pas')
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text=re.compile(r'Le terminal(?! muet)')).tap()
+        await page.locator('.lesson-item', has_text=re.compile(r'Le terminal(?! muet| à badge)')).tap()
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()

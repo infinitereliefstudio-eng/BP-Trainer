@@ -45,9 +45,10 @@ import { debug15 } from './library/gridFloor';
 import { lessonCatalog, debug16, lessonDialogueTable } from './library/tables';
 import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from './library/saves';
 import { debug19 } from './library/inputs';
+import { autonomyTrap, transferBadge } from './library/chainCast';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
-import type { Lesson } from './types';
+import { isChainExercise, type Lesson } from './types';
 
 export const LESSONS: Lesson[] = [
   // Débutant
@@ -68,6 +69,7 @@ export const LESSONS: Lesson[] = [
   lesson5,
   lesson6,
   lesson7,
+  transferBadge,
   lesson8,
   predict2,
   debug8,
@@ -83,6 +85,7 @@ export const LESSONS: Lesson[] = [
   predict3,
   lessonSlidingDoor,
   complete3,
+  autonomyTrap,
   // Confirmé
   lesson9,
   debug1,
@@ -145,7 +148,7 @@ export const LESSONS: Lesson[] = [
 
 let n = 0;
 for (const l of LESSONS) {
-  if (!l.kind || l.kind === 'build') l.number = ++n;
+  if ((!l.kind || l.kind === 'build') && !isChainExercise(l)) l.number = ++n;
   // What to try once the lesson works, and other ways to solve it (library/quality.ts).
   const q = QUALITY[l.id];
   if (q?.robustness) l.robustness = [...(l.robustness ?? []), ...q.robustness];

@@ -18,6 +18,9 @@ import {
   type Progress,
   saveProgress,
   startOver,
+  type LessonHelp,
+  withHelp,
+  withHelpReset,
   withPassed,
   type WorkspaceRef,
 } from './workspace';
@@ -85,6 +88,8 @@ export function Root() {
     setWs(next);
     const ref = next.ref;
     if (!isScratch(ref)) changeProgress((p) => ({ ...p, last: ref }));
+    // Opening the reference solution counts as help, like its third hint.
+    if (ref.kind === 'solution') changeProgress((p) => withHelp(p, ref.lessonId, (h) => ({ ...h, solution: true })));
   };
 
   const open = async (ref: WorkspaceRef) => {
@@ -168,6 +173,13 @@ export function Root() {
         onHome={() => setWs(null)}
         onLessonPassed={() => {
           if (lessonId) changeProgress((p) => withPassed(p, lessonId));
+        }}
+        help={lessonId ? progress.help?.[lessonId] : undefined}
+        onHelp={(change: (h: LessonHelp) => LessonHelp) => {
+          if (lessonId) changeProgress((p) => withHelp(p, lessonId, change));
+        }}
+        onHelpReset={() => {
+          if (lessonId) changeProgress((p) => withHelpReset(p, lessonId));
         }}
         onOpen={open}
       />

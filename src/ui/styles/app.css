@@ -528,3 +528,14 @@ select.field { padding-right: 4px; }
 .status-msg.info { border-color: #2f5f9a; }
 .status-msg .small-btn { padding: 4px 10px; min-height: 0; font-size: 12px; }
 .dialog-actions.wrap { flex-wrap: wrap; }
+
+/* Under a path card: duration, missing notions, help used (Home.tsx, StepMeta) */
+.li-text .li-meta { font-size: 11.5px; color: var(--muted); opacity: 0.85; }
+.lesson-item.exercise.transfer .eyebrow, .lesson-item.exercise.autonomy .eyebrow { color: #8fb8f0; }
+
+/* « Où ça coince » after a failed check (LessonSheet, core/explain/stops.ts) */
+.stops { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.stop { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line-2); font-size: 13px; line-height: 1.35; }
+.stop.error { border-color: #8a2a2a; }
+.stop-text { flex: 1; }
+.stop .small-btn { padding: 4px 10px; min-height: 0; font-size: 12px; flex: none; }

@@ -153,6 +153,8 @@ export interface Lesson {
   robustness?: RobustnessCase[];
   alternatives?: Alternative[];
   avoid?: Avoid[];
+  /** Its place in a chain guided → transfer → autonomy on one notion (see LessonChain). */
+  chain?: LessonChain;
   /**
    * Revision of the starting project and of the checks (1 when absent). Raise
    * it when a change would leave work already started out of step: the
@@ -166,11 +168,32 @@ export interface Lesson {
   slots?: () => Record<string, SavedGame>;
 }
 
+/**
+ * Learning one notion in three steps: guided (every explanation and hint),
+ * transfer (the same notion in another situation, no list of nodes, hints
+ * only after a first check), autonomy (a brief only, offered a few days
+ * later: coming back to it after a while is what makes it stick).
+ */
+export type ChainStep = 'guided' | 'transfer' | 'autonomy';
+
+export interface LessonChain {
+  /** The notion the chain works on (an id of core/notions). */
+  notion: string;
+  step: ChainStep;
+  /** A delayed step: offered `days` days after `lesson` is passed (still open before, if the learner insists). */
+  after?: { lesson: string; days: number };
+}
+
+/** Transfer and autonomy exercises have a code (T1, A1) and no lesson number. */
+export const isChainExercise = (l: Lesson) => !!l.chain && l.chain.step !== 'guided';
+
 /** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */
 export function lessonLabel(l: Lesson): string {
   if (l.kind === 'predict') return `Prédis ${l.code ?? ''}`.trim();
   if (l.kind === 'debug') return `Débogue ${l.code ?? ''}`.trim();
   if (l.kind === 'complete') return `Complète ${l.code ?? ''}`.trim();
   if (l.kind === 'refactor') return `Refactor ${l.code ?? ''}`.trim();
+  if (l.chain?.step === 'transfer') return `Transfert ${l.code ?? ''}`.trim();
+  if (l.chain?.step === 'autonomy') return `Autonomie ${l.code ?? ''}`.trim();
   return `Leçon ${l.number}`;
 }

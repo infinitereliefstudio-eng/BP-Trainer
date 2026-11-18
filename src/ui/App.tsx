@@ -37,7 +37,7 @@ import { PlayOverlay } from './play/PlayOverlay';
 import { playOrder } from './playSettings';
 import { Toolbar, type MainView } from './Toolbar';
 import { Toasts } from './widgets/Toasts';
-import { resetLesson, type Workspace, type WorkspaceRef } from './workspace';
+import { type LessonHelp, resetLesson, type Workspace, type WorkspaceRef } from './workspace';
 
 interface Props {
   workspace: Workspace & { fresh: boolean };
@@ -50,6 +50,11 @@ interface Props {
   onHome: () => void;
   onLessonPassed: () => void;
   onOpen: (ref: WorkspaceRef) => void;
+  /** Help used on the lesson so far (hints, solution, first check), kept in the progress. */
+  help?: LessonHelp;
+  onHelp?: (change: (h: LessonHelp) => LessonHelp) => void;
+  /** The lesson was started over: so is its help. */
+  onHelpReset?: () => void;
 }
 
 export function App(props: Props) {
@@ -60,7 +65,7 @@ export function App(props: Props) {
   );
 }
 
-function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen }: Props) {
+function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
   const [view, setView] = useState<MainView>(lesson && !alternative && !solution ? 'level' : 'graph');
@@ -118,6 +123,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       quality = { ...parts, verdict: verdict(run, parts) };
     }
     setCheck({ run, quality });
+    onHelp?.((h) => ({ ...h, tried: true }));
     if (run.sim) setLastRun(run.sim);
     haptic(run.passed ? 'success' : 'fail');
     if (run.passed) onLessonPassed();
@@ -462,6 +468,9 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           done={lessonDone}
           onClose={close}
           onPassed={onLessonPassed}
+          hints={help?.hints ?? 0}
+          tried={!!help?.tried}
+          onHint={(n) => onHelp?.((h) => ({ ...h, hints: Math.max(h.hints, n) }))}
           check={check}
           onVerify={verify}
           initialTab={overlay.tab}
@@ -473,6 +482,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           onReset={() => {
             stop();
             resetLesson(workspace);
+            onHelpReset?.();
             setCheck(null);
             setView('level');
             close();

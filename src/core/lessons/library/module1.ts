@@ -41,7 +41,8 @@ export const lesson1: Lesson = {
       body:
         'Rien ne s’exécute tout seul. Tout part d’un **événement**, un nœud à en-tête rouge : le moteur le déclenche quand quelque chose arrive.\n\n' +
         '**Event BeginPlay** se déclenche **une fois**, quand l’acteur commence à jouer. Pour un acteur posé dans le niveau, c’est au lancement de la partie.\n\n' +
-        'De sa pin blanche (le petit triangle à droite) part le **fil d’exécution**, le fil blanc. Il dit quels nœuds s’exécutent et dans quel ordre : de l’événement vers la droite, nœud après nœud. Un nœud qui n’est sur aucun fil blanc ne s’exécute **jamais**, même s’il est juste à côté.',
+        'De sa pin blanche (le petit triangle à droite) part le **fil d’exécution**, le fil blanc. Il dit quels nœuds s’exécutent et dans quel ordre : de l’événement vers la droite, nœud après nœud. Un nœud qui a des pins blanches ne s’exécute que si un fil blanc y arrive : posé juste à côté, sans fil, il ne s’exécute **jamais**.\n\n' +
+        'Les nœuds **sans** pin blanche (les nœuds « purs », verts, comme un Get de variable) suivent une autre règle, que tu verras à la leçon « Interrupteur à touche » : ils sont calculés au moment où un nœud traversé par le fil blanc lit leur valeur.',
     },
     {
       title: 'Print String et ses pins',
@@ -278,6 +279,7 @@ export const lesson4: Lesson = {
         'Un appui sur E ne sait pas ce qui s’est passé avant. Pour alterner, la lampe doit **se souvenir** de son état : c’est le rôle d’une **variable**.\n\n' +
         'Dans My Blueprint, Variables › **+**, type **Boolean**, nom `bEstAllumee` (le « b » est la convention d’UE pour un booléen). Sa valeur par défaut, décochée, dit « éteinte » au lancement.\n\n' +
         '- **Get bEstAllumee** (vert, sans fil blanc) lit la valeur.\n- **Set bEstAllumee** (fil blanc) l’écrit.\n\n' +
+        'Get est un **nœud pur** : il n’a pas de pin blanche, donc aucun fil blanc n’y arrive, et pourtant il sert. Il ne s’exécute pas de lui-même : il est calculé au moment où un nœud traversé par le fil blanc (ici le Branch) lit sa sortie.\n\n' +
         '**Branch** reçoit un booléen sur **Condition** et envoie le fil blanc sur **True** ou sur **False**. Une seule des deux sorties s’exécute.',
     },
     {

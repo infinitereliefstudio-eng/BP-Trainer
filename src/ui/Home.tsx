@@ -5,7 +5,11 @@
 import { useMemo, useState } from 'preact/hooks';
 import { getLesson, LESSONS } from '@core/lessons';
 import { LEVELS } from '@core/lessons/levels';
-import type { Lesson, LessonKind } from '@core/lessons/types';
+import { availability } from '@core/lessons/chain';
+import { estimatedMinutes } from '@core/lessons/duration';
+import { isChainExercise, type Lesson, type LessonKind } from '@core/lessons/types';
+import { acquiredNotions, missingNotions } from '@core/notions';
+import type { HelpLevel } from '@core/progress/progress';
 import { QUIZ } from '@core/review';
 import { dueQuestions, streak } from '@core/review/schedule';
 import { APP_VERSION } from '../version';
@@ -31,6 +35,17 @@ const KIND_LABEL: Record<Exclude<LessonKind, 'build'>, string> = {
   refactor: 'Refactor : réécris-le mieux',
 };
 
+/** The eyebrow of an exercise card: its format, or its step in a chain. */
+function eyebrowOf(l: Lesson): string | undefined {
+  if (l.chain?.step === 'transfer') return 'Transfert : sans plan';
+  if (l.chain?.step === 'autonomy') return 'En autonomie : cahier des charges';
+  return l.kind && l.kind !== 'build' ? KIND_LABEL[l.kind] : undefined;
+}
+
+const HELP_LABEL: Record<HelpLevel, string> = { alone: 'réussie seul', hints: 'avec indices', solution: 'solution vue' };
+
+const dateLabel = (t: number) => new Date(t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+
 type Tab = 'path' | 'review' | 'notebook' | 'nodes' | 'memo';
 
 export function Home({ progress, onOpen, onProgress, onReload }: Props) {
@@ -38,7 +53,9 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
   const [memoId, setMemoId] = useState<string | undefined>(undefined);
   const [backup, setBackup] = useState(false);
   const done = new Set(progress.done);
-  const nextLesson = LESSONS.find((l) => !done.has(l.id));
+  const ready = (l: Lesson) => availability(l, progress.done, progress.doneAt).ready;
+  const nextLesson = LESSONS.find((l) => !done.has(l.id) && ready(l));
+  const acquired = useMemo(() => acquiredNotions(progress.done), [progress.done]);
   const passed = LESSONS.filter((l) => done.has(l.id)).length;
   const open = (l: Lesson) => onOpen({ kind: 'lesson', lessonId: l.id });
   const openLesson = (id: string) => onOpen({ kind: 'lesson', lessonId: id });
@@ -146,15 +163,16 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
                   {list.map((l) => (
                     <button
                       key={l.id}
-                      class={`lesson-item${done.has(l.id) ? ' done' : ''}${l === nextLesson ? ' next' : ''}${l.kind && l.kind !== 'build' ? ` exercise ${l.kind}` : ''}`}
+                      class={`lesson-item${done.has(l.id) ? ' done' : ''}${l === nextLesson ? ' next' : ''}${(l.kind && l.kind !== 'build') || isChainExercise(l) ? ` exercise ${l.chain?.step ?? l.kind}` : ''}`}
                       onClick={() => open(l)}
                     >
                       <span class="li-num">{done.has(l.id) ? '✓' : (l.code ?? l.number)}</span>
                       <span class="li-text">
-                        {l.kind && l.kind !== 'build' && <span class="eyebrow">{KIND_LABEL[l.kind]}</span>}
+                        {eyebrowOf(l) && <span class="eyebrow">{eyebrowOf(l)}</span>}
                         {l === nextLesson && <span class="eyebrow next-tag">À suivre</span>}
                         <strong>{l.title}</strong>
                         <span>{l.situation}</span>
+                        <StepMeta lesson={l} done={done.has(l.id)} acquired={acquired} progress={progress} />
                       </span>
                     </button>
                   ))}
@@ -185,4 +203,20 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
       {backup && <BackupDialog onClose={() => setBackup(false)} onRestored={onReload} />}
     </div>
   );
+}
+
+/** Under a card: duration, notions still missing, how it was passed, when a delayed step is offered. */
+function StepMeta({ lesson, done, acquired, progress }: { lesson: Lesson; done: boolean; acquired: ReadonlySet<string>; progress: Progress }) {
+  const parts: string[] = [`≈ ${estimatedMinutes(lesson)} min`];
+  if (done) {
+    const how = progress.passedWith?.[lesson.id];
+    if (how) parts.push(HELP_LABEL[how]);
+  } else {
+    const wait = availability(lesson, progress.done, progress.doneAt);
+    if (wait.after) parts.push(`après ${getLesson(wait.after)?.code ?? ''} ${getLesson(wait.after)?.title ?? ''}`.replace('  ', ' '));
+    else if (wait.from) parts.push(`conseillé à partir du ${dateLabel(wait.from)}`);
+    const missing = missingNotions(lesson.id, acquired);
+    if (missing.length) parts.push(`demande : ${missing.map((n) => n.title).join(', ')}`);
+  }
+  return <span class="li-meta">{parts.join(' · ')}</span>;
 }

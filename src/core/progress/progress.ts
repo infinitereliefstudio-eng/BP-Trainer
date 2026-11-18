@@ -12,6 +12,28 @@ import { answered, dayKey, type ReviewState } from '../review/schedule';
 /** What "Reprendre" reopens: free play or a lesson. */
 export type ResumeRef = { kind: 'sandbox' } | { kind: 'lesson'; lessonId: string };
 
+/**
+ * The help used on a lesson since it was started (or started again):
+ * `hints` shown (3 = the solution's text), `solution` opened in the editor,
+ * `tried` once Vérifier was pressed.
+ */
+export interface LessonHelp {
+  hints: number;
+  tried?: boolean;
+  solution?: boolean;
+}
+
+/** How a lesson was passed, from the least help to the most. Never a penalty: a fact to come back to. */
+export type HelpLevel = 'alone' | 'hints' | 'solution';
+const HELP_RANK: Record<HelpLevel, number> = { alone: 0, hints: 1, solution: 2 };
+export const HELP_LEVELS = Object.keys(HELP_RANK) as HelpLevel[];
+
+export function helpLevel(h: LessonHelp | undefined): HelpLevel {
+  if (!h) return 'alone';
+  if (h.solution || h.hints >= 3) return 'solution';
+  return h.hints > 0 ? 'hints' : 'alone';
+}
+
 export interface Progress {
   done: string[];
   last?: ResumeRef;
@@ -23,6 +45,10 @@ export interface Progress {
   read?: string[];
   /** Calendar days with some activity, for the streak (the last 400 are kept). */
   days?: string[];
+  /** Help used on each lesson, for the current attempt. */
+  help?: Record<string, LessonHelp>;
+  /** The least help each passed lesson was passed with. */
+  passedWith?: Record<string, HelpLevel>;
 }
 
 export const emptyProgress = (): Progress => ({ done: [] });
@@ -34,10 +60,35 @@ export function withToday(p: Progress, now = Date.now()): Progress {
   return { ...p, days: [...(p.days ?? []), day].slice(-400) };
 }
 
-/** The progress once a lesson is passed (unchanged if it already was). */
+/**
+ * The progress once a lesson is passed, with the help used this time. A lesson
+ * passed again with less help (after starting it over) keeps the better result.
+ */
 export function withPassed(p: Progress, lessonId: string, now = Date.now()): Progress {
-  if (p.done.includes(lessonId)) return p;
-  return withToday({ ...p, done: [...p.done, lessonId], doneAt: { ...p.doneAt, [lessonId]: now } }, now);
+  const level = helpLevel(p.help?.[lessonId]);
+  const before = p.passedWith?.[lessonId];
+  const better = !before || HELP_RANK[level] < HELP_RANK[before];
+  if (p.done.includes(lessonId)) return better ? { ...p, passedWith: { ...p.passedWith, [lessonId]: level } } : p;
+  return withToday(
+    { ...p, done: [...p.done, lessonId], doneAt: { ...p.doneAt, [lessonId]: now }, passedWith: { ...p.passedWith, [lessonId]: level } },
+    now,
+  );
+}
+
+/** The progress with the help of one lesson changed (unchanged when nothing changes). */
+export function withHelp(p: Progress, lessonId: string, change: (h: LessonHelp) => LessonHelp): Progress {
+  const before = p.help?.[lessonId] ?? { hints: 0 };
+  const after = change(before);
+  if (after.hints === before.hints && !!after.tried === !!before.tried && !!after.solution === !!before.solution) return p;
+  return { ...p, help: { ...p.help, [lessonId]: after } };
+}
+
+/** Starting a lesson over starts its help count over too. */
+export function withHelpReset(p: Progress, lessonId: string): Progress {
+  if (!p.help?.[lessonId]) return p;
+  const help = { ...p.help };
+  delete help[lessonId];
+  return { ...p, help };
 }
 
 /** The progress after answering a review question. */
@@ -59,6 +110,12 @@ const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFin
 const strings = (v: unknown) => Array.isArray(v) && v.every((x) => typeof x === 'string');
 const numbers = (v: unknown) => isObj(v) && Object.values(v).every(isNum);
 const reviewState = (v: unknown) => isObj(v) && Object.values(v).every((c) => isObj(c) && isNum(c.box) && isNum(c.due));
+const lessonHelp = (v: unknown) =>
+  isObj(v) &&
+  Object.values(v).every(
+    (h) => isObj(h) && isNum(h.hints) && (h.tried === undefined || typeof h.tried === 'boolean') && (h.solution === undefined || typeof h.solution === 'boolean'),
+  );
+const helpLevels = (v: unknown) => isObj(v) && Object.values(v).every((l) => HELP_LEVELS.includes(l as HelpLevel));
 const resumeRef = (v: unknown) =>
   isObj(v) && (v.kind === 'sandbox' || (v.kind === 'lesson' && typeof v.lessonId === 'string'));
 
@@ -69,6 +126,8 @@ const FIELDS: [keyof Progress, (v: unknown) => boolean][] = [
   ['review', reviewState],
   ['read', strings],
   ['days', strings],
+  ['help', lessonHelp],
+  ['passedWith', helpLevels],
 ];
 
 /** What is wrong in a progress, field by field (empty when nothing is). */

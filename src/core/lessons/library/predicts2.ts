@@ -18,7 +18,7 @@ export const predict9: Lesson = predictLesson({
   title: 'Le Set oublié',
   situation: 'Score vaut 10. Le graphe l’affiche, lui ajoute 5, puis l’affiche encore. Un autre Set, qui met Score à 100, est posé juste à côté. Qu’affiche l’Output Log ?',
   notions: ['Get / Set', 'Variable Integer', 'Event BeginPlay'],
-  remember: 'Seuls les nœuds traversés par le fil blanc s’exécutent. Un Set posé à côté, sans fil blanc, ne change rien ; et un Get donne la valeur du moment où on la lit.',
+  remember: 'Un nœud à pins blanches ne s’exécute que si le fil blanc le traverse : un Set posé à côté, sans fil blanc, ne change rien. Un Get (nœud pur) n’a pas besoin de fil blanc : il donne la valeur du moment où un nœud exécuté le lit.',
   cards: [
     {
       title: 'À lire',

@@ -15,7 +15,16 @@ import { createStarterProject } from '@core/templates/starterProject';
 import { loadSavedProject, rescueText, saveProject, SANDBOX_KEY } from '@storage/persistence';
 import { readStored, writeStored } from '@storage/storage';
 
-export { withAnswer, withPassed, withRead, withToday, type Progress } from '@core/progress/progress';
+export {
+  type LessonHelp,
+  withAnswer,
+  withHelp,
+  withHelpReset,
+  withPassed,
+  withRead,
+  withToday,
+  type Progress,
+} from '@core/progress/progress';
 
 type ScratchRef =
   /** Another way to solve a lesson, built on its starting project: free to try, never saved. */

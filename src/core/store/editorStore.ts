@@ -17,7 +17,8 @@ import { contextFor } from '../nodes/registry';
 import { releaseClassWildcards } from '../operations/wildcardOps';
 import { syncInterfaceGraphs } from '../operations/interfaceOps';
 
-export type ChangeKind = 'model' | 'view';
+/** 'slots': a game wrote or deleted a save slot during Play (saved, but not undoable, and the editor is not redrawn). */
+export type ChangeKind = 'model' | 'view' | 'slots';
 export type Listener = (kind: ChangeKind) => void;
 
 export type Focus =
@@ -96,6 +97,12 @@ export class EditorStore {
   saveSlotsChanged(): void {
     this.project.updatedAt = Date.now();
     this.notify('model');
+  }
+
+  /** A running game wrote or deleted a save slot: to be saved now, as a real save would be on disk. */
+  slotsWritten(): void {
+    this.project.updatedAt = Date.now();
+    this.notify('slots');
   }
 
   notify(kind: ChangeKind = 'view'): void {

@@ -1,27 +1,53 @@
 /**
  * Workspaces: the free-play project, or one project per lesson. Each has its
  * own save slot; lesson progress is saved separately.
+ *
+ * Opening never writes over a saved project that could not be read: the
+ * workspace is refused (`blocked`), the text is kept, and the learner
+ * chooses what to do (export it, start again with the original set aside).
  */
 import { getLesson } from '@core/lessons';
+import { RULES_VERSION, rulesChangedSince, rulesNotice } from '@core/model/rules';
 import type { Project } from '@core/model/project';
-import { answered, dayKey, type ReviewState } from '@core/review/schedule';
+import { emptyProgress, sanitizeProgress, type Progress } from '@core/progress/progress';
 import { EditorStore } from '@core/store/editorStore';
 import { createStarterProject } from '@core/templates/starterProject';
-import { loadJson, loadSavedProject, saveJson, saveProject, SANDBOX_KEY } from '@storage/persistence';
+import { loadSavedProject, rescueText, saveProject, SANDBOX_KEY } from '@storage/persistence';
+import { readStored, writeStored } from '@storage/storage';
 
-export type WorkspaceRef =
-  | { kind: 'sandbox' }
-  | { kind: 'lesson'; lessonId: string }
+export { withAnswer, withPassed, withRead, withToday, type Progress } from '@core/progress/progress';
+
+type ScratchRef =
   /** Another way to solve a lesson, built on its starting project: free to try, never saved. */
   | { kind: 'alternative'; lessonId: string; index: number }
   /** The reference solution of a lesson, as a graph to read: never saved. */
   | { kind: 'solution'; lessonId: string };
+
+export type WorkspaceRef = { kind: 'sandbox' } | { kind: 'lesson'; lessonId: string } | ScratchRef;
 
 export interface Workspace {
   ref: WorkspaceRef;
   store: EditorStore;
   key: string;
 }
+
+export interface OpenedWorkspace extends Workspace {
+  fresh: boolean;
+  /** Things to tell the learner once the workspace is open (rules or lesson changed since). */
+  notices: string[];
+}
+
+/** A saved project that could not be opened. Nothing has been written over it. */
+export interface BlockedWorkspace {
+  ref: WorkspaceRef;
+  key: string;
+  status: 'newer' | 'damaged' | 'unavailable';
+  reason: string;
+  /** The saved text, kept as it is (absent when the storage did not answer). */
+  text?: string;
+}
+
+export type OpenResult = { ok: true; workspace: OpenedWorkspace } | { ok: false; blocked: BlockedWorkspace };
 
 export function workspaceKey(ref: WorkspaceRef): string {
   if (ref.kind === 'alternative') return `scratch:alternative:${ref.lessonId}:${ref.index}`;
@@ -30,13 +56,15 @@ export function workspaceKey(ref: WorkspaceRef): string {
 }
 
 /** Workspaces that are thrown away when closed. */
-export const isScratch = (ref: WorkspaceRef) => ref.kind === 'alternative' || ref.kind === 'solution';
+export const isScratch = (ref: WorkspaceRef): ref is ScratchRef => ref.kind === 'alternative' || ref.kind === 'solution';
 
 function freshProject(ref: WorkspaceRef): Project {
   if (ref.kind === 'sandbox') return createStarterProject();
   const lesson = getLesson(ref.lessonId);
   if (!lesson) throw new Error(`Unknown lesson ${ref.lessonId}`);
   const project = lesson.setup();
+  project.rules = RULES_VERSION;
+  project.lessonRevision = lesson.revision ?? 1;
   if (ref.kind === 'alternative') {
     const alt = lesson.alternatives?.[ref.index];
     if (!alt) throw new Error(`Unknown alternative ${ref.index} of ${ref.lessonId}`);
@@ -62,7 +90,24 @@ function mostChangedClass(before: Project, after: Project): string | undefined {
   return best?.id;
 }
 
-export async function openWorkspace(ref: WorkspaceRef): Promise<Workspace & { fresh: boolean }> {
+/** What changed since the saved project was last opened; stamps the current rules on it. */
+function noticesFor(ref: WorkspaceRef, project: Project): string[] {
+  const notices: string[] = [];
+  const rules = rulesNotice(rulesChangedSince(project));
+  if (rules) notices.push(rules);
+  project.rules = RULES_VERSION;
+  const lesson = ref.kind === 'lesson' ? getLesson(ref.lessonId) : undefined;
+  const current = lesson?.revision ?? 1;
+  if (lesson && (project.lessonRevision ?? 1) < current) {
+    notices.push(
+      'Cette leçon a été revue depuis que tu l’as commencée (projet de départ ou vérification). Si elle ne passe plus, le bouton « Recommencer la leçon » de la fiche repart de la nouvelle version.',
+    );
+  }
+  if (lesson) project.lessonRevision = current;
+  return notices;
+}
+
+export async function openWorkspace(ref: WorkspaceRef): Promise<OpenResult> {
   const key = workspaceKey(ref);
   if (isScratch(ref)) {
     const store = new EditorStore(freshProject(ref));
@@ -70,12 +115,34 @@ export async function openWorkspace(ref: WorkspaceRef): Promise<Workspace & { fr
       const cls = mostChangedClass(getLesson(ref.lessonId)!.setup(), store.project);
       if (cls) store.openClass(cls);
     }
-    return { ref, key, store, fresh: true };
+    return { ok: true, workspace: { ref, key, store, fresh: true, notices: [] } };
   }
   const saved = await loadSavedProject(key);
-  const project = saved ?? freshProject(ref);
-  if (!saved) await saveProject(project, key).catch(() => undefined);
-  return { ref, key, store: new EditorStore(project), fresh: !saved };
+  if (saved.status === 'ok') {
+    const notices = noticesFor(ref, saved.project);
+    if (notices.length) await saveProject(saved.project, key).catch(() => undefined);
+    return { ok: true, workspace: { ref, key, store: new EditorStore(saved.project), fresh: false, notices } };
+  }
+  if (saved.status === 'absent') {
+    const project = freshProject(ref);
+    await saveProject(project, key).catch(() => undefined);
+    return { ok: true, workspace: { ref, key, store: new EditorStore(project), fresh: true, notices: [] } };
+  }
+  const text = saved.status === 'unavailable' ? undefined : saved.text;
+  return { ok: false, blocked: { ref, key, status: saved.status, reason: saved.reason, text } };
+}
+
+/**
+ * Starts a blocked workspace again from scratch. The unreadable original is
+ * first copied aside (kept in the full backup); if that copy fails, nothing
+ * is written and the error is thrown.
+ */
+export async function startOver(blocked: BlockedWorkspace): Promise<OpenedWorkspace> {
+  if (blocked.status === 'unavailable' || blocked.text === undefined) throw new Error('Le stockage ne répond pas : rien n’a été modifié.');
+  await rescueText(blocked.key, blocked.text);
+  const project = freshProject(blocked.ref);
+  await saveProject(project, blocked.key);
+  return { ref: blocked.ref, key: blocked.key, store: new EditorStore(project), fresh: true, notices: [] };
 }
 
 /** Throw away a lesson's work and start it again from its setup. */
@@ -88,48 +155,42 @@ export function resetLesson(ws: Workspace): void {
 
 const PROGRESS_KEY = 'progress';
 
-export interface Progress {
-  done: string[];
-  last?: WorkspaceRef;
-  /** When each lesson was passed: its review question comes a day later. */
-  doneAt?: Record<string, number>;
-  /** Spaced review: the box and due date of each question already asked. */
-  review?: ReviewState;
-  /** Memo cards already read (their questions join the review). */
-  read?: string[];
-  /** Calendar days with some activity, for the streak (the last 400 are kept). */
-  days?: string[];
+export interface LoadedProgress {
+  progress: Progress;
+  /**
+   * 'repaired': part of the stored progress was unreadable; the original was
+   * copied aside, the rest is used. 'unavailable': the storage did not answer,
+   * or the original could not be set aside: the progress must not be saved
+   * over (it stays in memory only).
+   */
+  problem?: 'repaired' | 'unavailable';
 }
 
-/** The progress with today counted as an active day. */
-export function withToday(p: Progress, now = Date.now()): Progress {
-  const day = dayKey(now);
-  if (p.days?.includes(day)) return p;
-  return { ...p, days: [...(p.days ?? []), day].slice(-400) };
+export async function loadProgress(): Promise<LoadedProgress> {
+  let stored: { text: string } | undefined;
+  try {
+    stored = await readStored(PROGRESS_KEY);
+  } catch {
+    return { progress: emptyProgress(), problem: 'unavailable' };
+  }
+  if (!stored) return { progress: emptyProgress() };
+  let value: unknown;
+  try {
+    value = JSON.parse(stored.text);
+  } catch {
+    value = undefined;
+  }
+  const { progress, complete } = sanitizeProgress(value);
+  if (complete) return { progress };
+  try {
+    await rescueText(PROGRESS_KEY, stored.text);
+    return { progress, problem: 'repaired' };
+  } catch {
+    return { progress, problem: 'unavailable' };
+  }
 }
 
-/** The progress once a lesson is passed (unchanged if it already was). */
-export function withPassed(p: Progress, lessonId: string, now = Date.now()): Progress {
-  if (p.done.includes(lessonId)) return p;
-  return withToday({ ...p, done: [...p.done, lessonId], doneAt: { ...p.doneAt, [lessonId]: now } }, now);
-}
-
-/** The progress after answering a review question. */
-export function withAnswer(p: Progress, questionId: string, right: boolean, now = Date.now()): Progress {
-  return withToday({ ...p, review: { ...p.review, [questionId]: answered(p.review?.[questionId], right, now) } }, now);
-}
-
-/** The progress once a memo card has been read. */
-export function withRead(p: Progress, memoId: string, now = Date.now()): Progress {
-  if (p.read?.includes(memoId)) return p;
-  return withToday({ ...p, read: [...(p.read ?? []), memoId] }, now);
-}
-
-export async function loadProgress(): Promise<Progress> {
-  const p = await loadJson<Progress>(PROGRESS_KEY);
-  return p && Array.isArray(p.done) ? p : { done: [] };
-}
-
+/** Saves the progress; rejects when the device refused it (the caller tells the learner). */
 export async function saveProgress(p: Progress): Promise<void> {
-  await saveJson(PROGRESS_KEY, p).catch(() => undefined);
+  await writeStored(PROGRESS_KEY, JSON.stringify(p));
 }

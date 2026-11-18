@@ -4,6 +4,7 @@
  */
 import { PROJECT_FORMAT, componentDefaults, createLevel, type Project } from '../model/project';
 import { adoptFromLinks } from '../operations/wildcardOps';
+import { ProjectFileError, validateProject } from './validate';
 
 export const FILE_KIND = 'bp-trainer-project';
 
@@ -18,7 +19,7 @@ export function serializeProject(p: Project): string {
   return JSON.stringify(file, null, 1);
 }
 
-export class ProjectFileError extends Error {}
+export { ProjectFileError };
 
 export function parseProject(json: string): Project {
   let data: unknown;
@@ -27,16 +28,23 @@ export function parseProject(json: string): Project {
   } catch {
     throw new ProjectFileError("Ce fichier n'est pas un JSON valide.");
   }
-  const file = data as Partial<ProjectFile>;
-  if (!file || file.kind !== FILE_KIND || !file.project) {
+  const file = data as Partial<ProjectFile> | null;
+  if (!file || typeof file !== 'object' || file.kind !== FILE_KIND || !file.project || typeof file.project !== 'object') {
     throw new ProjectFileError("Ce fichier n'est pas un projet BP Trainer.");
   }
-  if ((file.format ?? 0) > PROJECT_FORMAT) {
-    throw new ProjectFileError("Ce projet vient d'une version plus récente de l'appli. Mets l'appli à jour.");
+  const format = typeof file.format === 'number' ? file.format : 1;
+  if (format > PROJECT_FORMAT) {
+    throw new ProjectFileError("Ce projet vient d'une version plus récente de l'appli. Mets l'appli à jour.", 'newer');
   }
-  const project = migrate(file.project, file.format ?? 1);
-  assertShape(project);
-  return project;
+  try {
+    const project = migrate(file.project, format);
+    validateProject(project);
+    return project;
+  } catch (e) {
+    if (e instanceof ProjectFileError) throw e;
+    // A migration step met data it did not expect: the file is damaged.
+    throw new ProjectFileError(`Projet abîmé : ${(e as Error).message}`);
+  }
 }
 
 /** Upgrade a project from an older format. Add one step per format bump. */
@@ -101,17 +109,4 @@ function migrate(p: Project, from: number): Project {
   }
   p.format = cur;
   return p;
-}
-
-function assertShape(p: Project): void {
-  if (!Array.isArray(p.classes)) throw new ProjectFileError('Projet incomplet : aucune classe.');
-  if (!p.level || !Array.isArray(p.level.actors)) throw new ProjectFileError('Projet incomplet : niveau manquant.');
-  for (const c of p.classes) {
-    if (!c.id || !c.name || !Array.isArray(c.graphs) || !Array.isArray(c.variables) || !Array.isArray(c.components)) {
-      throw new ProjectFileError(`Blueprint « ${c?.name ?? '?'} » incomplet.`);
-    }
-    for (const g of c.graphs) {
-      if (!g.nodes || !g.links) throw new ProjectFileError(`Graphe « ${g?.name ?? '?'} » incomplet.`);
-    }
-  }
 }

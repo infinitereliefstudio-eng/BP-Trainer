@@ -1,17 +1,17 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 : la revue de Codex du 17 novembre (V7.1) est maintenant fondue dans les sections, les doublons sont fusionnés, et l'ordre des trois premiers lots a été choisi par Tristan. Rien n'est lancé pour autant : chaque lot attend son feu vert.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18, puis mis à jour après la V7.2 (lot 1 fait) : la revue de Codex du 17 novembre (V7.1) est maintenant fondue dans les sections, les doublons sont fusionnés, et l'ordre des trois premiers lots a été choisi par Tristan. Chaque lot attend son feu vert.
 
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
 
 ## Par où commencer
 
-Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
+Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Le lot 1 est fait (V7.2, 18 novembre) ; le lot 2 attend son feu vert. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
-| 1 | **Fiabilité** (retenu) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
+| 1 | ~~Fiabilité~~ **fait en V7.2** (sauf H4) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
 | 2 | **Autonomie et transfert vers UE** (retenu) | Guidé → transfert → autonomie différée, d'abord sur une notion pilote ; prérequis et « Montre-moi » ; passerelle vers l'éditeur d'Unreal | ★★★ | M à L |
 | 3 | **Entrées et interaction** (retenu) | Enhanced Input, regard indépendant du déplacement, interaction plus complète ; Tick maîtrisé en complément | ★★★ | M |
 | 4 | Navigation et prise en main | Recherche et filtres dans les 87 étapes, gestes guidés | ★★★ | M |
@@ -42,44 +42,14 @@ Issus de la revue du 17 novembre (V7.1.0, commit `b0c2ddd`, 773 tests réussis d
 
 **Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,17 Mo (360 Ko compressés) ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
 
-## Lot 1 — Fiabilité
+## Lot 1 — Fiabilité : fait en V7.2
 
-Les vérifications temporaires de la revue ont été supprimées : chaque correction ajoute son test de régression. « Reproduit » : cas vérifié par un test pendant la revue. « Code » : constaté à la lecture du code (confirmé le 18 novembre), sans reproduction dans l'APK.
+D1 à D8, H1, H2, H3, H5 et le versionnement des règles et des leçons sont faits (détail dans « Déjà fait » et dans HANDOFF.md, « V7.2 »). Restent :
 
-### Données
-
-| ID | Constat | Vérif. | Travail et critère d'acceptation | Priorité |
-|---|---|---|---|---|
-| D1 | Un projet enregistré illisible ou d'un format plus récent est traité comme absent : `loadSavedProject()` renvoie `null`, puis `openWorkspace()` crée un projet neuf **et l'enregistre à la même clé**, ce qui efface l'original sans prévenir | Reproduit + code | Distinguer absent, incompatible et endommagé ; garder l'original et proposer export ou récupération. Aucun chargement refusé ne remplace des données | **Critique** |
-| D2 | Écriture IndexedDB refusée, secours localStorage réussi, mais la lecture préfère IndexedDB : on relit l'ancienne version | Reproduit + code | Une seule politique de stockage (stockage actif explicite, ou révision/date), centralisée au lieu d'être répétée dans `persistence.ts` et `backup.ts`. Relire et exporter la valeur la plus récente | Haute |
-| D3 | Imports trop peu validés : une classe avec `graphs: []` passe `parseProject()` puis plante à l'ouverture ; une progression avec `done: []` et `read: 17` passe `parseBackup()` | Reproduit | Valider structure, types et références avant toute écriture ; refuser proprement un fichier mal formé sans toucher au stockage | Haute |
-| D4 | Fermer un espace laisse partir la sauvegarde différée de `startAutosave()` : une réouverture rapide peut charger un état ancien, puis l'écraser | Reproduit + code | Sauvegarde finale à la sortie, timer nettoyé, ordre des écritures maîtrisé. Tester modification, retour accueil, réouverture immédiate | Haute |
-| D5 | Les slots Save Game ne sont enregistrés qu'à Stop (`saveSlotsChanged()` dans `App.tsx`) : Android qui ferme l'appli pendant Play les perd | Code | Persister les changements de slots pendant Play, regroupés ; gérer le passage en arrière-plan. Vérifier sur Android | Haute |
-| D7 | `saveProgress()` absorbe les erreurs : la progression peut ne pas être enregistrée sans que rien ne le dise | Code | Garder la progression en mémoire, prévenir, proposer un nouvel essai ou un export | Haute |
-| D6 | `idb.run()` annonce la réussite à `req.onsuccess`, sans attendre `tx.oncomplete` | Code | Attendre la transaction, gérer abort/error. Rare en pratique | Moyenne |
-| D8 | La restauration complète écrit les entrées une par une : un échec au milieu laisse un état partiel | Code | Tout valider, puis écrire en une transaction quand c'est possible, ou garder un état récupérable | Moyenne |
-
-Fichiers concernés : `src/storage/persistence.ts`, `idb.ts`, `backup.ts`, `src/core/serialization/serialize.ts`, `src/ui/workspace.ts`, `src/ui/App.tsx`, `src/core/runtime/simulation.ts`.
-
-### Versionner les règles et les leçons
-
-| Amélioration | Pourquoi | Pertinence | Difficulté |
+| Point | Travail | Pertinence | Difficulté |
 |---|---|---|---|
-| Versionner comportements et leçons, pas seulement le format | Les nouveaux défauts de Gate et de Consume Input peuvent changer un graphe enregistré sans rien montrer. Distinguer version du format, des règles de simulation et du projet de départ de chaque leçon ; décider migrations ou avertissements. À faire avant les lots 2 et 3, qui vont modifier leçons et formats | ★★★ | M |
-
-### Hors ligne et mises à jour
-
-Constats par lecture de `public/sw.js` et du smoke test, à valider sur Android.
-
-| ID | Point | Résultat attendu | Priorité |
-|---|---|---|---|
-| H5 | Le numéro de version est visible, mais rien n'annonce une mise à jour | Message « nouvelle version disponible » ; terminer la sauvegarde avant de recharger | Haute |
-| H2 | L'activation supprime tous les caches dont le nom diffère du cache courant. Or tous les sites GitHub Pages de Tristan partagent le domaine `infinitereliefstudio-eng.github.io` | Ne supprimer que les anciens caches de BP Trainer | Haute (S) |
-| H1 | Une réponse HTTP 500 est servie même si une page fonctionnelle est en cache ; le secours ne couvre que l'erreur réseau et le délai | Choisir les erreurs HTTP qui servent la dernière version en cache, et le tester | Moyenne (S) |
-| H3 | Manifeste et icônes servis en cache prioritaire, sous un nom de cache fixe | Les versionner pour qu'une mise à jour les change aussi | Basse |
-| H4 | `tools/e2e/smoke.py` ouvre le build en `file://`, où le service worker n'existe pas | Une suite servie en HTTP pour tester service worker, cache et mises à jour | Basse (M) |
-
-Scénarios d'acceptation du lot : ouverture en ligne puis réouverture hors ligne ; mise à jour d'une installation existante ; réseau lent et erreur serveur ; projets et progression conservés après mise à jour ; export puis restauration sur un appareil vierge ; export et import par le partage Android dans l'APK (jamais confirmé depuis la V4). L'essai web ne remplace pas l'essai dans l'APK.
+| H4 — Tests du service worker | `tools/e2e/smoke.py` ouvre le build en `file://`, où le service worker n'existe pas. Une suite servie en HTTP dans la CI : enregistrement, cache, page servie hors ligne, bandeau de nouvelle version. Un essai manuel l'a vérifié le 18 novembre, sans l'intégrer | ★★ | M |
+| Vérifications dans l'APK | Fermeture par Android pendant Play juste après une sauvegarde de slot ; export et import par le partage Android (jamais confirmés depuis la V4) ; bandeau « Nouvelle version » après une publication ; ouverture hors ligne après la mise à jour du service worker | ★★★ | S (essais de Tristan) |
 
 ## Lot 2 — Autonomie et transfert vers UE
 
@@ -170,7 +140,7 @@ Compléter aussi les vérifications de leçons par quelques permutations d'acteu
 
 ### Étape 1 : Save Game — faite (V7)
 
-Les slots sont gardés avec le projet (`Project.saveSlots`) : ils survivent à Stop et partent avec l'export. La persistance pendant Play est traitée au lot 1 (D5). Restent :
+Les slots sont gardés avec le projet (`Project.saveSlots`) : ils survivent à Stop et partent avec l'export. Depuis la V7.2, ils sont aussi enregistrés pendant Play, sans attendre Stop. Restent :
 
 | Exercice | Ce qu'il apprend |
 |---|---|
@@ -268,6 +238,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.2 (18 novembre 2026), lot 1 Fiabilité : un projet illisible, d'un format plus récent ou que le stockage ne rend pas n'est plus jamais remplacé (dialogue de récupération, copie `rescue:*` gardée dans la sauvegarde complète) ; une seule politique de stockage avec révisions (la copie la plus récente gagne, écritures ordonnées par clé) ; transactions IndexedDB attendues jusqu'au bout ; projets et progressions vérifiés en entier avant toute écriture ; sauvegarde immédiate à la fermeture d'un espace ; slots Save Game enregistrés pendant Play ; échec d'enregistrement de la progression signalé, avec Réessayer ; restauration écrite d'un bloc ; règles de simulation et révisions de leçon versionnées, avec un avis une fois ; service worker : copie en cache sur erreur 5xx, seuls ses propres caches supprimés, manifest et icônes rafraîchis ; avis « Nouvelle version disponible ».
 - Réorganisation du backlog (18 novembre 2026) : revue Codex intégrée, doublons fusionnés, lots 1 à 3 retenus par Tristan.
 - V7.1 (17 novembre 2026) : Consume Input sur les événements de touche et pile des entrées comme dans UE, Débogue D19 (seule la dernière porte s'ouvre).
 - V7 (17 novembre 2026) : Data Tables (asset, éditeur de lignes, Get Data Table Row, Get Data Table Row Names, Does Data Table Row Exist) et Save Game (classe SaveGame, slots gardés avec le projet, Create Save Game Object, Save / Load Game to/from Slot, Does Save Game Exist, Delete Game in Slot, étape « relancer la partie » dans les scénarios) ; huit leçons : le catalogue, D16, le dialogue en Data Table, la tirelire, D17, P11, D18, le checkpoint. Du recueil : E15, E16 et E24. Avant, en V6.2 : Gate Start Closed coché par défaut.

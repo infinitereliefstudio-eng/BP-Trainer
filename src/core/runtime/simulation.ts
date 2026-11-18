@@ -80,6 +80,7 @@ export class Simulation implements InterpreterHost {
   readonly slots: Record<string, SavedGame>;
   /** Did a node write or delete a slot during this game? */
   slotsChanged = false;
+  private readonly onSlotsChanged?: () => void;
 
   private readonly journal = new Journal();
   private interp: Interpreter;
@@ -99,10 +100,18 @@ export class Simulation implements InterpreterHost {
 
   constructor(
     readonly project: Project,
-    opts: { seed?: number; breakpoints?: Set<string>; order?: ActorOrder; slots?: Record<string, SavedGame> } = {},
+    opts: {
+      seed?: number;
+      breakpoints?: Set<string>;
+      order?: ActorOrder;
+      slots?: Record<string, SavedGame>;
+      /** Told each time a node writes or deletes a slot, so that it can be kept at once. */
+      onSlotsChanged?: () => void;
+    } = {},
   ) {
     this.rng = opts.seed ?? 12345;
     this.slots = opts.slots ?? {};
+    this.onSlotsChanged = opts.onSlotsChanged;
     this.interp = new Interpreter(project, this, opts.breakpoints);
     const ps = project.level.playerStart;
     const pawn = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
@@ -447,6 +456,7 @@ export class Simulation implements InterpreterHost {
     for (const v of cls.variables) values[v.name] = copyValue(obj.vars[v.id]) as Value;
     this.slots[Simulation.slotKey(slot, user)] = { classId: cls.id, className: cls.name, values, savedAt: Math.round(this.time * 100) / 100 };
     this.slotsChanged = true;
+    this.onSlotsChanged?.();
     return true;
   }
 
@@ -470,6 +480,7 @@ export class Simulation implements InterpreterHost {
     if (!this.slots[key]) return false;
     delete this.slots[key];
     this.slotsChanged = true;
+    this.onSlotsChanged?.();
     return true;
   }
 

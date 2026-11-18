@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getLesson } from '../src/core/lessons';
 import { solveCatalog, solveDialogue } from '../src/core/lessons/library/tables';
 import { runLesson } from '../src/core/lessons/runner';
-import { createProject } from '../src/core/model/project';
+import { createClass, createProject } from '../src/core/model/project';
 import {
   addDataTable,
   addDataTableRow,
@@ -60,7 +60,9 @@ describe('V7 data tables', () => {
   });
 
   it('an old project gets an empty list of data tables', () => {
-    const p = createProject('t') as unknown as Record<string, unknown>;
+    const project = createProject('t');
+    project.classes.push(createClass('BP_A'));
+    const p = project as unknown as Record<string, unknown>;
     delete p.dataTables;
     const back = parseProject(JSON.stringify({ kind: 'bp-trainer-project', format: 7, project: p }));
     expect(back.dataTables).toEqual([]);

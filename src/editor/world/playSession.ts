@@ -31,11 +31,18 @@ export class PlaySession {
    * `breakpoints` is the editor's own set: adding one during Play takes
    * effect at once. `order` is the actors' event order (shuffled by default).
    */
-  constructor(project: Project, breakpoints?: Set<string>, order: ActorOrder = 'shuffled') {
+  constructor(project: Project, breakpoints?: Set<string>, order: ActorOrder = 'shuffled', onSlotsChanged?: () => void) {
     // Play runs on a snapshot: editing the project later does not affect it. The save
-    // slots are the project's own object, so what the game saves outlives Stop.
+    // slots are the project's own object, so what the game saves outlives Stop;
+    // `onSlotsChanged` lets the app keep them at once, without waiting for Stop.
     project.saveSlots ??= {};
-    this.sim = new Simulation(structuredClone(project), { seed: Date.now() & 0xffff, breakpoints, order, slots: project.saveSlots });
+    this.sim = new Simulation(structuredClone(project), {
+      seed: Date.now() & 0xffff,
+      breakpoints,
+      order,
+      slots: project.saveSlots,
+      onSlotsChanged,
+    });
     this.sim.start();
     this.raf = requestAnimationFrame(this.loop);
   }

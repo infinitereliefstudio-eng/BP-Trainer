@@ -109,6 +109,7 @@ describe('Structures', () => {
 
   it('old files open with no structures', () => {
     const pb = new ProjectBuilder('t');
+    pb.blueprint('BP_A');
     const file = JSON.parse(serializeProject(pb.project));
     file.format = 5;
     delete file.project.structs;

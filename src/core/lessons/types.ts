@@ -154,6 +154,12 @@ export interface Lesson {
   alternatives?: Alternative[];
   avoid?: Avoid[];
   /**
+   * Revision of the starting project and of the checks (1 when absent). Raise
+   * it when a change would leave work already started out of step: the
+   * learner is then told the lesson changed and can start it again.
+   */
+  revision?: number;
+  /**
    * Save slots the lesson starts with (a game saved "before"). A check run
    * starts from these, not from the slots the learner's own Play left.
    */

@@ -8,6 +8,7 @@
 import type { PinType } from '../types/pins';
 import type { Value } from '../types/values';
 import { newId } from './ids';
+import { RULES_VERSION } from './rules';
 
 export interface PinRef {
   node: string;
@@ -290,6 +291,10 @@ export interface Project {
   saveSlots?: Record<string, SavedGame>;
   /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
   playerClassId?: string;
+  /** Version of the simulation rules the project was last opened under (see rules.ts). */
+  rules?: number;
+  /** For a lesson's project: the revision of the lesson it was started from (Lesson.revision). */
+  lessonRevision?: number;
   level: Level;
   createdAt: number;
   updatedAt: number;
@@ -372,6 +377,7 @@ export function createProject(name = 'Mon projet'): Project {
   const now = Date.now();
   return {
     format: PROJECT_FORMAT,
+    rules: RULES_VERSION,
     id: newId('p'),
     name,
     classes: [],

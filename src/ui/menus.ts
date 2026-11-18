@@ -17,6 +17,7 @@ import type { EditorStore } from '@core/store/editorStore';
 import { createStarterProject } from '@core/templates/starterProject';
 import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
 import { exportProject, pickProjectFile } from '@storage/persistence';
+import { RULES_VERSION, rulesChangedSince, rulesNotice } from '@core/model/rules';
 import type { MenuItem, OpenOverlay } from './overlayTypes';
 import { playOrder, setPlayOrder } from './playSettings';
 
@@ -185,8 +186,11 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
         pickProjectFile()
           .then((p) => {
             if (!p) return;
+            const notice = rulesNotice(rulesChangedSince(p));
+            p.rules = RULES_VERSION;
             store.replaceProject(p);
             store.info(`Projet « ${p.name} » importé.`);
+            if (notice) store.warn(notice);
           })
           .catch((e: Error) => store.error(e.message)),
     },

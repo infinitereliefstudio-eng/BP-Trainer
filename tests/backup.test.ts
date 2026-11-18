@@ -4,6 +4,7 @@ import { serializeProject } from '../src/core/serialization/serialize';
 import { createStarterProject } from '../src/core/templates/starterProject';
 import { BACKUP_KIND, makeBackup, parseBackup, restoreBackup } from '../src/storage/backup';
 import { kv } from '../src/storage/idb';
+import { readStored } from '../src/storage/storage';
 
 describe('full backup', () => {
   it('exports the progress and every project, and restores them', async () => {
@@ -21,8 +22,8 @@ describe('full backup', () => {
     await kv.del('project:sandbox');
     const n = await restoreBackup(parseBackup(JSON.stringify(backup)));
     expect(n).toBe(3);
-    expect(JSON.parse((await kv.get<string>('progress'))!)).toEqual({ done: ['l01-bonjour'] });
-    expect(await kv.get<string>('project:sandbox')).toBe(project);
+    expect(JSON.parse((await readStored('progress'))!.text)).toEqual({ done: ['l01-bonjour'] });
+    expect((await readStored('project:sandbox'))?.text).toBe(project);
   });
 
   it('refuses a file that is not a backup, with a reason', () => {

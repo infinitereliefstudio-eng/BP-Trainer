@@ -204,7 +204,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       }
     }
     store.compile(true);
-    const s = new PlaySession(store.project, store.breakpoints, playOrder());
+    const s = new PlaySession(store.project, store.breakpoints, playOrder(), () => store.slotsWritten());
     for (const a of s.sim.deafActors()) {
       store.warn(`${a.label} a un événement de touche, mais Auto Receive Input est sur Disabled : il ne recevra pas les touches.`);
     }

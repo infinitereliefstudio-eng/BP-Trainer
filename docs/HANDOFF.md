@@ -2,7 +2,7 @@
 
 Ce fichier suffit pour reprendre le travail sans l'historique des conversations. À lire avec [PLAN_V3.md](PLAN_V3.md) (le plan en cours), [PLAN_V2.md](PLAN_V2.md) et [PLAN_V1.md](PLAN_V1.md) (les plans précédents), [ARCHITECTURE.md](ARCHITECTURE.md) (le code) et [BACKLOG.md](BACKLOG.md) (ce qui est noté pour plus tard).
 
-Dernière mise à jour : 2026-11-17, V6.2 (fidélité à UE, voir « V6.2 »), poussée sur `main` à la demande de Tristan. Avant : V6.1 (les fiches « Comprendre » des anciennes leçons réécrites, voir « V6.1 »), poussée sur `main` à la demande de Tristan. Avant : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
+Dernière mise à jour : 2026-11-18, V7.2 (fiabilité des sauvegardes et des mises à jour, lot 1 du backlog, voir « V7.2 »), lancée par Tristan (« ok pour lot 1 »). Avant : 2026-11-17, V6.2 (fidélité à UE, voir « V6.2 »), poussée sur `main` à la demande de Tristan. Avant : V6.1 (les fiches « Comprendre » des anciennes leçons réécrites, voir « V6.1 »), poussée sur `main` à la demande de Tristan. Avant : 2026-11-16, V6 (les exercices du recueil de Tristan) faite, testée et poussée sur `main` le 2026-11-16 à la demande de Tristan (« tu peux pousser »), **en attente de sa validation sur son téléphone** (voir « V6 »). Avant : 2026-11-12, V5 (voir « V5 »). Avant : 2026-11-11, V4 livrée d’un bloc (voir « V4 »), en attente de la validation de Tristan. Avant : 2026-11-10, V3 complète livrée d'un bloc (étapes C, D et E, plus le parcours et l'accueil), en attente de la validation de Tristan sur son téléphone. APK : Tristan a confirmé le 2026-11-10 qu'elle est signée avec l'empreinte d'`assetlinks.json`, qu'elle ouvre https://infinitereliefstudio-eng.github.io/BP-Trainer/ et que son Package ID est `com.infiniterelief.bptrainer` : chaque push sur `main` met donc à jour l'appli installée.
 
 ## Le projet
 
@@ -353,6 +353,27 @@ Question de Tristan : l’event E des leçons est-il simplifié, alors que dans 
 
 Version 7.1.0.
 
+## V7.2 (2026-11-18) : fiabilité des sauvegardes et des mises à jour
+
+Le 18 novembre, Tristan a réorganisé le backlog avec Claude (revue de Codex du 17 novembre fondue dans les sections, trois premiers lots choisis : fiabilité, autonomie et transfert vers UE, entrées et interaction), puis lancé le lot 1. Constats D1 à D8 et H1 à H5 de BACKLOG.md ; chacun a son test dans `tests/storage.test.ts`.
+
+- **D1** : un projet illisible ou d'un format plus récent n'est plus pris pour un projet absent. `loadSavedProject` rend `absent`, `ok`, `damaged`, `newer` ou `unavailable` ; `openWorkspace` rend `{ ok: false, blocked }` sans rien écrire, et `RecoveryDialog` (`ui/status/`) propose Exporter l'original, Recharger l'appli (`newer`), Réessayer (`unavailable`) ou Repartir de zéro (l'original est d'abord copié sous `rescue:<clé>:<date>`, gardé dans la sauvegarde complète).
+- **D2 et D6** : `storage/storage.ts` est la seule politique de stockage (révisions croissantes, la copie la plus récente gagne, écritures d'une clé dans l'ordre, lecture qui attend les écritures en cours, échec de lecture = erreur). `idb.ts` attend `oncomplete`, rouvre la base après une fermeture ou un échec, et `putMany` écrit tout ou rien. Les valeurs IndexedDB sont maintenant `{ text, rev }` ; les anciennes chaînes se lisent toujours.
+- **D3** : `core/serialization/validate.ts` vérifie tout le projet après migration (refus avec une raison, ou réparation sûre : fil vers un nœud disparu, acteur d'une classe supprimée, pion introuvable). Test : tous les projets de départ, solutions et alternatives des 87 étapes passent la vérification sans changer d'un octet. La progression a son modèle dans `core/progress/progress.ts` (`checkProgress` strict pour une restauration, `sanitizeProgress` pour une progression stockée).
+- **D4** : fermer un espace sauvegarde à l'instant ; `pagehide` aussi ; `flushSaves()` vide tout (avant un rechargement).
+- **D5** : la `Simulation` prévient (`onSlotsChanged`) à chaque écriture ou suppression de slot ; `EditorStore.slotsWritten()` émet le changement `slots`, que l'autosave enregistre même pendant Play.
+- **D7** : `saveProgress` rejette en cas d'échec ; bandeau persistant avec Réessayer (`ui/status/StatusBar.tsx`). Une progression en partie illisible est copiée sous `rescue:progress:<date>` et le reste repris ; une progression impossible à lire n'est pas réécrite de la session.
+- **D8** : restauration complète vérifiée en entier (progression comprise : `done: []` avec `read: 17` est refusé), puis écrite d'un bloc.
+- **Règles de simulation et leçons versionnées** : `core/model/rules.ts` (`RULES_VERSION` = 3 : V6.2 et V7.1). `Project.rules` ; un projet plus ancien (déduit de sa date d'enregistrement s'il n'a pas le champ) affiche une fois ce qui a changé (`NoticeDialog`), à l'ouverture ou à l'import. `Lesson.revision` et `Project.lessonRevision` : prévenir quand une leçon a été revue depuis qu'on l'a commencée. Aucun changement de format (champs facultatifs).
+- **H1, H2, H3** : `sw.js` sert la dernière copie si le serveur répond 5xx ; ne supprime que les caches `bp-trainer-*` (le domaine est partagé par tous les sites du compte) ; manifest et icônes en « cache puis rafraîchissement » ; cache renommé `bp-trainer-v2`.
+- **H5** : le build écrit `version.json` (plugin dans `vite.config.ts`), jamais mis en cache ; `src/updates.ts` le lit au lancement, au retour au premier plan et toutes les 30 min ; bandeau « Nouvelle version disponible » avec Recharger, qui termine les sauvegardes avant.
+- Tests ajustés : deux tests de migration ouvraient un projet sans Blueprint, désormais refusé (l'éditeur ne pouvait pas l'ouvrir).
+- Vérifié aussi en HTTP local avec Chrome (hors dépôt) : service worker enregistré, cache `bp-trainer-v2`, dialogue de récupération sur un projet d'un format futur, bandeau de nouvelle version.
+
+Reste du lot 1, non fait : H4 (suite de tests du service worker servie en HTTP dans la CI). À vérifier par Tristan dans l'APK : fermeture par Android pendant Play après une sauvegarde de slot, export et import par le partage Android, bandeau de mise à jour après la prochaine publication.
+
+Version 7.2.0.
+
 ## Méthode de travail
 
 1. Annoncer l'étape, créer une liste de tâches, travailler par petits fichiers.
@@ -379,4 +400,4 @@ L'APK étant installée et liée au site, un push sur `main` est une mise en pro
 - Tactile : un appui long ouvre un panneau, et le « clic fantôme » qui suit le fermait. `ui/widgets/useOwnTap.ts` protège les fonds et éléments de menus et de palette.
 - `GraphCanvas.focusNode` appelé juste après le montage (taille 0) est différé jusqu'au premier redimensionnement.
 - Play tourne sur une copie du projet (`structuredClone`) : modifier le graphe pendant Play n'a d'effet qu'au Play suivant ; les breakpoints, eux, sont partagés.
-- Sauvegarde : IndexedDB `bp-trainer`, magasin `kv`, clés `project:sandbox`, `project:lesson:<id>`, `progress`. Format de projet versionné : `PROJECT_FORMAT` et `migrate()` dans `core/serialization/serialize.ts`.
+- Sauvegarde : IndexedDB `bp-trainer`, magasin `kv`, clés `project:sandbox`, `project:lesson:<id>`, `progress`, `rescue:*` ; valeurs `{ text, rev }` (anciennes : chaînes). Toujours passer par `storage/storage.ts`, jamais par `kv` ou localStorage directement. Format de projet versionné : `PROJECT_FORMAT` et `migrate()` dans `core/serialization/serialize.ts`.

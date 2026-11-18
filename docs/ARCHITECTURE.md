@@ -5,7 +5,7 @@ Quatre couches, chacune ne dépend que de celles du dessous :
 ```
 ui/        écrans et panneaux Preact (accueil, toolbar, My Blueprint, Details, Play, leçons)
 editor/    canvas du graphe et du niveau : rendu, caméra, gestes, hit-test, session Play
-storage/   sauvegarde IndexedDB, export / import de fichier
+storage/   sauvegarde (une seule politique de stockage), export / import de fichier
 core/      modèle, nœuds, règles, opérations, historique, compilation, interpréteur, leçons
 ```
 
@@ -23,7 +23,9 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 | `history/` | Annuler / rétablir par instantanés JSON du Blueprint touché (ou du projet) |
 | `compiler/` | Le bouton Compile : vérifications façon UE et messages pour Compiler Results |
 | `store/` | `EditorStore`, la source de vérité de la session : projet, historique, Blueprint et graphe ouverts, sélection, messages |
-| `serialization/` | Format de fichier versionné et migrations |
+| `serialization/` | Format de fichier versionné et migrations ; `validate.ts` vérifie un projet lu avant tout usage (refuse ce qui empêcherait de l'ouvrir, répare ce qui peut être abandonné sans risque : fil vers un nœud disparu, acteur d'une classe supprimée) |
+| `model/rules.ts` | Versions des règles de simulation, distinctes du format : chaque changement de comportement (défaut de Gate, Consume Input…) y est listé, un projet garde la version sous laquelle il a été ouvert (`Project.rules`) |
+| `progress/` | La progression de l'élève (leçons réussies, révision, fiches lues, jours), ses mises à jour et sa vérification (`checkProgress` strict pour une restauration, `sanitizeProgress` qui garde ce qui est lisible) |
 | `templates/` | Le projet de départ du mode Simulation |
 | `runtime/` | L'exécution : `interpreter.ts` (pile de frames explicite, file d'événements, appels synchrones, fonctions avec une portée par appel, nœuds purs recalculés à chaque lecture, actions latentes, breakpoints, erreurs façon UE), `behaviors/` (ce que fait chaque nœud), `simulation.ts` (orchestre une partie : BeginPlay, Tick, touches, temps en pas fixes de 1/60 s découpés en phases reprenables, Execution Trace, réponses à l'interpréteur) et ce qu'il ordonne : `actorFactory.ts` (instances, joueur), `movement.ts` (déplacement du joueur), `physics.ts` et `overlaps.ts` (formes, événements d'overlap), `timers.ts` (Set Timer by Event), `journal.ts` (Output Log, messages à l'écran), `values.ts` (copies, égalité, conversions) |
 | `model/inheritance.ts` | L'héritage entre Blueprints : la vue fusionnée d'une classe avec ce qu'elle hérite (`inheritedView`, donnée aux nœuds par `contextFor`), `isA`, `lineage`, `eventKey` (un événement redéfini dans l'enfant masque celui du parent) |
@@ -86,7 +88,7 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - `render/` dessine la grille, les fils (courbes de Bézier) et les nœuds, aux couleurs d'UE (`theme.ts`), plus la loupe pendant qu'on tire un fil.
 - `gestures.ts` reconnaît les gestes (toucher, double toucher, appui long, glisser, pincer) ; `GraphCanvas.tsx` leur donne un sens et appelle le store.
 - Reroute (style `knot`) : un point, saisi par son centre ; ses pins sont de part et d'autre. Comment (style `comment`) : dessiné derrière les fils, saisi par sa barre de titre (déplace les nœuds qu'il contient entièrement) ou sa poignée (redimensionne) ; son intérieur reste du vide.
-- `ui/home/` : les onglets de l'accueil (Révision, Carnet, Nœuds, Mémo UE) et la sauvegarde complète. `ui/lesson/GoalStrip.tsx` : les objectifs sous la barre d'outils ; la vérification d'une leçon est faite par `App.tsx` et partagée avec la fiche. `storage/backup.ts` : export et restauration de toutes les clés `progress` et `project:*`.
+- `ui/home/` : les onglets de l'accueil (Révision, Carnet, Nœuds, Mémo UE) et la sauvegarde complète. `ui/lesson/GoalStrip.tsx` : les objectifs sous la barre d'outils ; la vérification d'une leçon est faite par `App.tsx` et partagée avec la fiche. `storage/backup.ts` : export et restauration de toutes les clés `progress`, `project:*` et `rescue:*` (voir « Stockage »). `ui/status/` : bandeaux persistants (progression non enregistrée, nouvelle version), dialogue de récupération d'un projet illisible, avis de changement des règles.
 - `world/playSession.ts` garde l'acteur choisi (`selected`) : surligné dans le niveau, montré dans l'Outliner en direct (`ui/play/LiveOutliner.tsx`), et objet débogué.
 
 ## Débogage
@@ -129,7 +131,20 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 
 ## Format de sauvegarde
 
-Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 8 (`project.dataTables`, `project.saveSlots` facultatif, classes de parent SaveGame). Le format 7 avait ajouté Timeline, Construction Script, Line Trace, Event Hit : rien à convertir, le numéro empêche une version plus ancienne d'ouvrir ces nœuds. Le format 6 avait ajouté les Structures du projet (`project.structs`). Le format 5 avait déplacé le type adopté par les nœuds génériques de `config` vers `node.wild`. Le format 4 avait ajouté les Enums du projet, Collision Enabled des composants et le type adopté par les nœuds génériques. Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles.
+Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 8 (`project.dataTables`, `project.saveSlots` facultatif, classes de parent SaveGame). Le format 7 avait ajouté Timeline, Construction Script, Line Trace, Event Hit : rien à convertir, le numéro empêche une version plus ancienne d'ouvrir ces nœuds. Le format 6 avait ajouté les Structures du projet (`project.structs`). Le format 5 avait déplacé le type adopté par les nœuds génériques de `config` vers `node.wild`. Le format 4 avait ajouté les Enums du projet, Collision Enabled des composants et le type adopté par les nœuds génériques. Le format 3 avait ajouté les Event Dispatchers, les interfaces implémentées, les Blueprint Interfaces du projet, le pion du joueur et les signatures des fonctions. Le format 2 avait ajouté le niveau, les propriétés de composants et Auto Receive Input. Toute évolution du modèle incrémente `PROJECT_FORMAT` et ajoute une étape à `migrate()` dans `serialization/serialize.ts`, pour que les anciens projets restent lisibles. Après la migration, `serialization/validate.ts` vérifie tout le projet.
+
+Trois versions distinctes :
+- **le format** (`PROJECT_FORMAT`) : la forme du fichier ;
+- **les règles de simulation** (`RULES_VERSION`, `core/model/rules.ts`) : à incrémenter, avec une entrée dans `RULE_CHANGES`, quand un comportement change sans que le graphe change (nouvelle valeur par défaut, règle d'UE corrigée). Un projet enregistré sous des règles plus anciennes affiche ce qui a changé, une fois, à l'ouverture ou à l'import ; pour un projet antérieur à ce champ, la version est déduite de sa date d'enregistrement ;
+- **la révision d'une leçon** (`Lesson.revision`, 1 par défaut) : à incrémenter quand le projet de départ ou la vérification changent au point qu'un travail commencé ne convienne plus ; le projet de la leçon garde la sienne (`Project.lessonRevision`) et l'élève est prévenu.
+
+## Stockage (`src/storage/`)
+
+- `storage.ts` est **la seule politique de stockage** : IndexedDB d'abord, localStorage si IndexedDB refuse l'écriture. Chaque écriture porte une révision croissante ; une lecture rend la copie la plus récente des deux. Les écritures d'une même clé passent dans l'ordre, et une lecture attend celles en cours sur sa clé. Une lecture qui échoue est une erreur (`StorageReadError`), jamais « rien d'enregistré ». `writeMany` écrit plusieurs clés d'un bloc (une transaction IndexedDB, ou retour en arrière dans localStorage).
+- `idb.ts` : une écriture n'est terminée qu'au `oncomplete` de sa transaction ; `putMany` écrit tout ou rien.
+- `persistence.ts` : `loadSavedProject` distingue absent, illisible (`damaged`), plus récent (`newer`) et stockage muet (`unavailable`) ; `openWorkspace` (`ui/workspace.ts`) n'écrit jamais sur un projet illisible : `RecoveryDialog` propose d'exporter l'original ou de repartir de zéro, l'original étant d'abord copié sous `rescue:<clé>:<date>` (clé incluse dans la sauvegarde complète). L'autosave enregistre après chaque changement du modèle et des slots Save Game (même pendant Play, via `onSlotsChanged` de la `Simulation`), à la mise en arrière-plan, et à la fermeture de l'espace ; `flushSaves()` vide tout avant un rechargement.
+- Progression : `saveProgress` rejette en cas d'échec (bandeau `StatusBar` avec Réessayer) ; une progression partiellement illisible est copiée sous `rescue:progress:<date>` et le reste est repris ; une progression impossible à lire n'est jamais réécrite pendant la session.
+- `backup.ts` : export et restauration des clés `progress`, `project:*` et `rescue:*`. Tout est vérifié avant d'écrire, puis écrit d'un bloc.
 
 ## Outils
 
@@ -141,4 +156,4 @@ Un fichier `*.bptrainer.json` : `{ kind, format, project }`. Format actuel : 8 (
 
 ## Hors ligne et APK
 
-`public/` est copié tel quel dans `dist/` : manifest (plein écran, paysage), service worker (`sw.js` : page en réseau d'abord, cache sinon), icônes. `src/offline.ts` enregistre le service worker en HTTPS hors d'un cadre (pas dans la page de test claude.ai). Le dépôt `infinitereliefstudio-eng.github.io` servira `/.well-known/assetlinks.json` (contenu dans `hosting/root-site/`). Marche à suivre : [APK.md](APK.md).
+`public/` est copié tel quel dans `dist/` : manifest (plein écran, paysage), service worker (`sw.js` : page en réseau d'abord, dernière copie en cache hors ligne ou si le serveur répond par une erreur 5xx ; manifest et icônes servis du cache et rafraîchis en arrière-plan ; ne supprime que ses propres caches `bp-trainer-*`, le domaine étant partagé par tous les sites du compte), icônes. Le build écrit aussi `version.json`, que le service worker ne met jamais en cache : `src/updates.ts` le compare à la version en cours (au lancement, au retour au premier plan, toutes les 30 min) et `Root` affiche « Nouvelle version disponible » ; Recharger termine d'abord les sauvegardes. `src/offline.ts` enregistre le service worker en HTTPS hors d'un cadre (pas dans la page de test claude.ai). Le dépôt `infinitereliefstudio-eng.github.io` servira `/.well-known/assetlinks.json` (contenu dans `hosting/root-site/`). Marche à suivre : [APK.md](APK.md).

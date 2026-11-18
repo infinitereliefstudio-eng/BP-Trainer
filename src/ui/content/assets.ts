@@ -9,7 +9,7 @@ import { removeInputAction, removeMappingContext } from '@core/operations/inputO
 import { removeClass, removeInterface } from '@core/operations/projectOps';
 import { removeStruct } from '@core/operations/structOps';
 import type { OpResult } from '@core/operations/graphOps';
-import type { Project } from '@core/model/project';
+import { isPlaceableParent, type Project } from '@core/model/project';
 import type { Focus } from '@core/store/editorStore';
 
 export type AssetKind = 'blueprint' | 'interface' | 'enum' | 'struct' | 'dataTable' | 'inputAction' | 'mappingContext';
@@ -46,7 +46,7 @@ export function projectAssets(p: Project): Asset[] {
       name: c.name,
       type: 'Blueprint Class',
       parent: parentName(c.parentClassId) ?? c.parent,
-      placeable: c.parent !== 'SaveGame',
+      placeable: isPlaceableParent(c.parent),
     })),
     ...p.interfaces.map((i) => ({ kind: 'interface' as const, id: i.id, name: i.name, type: 'Blueprint Interface' })),
     ...p.enums.map((e) => ({ kind: 'enum' as const, id: e.id, name: e.name, type: 'Enumeration' })),

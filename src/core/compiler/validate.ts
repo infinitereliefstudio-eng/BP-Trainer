@@ -15,7 +15,7 @@ import {
   type NodeInstance,
   type Project,
 } from '../model/project';
-import { classById, findCustomEvent } from '../nodes/library/communication';
+import { castClassName, classById, findCustomEvent } from '../nodes/library/communication';
 import { interfaceMatch } from '../operations/interfaceOps';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
@@ -247,7 +247,7 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
   const owner = () => classById(ctx, c.owner);
   switch (n.def) {
     case 'cast.to':
-      return classById(ctx, c.class) ? undefined : ['ownerGone', "le Blueprint ciblé n'existe plus."];
+      return castClassName(ctx, c.class) ? undefined : ['ownerGone', "le Blueprint ciblé n'existe plus."];
     case 'struct.make':
     case 'struct.break':
     case 'struct.setMembers':

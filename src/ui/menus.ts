@@ -11,7 +11,7 @@ import { graphBounds, layoutGraph } from '@editor/layout';
 
 /** Text width close enough to frame nodes, without a canvas at hand. */
 const roughMeasure = (text: string, font: string) => text.length * (font.includes('600') ? 7.4 : 6.8);
-import type { PinRef } from '@core/model/project';
+import { isPlaceableParent, type PinRef } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import type { EditorStore } from '@core/store/editorStore';
 import { createStarterProject } from '@core/templates/starterProject';
@@ -294,8 +294,8 @@ export function actorMenu(store: EditorStore, actorId: string, openClass: (class
 
 /** Long press on empty floor: place an instance of a Blueprint. */
 export function placeMenu(store: EditorStore, world: { x: number; y: number }): MenuItem[] {
-  // A SaveGame is an object, not an actor: it is never placed.
-  return store.project.classes.filter((c) => c.parent !== 'SaveGame').map((c) => ({
+  // A SaveGame is an object, a PlayerController is made by the game: neither is placed.
+  return store.project.classes.filter((c) => isPlaceableParent(c.parent)).map((c) => ({
     label: `Placer ${c.name}`,
     action: () => {
       const res = store.applyProject(`Placer ${c.name}`, (p) => placeActor(p, c.id, Math.round(world.x / 10) * 10, Math.round(world.y / 10) * 10));

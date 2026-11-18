@@ -123,17 +123,18 @@ export const MEMO: MemoCard[] = [
     title: 'Enhanced Input',
     summary: 'Input Actions et Mapping Contexts : la façon UE5 de lire les touches.',
     keywords: ['input action', 'mapping context', 'triggered', 'started', 'completed', 'touche', 'manette', 'consume input'],
-    lessons: ['l04-touche', 'd19-derniere-porte', 'l-ei-lampe', 'd20-contexte', 'l-ei-maintien'],
+    lessons: ['l04-touche', 'd19-derniere-porte', 'l-ei-lampe', 'd20-contexte', 'l-ei-maintien', 'l-ei-controleur'],
     body:
-      'Les premières leçons utilisent des événements de touche (E, F, Espace). Dans un projet UE5, on passe par **Enhanced Input**, en trois pièces ; BP Trainer les simule depuis la V7.4 (leçons « La lampe en Enhanced Input », D20 et « Maintenir pour ouvrir »).\n\n' +
+      'Les premières leçons utilisent des événements de touche (E, F, Espace). Dans un projet UE5, on passe par **Enhanced Input**, en trois pièces ; BP Trainer les simule depuis la V7.4, et le Player Controller depuis la V7.7 (leçons « La lampe en Enhanced Input », D20, « Maintenir pour ouvrir » et « Les contrôles au Player Controller »).\n\n' +
       '- **Input Action** (IA_Interagir, IA_Deplacer) : une intention, sans touche. Elle a un type de valeur : Bool pour un bouton, Axis2D pour un stick.\n' +
       '- **Input Mapping Context** (IMC_Defaut) : la table qui relie des touches et boutons à des actions. On peut en avoir plusieurs (à pied, en menu, en véhicule).\n' +
-      '- **Add Mapping Context** : au BeginPlay, sur l’Enhanced Input Local Player Subsystem du PlayerController. Sans lui, aucune action ne se déclenche : c’est l’oubli le plus courant.\n\n' +
+      '- **Add Mapping Context** : au BeginPlay, sur l’Enhanced Input Local Player Subsystem du Player Controller (Get Player Controller, ou Get Controller → Cast To PlayerController comme le template Third Person). Sans lui, aucune action ne se déclenche : c’est l’oubli le plus courant.\n\n' +
       'Chaque ligne d’un contexte peut avoir un **déclencheur** : Pressed (à l’appui), Released (au relâchement), Hold (après un temps), et d’autres dans UE (Tap, Pulse, Chorded Action). BP Trainer simule Down, Pressed, Released et Hold, pour des actions Bool ; les actions Axis2D (déplacement) et les modificateurs restent à venir.\n\n' +
       'Dans le graphe, l’événement de l’action a plusieurs sorties : **Started** (l’appui commence), **Triggered** (à chaque image tant que l’action est active), **Completed** (relâché), plus Ongoing et Canceled.\n\n' +
       'Pour « une fois à l’appui », utilise **Started**. Pour un déplacement continu, **Triggered** et sa pin Action Value.\n\n' +
       'L’intérêt : changer une touche ou ajouter la manette se fait dans le Mapping Context, sans toucher aux graphes.\n\n' +
-      'Qui reçoit une touche ? Les acteurs abonnés aux entrées forment une pile : le dernier abonné en haut, le pion du joueur en bas. Un événement de touche avec **Consume Input** (coché par défaut) garde la touche : ceux d’en dessous ne la voient pas. D’où la règle des vrais projets : le joueur (ou son PlayerController) écoute les entrées, et parle aux objets.',
+      'Le **Player Controller** représente le joueur pendant toute la partie et possède son pion. Un Blueprint Player Controller ne sert que s’il est choisi comme **Player Controller Class** (Game Mode).\n\n' +
+      'Qui reçoit une touche ? Les acteurs abonnés aux entrées forment une pile : le dernier abonné en haut, puis le Player Controller, et le pion du joueur en bas. Un événement de touche avec **Consume Input** (coché par défaut) garde la touche : ceux d’en dessous ne la voient pas. D’où la règle des vrais projets : le joueur (ou son PlayerController) écoute les entrées, et parle aux objets.',
   },
   {
     id: 'm-umg',

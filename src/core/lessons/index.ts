@@ -46,7 +46,7 @@ import { lessonCatalog, debug16, lessonDialogueTable } from './library/tables';
 import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from './library/saves';
 import { debug19 } from './library/inputs';
 import { autonomyTrap, transferBadge } from './library/chainCast';
-import { debugMappingContext, lessonInputHold, lessonInputLamp } from './library/enhancedInput';
+import { debugMappingContext, lessonInputController, lessonInputHold, lessonInputLamp } from './library/enhancedInput';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -83,6 +83,7 @@ export const LESSONS: Lesson[] = [
   lessonInputLamp,
   debugMappingContext,
   lessonInputHold,
+  lessonInputController,
   refactor2,
   lessonInventory,
   lessonCodes,

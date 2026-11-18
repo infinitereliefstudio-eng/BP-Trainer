@@ -1,7 +1,7 @@
-/** Class Settings: name, parent, input, implemented interfaces, player pawn. */
+/** Class Settings: name, parent, input, implemented interfaces, player pawn and controller. */
 import { implementInterface, removeImplementedInterface } from '@core/operations/classOps';
 import { isA, rootParent } from '@core/model/inheritance';
-import { removeClass, renameClass, setParentClass, setPlayerClass } from '@core/operations/projectOps';
+import { removeClass, renameClass, setParentClass, setPlayerClass, setPlayerControllerClass } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
@@ -12,6 +12,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
   const cls = store.cls;
   const project = store.project;
   const isPlayer = project.playerClassId === cls.id;
+  const root = rootParent(project, cls);
   const implemented = project.interfaces.filter((i) => cls.interfaces.includes(i.id));
   const available = project.interfaces.filter((i) => !cls.interfaces.includes(i.id));
 
@@ -89,6 +90,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
           >
             <option value="Actor">Actor</option>
             <option value="Pawn">Pawn</option>
+            <option value="PlayerController">PlayerController</option>
             {store.project.classes
               .filter((c) => c.id !== cls.id && c.parent !== 'SaveGame' && !isA(store.project, c.id, cls.id))
               .map((c) => (
@@ -118,7 +120,11 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             <option value="p0">Player 0</option>
           </select>
         </Field>
-        <p class="muted small">Sans Player 0, les événements de touche (E, F, Espace) de ce Blueprint ne se déclenchent pas. Le joueur, lui, les reçoit toujours.</p>
+        <p class="muted small">
+          {root === 'PlayerController'
+            ? 'Un Player Controller reçoit toujours les entrées : il est sur la pile d’entrée, sous les acteurs en Player 0 et au-dessus du pion.'
+            : 'Sans Player 0, les événements de touche (E, F, Espace) de ce Blueprint ne se déclenchent pas. Le joueur, lui, les reçoit toujours.'}
+        </p>
         <p class="muted small">
           {cls.components.length} composant(s), {cls.variables.length} variable(s),{' '}
           {cls.graphs.reduce((n, g) => n + Object.keys(g.nodes).length, 0)} nœud(s).
@@ -153,11 +159,31 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
       </Group>
 
       <Group title="Joueur">
+        {root === 'PlayerController' ? (
+          <>
+            <Field label="Player Controller Class">
+              <input
+                type="checkbox"
+                checked={project.playerControllerClassId === cls.id}
+                onChange={(e) => {
+                  const on = (e.target as HTMLInputElement).checked;
+                  const res = store.applyProject('Player Controller du joueur', (p) => setPlayerControllerClass(p, on ? cls.id : undefined));
+                  if (!res.ok) store.warn(res.reason);
+                }}
+              />
+            </Field>
+            <p class="muted small">
+              Coché, le jeu crée ce Blueprint comme Player Controller du joueur quand tu lances Play (Game Mode › Player Controller Class dans UE). Sinon, c’est
+              le PlayerController natif, sans graphe.
+            </p>
+          </>
+        ) : (
+          <>
         <Field label="Default Pawn">
           <input
             type="checkbox"
             checked={isPlayer}
-            disabled={rootParent(store.project, cls) !== 'Pawn'}
+            disabled={root !== 'Pawn'}
             onChange={(e) => {
               const on = (e.target as HTMLInputElement).checked;
               const res = store.applyProject('Pion du joueur', (p) => setPlayerClass(p, on ? cls.id : undefined));
@@ -166,10 +192,12 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
           />
         </Field>
         <p class="muted small">
-          {rootParent(store.project, cls) === 'Pawn'
+          {root === 'Pawn'
             ? 'Coché, ce Blueprint devient le joueur quand tu lances Play (Game Mode › Default Pawn Class dans UE).'
             : 'Seul un Blueprint de classe parente Pawn peut être le joueur.'}
         </p>
+          </>
+        )}
       </Group>
 
       <button

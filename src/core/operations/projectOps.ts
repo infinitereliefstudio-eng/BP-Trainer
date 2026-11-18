@@ -1,7 +1,7 @@
 /** Project-level mutators: Blueprint classes. */
 import { descendants, inheritedView, isA, rootParent } from '../model/inheritance';
 import { newId } from '../model/ids';
-import { componentDefaults, createClass, uniqueName, type BlueprintClass, type BlueprintInterface, type ParentClass, type Project } from '../model/project';
+import { componentDefaults, createClass, isPlaceableParent, uniqueName, type BlueprintClass, type BlueprintInterface, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { renameTypeRefs } from './enumOps';
@@ -12,7 +12,7 @@ export function pruneProject(p: Project): void {
   for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
 }
 
-const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'SaveGame', 'Self'];
+const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'Self'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
   const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
@@ -46,6 +46,7 @@ export function removeClass(p: Project, id: string): OpResult {
   p.classes = p.classes.filter((c) => c.id !== id);
   p.level.actors = p.level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;
+  if (p.playerControllerClassId === id) delete p.playerControllerClassId;
   return { ok: true, value: undefined };
 }
 
@@ -70,7 +71,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
     pruneProject(p);
     return { ok: true, value: undefined };
   }
-  if (parent === 'Actor' || parent === 'Pawn') {
+  if (parent === 'Actor' || parent === 'Pawn' || parent === 'PlayerController') {
     delete cls.parentClassId;
     cls.parent = parent;
   } else {
@@ -98,6 +99,13 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   // The native class at the top follows the new chain, for this class and its children.
   for (const c of [cls, ...descendants(p, cls)]) c.parent = rootParent(p, c);
   if (p.playerClassId && rootParent(p, p.classes.find((c) => c.id === p.playerClassId) ?? cls) !== 'Pawn') delete p.playerClassId;
+  const pc = p.classes.find((c) => c.id === p.playerControllerClassId);
+  if (p.playerControllerClassId && (!pc || rootParent(p, pc) !== 'PlayerController')) delete p.playerControllerClassId;
+  // A Player Controller is made by the game, never placed: its instances leave the level.
+  p.level.actors = p.level.actors.filter((a) => {
+    const c = p.classes.find((x) => x.id === a.classId);
+    return !c || isPlaceableParent(c.parent);
+  });
   pruneProject(p);
   return { ok: true, value: undefined };
 }
@@ -202,5 +210,18 @@ export function setPlayerClass(p: Project, classId: string | undefined): OpResul
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
   if (rootParent(p, cls) !== 'Pawn') return { ok: false, reason: 'Le joueur doit être un Blueprint de classe parente Pawn.' };
   p.playerClassId = classId;
+  return { ok: true, value: undefined };
+}
+
+/** UE's Player Controller Class (Game Mode): which Blueprint the player's controller is. */
+export function setPlayerControllerClass(p: Project, classId: string | undefined): OpResult {
+  if (classId === undefined) {
+    delete p.playerControllerClassId;
+    return { ok: true, value: undefined };
+  }
+  const cls = p.classes.find((c) => c.id === classId);
+  if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
+  if (rootParent(p, cls) !== 'PlayerController') return { ok: false, reason: 'Le Player Controller doit être un Blueprint de classe parente PlayerController.' };
+  p.playerControllerClassId = classId;
   return { ok: true, value: undefined };
 }

@@ -11,12 +11,14 @@ export function instanceValue(v: Value): RValue {
   return structuredClone(v) as RValue;
 }
 
-function blank(id: string, label: string, objectName: string, className: string): ActorRT {
+/** An actor of a native class (no Blueprint): the plain pawn, the controller, the subsystem. */
+export function blank(id: string, label: string, objectName: string, className: string): ActorRT {
   return {
     id,
     label,
     objectName,
     className,
+    native: className,
     isPlayer: false,
     x: 0,
     y: 0,
@@ -45,6 +47,7 @@ export function createActor(id: string, label: string, objectName: string, cls: 
   }
   return {
     ...blank(id, label, objectName, cls.name),
+    native: cls.parent,
     classId: cls.id,
     components: cls.components.map((c) => ({ id: c.id, name: c.name, kind: c.kind, parent: c.parent, props: structuredClone(c.props) })),
     vars,
@@ -57,4 +60,18 @@ export function createPlayer(cls: BlueprintClass | undefined): ActorRT {
   const base = cls ? createActor('player', 'Joueur', `${cls.name}_C_0`, cls, {}) : blank('player', 'Joueur', 'DefaultPawn_C_0', 'Pawn');
   // A Blueprint pawn is possessed: it always receives input.
   return { ...base, isPlayer: true, receivesInput: !!cls };
+}
+
+/**
+ * The player's controller: an instance of the Player Controller Class, or
+ * UE's native PlayerController. It is always on the input stack.
+ */
+export function createController(cls: BlueprintClass | undefined): ActorRT {
+  const base = cls ? createActor('controller', 'PlayerController', `${cls.name}_C_0`, cls, {}) : blank('controller', 'PlayerController', 'PlayerController_0', 'PlayerController');
+  return { ...base, receivesInput: true };
+}
+
+/** The player's Enhanced Input Local Player Subsystem: an object, never in the level. */
+export function createInputSubsystem(): ActorRT {
+  return blank('inputSubsystem', 'EnhancedInputLocalPlayerSubsystem', 'EnhancedInputLocalPlayerSubsystem_0', 'EnhancedInputLocalPlayerSubsystem');
 }

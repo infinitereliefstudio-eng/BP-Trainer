@@ -110,13 +110,19 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'd20-contexte',
     'IA_Sauter et IMC_Joueur (Espace → IA_Sauter) existent, l’événement IA_Sauter est dans le joueur, et rien ne se passe, sans erreur. Que manque-t-il le plus souvent ?',
     ['Add Mapping Context au BeginPlay', 'Auto Receive Input sur le joueur', 'Un Cast vers le joueur', 'Compiler IMC_Joueur'],
-    'Un Mapping Context n’agit qu’une fois ajouté pendant le jeu (Add Mapping Context). Son oubli est silencieux, dans UE comme ici.',
+    'Un Mapping Context n’agit qu’une fois ajouté pendant le jeu (Add Mapping Context, sur l’Enhanced Input Local Player Subsystem). Son oubli est silencieux, dans UE comme ici.',
   ),
   q(
     'l-ei-maintien',
     'Une ligne a un déclencheur Hold de 1 s. Le joueur tient la touche 0,4 s puis la relâche. Quelles sorties de l’événement passent ?',
     ['Started, Ongoing, puis Canceled', 'Started puis Triggered', 'Triggered puis Completed', 'Aucune'],
     'Avec Hold : Started à l’appui, Ongoing à chaque image d’attente, et Canceled si la touche est relâchée avant le seuil. Triggered n’arrive qu’une fois le seuil atteint.',
+  ),
+  q(
+    'l-ei-controleur',
+    'Tu as créé BP_PlayerController (classe parente Player Controller) et mis Add Mapping Context dans son BeginPlay. Au Play, rien ne se passe. Que manque-t-il ?',
+    ['La case Player Controller Class (Game Mode)', 'Auto Receive Input sur Player 0', 'Un Cast To PlayerController', 'Le placer dans le niveau'],
+    'Le jeu crée lui-même le Player Controller, d’après Player Controller Class. Tant qu’elle ne désigne pas ton Blueprint, c’est le Player Controller par défaut qui est créé, et ton BeginPlay ne s’exécute jamais.',
   ),
   q(
     'l08-refermer',

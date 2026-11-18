@@ -25,6 +25,15 @@ function assets(trigger?: { kind: 'Down' | 'Pressed' | 'Released' | 'Hold'; hold
   return { p, action: a.value.id, context: c.value.id };
 }
 
+/** BeginPlay → Add Mapping Context, on the subsystem of Get Player Controller. */
+function addAtBeginPlay(b: ReturnType<typeof edit>, context: string): void {
+  const begin = b.node('event.beginPlay', {}, {}, [64, 96]);
+  const add = b.node('input.addMappingContext', { context }, {}, [700, 96]);
+  const pc = b.node('player.getController', {}, {}, [64, 260]);
+  const sub = b.node('input.subsystem', {}, {}, [380, 260]);
+  b.link(begin, 'then', add, 'exec').link(pc, 'result', sub, 'controller').link(sub, 'result', add, 'target');
+}
+
 /** Events of each frame, as "started+triggered", "" for none. */
 function frames(input: EnhancedInput, p: Project, steps: ('press' | 'release' | 'hold')[]): string[] {
   return steps.map((s) => {
@@ -122,10 +131,7 @@ describe('in the simulation', () => {
     const ev = b.node('input.action', { action, consumeInput: consume }, {}, [64, 96]);
     const say = b.node('debug.printString', {}, { text: 'reçu' }, [400, 96]);
     b.link(ev, 'started', say, 'exec');
-    const a = edit(p, 'BP_A');
-    const begin = a.node('event.beginPlay', {}, {}, [64, 96]);
-    const add = a.node('input.addMappingContext', { context }, {}, [400, 96]);
-    a.link(begin, 'then', add, 'exec');
+    addAtBeginPlay(edit(p, 'BP_A'), context);
     p.level.actors.push(
       { id: 'a', classId: p.classes[0].id, name: 'BP_A', x: 0, y: 0, yaw: 0, overrides: {} },
       { id: 'l1', classId: lamp.id, name: 'BP_Lampe', x: 100, y: 0, yaw: 0, overrides: {} },
@@ -152,9 +158,7 @@ describe('in the simulation', () => {
     const { p, action, context } = assets();
     const a = edit(p, 'BP_A');
     a.cls.autoReceiveInput = true;
-    const begin = a.node('event.beginPlay', {}, {}, [64, 96]);
-    const add = a.node('input.addMappingContext', { context }, {}, [400, 96]);
-    a.link(begin, 'then', add, 'exec');
+    addAtBeginPlay(a, context);
     const ev = a.node('input.action', { action }, {}, [64, 400]);
     const say = a.node('debug.printString', {}, {}, [400, 400]);
     a.link(ev, 'completed', say, 'exec').link(ev, 'elapsed', say, 'text');

@@ -23,6 +23,18 @@ export function classById(ctx: NodeContext, id: unknown): BlueprintClass | undef
   return c && inheritedView(c, ctx.project);
 }
 
+/**
+ * Native classes Cast To can test besides the project's Blueprints, with the
+ * name UE gives the typed output ("As Player Controller").
+ */
+export const NATIVE_CASTS: Record<string, string> = { PlayerController: 'Player Controller' };
+
+/** The class a Cast To node tests: a Blueprint, or a native class of NATIVE_CASTS. */
+export function castClassName(ctx: NodeContext, id: unknown): string | undefined {
+  if (typeof id === 'string' && id in NATIVE_CASTS) return id;
+  return classById(ctx, id)?.name;
+}
+
 const delegateType = (params: { type: PinType }[]): PinType => ({ category: 'delegate', subtype: signatureKey(params) });
 
 /** Target pin for a member of `owner`: self when it is this Blueprint, else a required reference. */
@@ -60,20 +72,21 @@ export const communicationNodes: NodeDefinition[] = [
   // ------------------------------------------------------------- casting
   {
     id: 'cast.to',
-    title: (n, ctx) => `Cast To ${classById(ctx, n.config.class)?.name ?? '?'}`,
+    title: (n, ctx) => `Cast To ${castClassName(ctx, n.config.class) ?? '?'}`,
     category: 'Utilities|Casting',
     kind: 'function',
     hiddenFromPalette: true,
     description:
       "Vérifie qu'un objet est bien de ce type de Blueprint. Si oui, l'exécution sort par le haut et « As… » donne la référence typée ; sinon elle sort par Cast Failed.",
     pins: (n, ctx) => {
-      const name = classById(ctx, n.config.class)?.name ?? 'Actor';
+      const name = castClassName(ctx, n.config.class) ?? 'Actor';
+      const label = NATIVE_CASTS[String(n.config.class)] ?? name;
       return [
         execIn(),
         dataIn('object', 'Object', T.object('Object'), { required: true }),
         execOut(),
         execOut('failed', 'Cast Failed'),
-        dataOut('as', `As ${name}`, T.object(name)),
+        dataOut('as', `As ${label}`, T.object(name)),
       ];
     },
   },

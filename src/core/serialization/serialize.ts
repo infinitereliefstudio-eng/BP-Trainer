@@ -5,6 +5,7 @@
 import { PROJECT_FORMAT, componentDefaults, createLevel, type Project } from '../model/project';
 import { adoptFromLinks } from '../operations/wildcardOps';
 import { ProjectFileError, validateProject } from './validate';
+import { wireSubsystemTargets } from './wireSubsystem';
 
 export const FILE_KIND = 'bp-trainer-project';
 
@@ -112,6 +113,11 @@ function migrate(p: Project, from: number): Project {
     p.inputActions ??= [];
     p.mappingContexts ??= [];
     cur = 9;
+  }
+  if (cur === 9) {
+    // v10: Player Controller, and the Target pin of Add / Remove Mapping Context.
+    for (const c of p.classes ?? []) wireSubsystemTargets(c.graphs ?? []);
+    cur = 10;
   }
   p.format = cur;
   return p;

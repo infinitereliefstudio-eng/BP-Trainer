@@ -10,11 +10,12 @@
  */
 import { explainRuntime } from '../explain/runtime';
 import { inheritedView, isA, lineage } from '../model/inheritance';
-import { findClass, type BlueprintClass, type NodeInstance, type Project, type SavedGame } from '../model/project';
+import { findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Project, type SavedGame } from '../model/project';
+import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
-import { createActor, createPlayer } from './actorFactory';
+import { createActor, createController, createInputSubsystem, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { EnhancedInput } from './enhancedInput';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
@@ -60,6 +61,9 @@ export class Simulation implements InterpreterHost {
   frame = 0;
   actors: ActorRT[] = [];
   readonly player: ActorRT;
+  /** The player's PlayerController (a Blueprint when Player Controller Class is set), and its Enhanced Input subsystem. */
+  readonly controller: ActorRT;
+  private readonly subsystem = createInputSubsystem();
   /** Last nodes run, oldest first (bounded). */
   trace: TraceEntry[] = [];
   /** Joystick direction, each axis in [-1, 1]. */
@@ -123,6 +127,9 @@ export class Simulation implements InterpreterHost {
     this.player.y = ps.y;
     this.player.yaw = ps.yaw;
     if (this.player.classId) this.counters.set(this.player.classId, 1);
+    const pcClass = project.playerControllerClassId ? findClass(project, project.playerControllerClassId) : undefined;
+    this.controller = createController(pcClass && inheritedView(pcClass, project, true));
+    if (this.controller.classId) this.counters.set(this.controller.classId, 1);
     this.spawnLevel();
     this.order = opts.order ?? 'level';
     this.rankActors(this.order);
@@ -164,8 +171,8 @@ export class Simulation implements InterpreterHost {
   private spawnLevel(): void {
     for (const la of this.project.level.actors) {
       const cls = findClass(this.project, la.classId);
-      // A SaveGame is not an actor: it cannot be placed (the level panel does not offer it).
-      if (!cls || cls.parent === 'SaveGame') continue;
+      // A SaveGame is not an actor, a PlayerController is made by the game: neither is placed.
+      if (!cls || !isPlaceableParent(cls.parent)) continue;
       const a = createActor(la.id, la.name, this.objectName(cls).name, inheritedView(cls, this.project, true), la.overrides);
       a.x = la.x;
       a.y = la.y;
@@ -174,6 +181,7 @@ export class Simulation implements InterpreterHost {
       this.markClass(cls.id);
     }
     if (this.player.classId) this.markClass(this.player.classId);
+    if (this.controller.classId) this.markClass(this.controller.classId);
   }
 
   /** An actor of this class exists: so does one of each class it inherits from (diagnostics). */
@@ -182,9 +190,9 @@ export class Simulation implements InterpreterHost {
     for (const c of cls ? lineage(this.project, cls) : []) this.record.classes.add(c.id);
   }
 
-  /** Fix the event order of the starting actors (the level, then the player). */
+  /** Fix the event order of the starting actors (the level, then the controller and the player). */
   private rankActors(order: ActorOrder): void {
-    const ids = [...this.actors.map((a) => a.id), this.player.id];
+    const ids = [...this.actors.map((a) => a.id), this.controller.id, this.player.id];
     if (order === 'reversed') ids.reverse();
     if (order === 'shuffled') {
       for (let i = ids.length - 1; i > 0; i--) {
@@ -195,9 +203,9 @@ export class Simulation implements InterpreterHost {
     for (const [i, id] of ids.entries()) this.rank.set(id, i);
   }
 
-  /** Actors that run Blueprint logic (the player only if it is a Blueprint), in event order. */
+  /** Actors that run Blueprint logic (the controller and the player only if they are Blueprints), in event order. */
   private scripted(): ActorRT[] {
-    const list = [...this.actors.filter((a) => !a.destroyed), ...(this.player.classId ? [this.player] : [])];
+    const list = [...this.actors.filter((a) => !a.destroyed), ...[this.controller, this.player].filter((a) => a.classId)];
     const rank = (a: ActorRT) => this.rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
     return list.sort((a, b) => rank(a) - rank(b));
   }
@@ -400,14 +408,17 @@ export class Simulation implements InterpreterHost {
   }
 
   /**
-   * UE's input stack, from the top: the actors that receive input, the last
-   * registered first (the last placed in the level, then the spawned ones),
-   * and the possessed pawn, which "gets last dibs". Not shuffled by the
-   * actor order option: UE's stack order is fixed.
+   * UE's input stack (BuildInputStack), from the top: the actors that receive
+   * input, the last registered first (the last placed in the level, then the
+   * spawned ones), then the PlayerController, then the possessed pawn, which
+   * "gets last dibs". Not shuffled by the actor order option: UE's stack
+   * order is fixed.
    */
   inputStack(): ActorRT[] {
     const actors = this.actors.filter((a) => a.receivesInput && !a.destroyed).reverse();
-    return this.player.classId && this.player.receivesInput ? [...actors, this.player] : actors;
+    const pc = this.controller.classId ? [this.controller] : [];
+    const pawn = this.player.classId && this.player.receivesInput ? [this.player] : [];
+    return [...actors, ...pc, ...pawn];
   }
 
   /**
@@ -461,6 +472,8 @@ export class Simulation implements InterpreterHost {
 
   private findActor(id: string): ActorRT | undefined {
     if (id === this.player.id) return this.player;
+    if (id === this.controller.id) return this.controller;
+    if (id === this.subsystem.id) return this.subsystem;
     return this.actors.find((a) => a.id === id) ?? this.objects.find((o) => o.id === id);
   }
 
@@ -561,13 +574,22 @@ export class Simulation implements InterpreterHost {
     return cls && inheritedView(cls, this.project, true);
   }
 
-  /** Is the actor of class `classId`, or of a child of it? */
+  /** Is the actor of class `classId`, or of a child of it? `classId` may be a native class (Cast To PlayerController). */
   isA(actor: ActorRT, classId: unknown): boolean {
+    if (typeof classId === 'string' && classId in BUILTIN_HIERARCHY) return makeHierarchy().isA(actor.native, classId);
     return isA(this.project, actor.classId, classId);
   }
 
+  playerController(): ActorRT {
+    return this.controller;
+  }
+
+  inputSubsystem(): ActorRT {
+    return this.subsystem;
+  }
+
   ownerOf(c: ComponentRT): ActorRT | undefined {
-    return [this.player, ...this.actors].find((a) => a.components.includes(c));
+    return [this.player, this.controller, ...this.actors].find((a) => a.components.includes(c));
   }
 
   allActors(): ActorRT[] {
@@ -579,6 +601,10 @@ export class Simulation implements InterpreterHost {
     if (!cls) return null;
     if (cls.parent === 'SaveGame') {
       this.runtimeError(`SpawnActor failed : ${cls.name} est un SaveGame, pas un acteur. Utilise Create Save Game Object.`);
+      return null;
+    }
+    if (!isPlaceableParent(cls.parent)) {
+      this.runtimeError(`SpawnActor : ${cls.name} est un Player Controller. Le jeu le crée lui-même (Player Controller Class) : on ne le fait pas apparaître.`);
       return null;
     }
     const { n, name } = this.objectName(cls);
@@ -615,6 +641,10 @@ export class Simulation implements InterpreterHost {
   destroy(actor: ActorRT): void {
     if (actor.isPlayer) {
       this.runtimeError('Destroy Actor : le joueur ne peut pas être détruit dans cette version.');
+      return;
+    }
+    if (actor.id === this.controller.id) {
+      this.runtimeError('Destroy Actor : le Player Controller ne peut pas être détruit dans cette version.');
       return;
     }
     actor.destroyed = true;

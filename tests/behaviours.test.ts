@@ -19,7 +19,17 @@ const CONFIG: Record<string, Record<string, string>> = {
 
 /** A world that answers every question with "nothing": behaviours take their None paths. */
 const nullWorld = new Proxy({} as WorldApi, {
-  get: (_t, key) => (key === 'time' ? 0 : key === 'random' ? () => 0.5 : key === 'allActors' ? () => [] : () => null),
+  get: (_t, key) =>
+    key === 'time'
+      ? 0
+      : key === 'random'
+        ? () => 0.5
+        : key === 'allActors'
+          ? () => []
+          : // The player's controller and its subsystem always exist.
+            key === 'playerController' || key === 'inputSubsystem'
+            ? () => ({ id: String(key) })
+            : () => null,
 });
 
 function touchedPins(defId: string): { declared: Set<string>; touched: string[] } {

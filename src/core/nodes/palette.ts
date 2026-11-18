@@ -8,6 +8,7 @@ import type { BlueprintClass, Graph, GraphKind, NodeInstance } from '../model/pr
 import { isAssignable, type PinType } from '../types/pins';
 import type { Value } from '../types/values';
 import type { NodeContext, PinSpec } from './definition';
+import { NATIVE_CASTS } from './library/communication';
 import { allDefinitions, getDefinition, resolvePins } from './registry';
 
 export interface PaletteEntry {
@@ -198,6 +199,9 @@ function communicationEntries(ctx: NodeContext, graphKind: GraphKind): PaletteEn
 
   for (const c of project.classes) {
     out.push(entry(ctx, `cast:${c.id}`, 'cast.to', { class: c.id }, { keywords: ['cast', 'convertir', c.name.toLowerCase()] }));
+  }
+  for (const name of Object.keys(NATIVE_CASTS)) {
+    out.push(entry(ctx, `cast:${name}`, 'cast.to', { class: name }, { keywords: ['cast', 'convertir', name.toLowerCase(), 'player controller', 'contrôleur'] }));
   }
 
   // Variables of other Blueprints, read or written through a reference.

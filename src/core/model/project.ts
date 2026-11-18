@@ -149,12 +149,17 @@ export interface ComponentProps {
 /**
  * The native class at the top of a Blueprint. SaveGame is UE's USaveGame: an
  * object, not an actor (no components, never placed), whose variables are
- * written to a slot by Save Game to Slot.
+ * written to a slot by Save Game to Slot. PlayerController is an actor that
+ * the game makes by itself for the player (never placed): it sits on the
+ * input stack and owns the Enhanced Input Local Player Subsystem.
  */
-export type ParentClass = 'Actor' | 'Pawn' | 'SaveGame';
+export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame';
 
 /** Native parents a Blueprint can be created from. */
-export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'SaveGame'];
+export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame'];
+
+/** Can instances of this native class be placed in the level or spawned? */
+export const isPlaceableParent = (parent: ParentClass): boolean => parent === 'Actor' || parent === 'Pawn';
 
 /** A parameter of an Event Dispatcher (and of the events bound to it). */
 export interface Param {
@@ -191,7 +196,7 @@ export interface BlueprintInterface {
 export interface BlueprintClass {
   id: string;
   name: string;
-  /** The native class at the top: Actor or Pawn (for a child Blueprint, its parent's). */
+  /** The native class at the top: Actor, Pawn, PlayerController or SaveGame (for a child Blueprint, its parent's). */
   parent: ParentClass;
   /** Parent Blueprint, when this class inherits from another Blueprint (see inheritance.ts). */
   parentClassId?: string;
@@ -336,6 +341,8 @@ export interface Project {
   saveSlots?: Record<string, SavedGame>;
   /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
   playerClassId?: string;
+  /** Class of the player's controller (UE's Player Controller Class); the native PlayerController if unset. */
+  playerControllerClassId?: string;
   /** Version of the simulation rules the project was last opened under (see rules.ts). */
   rules?: number;
   /** For a lesson's project: the revision of the lesson it was started from (Lesson.revision). */
@@ -345,7 +352,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 9;
+export const PROJECT_FORMAT = 10;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

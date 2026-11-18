@@ -1,6 +1,6 @@
 /** Level mutators: placing, moving and configuring actor instances. */
 import { newId } from '../model/ids';
-import type { LevelActor, Project } from '../model/project';
+import { isPlaceableParent, type LevelActor, type Project } from '../model/project';
 import type { Value } from '../types/values';
 import type { OpResult } from './graphOps';
 
@@ -14,6 +14,8 @@ function nextLabel(p: Project, base: string): string {
 export function placeActor(p: Project, classId: string, x: number, y: number): OpResult<LevelActor> {
   const cls = p.classes.find((c) => c.id === classId);
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
+  if (cls.parent === 'SaveGame') return { ok: false, reason: `${cls.name} est un SaveGame : un objet, pas un acteur, il ne se pose pas dans le niveau.` };
+  if (!isPlaceableParent(cls.parent)) return { ok: false, reason: `${cls.name} est un Player Controller : le jeu le crée lui-même (Player Controller Class), il ne se pose pas dans le niveau.` };
   const a: LevelActor = {
     id: newId('a'),
     classId,

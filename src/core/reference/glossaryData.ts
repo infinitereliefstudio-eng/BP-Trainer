@@ -85,7 +85,15 @@ export const GLOSSARY: GlossaryEntry[] = [
     what: 'Le système de touches d’UE5, en trois pièces. Une Input Action dit ce que fait le joueur (IA_Interagir), sans touche. Un Input Mapping Context relie des touches à des actions (E → IA_Interagir). Add Mapping Context active un contexte pendant le jeu.',
     when: 'Dans tout projet UE5. Changer de touche, ajouter la manette ou couper les contrôles dans un menu se fait dans les contextes, sans toucher aux graphes.',
     trap: 'Oublier Add Mapping Context : les événements d’action ne se déclenchent jamais, sans aucune erreur.',
-    pattern: 'BP_Joueur : Event BeginPlay → Add Mapping Context (IMC_Joueur) ; ailleurs : événement IA_Interagir → …',
+    pattern: 'Event BeginPlay → Add Mapping Context (IMC_Joueur), Target = Get Player Controller → Enhanced Input Local Player Subsystem ; ailleurs : événement IA_Interagir → …',
+  },
+  {
+    title: 'Player Controller',
+    names: ['Player Controller', 'Player Controller Class', 'Get Player Controller', 'Get Controller', 'Cast To PlayerController', 'Enhanced Input Local Player Subsystem'],
+    what: 'Le joueur lui-même, au-delà de son pion. Le jeu le crée au lancement d’après Player Controller Class (Game Mode), il possède le pion et reçoit les entrées. Get Player Controller le renvoie ; depuis un pion, Get Controller renvoie un Controller, qu’un Cast To PlayerController précise. Il porte l’Enhanced Input Local Player Subsystem, sur lequel on ajoute les Mapping Contexts.',
+    when: 'Pour ce qui concerne le joueur plutôt que son corps : ses contrôles, son interface, sa pause. Et chaque fois qu’il faut le Subsystem d’Enhanced Input.',
+    trap: 'Créer un Blueprint Player Controller sans le choisir comme Player Controller Class : le jeu garde celui par défaut, et le graphe ne s’exécute jamais, sans erreur.',
+    pattern: 'Pion : BeginPlay → Get Controller → Cast To PlayerController → Enhanced Input Local Player Subsystem → Add Mapping Context',
   },
   {
     title: 'Les sorties d’une Input Action',

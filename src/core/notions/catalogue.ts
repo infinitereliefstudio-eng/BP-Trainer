@@ -20,6 +20,7 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'overlap', title: 'Overlaps', covers: 'Begin / End Overlap, Other Actor' },
   { id: 'input', title: 'Touches', covers: 'événements de touche, Auto Receive Input, Consume Input' },
   { id: 'enhanced-input', title: 'Enhanced Input', covers: 'Input Action, Mapping Context, déclencheurs (Pressed, Hold…)' },
+  { id: 'player-controller', title: 'Player Controller', covers: 'le joueur au-delà de son pion : Player Controller Class, Get Controller, Subsystem d’Enhanced Input' },
   { id: 'variables', title: 'Variables', covers: 'Get / Set, Boolean, Integer, valeur par défaut' },
   { id: 'branch', title: 'Branch et comparaisons', covers: 'choisir un chemin selon une condition' },
   { id: 'math', title: 'Calcul', covers: 'Integer et Float, Clamp, modulo, division' },

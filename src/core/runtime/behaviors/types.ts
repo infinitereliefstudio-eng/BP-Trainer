@@ -70,6 +70,10 @@ export interface WorldApi {
   /** Enhanced Input: activate a Mapping Context for the player, or deactivate it. */
   addMappingContext(id: string, priority: number): void;
   removeMappingContext(id: string): void;
+  /** The player's PlayerController, always there while the game runs. */
+  playerController(): ActorRT;
+  /** The player's Enhanced Input Local Player Subsystem (an object, not an actor). */
+  inputSubsystem(): ActorRT;
 }
 
 export interface ValueCx {

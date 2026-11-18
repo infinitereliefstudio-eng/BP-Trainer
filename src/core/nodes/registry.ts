@@ -34,8 +34,10 @@ import { transformNodes } from './library/transform';
 import { dataTableNodes } from './library/dataTables';
 import { saveGameNodes } from './library/saveGame';
 import { enhancedInputNodes } from './library/enhancedInput';
+import { controllerNodes } from './library/controller';
 
 const ALL: NodeDefinition[] = [
+  ...controllerNodes,
   ...eventNodes,
   ...dataTableNodes,
   ...saveGameNodes,

@@ -14,7 +14,7 @@ import { addEnum } from '@core/operations/enumOps';
 import { addInputAction, addMappingContext } from '@core/operations/inputOps';
 import { addClass, addInterface, addInterfaceFunction, setParentClass } from '@core/operations/projectOps';
 import { addStruct } from '@core/operations/structOps';
-import type { Project } from '@core/model/project';
+import { NATIVE_PARENTS, type ParentClass, type Project } from '@core/model/project';
 import type { Focus } from '@core/store/editorStore';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
@@ -34,9 +34,10 @@ interface Props {
 type Mode = 'browse' | 'add' | 'parent' | 'rowStruct';
 
 /** Native parents offered first, with UE's descriptions. */
-const COMMON: { id: 'Actor' | 'Pawn'; text: string }[] = [
-  { id: 'Actor', text: 'Un objet qui peut être posé ou créé (Spawn) dans le monde.' },
-  { id: 'Pawn', text: 'Un acteur qui peut être « possédé » et recevoir les entrées d’un contrôleur : le joueur.' },
+const COMMON: { id: 'Actor' | 'Pawn' | 'PlayerController'; name: string; text: string }[] = [
+  { id: 'Actor', name: 'Actor', text: 'Un objet qui peut être posé ou créé (Spawn) dans le monde.' },
+  { id: 'Pawn', name: 'Pawn', text: 'Un acteur qui peut être « possédé » et recevoir les entrées d’un contrôleur : le joueur.' },
+  { id: 'PlayerController', name: 'Player Controller', text: 'Un acteur qui représente le joueur et le contrôle : il reçoit les entrées et possède le Pawn.' },
 ];
 
 type Result = { ok: true; value: { id: string } } | { ok: false; reason: string };
@@ -101,13 +102,13 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
   };
 
   const createBlueprint = (parent: string, parentName: string) => {
-    const isNative = parent === 'Actor' || parent === 'Pawn' || parent === 'SaveGame';
+    const isNative = (NATIVE_PARENTS as string[]).includes(parent);
     create(
       `Nouveau Blueprint (parent : ${parentName})`,
-      parent === 'SaveGame' ? 'BP_Sauvegarde' : 'BP_NewBlueprint',
+      parent === 'SaveGame' ? 'BP_Sauvegarde' : parent === 'PlayerController' ? 'BP_PlayerController' : 'BP_NewBlueprint',
       'Créer un Blueprint',
       (p, name) => {
-        const r = addClass(p, name, isNative ? (parent as 'Actor' | 'Pawn' | 'SaveGame') : 'Actor');
+        const r = addClass(p, name, isNative ? (parent as ParentClass) : 'Actor');
         if (!r.ok || isNative) return r;
         const s = setParentClass(p, r.value.id, parent);
         return s.ok ? r : s;
@@ -345,7 +346,7 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
               <div class="palette-cat">Common Classes</div>
               {COMMON.map((c) => (
                 <button key={c.id} class="palette-item" onClick={() => createBlueprint(c.id, c.id)}>
-                  <span class="pi-title">{c.id}</span>
+                  <span class="pi-title">{c.name}</span>
                   <span class="pi-desc">{c.text}</span>
                 </button>
               ))}

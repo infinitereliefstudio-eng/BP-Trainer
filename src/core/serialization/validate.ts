@@ -167,6 +167,7 @@ export function validateProject(value: unknown): asserts value is Project {
   checkAssets(p);
   checkLevel(p, classIds);
   if (p.playerClassId !== undefined && !classIds.has(p.playerClassId as string)) delete p.playerClassId;
+  if (p.playerControllerClassId !== undefined && !classIds.has(p.playerControllerClassId as string)) delete p.playerControllerClassId;
   if (p.saveSlots !== undefined) {
     need(isObj(p.saveSlots), 'Slots de sauvegarde mal formés.');
     const slots = p.saveSlots as Obj;

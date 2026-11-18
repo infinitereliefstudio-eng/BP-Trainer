@@ -60,6 +60,8 @@ export interface ActorRT {
   objectName: string;
   classId?: string;
   className: string;
+  /** The native class at the top (Actor, Pawn, PlayerController, SaveGame…), for Cast To a native class. */
+  native: string;
   isPlayer: boolean;
   x: number;
   y: number;

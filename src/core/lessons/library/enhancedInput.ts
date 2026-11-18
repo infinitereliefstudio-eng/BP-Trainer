@@ -1,12 +1,14 @@
 /**
  * Enhanced Input (lot 3, first part): the lamp of lesson 4 moved to an Input
- * Action, the classic forgotten Add Mapping Context (Débogue D20), and a
- * door that opens only when E is held (Hold trigger, Triggered and Canceled).
+ * Action, the classic forgotten Add Mapping Context (Débogue D20, on the UE5
+ * template's Get Controller → Cast To PlayerController chain), a door that
+ * opens only when E is held (Hold trigger, Triggered and Canceled), and the
+ * context moved into a Player Controller Blueprint.
  */
 import type { Project } from '../../model/project';
 import { addInputAction, addMapping, addMappingContext } from '../../operations/inputOps';
 import { removeNodes } from '../../operations/graphOps';
-import { addClass, setPlayerClass } from '../../operations/projectOps';
+import { addClass, setPlayerClass, setPlayerControllerClass } from '../../operations/projectOps';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, normText, notion, usesNode, visible } from '../checks';
 import type { Check, CheckContext, Lesson, ScenarioStep } from '../types';
@@ -36,12 +38,31 @@ function inputAssets(p: Project, action: string): { action: string; context: str
   return { action: a.value.id, context: c.value.id };
 }
 
-/** BP_Joueur: BeginPlay → Add Mapping Context (IMC_Joueur). */
+/**
+ * BP_Joueur: BeginPlay → Add Mapping Context (IMC_Joueur), on the subsystem
+ * of Get Player Controller.
+ */
 function addContextAtBeginPlay(p: Project, context: string): void {
   const b = edit(p, 'BP_Joueur');
   const begin = b.node('event.beginPlay', {}, {}, [64, 96]);
-  const add = b.node('input.addMappingContext', { context }, {}, [380, 96]);
-  b.link(begin, 'then', add, 'exec');
+  const add = b.node('input.addMappingContext', { context }, {}, [720, 96]);
+  const pc = b.node('player.getController', {}, {}, [64, 300]);
+  const sub = b.node('input.subsystem', {}, {}, [380, 300]);
+  b.link(begin, 'then', add, 'exec').link(pc, 'result', sub, 'controller').link(sub, 'result', add, 'target');
+}
+
+/**
+ * The UE5 Third Person template's chain in BP_Joueur, up to the subsystem:
+ * BeginPlay → Cast To PlayerController (Object = Get Controller), As Player
+ * Controller → Enhanced Input Local Player Subsystem.
+ */
+function templateChain(p: Project): void {
+  const b = edit(p, 'BP_Joueur');
+  const begin = b.node('event.beginPlay', {}, {}, [64, 96]);
+  const get = b.node('pawn.getController', {}, {}, [64, 300]);
+  const cast = b.node('cast.to', { class: 'PlayerController' }, {}, [380, 96]);
+  const sub = b.node('input.subsystem', {}, {}, [720, 300]);
+  b.link(begin, 'then', cast, 'exec').link(get, 'result', cast, 'object').link(cast, 'as', sub, 'controller');
 }
 
 /** Replace the lamp's E key event by the action event, Started into what Pressed fed. */
@@ -83,9 +104,9 @@ export const lessonInputLamp: Lesson = {
   title: 'La lampe en Enhanced Input',
   situation:
     'La lampe de la leçon 4 s’allume et s’éteint avec E, par un événement de touche. Dans UE5, on passe par Enhanced Input : fais-la marcher pareil, avec une Input Action.',
-  notions: ['Input Action', 'Input Mapping Context', 'Add Mapping Context', 'Started / Triggered / Completed'],
+  notions: ['Input Action', 'Input Mapping Context', 'Add Mapping Context', 'Get Player Controller', 'Started / Triggered / Completed'],
   remember:
-    'Enhanced Input en trois pièces : une Input Action (ce que le joueur fait), un Mapping Context (quelle touche la déclenche), et Add Mapping Context au BeginPlay pour l’activer. Pour « une fois à l’appui », Started.',
+    'Enhanced Input en trois pièces : une Input Action (ce que le joueur fait), un Mapping Context (quelle touche la déclenche), et Add Mapping Context au BeginPlay pour l’activer, sur l’Enhanced Input Local Player Subsystem du Player Controller. Pour « une fois à l’appui », Started.',
   cards: [
     {
       title: 'Ce qui est en place',
@@ -113,10 +134,21 @@ export const lessonInputLamp: Lesson = {
         'Dans UE, c’est le même menu (+ Add, ou clic droit dans le Content Drawer), et le contexte s’édite dans sa propre fenêtre.',
     },
     {
+      title: 'Le Player Controller',
+      body:
+        'Dans UE, le joueur n’est pas seulement son pion. Le jeu crée pour lui un **Player Controller** : il le représente pendant toute la partie, reçoit ses entrées et **possède** le pion (il peut en changer : mort, véhicule).\n\n' +
+        'C’est le Player Controller qui porte l’**Enhanced Input Local Player Subsystem** : l’objet qui garde la liste des Mapping Contexts actifs du joueur. Pour activer un contexte, on passe donc par lui.\n\n' +
+        'Ici, le Player Controller est celui d’UE par défaut, sans graphe : tu n’as rien à créer pour l’utiliser.',
+    },
+    {
       title: 'Activer le contexte',
       body:
-        'Un Mapping Context ne fait rien tant qu’il n’est pas **ajouté** pendant le jeu. Dans BP_Joueur : **Event BeginPlay** → **Add Mapping Context (IMC_Joueur)** (palette › Input › Enhanced Input).\n\n' +
-        'Dans UE, le nœud se branche sur l’**Enhanced Input Local Player Subsystem**, obtenu depuis **Get Player Controller** : BeginPlay → Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context. L’appli fait ce chemin pour toi.',
+        'Un Mapping Context ne fait rien tant qu’il n’est pas **ajouté** pendant le jeu. Dans BP_Joueur :\n\n' +
+        '1. **Event BeginPlay** → **Add Mapping Context (IMC_Joueur)** (palette › Input › Enhanced Input).\n' +
+        '2. **Get Player Controller** → pin Player Controller d’**Enhanced Input Local Player Subsystem**.\n' +
+        '3. **Return Value** du Subsystem → **Target** d’Add Mapping Context.\n\n' +
+        'Target n’a pas de « self » ici : sans fil, le Blueprint ne compile pas (« Target must have a connection »).\n\n' +
+        'Le template Third Person d’UE5 fait le même chemin avec **Get Controller** → **Cast To PlayerController** : Get Controller renvoie un Controller, le Cast vérifie que c’est bien celui d’un joueur.',
     },
     {
       title: 'Remplacer l’événement',
@@ -137,8 +169,8 @@ export const lessonInputLamp: Lesson = {
   ],
   hints: [
     'Trois pièces : l’action, le contexte qui relie E à l’action, et Add Mapping Context au BeginPlay du joueur. Sans cette dernière, rien ne se passe, sans erreur.',
-    'Nœuds : Event BeginPlay et Add Mapping Context (IMC_Joueur) dans BP_Joueur ; l’événement IA_Interagir (sortie Started) dans BP_Lampe, relié au Branch existant.',
-    'Solution : Content Browser › IA_Interagir, puis IMC_Joueur avec la ligne E → IA_Interagir. BP_Joueur : BeginPlay → Add Mapping Context (IMC_Joueur). BP_Lampe : supprime E, pose IA_Interagir, Started → Branch.',
+    'Nœuds : Event BeginPlay, Get Player Controller, Enhanced Input Local Player Subsystem et Add Mapping Context (IMC_Joueur) dans BP_Joueur ; l’événement IA_Interagir (sortie Started) dans BP_Lampe, relié au Branch existant.',
+    'Solution : Content Drawer › IA_Interagir, puis IMC_Joueur avec la ligne E → IA_Interagir. BP_Joueur : BeginPlay → Add Mapping Context (IMC_Joueur), Target = Get Player Controller → Enhanced Input Local Player Subsystem. BP_Lampe : supprime E, pose IA_Interagir, Started → Branch.',
   ],
   challenge: 'Ajoute F au même contexte, vers la même action : les deux touches allument la lampe, sans toucher au graphe de la lampe.',
   setup() {
@@ -178,36 +210,46 @@ export const debugMappingContext: Lesson = {
   level: 'intermediaire',
   number: 0,
   title: 'La touche qui ne répond plus',
-  situation: 'Le projet est passé à Enhanced Input. Tout compile, l’Output Log est vide… et E n’allume plus la lampe.',
-  notions: ['Add Mapping Context', 'Input Mapping Context'],
+  situation: 'Le projet est passé à Enhanced Input, en reprenant le BeginPlay du template Third Person d’UE5. Tout compile, l’Output Log est vide… et E n’allume plus la lampe.',
+  revision: 2,
+  notions: ['Add Mapping Context', 'Input Mapping Context', 'Get Controller', 'Cast To PlayerController'],
   remember:
-    'Un Mapping Context ne sert à rien tant qu’on ne l’a pas ajouté pendant le jeu (Add Mapping Context, en général au BeginPlay du joueur). Son oubli ne produit aucune erreur : les événements d’action ne se déclenchent simplement jamais.',
+    'Un Mapping Context ne sert à rien tant qu’on ne l’a pas ajouté pendant le jeu (Add Mapping Context, sur l’Enhanced Input Local Player Subsystem, en général au BeginPlay du joueur). Obtenir le Subsystem ne suffit pas, et l’oubli ne produit aucune erreur : les événements d’action ne se déclenchent simplement jamais.',
   cards: [
     {
       title: 'Ce qui est en place',
       body:
         '- **IA_Interagir** (Input Action) et **IMC_Joueur** (Mapping Context : E → IA_Interagir).\n' +
         '- **BP_Lampe** : l’événement **IA_Interagir**, sortie Started → le Branch qui allume ou éteint.\n' +
-        '- **BP_Joueur** : le pion du joueur.\n\n' +
+        '- **BP_Joueur** : le pion du joueur. Son BeginPlay reprend le début du template Third Person : **Get Controller** → **Cast To PlayerController** → **Enhanced Input Local Player Subsystem**.\n\n' +
         'Lance ▶ Play et appuie sur E : rien. Aucune erreur dans l’Output Log.',
     },
     {
       title: 'Enquêter',
       body:
         'Rien ne plante : un nœud ne s’exécute simplement jamais. Touche l’événement IA_Interagir puis Details › « Pourquoi ce nœud ne s’est pas exécuté ? ».\n\n' +
-        'Remonte la chaîne : la touche est-elle reliée à l’action ? Et le contexte qui fait ce lien, quelqu’un l’a-t-il **activé** ?',
+        'Remonte la chaîne : la touche est-elle reliée à l’action ? Et le contexte qui fait ce lien, quelqu’un l’a-t-il **activé** ?\n\n' +
+        'Puis regarde le BeginPlay de BP_Joueur : le Cast réussit-il ? Et une fois le Subsystem obtenu, que fait-on avec ?',
     },
     {
       title: 'Ce qu’il faut savoir',
       body:
         'Un Input Mapping Context est un asset : il existe dans le projet, mais le joueur ne l’utilise que si un Blueprint l’ajoute pendant le jeu. Dans UE aussi, l’oubli est silencieux. C’est l’erreur la plus fréquente en passant à Enhanced Input.',
     },
+    {
+      title: 'Le chemin du template',
+      body:
+        '- **Get Controller** : le Controller qui possède ce pion. Son type est **Controller**, plus général que Player Controller (une IA a aussi un Controller).\n' +
+        '- **Cast To PlayerController** : vérifie que c’est bien le contrôleur d’un joueur, et donne **As Player Controller**.\n' +
+        '- **Enhanced Input Local Player Subsystem** : se branche sur ce Player Controller.\n' +
+        '- **Add Mapping Context** : se branche sur le Subsystem (pin **Target**), après le Cast.',
+    },
   ],
   objectives: ['E allume la lampe, puis l’éteint.', 'Sans toucher au graphe de la lampe.'],
   hints: [
-    'La lampe est juste : c’est le contexte IMC_Joueur qui n’est jamais activé.',
-    'Nœuds : Event BeginPlay et Add Mapping Context (IMC_Joueur), dans BP_Joueur.',
-    'Solution : BP_Joueur : Event BeginPlay → Add Mapping Context (IMC_Joueur).',
+    'La lampe est juste, le Cast réussit : c’est le contexte IMC_Joueur qui n’est jamais activé. Le Subsystem est obtenu… et ne sert à rien.',
+    'Nœud : Add Mapping Context (IMC_Joueur), dans BP_Joueur, au bout de la chaîne du BeginPlay.',
+    'Solution : BP_Joueur : sortie du Cast To PlayerController → Add Mapping Context (IMC_Joueur) ; Return Value du Subsystem → Target.',
   ],
   setup() {
     const p = lesson4.setup();
@@ -216,6 +258,7 @@ export const debugMappingContext: Lesson = {
     ensurePlayer(p);
     const { action } = inputAssets(p, 'IA_Interagir');
     lampOnAction(p, action);
+    templateChain(p);
     return p;
   },
   scenario: [{ wait: 0.2 }, ...hold(0.2), { checkpoint: 'un' }, ...hold(0.2), { checkpoint: 'deux' }],
@@ -225,8 +268,12 @@ export const debugMappingContext: Lesson = {
     noRuntimeErrors(),
   ],
   solve(p) {
-    const context = p.mappingContexts[0].id;
-    addContextAtBeginPlay(p, context);
+    const b = edit(p, 'BP_Joueur');
+    const nodes = Object.values(b.graph.nodes);
+    const cast = nodes.find((n) => n.def === 'cast.to')!.id;
+    const sub = nodes.find((n) => n.def === 'input.subsystem')!.id;
+    const add = b.node('input.addMappingContext', { context: p.mappingContexts[0].id }, {}, [1060, 96]);
+    b.link(cast, 'then', add, 'exec').link(sub, 'result', add, 'target');
   },
 };
 
@@ -345,5 +392,132 @@ export const lessonInputHold: Lesson = {
     const rot = b.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [420, 0]);
     const say = b.node('debug.printString', {}, { text: 'Maintiens E pour ouvrir' }, [420, 320]);
     b.link(ev, 'triggered', rot, 'exec').target('Porte', rot).link(ev, 'canceled', say, 'exec');
+  },
+};
+
+// ------------------------------------------------- the Player Controller
+
+/** Is a Player Controller Blueprint the game's Player Controller Class? */
+function controllerClass(cx: CheckContext) {
+  return cx.project.classes.find((c) => c.id === cx.project.playerControllerClassId);
+}
+
+const addsContext = (cls: { graphs: { nodes: Record<string, { def: string }> }[] } | undefined) =>
+  !!cls?.graphs.some((g) => Object.values(g.nodes).some((n) => n.def === 'input.addMappingContext'));
+
+/** The lamp checks, with a word about the Player Controller Class when it explains the failure. */
+function lampWithController(id: string, expected: boolean, label: string, at: string): Check {
+  const base = visible(id, 'BP_Lampe', 'Lumiere', expected, label, at);
+  return {
+    ...base,
+    test: (cx) => {
+      const r = base.test(cx);
+      if (r === true || controllerClass(cx)) return r;
+      const made = cx.project.classes.find((c) => c.parent === 'PlayerController');
+      return made ? `${r} ${made.name} n’est pas utilisé par le jeu : coche Player Controller Class dans ses Class Settings.` : r;
+    },
+  };
+}
+
+export const lessonInputController: Lesson = {
+  id: 'l-ei-controleur',
+  module: MODULE,
+  level: 'intermediaire',
+  number: 0,
+  title: 'Les contrôles au Player Controller',
+  situation:
+    'La lampe marche en Enhanced Input, mais c’est le pion qui ajoute le contexte. Si le joueur changeait de pion (réapparition, véhicule), il faudrait le refaire à chaque fois. Confie ce travail au Player Controller, qui représente le joueur pendant toute la partie.',
+  notions: ['Player Controller', 'Player Controller Class', 'Enhanced Input Local Player Subsystem'],
+  remember:
+    'Le Player Controller représente le joueur pendant toute la partie et possède son pion. Un Blueprint de classe parente PlayerController ne sert que s’il est choisi comme Player Controller Class (Game Mode). Dans son graphe, Self est le Player Controller : il se branche directement sur l’Enhanced Input Local Player Subsystem.',
+  cards: [
+    {
+      title: 'Ce qui est en place',
+      body:
+        '- **IA_Interagir**, **IMC_Joueur** (E → IA_Interagir) et **BP_Lampe**, qui bascule sur Started.\n' +
+        '- **BP_Joueur** : au BeginPlay, Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context (IMC_Joueur).\n\n' +
+        'Le test appuie deux fois sur E : la lampe doit s’allumer, puis s’éteindre.',
+    },
+    {
+      title: 'Pion ou Player Controller ?',
+      body:
+        'Le **pion** est le corps du joueur dans le monde : il peut mourir, être remplacé, monter dans un véhicule. Le **Player Controller** est le joueur lui-même : le jeu le crée au lancement et le garde jusqu’à la fin.\n\n' +
+        'Ce qui concerne le joueur plutôt que son corps (ses contrôles, son interface, sa pause) va bien dans le Player Controller. Le template Third Person d’UE5 ajoute le contexte dans le Character ; les deux se font, c’est un choix d’organisation.',
+    },
+    {
+      title: 'Créer le Player Controller',
+      body:
+        '1. **Content Drawer** › **+ Add** › **Blueprint Class** › **Player Controller**, nomme-le `BP_PlayerController`.\n' +
+        '2. Ouvre-le : dans **Class Settings**, coche **Player Controller Class**. Sans ça, le jeu garde le Player Controller par défaut et ton Blueprint ne sert à rien.\n\n' +
+        'Dans UE, ce réglage est dans le **Game Mode** (Player Controller Class), à côté de Default Pawn Class.',
+    },
+    {
+      title: 'Déplacer le contexte',
+      body:
+        '- Dans **BP_PlayerController** : Event BeginPlay → Add Mapping Context (IMC_Joueur). Pour la pin Player Controller du Subsystem, **Self** suffit : ici, Self *est* le Player Controller. (Get Player Controller marche aussi.)\n' +
+        '- Dans **BP_Joueur** : supprime l’ancienne chaîne, pour qu’un seul Blueprint s’occupe du contexte.',
+    },
+  ],
+  objectives: [
+    'Crée BP_PlayerController (classe parente Player Controller) et fais-en la Player Controller Class.',
+    'Ajoute IMC_Joueur au BeginPlay de BP_PlayerController.',
+    'Retire Add Mapping Context de BP_Joueur.',
+    'E allume la lampe, puis l’éteint.',
+  ],
+  hints: [
+    'Deux réglages comptent : la classe parente (Player Controller) et la case Player Controller Class. Puis la même chaîne qu’avant, dans le Player Controller.',
+    'Nœuds dans BP_PlayerController : Event BeginPlay, Self (ou Get Player Controller), Enhanced Input Local Player Subsystem, Add Mapping Context (IMC_Joueur).',
+    'Solution : Content Drawer › + Add › Blueprint Class › Player Controller (BP_PlayerController), Class Settings › Player Controller Class coché. BeginPlay → Add Mapping Context (IMC_Joueur), Target = Self → Enhanced Input Local Player Subsystem. Dans BP_Joueur, supprime BeginPlay et la chaîne.',
+  ],
+  challenge: 'Dans BP_PlayerController, écoute aussi IA_Interagir (Started) pour afficher « Interaction » avec Print String : avec Consume Input décoché sur la lampe, les deux l’entendent.',
+  setup() {
+    const p = lessonInputLamp.setup();
+    lessonInputLamp.solve(p);
+    p.name = 'Les contrôles au Player Controller';
+    return p;
+  },
+  scenario: [{ wait: 0.2 }, ...hold(0.2), { checkpoint: 'un' }, ...hold(0.2), { checkpoint: 'deux' }],
+  checks: [
+    lampWithController('on', true, '1er appui : la lampe s’allume', 'un'),
+    lampWithController('off', false, '2e appui : elle s’éteint', 'deux'),
+    {
+      id: 'pc-class',
+      label: 'Un Blueprint Player Controller est la Player Controller Class',
+      test: (cx) => {
+        if (controllerClass(cx)) return true;
+        const made = cx.project.classes.find((c) => c.parent === 'PlayerController');
+        return made
+          ? `${made.name} existe, mais le jeu ne l’utilise pas : coche Player Controller Class dans ses Class Settings.`
+          : 'Crée un Blueprint de classe parente Player Controller (Content Drawer › + Add › Blueprint Class).';
+      },
+    },
+    notion({
+      id: 'pc-context',
+      label: 'Le Player Controller ajoute le Mapping Context',
+      test: (cx) => (addsContext(controllerClass(cx)) ? true : 'Ajoute IMC_Joueur au BeginPlay du Player Controller (Add Mapping Context).'),
+    }),
+    {
+      id: 'pawn-clean',
+      label: 'BP_Joueur n’ajoute plus le contexte',
+      test: (cx) =>
+        addsContext(cx.project.classes.find((c) => c.name === 'BP_Joueur'))
+          ? 'BP_Joueur ajoute encore IMC_Joueur : un seul Blueprint doit s’en charger, supprime l’ancienne chaîne.'
+          : true,
+    },
+    noRuntimeErrors(),
+  ],
+  solve(p) {
+    const joueur = p.classes.find((c) => c.name === 'BP_Joueur')!;
+    const graph = joueur.graphs[0];
+    removeNodes(graph, Object.keys(graph.nodes));
+    const r = addClass(p, 'BP_PlayerController', 'PlayerController');
+    if (!r.ok) throw new Error(r.reason);
+    setPlayerControllerClass(p, r.value.id);
+    const b = edit(p, 'BP_PlayerController');
+    const begin = b.node('event.beginPlay', {}, {}, [64, 96]);
+    const add = b.node('input.addMappingContext', { context: p.mappingContexts[0].id }, {}, [720, 96]);
+    const self = b.node('actor.self', {}, {}, [64, 300]);
+    const sub = b.node('input.subsystem', {}, {}, [380, 300]);
+    b.link(begin, 'then', add, 'exec').link(self, 'self', sub, 'controller').link(sub, 'result', add, 'target');
   },
 };

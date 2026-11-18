@@ -5,6 +5,8 @@
 import { useMemo, useState } from 'preact/hooks';
 import { whereItStopped } from '@core/explain/stops';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
+import { helpOffers, type HelpKind } from '@core/lessons/helpPolicy';
+import { LEVELS } from '@core/lessons/levels';
 import type { LessonRun } from '@core/lessons/runner';
 import type { QualityParts, Verdict } from '@core/quality/review';
 import { firstSeen, notionHelp } from '@core/reference/glossary';
@@ -21,8 +23,10 @@ interface Props {
   onPassed: () => void;
   /** Hints shown so far (kept in the progress: 3 = the solution). */
   hints: number;
-  /** Vérifier was pressed at least once: transfer and autonomy exercises open their hints only then. */
+  /** Vérifier was pressed at least once: from Confirmé, and in transfer and autonomy, hints open only then. */
   tried: boolean;
+  /** Failed checks: from Confirmé, the solution opens after some (lessons/helpPolicy.ts). */
+  fails: number;
   onHint: (shown: number) => void;
   /** The last check and what it found, kept by the editor so the goal strip shows it too. */
   check: LessonCheck | null;
@@ -39,6 +43,10 @@ interface Props {
   /** Open another way to solve the lesson, in a scratch workspace. */
   onOpenAlternative: (index: number) => void;
 }
+
+const HELP_TITLE: Record<HelpKind, string> = { hint: 'Indice', nodes: 'Les nœuds à utiliser', solution: 'La solution' };
+const HELP_SUBJECT: Record<HelpKind, string> = { hint: 'L’indice', nodes: 'La liste des nœuds', solution: 'La solution' };
+const HELP_BUTTON: Record<HelpKind, string> = { hint: 'Afficher un indice', nodes: 'Quels nœuds utiliser ?', solution: 'Voir la solution' };
 
 /** What is looked at once the lesson works: never blocking. */
 export interface Quality extends QualityParts {
@@ -62,6 +70,7 @@ export function LessonSheet({
   onPassed,
   hints,
   tried,
+  fails,
   onHint,
   check,
   onVerify,
@@ -75,7 +84,10 @@ export function LessonSheet({
 }: Props) {
   const tap = useOwnTap();
   const [tab, setTab] = useState<Tab>(initialTab ?? 'learn');
-  const hintsLocked = !!lesson.chain && lesson.chain.step !== 'guided' && !tried && !done;
+  const offers = helpOffers(lesson, { tried, fails, done });
+  const shown = offers.filter((o) => o.index < hints);
+  const nextOffer = offers.find((o) => o.index >= hints);
+  const levelHelp = LEVELS.find((l) => l.id === lesson.level)?.help;
   const run = check?.run ?? null;
   const quality = check?.quality ?? null;
   const verify = onVerify;
@@ -181,10 +193,11 @@ export function LessonSheet({
 
           {tab === 'help' && (
             <>
-              {lesson.hints.slice(0, hints).map((h, i) => (
-                <article key={i} class="card hint-card">
-                  <h4>{['Indice', 'Les nœuds à utiliser', 'La solution'][i]}</h4>
-                  <p>{h}</p>
+              {levelHelp && lesson.kind !== 'predict' && <p class="muted small help-rule">{levelHelp}</p>}
+              {shown.map((o) => (
+                <article key={o.kind} class="card hint-card">
+                  <h4>{HELP_TITLE[o.kind]}</h4>
+                  <p>{lesson.hints[o.index]}</p>
                 </article>
               ))}
               {hints >= 3 && lesson.kind !== 'predict' && (
@@ -192,17 +205,17 @@ export function LessonSheet({
                   Ouvrir la solution dans l’éditeur
                 </button>
               )}
-              {hints < 3 && hintsLocked && (
+              {nextOffer && !nextOffer.available && (
                 <p class="note">
-                  {lesson.chain?.step === 'autonomy' ? 'Exercice en autonomie' : 'Exercice de transfert'} : les indices s’ouvrent après un premier essai. Construis
-                  ce que tu peux, puis touche Vérifier. Le résultat te dira ce qui manque.
+                  {HELP_SUBJECT[nextOffer.kind]} s’ouvre {nextOffer.locked}. Le résultat de Vérifier dit ce qui manque, et « Montre-moi » où ça coince.
                 </p>
               )}
-              {hints < 3 && !hintsLocked && (
-                <button class="btn" onClick={() => onHint(hints + 1)}>
-                  {['Afficher un indice', 'Quels nœuds utiliser ?', 'Voir la solution'][hints]}
+              {nextOffer?.available && (
+                <button class="btn" onClick={() => onHint(nextOffer.index + 1)}>
+                  {HELP_BUTTON[nextOffer.kind]}
                 </button>
               )}
+              {!nextOffer && offers.length === 0 && <p class="note">Pas d’aide à ce niveau : le cahier des charges et Vérifier suffisent.</p>}
               <div class="reset-zone">
                 <button
                   class="btn danger"

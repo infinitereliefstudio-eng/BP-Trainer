@@ -30,7 +30,10 @@ export function estimatedMinutes(lesson: Lesson): number {
     minutes = roundTo5(4 + 1.5 * added);
     if (lesson.kind === 'debug') minutes = Math.max(minutes, 10);
     if (lesson.chain?.step === 'autonomy') minutes += 5;
-    minutes = Math.min(30, Math.max(5, minutes));
+    // A synthesis mixes a whole level; an Expert project takes several sittings.
+    if (lesson.kind === 'synthesis') minutes += 10;
+    const cap = lesson.level === 'expert' ? 120 : lesson.kind === 'synthesis' ? 45 : 30;
+    minutes = Math.min(cap, Math.max(5, minutes));
   }
   cache.set(lesson.id, minutes);
   return minutes;

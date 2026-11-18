@@ -687,6 +687,23 @@ async def main():
         await shot('66_consume_input')
         if await page.locator('.drawer.right', has_text='Consume Input').count() != 1:
             errs.append('Event de touche : Consume Input absent des Details')
+
+        # Lot 0: help by level, locked from Confirmé (hint after a try, no node list)
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Qui modifie quoi').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-tabs button', has_text='Aide').tap()
+        await page.wait_for_timeout(200)
+        await shot('67_help_locked')
+        if await page.locator('.lesson-body', has_text='après un premier essai').count() != 1:
+            errs.append('Aide Confirmé : l’indice devrait attendre un premier essai')
+        if await page.locator('.lesson-body button', has_text='Quels nœuds').count():
+            errs.append('Aide Confirmé : pas de liste de nœuds à ce niveau')
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.module h2', has_text='Confirmé').scroll_into_view_if_needed()
+        await shot('68_home_help_rule')
         print('errors', errs)
         await b.close()
         return errs

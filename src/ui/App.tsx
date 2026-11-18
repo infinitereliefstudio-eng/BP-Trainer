@@ -154,7 +154,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       quality = { ...parts, verdict: verdict(run, parts) };
     }
     setCheck({ run, quality });
-    onHelp?.((h) => ({ ...h, tried: true }));
+    onHelp?.((h) => ({ ...h, tried: true, fails: run.passed ? h.fails : (h.fails ?? 0) + 1 }));
     if (run.sim) setLastRun(run.sim);
     haptic(run.passed ? 'success' : 'fail');
     if (run.passed) onLessonPassed();
@@ -606,6 +606,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           onPassed={onLessonPassed}
           hints={help?.hints ?? 0}
           tried={!!help?.tried}
+          fails={help?.fails ?? 0}
           onHint={(n) => onHelp?.((h) => ({ ...h, hints: Math.max(h.hints, n) }))}
           check={check}
           onVerify={verify}

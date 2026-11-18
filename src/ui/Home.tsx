@@ -33,6 +33,7 @@ const KIND_LABEL: Record<Exclude<LessonKind, 'build'>, string> = {
   debug: 'Débogue',
   complete: 'Complète le graphe',
   refactor: 'Refactor : réécris-le mieux',
+  synthesis: 'Synthèse du niveau : cahier des charges',
 };
 
 /** The eyebrow of an exercise card: its format, or its step in a chain. */
@@ -147,9 +148,14 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
               <span class="review-go">Réviser ›</span>
             </button>
           )}
-          {LEVELS.map((lv) => {
+          {LEVELS.map((lv, li) => {
             const list = LESSONS.filter((l) => l.level === lv.id);
+            // A level with no step yet (Expert, until its projects come) is not shown.
+            if (!list.length) return null;
             const count = list.filter((l) => done.has(l.id)).length;
+            // The synthesis of the level before is advised first, never required.
+            const before = li > 0 ? LESSONS.find((l) => l.level === LEVELS[li - 1].id && l.kind === 'synthesis') : undefined;
+            const advise = before && !done.has(before.id) && count === 0 ? before : undefined;
             return (
               <section key={lv.id} class="module">
                 <h2>
@@ -158,7 +164,13 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
                     {count} / {list.length}
                   </span>
                   <span class="muted small">{lv.summary}</span>
+                  <span class="muted small level-help">{lv.help}</span>
                 </h2>
+                {advise && (
+                  <button class="synthesis-advice" onClick={() => open(advise)}>
+                    Conseillé avant ce niveau : <strong>Synthèse {advise.code} · {advise.title}</strong>. Elle reprend tout le niveau {LEVELS[li - 1].title}, sans aide.
+                  </button>
+                )}
                 <div class="lesson-list">
                   {list.map((l) => (
                     <button

@@ -72,6 +72,10 @@ Choix du 18 novembre : Tristan en est vers l'étape 10 et ne pratique pas encore
 | Revoir le bilan de qualité | Dans `core/quality/review.ts`, le nombre de nœuds pèse sur le verdict et les étoiles. En faire un indicateur secondaire ; critères distincts : fonctionnement, robustesse, notion travaillée, lisibilité, coût d'exécution | ★★ | M |
 | Durée affinée | La durée est estimée d'après la taille de la solution ; l'affiner avec le temps réellement passé | ★ | S à M |
 
+## Plan du parcours (validé le 18 novembre)
+
+Voir [PLAN_PARCOURS.md](PLAN_PARCOURS.md) : lot 0 (cadre) fait en V7.10 ; lots 1 à 4 à faire, un à la fois. Les anciens lots A, B et C (remise à jour, Enhanced Input partout, nouveaux exercices) y sont intégrés.
+
 ## Interface à la manière d'UE (plan validé le 18 novembre)
 
 Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en tiroirs, appui long = clic droit ; ambre = propre à BP Trainer.
@@ -254,6 +258,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.10 (18 novembre 2026), plan du parcours, lot 0 : règle d'aide par niveau (ouverte jusqu'à l'Intermédiaire, verrouillée ensuite), rappels et test d'espacement à cliquet, échelle à cinq marches, niveau Expert, étape de synthèse conseillée.
 - V7.9 (18 novembre 2026), interface à la manière d'UE, étape 5 : onglet Viewport du Blueprint (composants vus de dessus, sélection, déplacement au doigt dans le repère du parent) ; Outliner permanent de l'éditeur de niveau (tiroir Outliner / Details, Item Label et Type, recherche, sélection partagée). Plan « Interface à la manière d'UE » terminé.
 - V7.8 (18 novembre 2026), interface à la manière d'UE, étape 4 : Details en sections d'UE repliables avec Search Details et aide ambre, palette « All Actions for this Blueprint » en arbre de catégories, Find Results (Find, Find in all Blueprints, Find References) ; revue des étapes 1 à 3 : Player Index de Get Player Controller et Get Player Pawn.
 - V7.7 (18 novembre 2026), interface à la manière d'UE, étape 3 : Player Controller (classe parente, Player Controller Class, sur la pile des entrées), Get Player Controller, Get Controller, Cast To PlayerController, Enhanced Input Local Player Subsystem, Target d'Add / Remove Mapping Context (format 10) ; leçons Enhanced Input mises à jour et nouvelle étape « Les contrôles au Player Controller ».

@@ -21,7 +21,7 @@ export interface Advice {
   subject?: string;
 }
 
-const LEVEL_RANK: Record<Level, number> = { debutant: 0, intermediaire: 1, confirme: 2, avance: 3 };
+const LEVEL_RANK: Record<Level, number> = { debutant: 0, intermediaire: 1, confirme: 2, avance: 3, expert: 4 };
 
 /** Nodes that make something move or turn a little at a time. */
 const CONTINUOUS = new Set([

@@ -15,12 +15,14 @@ export type ResumeRef = { kind: 'sandbox' } | { kind: 'lesson'; lessonId: string
 /**
  * The help used on a lesson since it was started (or started again):
  * `hints` shown (3 = the solution's text), `solution` opened in the editor,
- * `tried` once Vérifier was pressed.
+ * `tried` once Vérifier was pressed, `fails` the checks that failed (from
+ * Confirmé, the solution opens after some of them: lessons/helpPolicy.ts).
  */
 export interface LessonHelp {
   hints: number;
   tried?: boolean;
   solution?: boolean;
+  fails?: number;
 }
 
 /** How a lesson was passed, from the least help to the most. Never a penalty: a fact to come back to. */
@@ -79,7 +81,7 @@ export function withPassed(p: Progress, lessonId: string, now = Date.now()): Pro
 export function withHelp(p: Progress, lessonId: string, change: (h: LessonHelp) => LessonHelp): Progress {
   const before = p.help?.[lessonId] ?? { hints: 0 };
   const after = change(before);
-  if (after.hints === before.hints && !!after.tried === !!before.tried && !!after.solution === !!before.solution) return p;
+  if (after.hints === before.hints && !!after.tried === !!before.tried && !!after.solution === !!before.solution && (after.fails ?? 0) === (before.fails ?? 0)) return p;
   return { ...p, help: { ...p.help, [lessonId]: after } };
 }
 
@@ -113,7 +115,7 @@ const reviewState = (v: unknown) => isObj(v) && Object.values(v).every((c) => is
 const lessonHelp = (v: unknown) =>
   isObj(v) &&
   Object.values(v).every(
-    (h) => isObj(h) && isNum(h.hints) && (h.tried === undefined || typeof h.tried === 'boolean') && (h.solution === undefined || typeof h.solution === 'boolean'),
+    (h) => isObj(h) && isNum(h.hints) && (h.tried === undefined || typeof h.tried === 'boolean') && (h.solution === undefined || typeof h.solution === 'boolean') && (h.fails === undefined || isNum(h.fails)),
   );
 const helpLevels = (v: unknown) => isObj(v) && Object.values(v).every((l) => HELP_LEVELS.includes(l as HelpLevel));
 const resumeRef = (v: unknown) =>

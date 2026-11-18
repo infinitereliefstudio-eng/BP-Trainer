@@ -111,7 +111,11 @@ export interface Avoid {
  * complete: a graph with gaps, the nodes to place are named. refactor: a
  * working but clumsy graph to rewrite, same behaviour plus a constraint.
  */
-export type LessonKind = 'build' | 'predict' | 'debug' | 'complete' | 'refactor';
+/**
+ * `synthesis`: the project that ends a level, mixing its notions with a
+ * brief only (advised before the next level, never required).
+ */
+export type LessonKind = 'build' | 'predict' | 'debug' | 'complete' | 'refactor' | 'synthesis';
 
 export interface Prediction {
   question: string;
@@ -156,6 +160,13 @@ export interface Lesson {
   /** Its place in a chain guided → transfer → autonomy on one notion (see LessonChain). */
   chain?: LessonChain;
   /**
+   * Notions taught earlier that this step makes the learner write again, in
+   * a small part of it (one or two nodes): spaced practice, so nothing is
+   * forgotten. Ids of core/notions; tests/spacing.test.ts checks that the
+   * reference solution really writes them.
+   */
+  recalls?: string[];
+  /**
    * Revision of the starting project and of the checks (1 when absent). Raise
    * it when a change would leave work already started out of step: the
    * learner is then told the lesson changed and can start it again.
@@ -174,7 +185,15 @@ export interface Lesson {
  * only after a first check), autonomy (a brief only, offered a few days
  * later: coming back to it after a while is what makes it stick).
  */
-export type ChainStep = 'guided' | 'transfer' | 'autonomy';
+/**
+ * The rungs of a notion's ladder, from the most help to none: discover
+ * (predict, read and run), guided (step by step), modify (complete or
+ * rework a graph), transfer (another situation, hints after a try),
+ * autonomy (a brief only, a few days later).
+ */
+export type ChainStep = 'discover' | 'guided' | 'modify' | 'transfer' | 'autonomy';
+
+export const LADDER: ChainStep[] = ['discover', 'guided', 'modify', 'transfer', 'autonomy'];
 
 export interface LessonChain {
   /** The notion the chain works on (an id of core/notions). */
@@ -184,8 +203,8 @@ export interface LessonChain {
   after?: { lesson: string; days: number };
 }
 
-/** Transfer and autonomy exercises have a code (T1, A1) and no lesson number. */
-export const isChainExercise = (l: Lesson) => !!l.chain && l.chain.step !== 'guided';
+/** Transfer and autonomy exercises have a code (T1, A1) and no lesson number; so has a synthesis (S1). */
+export const isChainExercise = (l: Lesson) => l.chain?.step === 'transfer' || l.chain?.step === 'autonomy';
 
 /** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */
 export function lessonLabel(l: Lesson): string {
@@ -193,6 +212,7 @@ export function lessonLabel(l: Lesson): string {
   if (l.kind === 'debug') return `Débogue ${l.code ?? ''}`.trim();
   if (l.kind === 'complete') return `Complète ${l.code ?? ''}`.trim();
   if (l.kind === 'refactor') return `Refactor ${l.code ?? ''}`.trim();
+  if (l.kind === 'synthesis') return `Synthèse ${l.code ?? ''}`.trim();
   if (l.chain?.step === 'transfer') return `Transfert ${l.code ?? ''}`.trim();
   if (l.chain?.step === 'autonomy') return `Autonomie ${l.code ?? ''}`.trim();
   return `Leçon ${l.number}`;

@@ -666,3 +666,9 @@ select.field { padding-right: 4px; }
 .ol-type { color: #85b7eb; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .outliner-count { padding: 6px 12px; font-size: 12px; color: var(--muted); margin: 0; }
 .graph-canvas.viewport { background: #1b1d21; }
+
+/* Lot 0 (V7.10): help rule per level, synthesis advice */
+.level-help { flex-basis: 100%; font-weight: 400; }
+.help-rule { margin: 0 0 8px; }
+.synthesis-advice { display: block; width: 100%; text-align: left; margin: 0 0 8px; padding: 8px 12px; border-radius: var(--radius); border: 1px dashed var(--line-2); color: var(--muted); font-size: 13px; }
+.lesson-item.exercise.synthesis { border-left: 3px solid var(--accent); }

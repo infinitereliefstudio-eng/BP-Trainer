@@ -478,7 +478,7 @@ export const refactor3: Lesson = {
       title: 'La réécriture',
       body:
         'Côté **BP_Bouton** :\n\n' +
-        '1. Class Settings › + Implemented Interface › **BPI_Interactif** (elle existe déjà).\n2. My Blueprint › Interfaces › Interagir › **Event** → **Basculer**.\n3. La Zone ne sert plus : tu peux la supprimer.\n\n' +
+        '1. Class Settings › Interfaces › Add › **BPI_Interactif** (elle existe déjà).\n2. My Blueprint › Interfaces › Interagir › **Event** → **Basculer**.\n3. La Zone ne sert plus : tu peux la supprimer.\n\n' +
         'Côté **BP_Joueur** :\n\n' +
         '1. Supprime Get Overlapping Actors, le For Each Loop, le Cast et l’appel.\n2. **E** → **Line Trace By Channel** (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300).\n3. → **Interagir (Message)**, Target = **Out Hit Hit Actor**.\n\n' +
         'Relance Play en visant chaque bouton : un seul bascule à la fois.',

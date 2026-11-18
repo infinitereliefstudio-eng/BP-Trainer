@@ -19,7 +19,7 @@ import {
 } from '@core/operations/inputOps';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
-import { Check, Field, Group, NumberField } from './fields';
+import { AppHelp, Check, Field, Group, NumberField } from './fields';
 
 const KEY_LABEL: Record<KeyName, string> = { E: 'E', F: 'F', SpaceBar: 'Space Bar' };
 const TRIGGERS: { value: InputTriggerKind | ''; label: string }[] = [
@@ -52,12 +52,8 @@ export function InputActionDetails({ id }: { id: string }) {
         <Field label="Value Type">
           <span class="muted">Digital (bool)</span>
         </Field>
-        <p class="muted small">
-          Une Input Action dit ce que le joueur peut faire (interagir, sauter), sans dire avec quelle touche : c’est le rôle d’un Input Mapping Context.
-          Dans un Blueprint, l’événement {a.name} (palette › Input › Enhanced Action Events) se déclenche quand une touche associée est utilisée.
-        </p>
       </Group>
-      <Group title="Utilisation">
+      <Group title="Utilisation" app>
         <p class="muted small">
           {used.nodes} événement(s) dans les Blueprints · {used.mappings} ligne(s) de Mapping Context.
         </p>
@@ -72,6 +68,12 @@ export function InputActionDetails({ id }: { id: string }) {
           Supprimer l’Input Action
         </button>
       </Group>
+      <AppHelp>
+        <p>
+          Une Input Action dit ce que le joueur peut faire (interagir, sauter), sans dire avec quelle touche : c’est le rôle d’un Input Mapping Context.
+          Dans un Blueprint, l’événement {a.name} (palette › Input › Enhanced Action Events) se déclenche quand une touche associée est utilisée.
+        </p>
+      </AppHelp>
     </>
   );
 }
@@ -93,10 +95,6 @@ export function MappingContextDetails({ id }: { id: string }) {
         <Field label="Nom">
           <NameField value={c.name} onCommit={(name) => store.applyProject('Renommer le Mapping Context', (p) => renameMappingContext(p, id, name))} />
         </Field>
-        <p class="muted small">
-          Chaque ligne relie une touche à une Input Action, avec un déclencheur. Le contexte n’agit qu’une fois ajouté pendant le jeu par{' '}
-          <strong>Add Mapping Context</strong>, en général au BeginPlay du joueur.
-        </p>
       </Group>
       <Group title="Mappings">
         {c.mappings.length === 0 && <p class="muted small">Aucune ligne.</p>}
@@ -152,12 +150,8 @@ export function MappingContextDetails({ id }: { id: string }) {
         <button class="btn" onClick={() => warn(store.applyProject('Ajouter une ligne', (p) => addMapping(p, id)))}>
           + Mapping
         </button>
-        <p class="muted small">
-          Déclencheurs : aucun = Down, l’action a lieu à chaque image tant que la touche est enfoncée. Pressed : une fois à l’appui. Released : au relâchement.
-          Hold : après avoir tenu la touche le temps indiqué (Ongoing avant, Canceled si relâchée trop tôt).
-        </p>
       </Group>
-      <Group title="Utilisation">
+      <Group title="Utilisation" app>
         <p class="muted small">{mappingContextUsage(store.project, id)} nœud(s) Add / Remove Mapping Context.</p>
         <button
           class="btn danger"
@@ -170,6 +164,16 @@ export function MappingContextDetails({ id }: { id: string }) {
           Supprimer le Mapping Context
         </button>
       </Group>
+      <AppHelp>
+        <p>
+          Chaque ligne relie une touche à une Input Action, avec un déclencheur. Le contexte n’agit qu’une fois ajouté pendant le jeu par{' '}
+          <strong>Add Mapping Context</strong>, en général au BeginPlay du joueur.
+        </p>
+        <p>
+          Déclencheurs : aucun = Down, l’action a lieu à chaque image tant que la touche est enfoncée. Pressed : une fois à l’appui. Released : au relâchement.
+          Hold : après avoir tenu la touche le temps indiqué (Ongoing avant, Canceled si relâchée trop tôt).
+        </p>
+      </AppHelp>
     </>
   );
 }

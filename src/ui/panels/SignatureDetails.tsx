@@ -28,7 +28,7 @@ import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
 import { TypeSelect } from '../widgets/TypeSelect';
-import { Check, Field, Group, TextCommit } from './fields';
+import { AppHelp, Check, Field, Group, TextCommit } from './fields';
 
 /** Editable list of parameters: name and type, with a delete button. */
 export function ParamList(props: {
@@ -81,25 +81,23 @@ export function FunctionDetails({ id, openOverlay }: { id: string; openOverlay: 
   );
   return (
     <>
-      <Group title="Fonction">
-        <Field label="Nom">
+      <Group title="Graph">
+        <Field label="Function Name">
           <NameField
             value={g.name}
             onCommit={(name) => store.apply('Renommer la fonction', (c) => renameFunction(c, id, name))}
           />
         </Field>
-        <Field label="Pure">
-          <Check checked={fn.pure} onChange={(v) => store.applyProject('Fonction pure', (p) => setFunctionPure(p, cls, id, v))} />
-        </Field>
-        <p class="muted small">
-          Pure : pas de pin d'exécution, recalculée à chaque lecture. À réserver aux calculs qui ne changent rien dans le monde.
-        </p>
         <Field label="Description">
           <TextCommit value={fn.description} onCommit={(t) => store.apply('Description', (c) => setFunctionDescription(c, id, t))} />
+        </Field>
+        <Field label="Pure">
+          <Check checked={fn.pure} onChange={(v) => store.applyProject('Fonction pure', (p) => setFunctionPure(p, cls, id, v))} />
         </Field>
       </Group>
       <Group title="Inputs">{param('inputs')}</Group>
       <Group title="Outputs">{param('outputs')}</Group>
+      <Group title="Fonction" app>
       <div class="row-buttons">
         <button class="btn" onClick={() => store.openGraph(id)}>
           Ouvrir le graphe
@@ -122,6 +120,15 @@ export function FunctionDetails({ id, openOverlay }: { id: string; openOverlay: 
           Supprimer
         </button>
       </div>
+      </Group>
+      <AppHelp>
+        <p>
+          <b>Pure</b> : pas de pin d'exécution, recalculée à chaque lecture. À réserver aux calculs qui ne changent rien dans le monde.
+        </p>
+        <p>
+          <b>Inputs</b> deviennent des pins de sortie du nœud d’entrée et des pins d’entrée du nœud d’appel ; <b>Outputs</b> sont les pins du nœud Return Node.
+        </p>
+      </AppHelp>
     </>
   );
 }
@@ -135,11 +142,13 @@ function InterfaceFunctionDetails({ graphId }: { graphId: string }) {
   const list = (ps: Param[]) => (ps.length ? ps.map((p) => p.name).join(', ') : 'aucune');
   return (
     <>
-      <Group title={g.name}>
-        <p class="muted small">
-          Implémentation de {g.name}, fonction de {iface.name}. Elle s'exécute quand un autre Blueprint envoie le message {g.name} à celui-ci, et
-          renvoie ses sorties au nœud Message. Son nom, ses entrées et ses sorties se règlent dans l'interface.
-        </p>
+      <Group title="Graph">
+        <Field label="Function Name">
+          <span>{g.name}</span>
+        </Field>
+        <Field label="Interface">
+          <span>{iface.name}</span>
+        </Field>
         <Field label="Inputs">
           <span class="muted">{list(g.fn.inputs)}</span>
         </Field>
@@ -155,6 +164,12 @@ function InterfaceFunctionDetails({ graphId }: { graphId: string }) {
           Voir {iface.name}
         </button>
       </div>
+      <AppHelp>
+        <p>
+          Implémentation de {g.name}, fonction de {iface.name}. Elle s'exécute quand un autre Blueprint envoie le message {g.name} à celui-ci, et
+          renvoie ses sorties au nœud Message. Son nom, ses entrées et ses sorties se règlent dans l'interface.
+        </p>
+      </AppHelp>
     </>
   );
 }
@@ -168,17 +183,13 @@ export function DispatcherDetails({ id, openOverlay }: { id: string; openOverlay
   if (!d) return null;
   return (
     <>
-      <Group title="Event Dispatcher">
-        <Field label="Nom">
+      <Group title="Variable">
+        <Field label="Variable Name">
           <NameField
             value={d.name}
             onCommit={(name) => store.apply('Renommer le dispatcher', (c) => renameDispatcher(c, id, name))}
           />
         </Field>
-        <p class="muted small">
-          Un dispatcher est une annonce : ce Blueprint l'appelle (Call), et tous les Blueprints qui s'y sont abonnés (Bind) réagissent aussitôt. Celui
-          qui annonce n'a pas besoin de les connaître.
-        </p>
       </Group>
       <Group title="Inputs">
         <ParamList
@@ -204,8 +215,8 @@ export function DispatcherDetails({ id, openOverlay }: { id: string; openOverlay
             })
           }
         />
-        <p class="muted small">Les Custom Events reliés à ce dispatcher reçoivent ces paramètres.</p>
       </Group>
+      <Group title="Event Dispatcher" app>
       <button
         class="btn danger"
         onClick={() =>
@@ -220,6 +231,16 @@ export function DispatcherDetails({ id, openOverlay }: { id: string; openOverlay
       >
         Supprimer
       </button>
+      </Group>
+      <AppHelp>
+        <p>
+          Un dispatcher est une annonce : ce Blueprint l'appelle (Call), et tous les Blueprints qui s'y sont abonnés (Bind) réagissent aussitôt. Celui
+          qui annonce n'a pas besoin de les connaître.
+        </p>
+        <p>
+          <b>Inputs</b> : les Custom Events reliés à ce dispatcher reçoivent ces paramètres.
+        </p>
+      </AppHelp>
     </>
   );
 }

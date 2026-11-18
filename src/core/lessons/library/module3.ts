@@ -282,7 +282,7 @@ export const lesson11: Lesson = {
       title: 'Implémenter, objet par objet',
       body:
         'Dans BP_Porte, BP_Lampe et BP_Generateur :\n\n' +
-        '1. **Class Settings** (dans Details) › **+ Implemented Interface** › BPI_Interactif.\n2. My Blueprint › Interfaces › Interagir › **Event** : pose **Event Interagir**.\n3. Mets l’action derrière : la porte **Set Relative Rotation** (Yaw 90), la lampe **Toggle Visibility** (Lumiere), le générateur **Set bEnMarche** = NOT bEnMarche.',
+        '1. **Class Settings** (dans Details) › Interfaces › **Add** › BPI_Interactif.\n2. My Blueprint › Interfaces › Interagir › **Event** : pose **Event Interagir**.\n3. Mets l’action derrière : la porte **Set Relative Rotation** (Yaw 90), la lampe **Toggle Visibility** (Lumiere), le générateur **Set bEnMarche** = NOT bEnMarche.',
     },
     {
       title: 'Envoyer le message',

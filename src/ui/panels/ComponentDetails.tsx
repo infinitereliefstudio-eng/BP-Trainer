@@ -4,7 +4,7 @@ import { removeComponent, renameComponent, updateComponentProps } from '@core/op
 import { BUILTIN_ENUMS } from '@core/types/enums';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
-import { Check, Field, Group, NumberField, TextCommit } from './fields';
+import { AppHelp, Check, Field, Group, NumberField, TextCommit } from './fields';
 
 const SHAPES: { value: MeshShape; label: string }[] = [
   { value: 'cube', label: 'Cube' },
@@ -23,20 +23,20 @@ export function ComponentDetails({ id }: { id: string }) {
 
   return (
     <>
-      <Group title="Composant">
-        <Field label="Nom">
+      <Group title="Variable">
+        <Field label="Variable Name">
           <NameField value={c.name} onCommit={(name) => store.apply('Renommer le composant', (cl) => renameComponent(cl, c.id, name))} />
         </Field>
-        <Field label="Type">
+        <Field label="Component Class">
           <span>{COMPONENT_LABEL[c.kind]}</span>
         </Field>
-        <Field label="Parent">
+        <Field label="Attach Parent">
           <span>{parent ? parent.name : '— (racine)'}</span>
         </Field>
       </Group>
 
       {!isRoot && (
-        <Group title="Transform (relatif au parent)">
+        <Group title="Transform">
           <Field label="Location X">
             <NumberField value={p.x} unit="cm" onCommit={(x) => set({ x })} />
           </Field>
@@ -94,7 +94,6 @@ export function ComponentDetails({ id }: { id: string }) {
           <Field label="Light Color">
             <input class="field color" type="color" value={p.color} onChange={(e) => set({ color: (e.target as HTMLInputElement).value })} />
           </Field>
-          <p class="muted small">« Visible » est l’état au lancement du jeu. Ta logique peut le changer avec Set Visibility.</p>
         </Group>
       )}
 
@@ -106,7 +105,6 @@ export function ComponentDetails({ id }: { id: string }) {
           <Field label="Box Extent Y">
             <NumberField value={p.sizeY} unit="cm" onCommit={(sizeY) => set({ sizeY: Math.max(1, sizeY) })} />
           </Field>
-          <p class="muted small">Une zone qui ne bloque rien : elle déclenche les événements Begin / End Overlap.</p>
         </Group>
       )}
 
@@ -121,7 +119,6 @@ export function ComponentDetails({ id }: { id: string }) {
               ))}
             </select>
           </Field>
-          <p class="muted small">Query : overlaps, Line Trace et déplacement du joueur (un mesh qui bloque l’arrête). Physics : objets qui simulent la physique, absents ici. Set Collision Enabled le change en jeu.</p>
         </Group>
       )}
 
@@ -140,7 +137,7 @@ export function ComponentDetails({ id }: { id: string }) {
       )}
 
       {c.parent && (
-        <div class="d-group">
+        <Group title="Composant" app>
           <button
             class="btn danger"
             onClick={() => {
@@ -150,8 +147,22 @@ export function ComponentDetails({ id }: { id: string }) {
           >
             Supprimer le composant
           </button>
-        </div>
+        </Group>
       )}
+      <AppHelp>
+        {!isRoot && <p><b>Transform</b> : relatif au composant parent (Attach Parent), comme la Relative Location d’UE.</p>}
+        {c.kind === 'StaticMesh' && <p><b>Static Mesh</b> : dans UE, la forme est un asset (Cube, Cylinder…) ; ici, une forme simple. « Bloque le joueur » résume la collision Block All.</p>}
+        {(c.kind === 'PointLight' || c.kind === 'StaticMesh' || c.kind === 'TextRender') && (
+          <p><b>Visible</b> est l’état au lancement du jeu. Ta logique peut le changer avec Set Visibility.</p>
+        )}
+        {c.kind === 'BoxCollision' && <p><b>Box Collision</b> : une zone qui ne bloque rien ; elle déclenche les événements Begin / End Overlap.</p>}
+        {(c.kind === 'StaticMesh' || c.kind === 'BoxCollision') && (
+          <p>
+            <b>Collision Enabled</b> : Query sert aux overlaps, aux Line Trace et au déplacement du joueur (un mesh qui bloque l’arrête). Physics concerne les
+            objets qui simulent la physique, absents ici. Set Collision Enabled le change en jeu.
+          </p>
+        )}
+      </AppHelp>
     </>
   );
 }

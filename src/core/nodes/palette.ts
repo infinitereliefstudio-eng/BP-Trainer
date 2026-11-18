@@ -371,3 +371,38 @@ function byCategoryThenTitle(a: PaletteEntry, b: PaletteEntry): number {
     a.title.localeCompare(b.title)
   );
 }
+
+/** A category of « All Actions for this Blueprint », with its sub-categories and actions. */
+export interface CategoryNode {
+  name: string;
+  /** Full path, "Variables|Components": the key of its open state. */
+  path: string;
+  children: CategoryNode[];
+  entries: PaletteEntry[];
+}
+
+/**
+ * The category tree of the entries, each category placed where its first
+ * entry comes: browsing, in UE's order; searching, the best match first.
+ */
+export function buildTree(entries: PaletteEntry[]): CategoryNode[] {
+  const roots: CategoryNode[] = [];
+  const byPath = new Map<string, CategoryNode>();
+  for (const e of entries) {
+    let siblings = roots;
+    let path = '';
+    let node: CategoryNode | undefined;
+    for (const name of e.category.split('|')) {
+      path = path ? `${path}|${name}` : name;
+      node = byPath.get(path);
+      if (!node) {
+        node = { name, path, children: [], entries: [] };
+        byPath.set(path, node);
+        siblings.push(node);
+      }
+      siblings = node.children;
+    }
+    node?.entries.push(e);
+  }
+  return roots;
+}

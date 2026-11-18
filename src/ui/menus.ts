@@ -17,16 +17,19 @@ import type { EditorStore } from '@core/store/editorStore';
 import { createStarterProject } from '@core/templates/starterProject';
 import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
 import { exportProject, pickProjectFile } from '@storage/persistence';
+import { referenceQuery } from '@core/search/find';
 import { RULES_VERSION, rulesChangedSince, rulesNotice } from '@core/model/rules';
 import type { MenuItem, OpenOverlay } from './overlayTypes';
 import { playOrder, setPlayOrder } from './playSettings';
 
-export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => void): MenuItem[] {
+export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => void, openFind?: (query: string) => void): MenuItem[] {
   const ids = store.selection.has(nodeId) ? [...store.selection] : [nodeId];
   const many = ids.length > 1;
   const unique = ids.every((id) => getDefinition(store.graph.nodes[id]?.def ?? '')?.unique);
+  const node = store.graph.nodes[nodeId];
   return [
     { label: 'Détails', action: openDetails, disabled: many },
+    ...(openFind && node && !many ? [{ label: 'Find References', action: () => openFind(referenceQuery(store.project, store.cls, node)) }] : []),
     {
       label: many ? `Dupliquer (${ids.length})` : 'Dupliquer',
       disabled: unique,

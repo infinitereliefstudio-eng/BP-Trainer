@@ -11,7 +11,7 @@ import {
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
-import { Group, Field } from './fields';
+import { AppHelp, Group, Field } from './fields';
 import { ParamList } from './SignatureDetails';
 
 export function InterfaceDetails({ id, openOverlay }: { id: string; openOverlay: OpenOverlay }) {
@@ -25,9 +25,6 @@ export function InterfaceDetails({ id, openOverlay }: { id: string; openOverlay:
         <Field label="Nom">
           <NameField value={iface.name} onCommit={(name) => store.applyProject('Renommer l’interface', (p) => renameInterface(p, id, name))} />
         </Field>
-        <p class="muted small">
-          Une interface est une liste de fonctions sans contenu. Chaque Blueprint qui l'implémente (Class Settings) décide de ce qu'elles font.
-        </p>
         <p class="muted small">Implémentée par : {users.length ? users.join(', ') : 'aucun Blueprint'}.</p>
       </Group>
       {iface.functions.map((f) => (
@@ -36,10 +33,6 @@ export function InterfaceDetails({ id, openOverlay }: { id: string; openOverlay:
       <button class="btn" onClick={() => store.applyProject('Ajouter une fonction', (p) => addInterfaceFunction(p, id))}>
         + Fonction
       </button>
-      <p class="muted small">
-        Sans Output, une fonction d'interface s'implémente comme un événement (Event …). Avec au moins un Output, comme une fonction, que chaque Blueprint
-        qui implémente l'interface retrouve dans My Blueprint › Interfaces.
-      </p>
       <button
         class="btn danger"
         onClick={() =>
@@ -54,6 +47,15 @@ export function InterfaceDetails({ id, openOverlay }: { id: string; openOverlay:
       >
         Supprimer l’interface
       </button>
+      <AppHelp>
+        <p>
+          Une interface est une liste de fonctions sans contenu. Chaque Blueprint qui l'implémente (Class Settings) décide de ce qu'elles font.
+        </p>
+        <p>
+          Sans Output, une fonction d'interface s'implémente comme un événement (Event …). Avec au moins un Output, comme une fonction, que chaque Blueprint
+          qui implémente l'interface retrouve dans My Blueprint › Interfaces.
+        </p>
+      </AppHelp>
     </>
   );
 }

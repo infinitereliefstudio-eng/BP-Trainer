@@ -5,7 +5,7 @@ import { removeClass, renameClass, setParentClass, setPlayerClass, setPlayerCont
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
-import { Field, Group } from './fields';
+import { AppHelp, Field, Group } from './fields';
 
 export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
   const store = useStore();
@@ -25,69 +25,74 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
       title: 'Implemented Interfaces',
       items: available.length
         ? available.map((i) => ({ label: i.name, action: () => store.apply(`Implémenter ${i.name}`, (c) => implementInterface(c, i.id)) }))
-        : [{ label: 'Aucune interface : crée-en une dans le Content Browser.', disabled: true }],
+        : [{ label: 'Aucune interface : crée-en une dans le Content Drawer (+ Add › Blueprint › Blueprint Interface).', disabled: true }],
     });
   };
 
-  if (rootParent(project, cls) === 'SaveGame') {
+  const nodes = cls.graphs.reduce((n, g) => n + Object.keys(g.nodes).length, 0);
+  const remove = () =>
+    openOverlay({
+      kind: 'confirm',
+      title: `Supprimer ${cls.name} ?`,
+      text: 'Le Blueprint et tous ses graphes seront supprimés. Tu peux annuler avec le bouton ↶.',
+      confirmLabel: 'Supprimer',
+      onConfirm: () => {
+        const res = store.applyProject('Supprimer le Blueprint', (p) => removeClass(p, cls.id));
+        if (!res.ok) store.warn(res.reason);
+      },
+    });
+  const setParent = (parent: string) => {
+    const res = store.applyProject('Changer la classe parente', (p) => setParentClass(p, cls.id, parent));
+    if (!res.ok) store.warn(res.reason);
+  };
+  /** Renaming and deleting are done in UE's Content Browser: here, in an amber section. */
+  const blueprint = (
+    <Group title="Blueprint" app>
+      <Field label="Nom du Blueprint">
+        <NameField value={cls.name} onCommit={(name) => store.applyProject('Renommer le Blueprint', (p) => renameClass(p, cls.id, name))} />
+      </Field>
+      <p class="muted small">
+        {cls.components.length} composant(s), {cls.variables.length} variable(s), {nodes} nœud(s).
+      </p>
+      <button class="btn danger" onClick={remove}>
+        Supprimer ce Blueprint
+      </button>
+    </Group>
+  );
+
+  if (root === 'SaveGame') {
     return (
-      <Group title="Class Settings">
-        <Field label="Nom du Blueprint">
-          <NameField value={cls.name} onCommit={(name) => store.applyProject('Renommer le Blueprint', (p) => renameClass(p, cls.id, name))} />
-        </Field>
-        <Field label="Parent Class">
-          <select
-            class="field"
-            value={cls.parentClassId ?? cls.parent}
-            onChange={(e) => {
-              const res = store.applyProject('Changer la classe parente', (p) => setParentClass(p, cls.id, (e.target as HTMLSelectElement).value));
-              if (!res.ok) store.warn(res.reason);
-            }}
-          >
-            <option value="SaveGame">SaveGame</option>
-            {project.classes
-              .filter((c) => c.id !== cls.id && c.parent === 'SaveGame' && !isA(project, c.id, cls.id))
-              .map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-          </select>
-        </Field>
-        <p class="muted small">
-          Un SaveGame n’est pas un acteur : pas de composants, pas de place dans le niveau. Il ne contient que des <strong>variables</strong>, celles qu’on veut
-          retrouver à la partie suivante. Create Save Game Object en fabrique un, Save Game to Slot l’écrit, Load Game from Slot le relit (puis Cast To {cls.name}).
-        </p>
-        <p class="muted small">{cls.variables.length} variable(s).</p>
-        <button
-          class="btn danger"
-          onClick={() => {
-            const res = store.applyProject('Supprimer le Blueprint', (p) => removeClass(p, cls.id));
-            if (!res.ok) store.warn(res.reason);
-          }}
-        >
-          Supprimer ce Blueprint
-        </button>
-      </Group>
+      <>
+        <Group title="Class Options">
+          <Field label="Parent Class">
+            <select class="field" value={cls.parentClassId ?? cls.parent} onChange={(e) => setParent((e.target as HTMLSelectElement).value)}>
+              <option value="SaveGame">SaveGame</option>
+              {project.classes
+                .filter((c) => c.id !== cls.id && c.parent === 'SaveGame' && !isA(project, c.id, cls.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+        </Group>
+        {blueprint}
+        <AppHelp>
+          <p>
+            Un SaveGame n’est pas un acteur : pas de composants, pas de place dans le niveau. Il ne contient que des <strong>variables</strong>, celles qu’on veut
+            retrouver à la partie suivante. Create Save Game Object en fabrique un, Save Game to Slot l’écrit, Load Game from Slot le relit (puis Cast To {cls.name}).
+          </p>
+        </AppHelp>
+      </>
     );
   }
 
   return (
     <>
-      <Group title="Class Settings">
-        <Field label="Nom du Blueprint">
-          <NameField value={cls.name} onCommit={(name) => store.applyProject('Renommer le Blueprint', (p) => renameClass(p, cls.id, name))} />
-        </Field>
+      <Group title="Class Options">
         <Field label="Parent Class">
-          <select
-            class="field"
-            value={cls.parentClassId ?? cls.parent}
-            onChange={(e) => {
-              const parent = (e.target as HTMLSelectElement).value;
-              const res = store.applyProject('Changer la classe parente', (p) => setParentClass(p, cls.id, parent));
-              if (!res.ok) store.warn(res.reason);
-            }}
-          >
+          <select class="field" value={cls.parentClassId ?? cls.parent} onChange={(e) => setParent((e.target as HTMLSelectElement).value)}>
             <option value="Actor">Actor</option>
             <option value="Pawn">Pawn</option>
             <option value="PlayerController">PlayerController</option>
@@ -100,12 +105,9 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
               ))}
           </select>
         </Field>
-        {cls.parentClassId && (
-          <p class="muted small">
-            Ce Blueprint hérite des composants, variables (sauf Private), fonctions et événements de son parent. Un événement ou une fonction du même nom ici
-            remplace celui du parent ; le nœud « Parent: … » appelle quand même sa version.
-          </p>
-        )}
+      </Group>
+
+      <Group title="Input">
         <Field label="Auto Receive Input">
           <select
             class="field"
@@ -120,19 +122,12 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             <option value="p0">Player 0</option>
           </select>
         </Field>
-        <p class="muted small">
-          {root === 'PlayerController'
-            ? 'Un Player Controller reçoit toujours les entrées : il est sur la pile d’entrée, sous les acteurs en Player 0 et au-dessus du pion.'
-            : 'Sans Player 0, les événements de touche (E, F, Espace) de ce Blueprint ne se déclenchent pas. Le joueur, lui, les reçoit toujours.'}
-        </p>
-        <p class="muted small">
-          {cls.components.length} composant(s), {cls.variables.length} variable(s),{' '}
-          {cls.graphs.reduce((n, g) => n + Object.keys(g.nodes).length, 0)} nœud(s).
-        </p>
       </Group>
 
       <Group title="Interfaces">
-        {implemented.length === 0 && <p class="muted small">Aucune interface implémentée.</p>}
+        <Field label="Implemented Interfaces">
+          <span class="muted small">{implemented.length ? `${implemented.length}` : 'aucune'}</span>
+        </Field>
         {implemented.map((i) => (
           <div class="param-row" key={i.id}>
             <span class="mb-label">{i.name}</span>
@@ -153,70 +148,68 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
           </div>
         ))}
         <button class="btn" onClick={addInterface}>
-          + Implemented Interface
+          + Add
         </button>
-        <p class="muted small">Un Blueprint qui implémente une interface peut répondre à ses messages, sans que l'appelant connaisse son type.</p>
       </Group>
 
-      <Group title="Joueur">
+      <Group title="Game Mode" app>
         {root === 'PlayerController' ? (
-          <>
-            <Field label="Player Controller Class">
-              <input
-                type="checkbox"
-                checked={project.playerControllerClassId === cls.id}
-                onChange={(e) => {
-                  const on = (e.target as HTMLInputElement).checked;
-                  const res = store.applyProject('Player Controller du joueur', (p) => setPlayerControllerClass(p, on ? cls.id : undefined));
-                  if (!res.ok) store.warn(res.reason);
-                }}
-              />
-            </Field>
-            <p class="muted small">
-              Coché, le jeu crée ce Blueprint comme Player Controller du joueur quand tu lances Play (Game Mode › Player Controller Class dans UE). Sinon, c’est
-              le PlayerController natif, sans graphe.
-            </p>
-          </>
+          <Field label="Player Controller Class">
+            <input
+              type="checkbox"
+              checked={project.playerControllerClassId === cls.id}
+              onChange={(e) => {
+                const on = (e.target as HTMLInputElement).checked;
+                const res = store.applyProject('Player Controller du joueur', (p) => setPlayerControllerClass(p, on ? cls.id : undefined));
+                if (!res.ok) store.warn(res.reason);
+              }}
+            />
+          </Field>
         ) : (
-          <>
-        <Field label="Default Pawn">
-          <input
-            type="checkbox"
-            checked={isPlayer}
-            disabled={root !== 'Pawn'}
-            onChange={(e) => {
-              const on = (e.target as HTMLInputElement).checked;
-              const res = store.applyProject('Pion du joueur', (p) => setPlayerClass(p, on ? cls.id : undefined));
-              if (!res.ok) store.warn(res.reason);
-            }}
-          />
-        </Field>
-        <p class="muted small">
-          {root === 'Pawn'
-            ? 'Coché, ce Blueprint devient le joueur quand tu lances Play (Game Mode › Default Pawn Class dans UE).'
-            : 'Seul un Blueprint de classe parente Pawn peut être le joueur.'}
-        </p>
-          </>
+          <Field label="Default Pawn">
+            <input
+              type="checkbox"
+              checked={isPlayer}
+              disabled={root !== 'Pawn'}
+              onChange={(e) => {
+                const on = (e.target as HTMLInputElement).checked;
+                const res = store.applyProject('Pion du joueur', (p) => setPlayerClass(p, on ? cls.id : undefined));
+                if (!res.ok) store.warn(res.reason);
+              }}
+            />
+          </Field>
         )}
       </Group>
 
-      <button
-        class="btn danger"
-        onClick={() =>
-          openOverlay({
-            kind: 'confirm',
-            title: `Supprimer ${cls.name} ?`,
-            text: 'Le Blueprint et tous ses graphes seront supprimés. Tu peux annuler avec le bouton ↶.',
-            confirmLabel: 'Supprimer',
-            onConfirm: () => {
-              const res = store.applyProject('Supprimer le Blueprint', (p) => removeClass(p, cls.id));
-              if (!res.ok) store.warn(res.reason);
-            },
-          })
-        }
-      >
-        Supprimer ce Blueprint
-      </button>
+      {blueprint}
+
+      <AppHelp>
+        {cls.parentClassId && (
+          <p>
+            <b>Parent Class</b> : ce Blueprint hérite des composants, variables (sauf Private), fonctions et événements de son parent. Un événement ou une
+            fonction du même nom ici remplace celui du parent ; le nœud « Parent: … » appelle quand même sa version.
+          </p>
+        )}
+        <p>
+          <b>Auto Receive Input</b> :{' '}
+          {root === 'PlayerController'
+            ? 'un Player Controller reçoit toujours les entrées : il est sur la pile d’entrée, sous les acteurs en Player 0 et au-dessus du pion.'
+            : 'sans Player 0, les événements de touche (E, F, Espace) de ce Blueprint ne se déclenchent pas. Le joueur, lui, les reçoit toujours.'}
+        </p>
+        <p>
+          <b>Implemented Interfaces</b> : un Blueprint qui implémente une interface peut répondre à ses messages, sans que l’appelant connaisse son type.
+        </p>
+        <p>
+          <b>Game Mode</b> :{' '}
+          {root === 'PlayerController'
+            ? 'coché, le jeu crée ce Blueprint comme Player Controller du joueur quand tu lances Play. Sinon, c’est le PlayerController natif, sans graphe.'
+            : root === 'Pawn'
+              ? 'coché, ce Blueprint devient le joueur quand tu lances Play.'
+              : 'seul un Blueprint de classe parente Pawn peut être le joueur.'}{' '}
+          Dans UE, ce réglage n’est pas dans Class Settings : il est dans le Game Mode (Default Pawn Class, Player Controller Class), choisi dans World Settings
+          ou Project Settings › Maps & Modes. BP Trainer n’a pas de Game Mode : il le règle ici.
+        </p>
+      </AppHelp>
     </>
   );
 }

@@ -1,6 +1,6 @@
 /**
  * The second row: the toolbar of the editor shown, as in UE. The Blueprint
- * editor has Compile, Save, Class Settings, Class Defaults and Play, then
+ * editor has Compile, Save, Find, Class Settings, Class Defaults and Play, then
  * its graph tabs (Construction Script, Event Graph, the function opened).
  * The level editor has Save, Place Actors and Play.
  */
@@ -51,7 +51,7 @@ function PlayButton({ playing, onPlay, onStop }: Common) {
   );
 }
 
-export function BlueprintToolbar(p: Common & { onClassSettings: () => void; onClassDefaults: () => void }) {
+export function BlueprintToolbar(p: Common & { onClassSettings: () => void; onClassDefaults: () => void; onFind: () => void }) {
   const store = useStore();
   const cls = store.cls;
   const st = COMPILE_ICON[store.compileStatus];
@@ -64,6 +64,9 @@ export function BlueprintToolbar(p: Common & { onClassSettings: () => void; onCl
         <span class="badge">{st.icon}</span> Compile
       </button>
       <SaveButton saveKey={p.saveKey} />
+      <button class="tb" onClick={p.onFind} title="Find in Blueprint (Find Results)">
+        ⌕ Find
+      </button>
       <button class="tb" disabled={p.playing} onClick={p.onClassSettings}>
         Class Settings
       </button>

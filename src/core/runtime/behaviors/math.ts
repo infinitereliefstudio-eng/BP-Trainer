@@ -58,6 +58,7 @@ for (const k of ['Int', 'Float'] as const) {
       const n = (p: string) => (asInt ? toInt(cx.num(p)) : cx.num(p));
       // FMath::Clamp: X < Min ? Min : X < Max ? X : Max (Min wins when Min > Max and X is below it).
       const [x, lo, hi] = [n('value'), n('min'), n('max')];
+      // biome-ignore lint/complexity/useMathMinMax: Math.min/max would make Max win when Min > Max, unlike UE.
       return { result: x < lo ? lo : x < hi ? x : hi };
     },
   };

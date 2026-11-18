@@ -2,7 +2,7 @@
 import { addEnumEntry, enumUsage, moveEnumEntry, removeEnum, removeEnumEntry, renameEnum, setEnumEntry } from '@core/operations/enumOps';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
-import { Field, Group } from './fields';
+import { AppHelp, Field, Group } from './fields';
 
 export function EnumDetails({ id }: { id: string }) {
   const store = useStore();
@@ -15,10 +15,6 @@ export function EnumDetails({ id }: { id: string }) {
         <Field label="Nom">
           <NameField value={e.name} onCommit={(name) => store.applyProject('Renommer l’Enum', (p) => renameEnum(p, id, name))} />
         </Field>
-        <p class="muted small">
-          Un Enum est une liste de valeurs nommées, par exemple les états d'une machine. Une variable de ce type vaut toujours l'une
-          d'elles ; Switch on {e.name} choisit un chemin selon la valeur.
-        </p>
       </Group>
       <Group title="Enumerators">
         {e.entries.map((name, i) => (
@@ -43,9 +39,8 @@ export function EnumDetails({ id }: { id: string }) {
         <button class="btn" onClick={() => store.applyProject('Ajouter une entrée', (p) => addEnumEntry(p, id))}>
           + Enumerator
         </button>
-        <p class="muted small">La valeur stockée est la position (0, 1, 2…) : réordonner change les valeurs déjà réglées.</p>
       </Group>
-      <Group title="Utilisation">
+      <Group title="Utilisation" app>
         <p class="muted small">{used ? `Utilisé à ${used} endroit(s).` : 'Utilisé nulle part.'}</p>
         <button
           class="btn danger"
@@ -58,6 +53,13 @@ export function EnumDetails({ id }: { id: string }) {
           Supprimer l’Enum
         </button>
       </Group>
+      <AppHelp>
+        <p>
+          Un Enum est une liste de valeurs nommées, par exemple les états d'une machine. Une variable de ce type vaut toujours l'une
+          d'elles ; Switch on {e.name} choisit un chemin selon la valeur.
+        </p>
+        <p>La valeur stockée est la position (0, 1, 2…) : réordonner change les valeurs déjà réglées.</p>
+      </AppHelp>
     </>
   );
 }

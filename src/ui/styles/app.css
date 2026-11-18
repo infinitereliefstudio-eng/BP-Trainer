@@ -595,3 +595,59 @@ select.field { padding-right: 4px; }
 .cd-sel-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .add-menu .add-item { padding-left: 28px; }
 .palette-cat.app-only { color: #ffd76a; }
+
+/* -------------------------------------- Details laid out like UE (panels/fields.tsx), V7.8 */
+.d-group { padding: 0 0 8px; }
+.d-group h3 { margin: 0; font-size: 13px; }
+.d-head { width: 100%; min-height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 10px; text-align: left; font-weight: 700; background: #2a2a2a; color: #e8e8e8; border-bottom: 1px solid var(--line); }
+.d-group.folded { padding-bottom: 0; }
+.d-caret { width: 12px; color: var(--muted); font-size: 11px; }
+.d-group > :not(h3) { margin-left: 12px; margin-right: 12px; }
+.d-group > .d-field:first-of-type { margin-top: 4px; }
+.d-field + .d-field { border-top: 1px solid #1a1a1a; }
+.app-tag { margin-left: auto; font-size: 10.5px; font-weight: 600; color: #ffd76a; border: 1px solid #8a6d14; border-radius: 4px; padding: 1px 5px; }
+.d-group.app-group .d-head, .d-group.app-help .d-head { background: #2a2414; color: #ffd76a; }
+.d-group.app-group, .d-group.app-help { border-left: 3px solid #8a6d14; }
+.app-help-body { font-size: 13px; line-height: 1.45; color: #dccfa8; padding-top: 6px; }
+.details .app-help-body p { margin: 0 0 8px; }
+.app-help-body .muted { color: #a99f82; }
+.help-title { font-weight: 700; color: #ffd76a; }
+.app-only-text { color: #dccfa8; }
+.details-search { position: sticky; top: 0; z-index: 1; padding: 6px 8px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.details-search .field { height: 32px; }
+.details.filtering .d-group:not(:has(.d-field)) { display: none; }
+.details.filtering .d-group > :not(h3):not(.d-field) { display: none; }
+.details-actor { display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.details-actor .btn { margin-top: 0; }
+.d-group .row-buttons { padding: 0; }
+
+/* -------------------------------------------- Find Results (panels/FindResults.tsx), V7.8 */
+.find-results { display: flex; flex-direction: column; min-height: 100%; }
+.find-head { display: flex; gap: 8px; padding: 4px 8px 6px; position: sticky; top: -4px; background: var(--panel); z-index: 1; }
+.find-head .search { flex: 1; height: 32px; }
+.find-all { height: 32px; font-size: 12.5px; }
+.find-all.on { background: var(--accent-soft); border-color: var(--accent); }
+.find-tree, .find-tree ul { list-style: none; margin: 0; padding: 0; }
+.find-tree ul ul { padding-left: 14px; }
+.find-class { padding: 4px 12px 0; font-weight: 700; color: #85b7eb; font-size: 13px; }
+.find-graph { padding: 4px 12px 2px 18px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.find-hit { width: 100%; min-height: 36px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; padding: 6px 12px 6px 30px; text-align: left; font-size: 13px; }
+.find-hit:active { background: var(--accent-soft); }
+.fh-title { font-weight: 600; }
+.fh-detail { color: var(--muted); font-size: 12px; }
+
+/* ------------------------------- All Actions for this Blueprint (overlays/Palette.tsx), V7.8 */
+.palette-title-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px 0; }
+.palette-title { flex: 1; font-weight: 700; font-size: 13px; color: #d8d8d8; }
+.palette-title-row .check { min-height: 28px; }
+.palette-title-row .check input { width: 18px; height: 18px; accent-color: var(--accent); }
+.palette-cat-row { width: 100%; min-height: 36px; display: flex; align-items: center; gap: 6px; text-align: left; font-weight: 700; font-size: 13px; color: #e0e0e0; background: #1a1a1a; border-bottom: 1px solid #111; padding-right: 12px; }
+.palette-cat-row:active { background: var(--accent-soft); }
+.pi-title { display: flex; align-items: center; gap: 8px; }
+.pi-icon { flex: none; width: 14px; text-align: center; font-weight: 700; font-style: italic; }
+.pi-icon.event { color: #e04a4a; font-style: normal; font-size: 11px; }
+.pi-icon.fn { color: #5aa0ff; }
+.pi-icon.pure { color: #6fcf6f; }
+.pi-icon.flow { color: #b5b5b5; font-style: normal; }
+.pi-icon.var { font-style: normal; font-size: 12px; }
+.palette .pi-desc { padding-left: 22px; }

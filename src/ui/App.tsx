@@ -83,6 +83,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   const openTabs = tabs.filter((id) => store.project.classes.some((c) => c.id === id));
   const [details, setDetails] = useState(false);
   const [bottom, setBottom] = useState<false | BottomTab>(false);
+  // Find References: the search Find Results opens with (a new one remounts the tab).
+  const [find, setFind] = useState<{ query?: string; n: number }>({ n: 0 });
+  const openFind = (query?: string) => {
+    setFind((f) => ({ query, n: f.n + 1 }));
+    setBottom('find');
+  };
   const [selectionMode, setSelectionMode] = useState(false);
   const [overlay, setOverlay] = useState<Overlay | null>(null);
   const [session, setSession] = useState<PlaySession | null>(null);
@@ -154,7 +160,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   const graphRequests: CanvasRequests = useMemo(
     () => ({
       openPalette: (req) => setOverlay({ kind: 'palette', req }),
-      openNodeMenu: (nodeId, sx, sy) => setOverlay({ kind: 'menu', sx, sy, items: nodeMenu(store, nodeId, openDetails) }),
+      openNodeMenu: (nodeId, sx, sy) => setOverlay({ kind: 'menu', sx, sy, items: nodeMenu(store, nodeId, openDetails, openFind) }),
       openPinMenu: (ref, spec, sx, sy) => setOverlay({ kind: 'menu', sx, sy, title: spec.name || 'Pin', items: pinMenu(store, ref, spec) }),
       openLinkMenu: (linkId, sx, sy) => setOverlay({ kind: 'menu', sx, sy, items: linkMenu(store, linkId) }),
       editValue: (nodeId, spec) => setOverlay({ kind: 'value', nodeId, spec }),
@@ -315,6 +321,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             store.setFocus({ kind: 'classDefaults' });
             openDetails();
           }}
+          onFind={() => openFind()}
         />
       ) : (
         <LevelToolbar
@@ -471,7 +478,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
               ✕
             </button>
           </div>
-          <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} />
+          <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} />
         </aside>
 
         <div class={`bottom-wrap${bottom ? ' open' : ''}${playing ? ' playing' : ''}`}>
@@ -480,14 +487,19 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             ▤ Content Drawer
           </button>
           <button class="bottom-handle" onClick={() => setBottom((v) => (v ? false : 'compiler'))}>
-            {bottom ? '▾' : '▴'} Compiler Results · Output Log · Debug
+            {bottom ? '▾' : '▴'} Compiler Results · Output Log · Debug · Find
             {store.compileStatus === 'error' && <span class="pill error">erreurs</span>}
           </button>
           </div>
           {bottom && (
             <BottomPanel
-              key={bottom}
+              key={`${bottom}:${find.n}`}
               initialTab={bottom}
+              findQuery={find.query}
+              onFindJump={(g, n, c) => {
+                setBottom(false);
+                focusNode(g, n, c);
+              }}
               onFocusNode={focusNode}
               session={session ?? undefined}
               simLog={lastRun?.log}

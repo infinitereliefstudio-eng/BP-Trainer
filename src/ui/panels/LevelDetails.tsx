@@ -5,7 +5,7 @@ import { actorRefValue, removeActor, setActorOverride, updateActor } from '@core
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
-import { Field, Group, NumberField, TextCommit } from './fields';
+import { AppHelp, Field, Group, NumberField, TextCommit } from './fields';
 
 export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (classId: string) => void }) {
   const store = useStore();
@@ -15,14 +15,19 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
   const cls = own && inheritedView(own, store.project);
   const editable = cls?.variables.filter((v) => v.instanceEditable) ?? [];
   const patch = (label: string, fn: () => void) => store.applyProject(label, fn);
+  const categories = [...new Set(editable.map((v) => v.category || 'Default'))];
 
   return (
     <>
-      <Group title={a.name}>
-        <p class="muted small">Instance de {cls?.name ?? '?'} placée dans le niveau.</p>
-        <Field label="Nom">
-          <TextCommit value={a.name} onCommit={(name) => name.trim() && patch('Renommer l’acteur', () => updateActor(store.project, a.id, { name: name.trim() }))} />
-        </Field>
+      <div class="details-actor">
+        <TextCommit value={a.name} onCommit={(name) => name.trim() && patch('Renommer l’acteur', () => updateActor(store.project, a.id, { name: name.trim() }))} />
+        {cls && (
+          <button class="btn" onClick={() => onOpenClass(cls.id)}>
+            Edit Blueprint
+          </button>
+        )}
+      </div>
+      <Group title="Transform">
         <Field label="Location X">
           <NumberField value={a.x} unit="cm" onCommit={(x) => patch('Déplacer l’acteur', () => updateActor(store.project, a.id, { x }))} />
         </Field>
@@ -32,17 +37,10 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
         <Field label="Rotation Yaw">
           <NumberField value={a.yaw} unit="°" onCommit={(yaw) => patch('Tourner l’acteur', () => updateActor(store.project, a.id, { yaw }))} />
         </Field>
-        {cls && (
-          <button class="btn" onClick={() => onOpenClass(cls.id)}>
-            Ouvrir {cls.name}
-          </button>
-        )}
       </Group>
-      <Group title="Variables Instance Editable">
-        {editable.length === 0 ? (
-          <p class="muted small">Aucune. Coche « Instance Editable » sur une variable du Blueprint pour la régler ici, acteur par acteur.</p>
-        ) : (
-          editable.map((v) => {
+      {categories.map((cat) => (
+      <Group key={cat} title={cat}>
+        {editable.filter((v) => (v.category || 'Default') === cat).map((v) => {
             const value = v.id in a.overrides ? a.overrides[v.id] : v.defaultValue;
             const set = (val: Value) => patch('Régler une variable', () => setActorOverride(store.project, a.id, v.id, val));
             if (v.type.category === 'object' && v.type.container !== 'array') {
@@ -73,14 +71,21 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
                 <ValueInput type={v.type} value={value} onChange={set} />
               </Field>
             );
-          })
-        )}
+          })}
       </Group>
-      <div class="d-group">
+      ))}
+      <Group title="Acteur" app>
         <button class="btn danger" onClick={() => patch('Supprimer l’acteur', () => removeActor(store.project, a.id))}>
           Retirer du niveau
         </button>
-      </div>
+      </Group>
+      <AppHelp>
+        <p>Instance de {cls?.name ?? '?'} placée dans le niveau. <b>Edit Blueprint</b> ouvre sa classe : ce qui s’y change vaut pour toutes ses instances.</p>
+        <p>
+          Les variables cochées <b>Instance Editable</b> dans le Blueprint apparaissent ici, sous leur Category, pour être réglées acteur par acteur.
+          {editable.length === 0 && ' Ce Blueprint n’en a aucune.'}
+        </p>
+      </AppHelp>
     </>
   );
 }
@@ -90,8 +95,8 @@ export function PlayerStartDetails() {
   const ps = store.project.level.playerStart;
   const set = (patch: Partial<typeof ps>) => store.applyProject('Régler le Player Start', () => Object.assign(store.project.level.playerStart, patch));
   return (
-    <Group title="Player Start">
-      <p class="muted small">L’endroit où le joueur apparaît quand tu lances Play.</p>
+    <>
+    <Group title="Transform">
       <Field label="Location X">
         <NumberField value={ps.x} unit="cm" onCommit={(x) => set({ x })} />
       </Field>
@@ -102,5 +107,9 @@ export function PlayerStartDetails() {
         <NumberField value={ps.yaw} unit="°" onCommit={(yaw) => set({ yaw })} />
       </Field>
     </Group>
+    <AppHelp>
+      <p>Player Start : l’endroit où le joueur apparaît quand tu lances Play.</p>
+    </AppHelp>
+    </>
   );
 }

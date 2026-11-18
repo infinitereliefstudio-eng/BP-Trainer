@@ -21,7 +21,7 @@ export function NodeDiagnosis({ run, graphId, nodeId, onFocusNode }: Props) {
   useEffect(() => setResult(null), [run, graphId, nodeId]);
   if (!run) {
     return (
-      <Group title="Exécution">
+      <Group title="Exécution" app>
         <p class="muted small">Lance Play : ensuite, ce panneau peut dire si ce nœud s’est exécuté, et sinon pourquoi.</p>
       </Group>
     );
@@ -31,7 +31,7 @@ export function NodeDiagnosis({ run, graphId, nodeId, onFocusNode }: Props) {
     force(0);
   };
   return (
-    <Group title="Exécution">
+    <Group title="Exécution" app>
       <button class="btn" onClick={ask}>
         {result ? 'Mettre à jour' : 'Pourquoi ce nœud ne s’est pas exécuté ?'}
       </button>

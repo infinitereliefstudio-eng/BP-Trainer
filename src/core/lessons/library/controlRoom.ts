@@ -86,7 +86,7 @@ export const lessonControlRoom: Lesson = {
     {
       title: 'La console',
       body:
-        '1. **Class Settings** › + Implemented Interface › BPI_Interactif.\n2. My Blueprint › Interfaces › Interagir › **Event**.\n3. **Event Interagir** → **Switch on E_Mode** (Selection = Get Mode).\n4. Arret → **Set Mode** = Eco ; Eco → Set Mode = Plein ; Plein → Set Mode = Arret.\n5. Les trois Set → **Call OnModeChange**, NouveauMode = Get Mode.\n\n' +
+        '1. **Class Settings** › Interfaces › Add › BPI_Interactif.\n2. My Blueprint › Interfaces › Interagir › **Event**.\n3. **Event Interagir** → **Switch on E_Mode** (Selection = Get Mode).\n4. Arret → **Set Mode** = Eco ; Eco → Set Mode = Plein ; Plein → Set Mode = Arret.\n5. Les trois Set → **Call OnModeChange**, NouveauMode = Get Mode.\n\n' +
         'Un seul Call suffit : les trois chemins y convergent après leur Set.',
     },
     {

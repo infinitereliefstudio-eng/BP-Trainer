@@ -1,7 +1,9 @@
 /** Right drawer: properties of whatever is selected. */
-import type { ConfigField } from '@core/nodes/definition';
+import type { ConfigField, NodeDefinition } from '@core/nodes/definition';
+import { useEffect, useState } from 'preact/hooks';
+import { normalize } from '@core/nodes/palette';
 import type { ComponentChildren } from 'preact';
-import { findVariable, type Project, type Variable } from '@core/model/project';
+import { findVariable, type NodeInstance, type Project, type Variable } from '@core/model/project';
 import { BUILTIN_ENUMS } from '@core/types/enums';
 import { findStruct } from '@core/types/structs';
 import { getDefinition, nodeTitle, pinValue, resolvePins } from '@core/nodes/registry';
@@ -29,7 +31,7 @@ import { DataTableDetails } from './DataTableDetails';
 import { InputActionDetails, MappingContextDetails } from './InputDetails';
 import { ClassDefaults } from './ClassDefaults';
 import { StructDetails } from './StructDetails';
-import { Check, Field, Group, TextCommit } from './fields';
+import { AppHelp, Check, DetailsFilter, Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
 import { ActorDetails, PlayerStartDetails } from './LevelDetails';
 import { NodeDiagnosis } from './NodeDiagnosis';
@@ -43,14 +45,20 @@ interface DetailsProps {
   /** The running play session, or the last one: for "why did this node not run?". */
   run?: Simulation;
   onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
+  /** Find References: open Find Results on this search. */
+  onFind?: (query: string) => void;
 }
 
-export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsProps) {
+export function Details({ openOverlay, onOpenClass, run, onFocusNode, onFind }: DetailsProps) {
   const store = useStore();
   const f = store.focus;
+  const [search, setSearch] = useState('');
+  // A new selection starts with every property shown, as UE clears the search.
+  const focusKey = JSON.stringify(f);
+  useEffect(() => setSearch(''), [focusKey]);
   let body: ComponentChildren;
-  if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} openOverlay={openOverlay} />;
-  else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} />;
+  if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} openOverlay={openOverlay} onFind={onFind} />;
+  else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} onFind={onFind} />;
   else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
@@ -66,24 +74,42 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   else if (f.kind === 'inputAction') body = <InputActionDetails id={f.id} />;
   else if (f.kind === 'mappingContext') body = <MappingContextDetails id={f.id} />;
   else
-    body = (
-      <p class="hint">
-        Sélectionne un nœud, une variable ou un composant pour voir ses propriétés. « Class Settings » affiche celles
-        du Blueprint.
-      </p>
+    return (
+      <div class="panel-scroll details">
+        <p class="hint">Select an object to view details.</p>
+        <p class="hint app-only-text">Sélectionne un nœud, une variable ou un composant pour voir ses propriétés. « Class Settings » affiche celles du Blueprint.</p>
+      </div>
     );
-  return <div class="panel-scroll details">{body}</div>;
+  const q = normalize(search.trim());
+  return (
+    <div class={`panel-scroll details${q ? ' filtering' : ''}`}>
+      <div class="details-search">
+        <input class="field search" type="search" placeholder="Search Details" value={search} onInput={(e) => setSearch((e.target as HTMLInputElement).value)} />
+      </div>
+      <DetailsFilter.Provider value={q}>{body}</DetailsFilter.Provider>
+    </div>
+  );
 }
-
 
 // -------------------------------------------------------------------- nodes
 
-function NodeDetails({ run, onFocusNode, openOverlay }: Pick<DetailsProps, 'run' | 'onFocusNode' | 'openOverlay'>) {
+/** UE's section for a node's own properties. */
+function configSection(def: NodeDefinition): string {
+  if (def.id === 'util.comment') return 'Comment';
+  if (def.id === 'event.inputKey' || def.id.startsWith('input.')) return 'Input';
+  if (def.kind === 'event') return 'Graph';
+  if (def.config?.some((c) => /index|pin|nombre|case/i.test(`${c.key} ${c.label}`))) return 'Pin Options';
+  return 'Default';
+}
+
+type NodeProps = Pick<DetailsProps, 'run' | 'onFocusNode' | 'openOverlay' | 'onFind'>;
+
+function NodeDetails({ run, onFocusNode, openOverlay, onFind }: NodeProps) {
   const store = useStore();
   const ids = [...store.selection];
   if (ids.length > 1) {
     return (
-      <Group title={`${ids.length} nœuds sélectionnés`}>
+      <Group title={`${ids.length} nœuds sélectionnés`} app>
         <button class="btn danger" onClick={() => store.apply('Supprimer des nœuds', (_c, g) => removeNodes(g, ids))}>
           Supprimer la sélection
         </button>
@@ -100,105 +126,30 @@ function NodeDetails({ run, onFocusNode, openOverlay }: Pick<DetailsProps, 'run'
   const inputs = resolvePins(node, ctx).filter(
     (p) => p.dir === 'in' && (hasInlineValue(p) || ((p.type.category === 'vector' || p.type.category === 'rotator') && !p.type.container)),
   );
+  // Selecting a Get or Set shows its variable, as UE does.
+  const ownVariable = (node.def === 'var.get' || node.def === 'var.set') && findVariable(store.cls, String(node.config.variable));
+  const isLocal = node.def === 'var.getLocal' || node.def === 'var.setLocal';
+  const fields = def?.config?.filter((c) => !(node.def === 'util.comment' && c.key === 'color'));
 
   return (
     <>
-      <Group title={nodeTitle(node, ctx)}>
-        <p class="desc">{def?.description}</p>
-        {trap && (
-          <p class="dnote trap-note">
-            <span class="note-tag trap">Piège</span> {trap}
-          </p>
-        )}
-        {inUe && (
-          <p class="dnote in-ue-note">
-            <span class="note-tag in-ue">Dans UE</span> {inUe}
-          </p>
-        )}
-        <p class="muted small">Catégorie : {def?.category.replace(/\|/g, ' › ')}</p>
-        {(node.def === 'var.get' || node.def === 'var.set') && (
-          <button class="btn" onClick={() => store.setFocus({ kind: 'variable', id: String(node.config.variable) })}>
-            Voir la variable
-          </button>
-        )}
-        {(node.def === 'var.getLocal' || node.def === 'var.setLocal') && (
-          <button class="btn" onClick={() => store.setFocus({ kind: 'local', graph: store.graph.id, id: String(node.config.variable) })}>
-            Voir la variable locale
-          </button>
-        )}
-      </Group>
-      {node.def === TIMELINE_NODE && <TimelineSummary nodeId={node.id} openOverlay={openOverlay} />}
-      {node.def !== 'util.comment' && node.def !== 'util.reroute' && (
-        <NodeDiagnosis run={run} graphId={store.graph.id} nodeId={node.id} onFocusNode={onFocusNode} />
-      )}
-      {def?.config && (
-        <Group title="Réglages">
-          {def.config.map((c) => (
-            <Field key={c.key} label={c.label}>
-              {c.kind === 'bool' ? (
-                <Check
-                  checked={node.config[c.key] !== false}
-                  onChange={(v) => store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, v, ctx))}
-                />
-              ) : c.kind === 'choice' ? (
-                <select
-                  class="field"
-                  value={String(node.config[c.key] ?? '')}
-                  onChange={(e) =>
-                    store.apply('Modifier un réglage', (_c, g) =>
-                      setNodeConfig(g, node.id, c.key, (e.target as HTMLSelectElement).value, ctx),
-                    )
-                  }
-                >
-                  {(c.choicesFrom ? projectChoices(c.choicesFrom, store.project) : (c.choices ?? [])).map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <ValueInput
-                  type={{ category: c.kind === 'int' ? 'int' : 'string' }}
-                  value={node.config[c.key] ?? ''}
-                  onChange={(v) => {
-                    let value = v;
-                    if (c.kind === 'int') value = Math.max(c.min ?? -1e9, Math.min(c.max ?? 1e9, Number(v)));
-                    if (c.kind === 'string' && !String(v).trim()) return;
-                    if (node.def === 'event.custom' && c.key === 'name') {
-                      const res = store.applyProject('Renommer l’événement', (p) => renameCustomEvent(p, store.cls.id, node.id, String(value)));
-                      if (!res.ok) store.warn(res.reason);
-                      return;
-                    }
-                    store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, value, ctx));
-                  }}
-                />
-              )}
+      {ownVariable && <VariableSections v={ownVariable} />}
+      {isLocal && <LocalDetails graphId={store.graph.id} id={String(node.config.variable)} openOverlay={openOverlay} />}
+      {def && fields && fields.length > 0 && (
+        <Group title={configSection(def)}>
+          {fields.map((c) => (
+            <Field key={c.key} label={c.key === 'text' && node.def === 'util.comment' ? 'Comment' : c.label}>
+              <ConfigInput node={node} field={c} />
             </Field>
           ))}
-          {def.config
-            .filter((c) => c.help)
-            .map((c) => (
-              <p key={c.key} class="hint">
-                <b>{c.label}</b> : {c.help}
-              </p>
-            ))}
+          {node.def === 'util.comment' && <CommentColor nodeId={node.id} />}
         </Group>
       )}
+      {node.def === TIMELINE_NODE && <TimelineSummary nodeId={node.id} openOverlay={openOverlay} />}
       {node.def === 'struct.setMembers' && <SetMembersFields nodeId={node.id} />}
-      {node.def === 'util.comment' && (
-        <Group title="Apparence">
-          <Field label="Comment Color">
-            <input
-              class="field color"
-              type="color"
-              value={String(node.config.color ?? '#ffffff')}
-              onChange={(e) => store.apply('Couleur du commentaire', (_c, g) => setNodeConfig(g, node.id, 'color', (e.target as HTMLInputElement).value, ctx))}
-            />
-          </Field>
-        </Group>
-      )}
+
       {inputs.length > 0 && (
-        <Group title="Valeurs par défaut des entrées">
+        <Group title="Pin Values" app>
           {inputs.map((p) =>
             linked.has(`${node.id}:${p.id}`) ? (
               <Field key={p.id} label={p.name}>
@@ -216,18 +167,127 @@ function NodeDetails({ run, onFocusNode, openOverlay }: Pick<DetailsProps, 'run'
           )}
         </Group>
       )}
+      {node.def !== 'util.comment' && node.def !== 'util.reroute' && (
+        <NodeDiagnosis run={run} graphId={store.graph.id} nodeId={node.id} onFocusNode={onFocusNode} />
+      )}
+      {ownVariable && <VariableUsage v={ownVariable} openOverlay={openOverlay} onFind={onFind} />}
+
+      <AppHelp>
+        <p class="help-title">{nodeTitle(node, ctx)}</p>
+        <p class="desc">{def?.description}</p>
+        {trap && (
+          <p class="dnote trap-note">
+            <span class="note-tag trap">Piège</span> {trap}
+          </p>
+        )}
+        {inUe && (
+          <p class="dnote in-ue-note">
+            <span class="note-tag in-ue">Dans UE</span> {inUe}
+          </p>
+        )}
+        {fields
+          ?.filter((c) => c.help)
+          .map((c) => (
+            <p key={c.key}>
+              <b>{c.label}</b> : {c.help}
+            </p>
+          ))}
+        {inputs.length > 0 && <p>Pin Values : dans UE, ces valeurs se tapent directement sur les pins du nœud. Ici, c’est plus confortable au doigt.</p>}
+        {ownVariable && <VariableHelp />}
+        <p class="muted small">Catégorie : {def?.category.replace(/\|/g, ' › ')}</p>
+        {isLocal && (
+          <button class="btn" onClick={() => store.setFocus({ kind: 'local', graph: store.graph.id, id: String(node.config.variable) })}>
+            Voir la variable locale
+          </button>
+        )}
+      </AppHelp>
     </>
+  );
+}
+
+/** One setting of a node, edited with the widget its kind needs. */
+function ConfigInput({ node, field: c }: { node: NodeInstance; field: ConfigField }) {
+  const store = useStore();
+  const ctx = store.ctx;
+  if (c.kind === 'bool') {
+    return (
+      <Check
+        checked={node.config[c.key] !== false}
+        onChange={(v) => store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, v, ctx))}
+      />
+    );
+  }
+  if (c.kind === 'choice') {
+    return (
+      <select
+        class="field"
+        value={String(node.config[c.key] ?? '')}
+        onChange={(e) => store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, (e.target as HTMLSelectElement).value, ctx))}
+      >
+        {(c.choicesFrom ? projectChoices(c.choicesFrom, store.project) : (c.choices ?? [])).map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    );
+  }
+  return (
+    <ValueInput
+      type={{ category: c.kind === 'int' ? 'int' : 'string' }}
+      value={node.config[c.key] ?? ''}
+      onChange={(v) => {
+        let value = v;
+        if (c.kind === 'int') value = Math.max(c.min ?? -1e9, Math.min(c.max ?? 1e9, Number(v)));
+        if (c.kind === 'string' && !String(v).trim()) return;
+        if (node.def === 'event.custom' && c.key === 'name') {
+          const res = store.applyProject('Renommer l’événement', (p) => renameCustomEvent(p, store.cls.id, node.id, String(value)));
+          if (!res.ok) store.warn(res.reason);
+          return;
+        }
+        store.apply('Modifier un réglage', (_c, g) => setNodeConfig(g, node.id, c.key, value, ctx));
+      }}
+    />
+  );
+}
+
+function CommentColor({ nodeId }: { nodeId: string }) {
+  const store = useStore();
+  const node = store.graph.nodes[nodeId];
+  if (!node) return null;
+  return (
+    <Field label="Comment Color">
+      <input
+        class="field color"
+        type="color"
+        value={String(node.config.color ?? '#ffffff')}
+        onChange={(e) => store.apply('Couleur du commentaire', (_c, g) => setNodeConfig(g, node.id, 'color', (e.target as HTMLInputElement).value, store.ctx))}
+      />
+    </Field>
   );
 }
 
 // ---------------------------------------------------------------- variables
 
-function VariableDetails({ id, openOverlay }: { id: string; openOverlay: OpenOverlay }) {
+function VariableDetails({ id, openOverlay, onFind }: { id: string; openOverlay: OpenOverlay; onFind?: (query: string) => void }) {
   const store = useStore();
   const v = findVariable(store.cls, id);
   if (!v) return null;
-  const usage = variableUsage(store.cls, v.id);
+  return (
+    <>
+      <VariableSections v={v} />
+      <VariableUsage v={v} openOverlay={openOverlay} onFind={onFind} />
+      <AppHelp>
+        <VariableHelp />
+      </AppHelp>
+    </>
+  );
+}
 
+/** UE's sections of a variable: Variable, then Default Value. */
+function VariableSections({ v }: { v: Variable }) {
+  const store = useStore();
+  const set = (patch: Partial<Variable>) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, patch));
   return (
     <>
       <Group title="Variable">
@@ -237,51 +297,63 @@ function VariableDetails({ id, openOverlay }: { id: string; openOverlay: OpenOve
         <Field label="Variable Type">
           <TypeSelect type={v.type} onChange={(t) => store.apply('Changer le type', (c) => setVariableType(c, v.id, t))} />
         </Field>
+        <Field label="Description">
+          <TextCommit value={v.tooltip} onCommit={(t) => set({ tooltip: t })} />
+        </Field>
         <Field label="Instance Editable">
-          <input
-            type="checkbox"
-            checked={v.instanceEditable}
-            onChange={(e) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { instanceEditable: (e.target as HTMLInputElement).checked }))}
-          />
+          <Check checked={v.instanceEditable} onChange={(on) => set({ instanceEditable: on })} />
         </Field>
         <Field label="Expose on Spawn">
-          <input
-            type="checkbox"
-            checked={!!v.exposeOnSpawn}
-            onChange={(e) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { exposeOnSpawn: (e.target as HTMLInputElement).checked }))}
-          />
+          <Check checked={!!v.exposeOnSpawn} onChange={(on) => set({ exposeOnSpawn: on })} />
         </Field>
         <Field label="Private">
-          <input
-            type="checkbox"
-            checked={!!v.private}
-            onChange={(e) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { private: (e.target as HTMLInputElement).checked }))}
-          />
-        </Field>
-        <p class="muted small">
-          Instance Editable règle la valeur acteur par acteur dans le niveau ; Private empêche les autres Blueprints de la lire ou de la modifier. Les deux sont
-          indépendants : sans Private, tout Blueprint qui a une référence vers celui-ci peut faire un Set dessus. Expose on Spawn en fait une pin de Spawn Actor,
-          donnée avant le BeginPlay.
-        </p>
-        <Field label="Tooltip">
-          <TextCommit value={v.tooltip} onCommit={(t) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { tooltip: t }))} />
+          <Check checked={!!v.private} onChange={(on) => set({ private: on })} />
         </Field>
         <Field label="Category">
-          <TextCommit value={v.category} onCommit={(t) => store.apply('Modifier la variable', (c) => updateVariable(c, v.id, { category: t || 'Default' }))} />
+          <TextCommit value={v.category} onCommit={(t) => set({ category: t || 'Default' })} />
         </Field>
       </Group>
       <Group title="Default Value">
         <Field label={v.name}>
-          <ValueInput type={v.type} value={v.defaultValue} onChange={(val) => store.apply('Valeur par défaut', (c) => updateVariable(c, v.id, { defaultValue: val }))} />
+          <ValueInput type={v.type} value={v.defaultValue} onChange={(val) => set({ defaultValue: val })} />
         </Field>
-        <p class="muted small">Valeur au lancement du jeu, avant que ta logique ne la change.</p>
       </Group>
-      <Group title="Utilisation">
-        <p class="muted small">{usage === 0 ? 'Aucun nœud ne l’utilise.' : `${usage} nœud(s) Get/Set l’utilisent.`}</p>
+    </>
+  );
+}
+
+/** Where the variable is used, Find References and deleting it: from UE's right-click menu, gathered here. */
+function VariableUsage({ v, openOverlay, onFind }: { v: Variable; openOverlay: OpenOverlay; onFind?: (query: string) => void }) {
+  const store = useStore();
+  const usage = variableUsage(store.cls, v.id);
+  return (
+    <Group title="Utilisation" app>
+      <p class="muted small">{usage === 0 ? 'Aucun nœud ne l’utilise.' : `${usage} nœud(s) Get/Set l’utilisent.`}</p>
+      <div class="row-buttons">
+        {onFind && (
+          <button class="btn" onClick={() => onFind(v.name)}>
+            Find References
+          </button>
+        )}
         <button class="btn danger" onClick={() => confirmDeleteVariable(v, usage, openOverlay, () => store.apply('Supprimer la variable', (c) => removeVariable(c, v.id)))}>
           Supprimer la variable
         </button>
-      </Group>
+      </div>
+    </Group>
+  );
+}
+
+function VariableHelp() {
+  return (
+    <>
+      <p>
+        <b>Instance Editable</b> règle la valeur acteur par acteur dans le niveau ; <b>Private</b> empêche les autres Blueprints de la lire ou de la modifier. Les
+        deux sont indépendants : sans Private, tout Blueprint qui a une référence vers celui-ci peut faire un Set dessus. <b>Expose on Spawn</b> en fait une pin
+        de Spawn Actor, donnée avant le BeginPlay.
+      </p>
+      <p>
+        <b>Default Value</b> : la valeur au lancement du jeu, avant que ta logique ne la change. <b>Description</b> s’affiche en info-bulle dans UE.
+      </p>
     </>
   );
 }
@@ -296,7 +368,6 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
     onConfirm: run,
   });
 }
-
 
 /** Choices of a node setting that come from the project (Enums, Blueprints). */
 function projectChoices(from: NonNullable<ConfigField['choicesFrom']>, p: Project): { value: string; label: string }[] {
@@ -322,13 +393,13 @@ function SetMembersFields({ nodeId }: { nodeId: string }) {
     store.apply('Membres à changer', (_c, g) => setNodeConfig(g, nodeId, 'fields', next.join(','), store.ctx));
   };
   return (
-    <Group title="Membres à changer">
+    <Group title="Pin Options">
       {s.members.map((m) => (
         <Field key={m.id} label={m.name}>
           <input type="checkbox" checked={shown.includes(m.id)} onChange={(e) => toggle(m.id, (e.target as HTMLInputElement).checked)} />
         </Field>
       ))}
-      <p class="muted small">Seuls les membres cochés ont une pin et changent ; les autres gardent leur valeur.</p>
+      <p class="muted small app-only-text">Seuls les membres cochés ont une pin et changent ; les autres gardent leur valeur.</p>
     </Group>
   );
 }
@@ -353,7 +424,7 @@ function TimelineSummary({ nodeId, openOverlay }: { nodeId: string; openOverlay:
       <button class="btn primary" onClick={() => openOverlay({ kind: 'timeline', nodeId })}>
         Éditer la piste
       </button>
-      <p class="hint">Double toucher le nœud ouvre aussi l’éditeur, comme le double-clic dans UE.</p>
+      <p class="hint app-only-text">Double toucher le nœud ouvre aussi l’éditeur, comme le double-clic dans UE.</p>
     </Group>
   );
 }

@@ -18,7 +18,7 @@ import { T } from '@core/types/pins';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { ValueInput } from '../widgets/ValueInput';
-import { Field, Group } from './fields';
+import { AppHelp, Field, Group } from './fields';
 
 export function DataTableDetails({ id }: { id: string }) {
   const store = useStore();
@@ -51,10 +51,6 @@ export function DataTableDetails({ id }: { id: string }) {
             ))}
           </select>
         </Field>
-        <p class="muted small">
-          Chaque ligne a un <strong>Row Name</strong> (un Name, unique dans la table) et une valeur de {t.struct}. Get Data Table Row la retrouve par son Row Name, en
-          ignorant la casse.
-        </p>
       </Group>
       {t.rows.map((row, i) => (
         <Group key={`${i}:${row.name}`} title={row.name}>
@@ -87,7 +83,7 @@ export function DataTableDetails({ id }: { id: string }) {
           + Ligne
         </button>
       </div>
-      <Group title="Utilisation">
+      <Group title="Utilisation" app>
         <p class="muted small">{used ? `Lue par ${used} nœud(s).` : 'Lue par aucun nœud.'}</p>
         <button
           class="btn danger"
@@ -100,6 +96,12 @@ export function DataTableDetails({ id }: { id: string }) {
           Supprimer la Data Table
         </button>
       </Group>
+      <AppHelp>
+        <p>
+          Chaque ligne a un <strong>Row Name</strong> (un Name, unique dans la table) et une valeur de {t.struct}. Get Data Table Row la retrouve par son Row Name, en
+          ignorant la casse.
+        </p>
+      </AppHelp>
     </>
   );
 }

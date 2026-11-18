@@ -323,7 +323,7 @@ export const debug2: Lesson = {
   objectives: ['Le générateur démarre quand on appuie sur E à côté de lui.', 'La lampe et la porte fonctionnent toujours.'],
   hints: [
     'Un Custom Event qui s’appelle « Interagir » n’est pas l’événement de l’interface : il ne reçoit pas le message.',
-    'Dans BP_Generateur : Class Settings › + Implemented Interface › BPI_Interactif. Puis My Blueprint › Interfaces › Event.',
+    'Dans BP_Generateur : Class Settings › Interfaces › Add › BPI_Interactif. Puis My Blueprint › Interfaces › Event.',
     'Solution : implémente BPI_Interactif dans BP_Generateur, pose Event Interagir et relie-le au Set bEnMarche à la place du Custom Event.',
   ],
   setup() {

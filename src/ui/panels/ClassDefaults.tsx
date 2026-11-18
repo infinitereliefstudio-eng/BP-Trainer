@@ -6,7 +6,7 @@
 import { updateVariable } from '@core/operations/classOps';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
-import { Field, Group } from './fields';
+import { AppHelp, Field, Group } from './fields';
 
 export function ClassDefaults() {
   const store = useStore();
@@ -16,12 +16,6 @@ export function ClassDefaults() {
   const categories = [...new Set(cls.variables.map((v) => v.category || 'Default'))];
   return (
     <>
-      <Group title={`Class Defaults · ${cls.name}`}>
-        <p class="muted small">
-          La valeur de départ de chaque variable, pour toutes les instances de ce Blueprint. Une variable Instance Editable peut ensuite être changée acteur par
-          acteur dans le niveau.
-        </p>
-      </Group>
       {cls.variables.length === 0 && inherited.length === 0 && <p class="hint">Ce Blueprint n’a pas de variable.</p>}
       {categories.map((cat) => (
         <Group key={cat} title={cat}>
@@ -35,7 +29,7 @@ export function ClassDefaults() {
         </Group>
       ))}
       {inherited.length > 0 && (
-        <Group title="Hérité">
+        <Group title="Hérité" app>
           {inherited.map((v) => (
             <Field key={v.id} label={v.name}>
               <span class="muted small">{String(typeof v.defaultValue === 'object' ? JSON.stringify(v.defaultValue) : v.defaultValue)} · réglé dans le parent</span>
@@ -43,6 +37,13 @@ export function ClassDefaults() {
           ))}
         </Group>
       )}
+      <AppHelp>
+        <p>
+          <b>Class Defaults</b> de {cls.name} : la valeur de départ de chaque variable, pour toutes les instances de ce Blueprint, rangées par Category. Une
+          variable Instance Editable peut ensuite être changée acteur par acteur dans le niveau.
+        </p>
+        {inherited.length > 0 && <p>Dans UE, les variables héritées sont mêlées aux autres sous leur Category ; ici, elles sont à part et se règlent dans le parent.</p>}
+      </AppHelp>
     </>
   );
 }

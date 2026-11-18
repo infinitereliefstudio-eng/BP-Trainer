@@ -4,7 +4,7 @@ import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { TypeSelect } from '../widgets/TypeSelect';
 import { ValueInput } from '../widgets/ValueInput';
-import { Field, Group } from './fields';
+import { AppHelp, Field, Group } from './fields';
 
 export function StructDetails({ id }: { id: string }) {
   const store = useStore();
@@ -20,10 +20,6 @@ export function StructDetails({ id }: { id: string }) {
         <Field label="Nom">
           <NameField value={s.name} onCommit={(name) => store.applyProject('Renommer la structure', (p) => renameStruct(p, id, name))} />
         </Field>
-        <p class="muted small">
-          Une structure regroupe plusieurs valeurs sous un seul type, comme la fiche d'un objet. Une variable {s.name} contient tous ses membres ;
-          Make, Break et Set Members in {s.name} la construisent, la lisent et la modifient.
-        </p>
       </Group>
       {s.members.map((m) => (
         <Group key={m.id} title={m.name}>
@@ -48,7 +44,7 @@ export function StructDetails({ id }: { id: string }) {
           + Membre
         </button>
       </div>
-      <Group title="Utilisation">
+      <Group title="Utilisation" app>
         <p class="muted small">{used ? `Utilisée à ${used} endroit(s).` : 'Utilisée nulle part.'}</p>
         <button
           class="btn danger"
@@ -61,6 +57,12 @@ export function StructDetails({ id }: { id: string }) {
           Supprimer la structure
         </button>
       </Group>
+      <AppHelp>
+        <p>
+          Une structure regroupe plusieurs valeurs sous un seul type, comme la fiche d'un objet. Une variable {s.name} contient tous ses membres ;
+          Make, Break et Set Members in {s.name} la construisent, la lisent et la modifient.
+        </p>
+      </AppHelp>
     </>
   );
 }

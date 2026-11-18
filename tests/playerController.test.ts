@@ -257,3 +257,36 @@ describe('lesson « Les contrôles au Player Controller »', () => {
     expect(runLesson(lessonInputController, done).results.find((r) => r.check.id === 'pawn-clean')?.ok).toBe(false);
   });
 });
+
+describe('Get Player Controller (V7.8)', () => {
+  it('Player Index 0 is the player’s controller; any other index gives None, as in UE with one player', () => {
+    const { p } = base();
+    const b = edit(p, 'BP_Joueur');
+    const begin = b.node('event.beginPlay');
+    const first = b.node('flow.isValid');
+    const second = b.node('flow.isValid');
+    const pc0 = b.node('player.getController', {}, { index: 0 });
+    const pc1 = b.node('player.getController', {}, { index: 1 });
+    const ok0 = b.node('debug.printString', {}, { text: 'index 0 valide' });
+    const none1 = b.node('debug.printString', {}, { text: 'index 1 None' });
+    b.link(begin, 'then', first, 'exec').link(pc0, 'result', first, 'object').link(first, 'valid', ok0, 'exec');
+    b.link(ok0, 'then', second, 'exec').link(pc1, 'result', second, 'object').link(second, 'notValid', none1, 'exec');
+    const sim = new Simulation(p);
+    sim.start();
+    sim.step();
+    expect(prints(sim)).toEqual(['index 0 valide', 'index 1 None']);
+  });
+
+  it('Get Player Pawn too: index 1 is None', () => {
+    const { p } = base();
+    const b = edit(p, 'BP_Joueur');
+    const valid = b.node('flow.isValid');
+    const pawn1 = b.node('actor.getPlayerPawn', {}, { index: 1 });
+    const none = b.node('debug.printString', {}, { text: 'pion 1 None' });
+    b.link(b.node('event.beginPlay'), 'then', valid, 'exec').link(pawn1, 'result', valid, 'object').link(valid, 'notValid', none, 'exec');
+    const sim = new Simulation(p);
+    sim.start();
+    sim.step();
+    expect(prints(sim)).toEqual(['pion 1 None']);
+  });
+});

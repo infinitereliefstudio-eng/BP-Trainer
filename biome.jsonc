@@ -7,7 +7,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         // `x!` after a lookup the code has just guaranteed; TypeScript strict covers the rest.
         "noNonNullAssertion": "off"

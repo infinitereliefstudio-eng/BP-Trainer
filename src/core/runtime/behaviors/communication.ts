@@ -30,7 +30,8 @@ export const communicationBehaviors: Record<string, Behavior> = {
   },
 
   'actor.getPlayerPawn': {
-    pure: () => ({ result: { ref: 'actor', id: 'player' } }),
+    // One local player: any Player Index but 0 gives None, as in UE.
+    pure: (cx) => ({ result: Math.trunc(cx.num('index')) === 0 ? { ref: 'actor', id: 'player' } : null }),
   },
 
   'flow.isValid': {

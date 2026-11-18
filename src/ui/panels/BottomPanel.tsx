@@ -1,4 +1,4 @@
-/** Bottom panel: Compiler Results, Output Log and Debug, like UE's tabs. */
+/** Bottom panel: Compiler Results, Output Log, Debug and Find Results, like UE's tabs. */
 import { useEffect, useReducer, useState } from 'preact/hooks';
 import { explainCompile } from '@core/explain/compile';
 import type { SimLogEntry } from '@core/runtime/simulation';
@@ -6,8 +6,9 @@ import type { PlaySession } from '@editor/world/playSession';
 import { useStore } from '../hooks';
 import { Why } from '../widgets/Why';
 import { DebugPanel } from './DebugPanel';
+import { FindResults } from './FindResults';
 
-export type BottomTab = 'compiler' | 'log' | 'debug';
+export type BottomTab = 'compiler' | 'log' | 'debug' | 'find';
 
 interface Props {
   onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
@@ -15,11 +16,15 @@ interface Props {
   session?: PlaySession;
   simLog?: SimLogEntry[];
   initialTab?: BottomTab;
+  /** Find References: the search to run when Find Results opens. */
+  findQuery?: string;
+  /** A Find result touched: the node is shown with the panel closed, the phone screen being too small for both. */
+  onFindJump?: (graphId: string, nodeId: string, classId?: string) => void;
 }
 
 const ICON = { error: '✕', warning: '!', info: 'i' } as const;
 
-export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compiler' }: Props) {
+export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compiler', findQuery, onFindJump }: Props) {
   const store = useStore();
   const [tab, setTab] = useState<BottomTab>(initialTab);
   const [, force] = useReducer((n: number) => n + 1, 0);
@@ -37,9 +42,14 @@ export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compil
         <button class={tab === 'debug' ? 'active' : ''} onClick={() => setTab('debug')}>
           Debug
         </button>
+        <button class={tab === 'find' ? 'active' : ''} onClick={() => setTab('find')}>
+          Find Results
+        </button>
       </div>
       <div class="bottom-body">
-        {tab === 'debug' ? (
+        {tab === 'find' ? (
+          <FindResults onFocusNode={onFindJump ?? onFocusNode} initialQuery={findQuery} />
+        ) : tab === 'debug' ? (
           <DebugPanel session={session} onFocusNode={onFocusNode} />
         ) : tab === 'compiler' ? (
           store.compileMessages.length === 0 ? (

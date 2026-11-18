@@ -102,8 +102,8 @@ describe('the Cast To chain', () => {
     expect(isChainExercise(transferBadge)).toBe(true);
     expect(lessonLabel(transferBadge)).toBe('Transfert T1');
     expect(lessonLabel(autonomyTrap)).toBe('Autonomie A1');
-    expect(lessonLabel(getLesson('l07-verrou')!)).toBe('Leçon 11');
-    expect(lessonLabel(getLesson('l08-refermer')!)).toBe('Leçon 12');
+    expect(lessonLabel(getLesson('l07-verrou')!)).toBe('Leçon 13');
+    expect(lessonLabel(getLesson('l08-refermer')!)).toBe('Leçon 14');
     const order = LESSONS.map((l) => l.id);
     expect(order.indexOf('t1-badge')).toBe(order.indexOf('l07-verrou') + 1);
     expect(order.indexOf('a1-piege')).toBeGreaterThan(order.indexOf('t1-badge'));

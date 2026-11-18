@@ -152,7 +152,8 @@ export const lesson6: Lesson = {
   number: 6,
   title: 'Ramasser un objet',
   situation: 'La clé disparaît quand le joueur la touche, et le joueur la possède. La caisse posée à côté, elle, ne doit pas la ramasser.',
-  notions: ['Cast To', 'Variable d’un autre Blueprint', 'Destroy Actor'],
+  recalls: ['destroy'],
+  notions: ['Cast To', 'Variable d’un autre Blueprint'],
   remember: 'Other Actor est un simple Actor : Cast To vérifie que c’est bien le joueur et donne accès à ses variables. Un Cast raté part par Cast Failed, sans erreur.',
   cards: [
     {
@@ -164,7 +165,7 @@ export const lesson6: Lesson = {
     {
       title: 'Qui me touche ?',
       body:
-        '**Event ActorBeginOverlap** donne **Other Actor** : l’acteur qui vient d’entrer. Son type est simplement **Actor**, le plus général : ce peut être le joueur, la caisse, un projectile… Le moteur ne fait pas le tri.\n\n' +
+        'C’est ce que montrait le détecteur de « Qui est entré ? » : **Other Actor** est de type **Actor**, le plus général. Ce peut être le joueur, la caisse, un projectile… Le moteur ne fait pas le tri.\n\n' +
         'Si la clé réagit à n’importe quel overlap, la caisse la « ramasse » au lancement. La clé doit d’abord vérifier **qui** la touche.',
     },
     {
@@ -173,7 +174,7 @@ export const lesson6: Lesson = {
         '**Cast To BP_Joueur** pose la question « cet objet est-il un BP_Joueur ? » :\n\n' +
         '- **Object** : l’objet à tester (Other Actor) ;\n- sortie blanche du haut : oui, c’est un BP_Joueur ;\n- **Cast Failed** : non. Pas d’erreur, juste l’autre chemin ;\n- **As BP_Joueur** : la même référence, mais **typée** BP_Joueur. C’est elle qui donne accès aux variables du joueur.\n\n' +
         'Tire un fil depuis As BP_Joueur et cherche « bHasKey » : la palette propose **Set bHasKey** avec Target déjà relié.\n\n' +
-        '**Destroy Actor** retire un acteur du niveau. Sa Target vaut **self** quand elle n’est pas reliée : la clé se détruit elle-même.',
+        'Puis **Destroy Actor**, comme pour les pièces : Target non reliée, la clé se détruit elle-même.',
     },
     {
       title: 'Le plan',

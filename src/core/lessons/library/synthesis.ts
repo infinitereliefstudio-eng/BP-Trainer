@@ -5,8 +5,9 @@
  */
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
-import { noRuntimeErrors, visible } from '../checks';
+import { noRuntimeErrors, normText, visible } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { doorBlueprint, keyBlueprint, playerBlueprint } from './props';
 
 // ------------------------------------------------------- S1 Le passage (Débutant)
 
@@ -144,8 +145,10 @@ export const synthesis1: Lesson = {
       id: 'through',
       label: 'Puis le joueur la traverse',
       at: 'passe',
-      test: (cx) =>
-        cx.sim.player.x > 60 ? true : 'Le joueur reste bloqué : une barrière cachée garde sa collision. C’est un nœud de plus, sur le mur.',
+      test: (cx) => {
+        if (cx.sim.player.x > 60) return true;
+        return barrierUp(cx) ? 'Le joueur reste bloqué : la barrière ne s’est pas ouverte.' : 'Le joueur reste bloqué : une barrière cachée garde sa collision. C’est un nœud de plus, sur le mur.';
+      },
     },
     noRuntimeErrors(),
   ],
@@ -172,5 +175,175 @@ export const synthesis1: Lesson = {
     b.link(inc, 'then', pr, 'exec').link(inc, 'result', pr, 'text');
     b.link(pr, 'then', br, 'exec').link(b.node('var.get', { variable: v }, {}, [560, 400]), 'value', ge, 'a').link(ge, 'result', br, 'condition');
     b.link(br, 'true', hide, 'exec').link(hide, 'then', col, 'exec').target('Barriere', col);
+  },
+};
+
+// ------------------------------------------------------- S2 La réserve (Intermédiaire)
+
+const KEY_AT: [number, number] = [-100, 260];
+
+function storeroomProject() {
+  const pb = new ProjectBuilder('Synthèse S2');
+  const { b: player } = playerBlueprint(pb);
+  player.variable('bACle', T.bool, false);
+  pb.place(keyBlueprint(pb, false), ...KEY_AT);
+  doorBlueprint(pb);
+  pb.playerStart(-500, 0);
+  return pb.project;
+}
+
+/** Door angle in [-180, 180). */
+function doorYaw(cx: CheckContext): number {
+  const yaw = cx.component('BP_Porte', 'Porte')?.props.yaw ?? 0;
+  return ((((yaw + 180) % 360) + 360) % 360) - 180;
+}
+const doorIsOpen = (cx: CheckContext) => Math.abs(Math.abs(doorYaw(cx)) - 90) < 1;
+const doorIsClosed = (cx: CheckContext) => Math.abs(doorYaw(cx)) < 1;
+
+const keyLeft = (cx: CheckContext) => {
+  const cls = cx.project.classes.find((c) => c.name === 'BP_Cle');
+  return cx.sim.actors.some((a) => a.classId === cls?.id && !a.destroyed);
+};
+
+const away: [number, number] = [-500, 0];
+const atDoor: [number, number] = [-150, 0];
+
+export const synthesis2: Lesson = {
+  id: 's2-reserve',
+  code: 'S2',
+  kind: 'synthesis',
+  module: 'Synthèse',
+  level: 'intermediaire',
+  number: 0,
+  title: 'La réserve',
+  situation:
+    'La porte de la réserve ne s’ouvre qu’au joueur qui a la clé, et se referme d’elle-même. La clé traîne un peu plus loin.',
+  notions: ['Cast To', 'Variable d’un autre Blueprint', 'Destroy Actor', 'Delay'],
+  remember:
+    'Une règle qui dépend de qui agit commence par un Cast. Ce que le joueur possède vit chez lui (une variable de BP_Joueur) : la clé l’écrit, la porte le lit. Ce qui doit arriver plus tard passe par un Delay, sur le même fil.',
+  cards: [
+    {
+      title: 'Cahier des charges',
+      body:
+        '**BP_Joueur** a une variable `bACle` (Boolean, faux au départ). **BP_Cle** (la Cle et sa Zone) et **BP_Porte** (la Porte, qui pivote sur son gond, et sa Zone) ont des graphes vides.\n\n' +
+        '- Le joueur qui arrive à la porte **sans la clé** voit un message avec le mot « clé », et la porte reste fermée. Ce message ne s’affiche **qu’une fois**, même s’il revient.\n' +
+        '- Quand le joueur touche la clé, elle **disparaît** et il la **possède**.\n' +
+        '- **Avec la clé**, la porte s’ouvre (Yaw 90) quand il arrive.\n' +
+        '- **2 secondes** après s’être ouverte, elle se **referme** toute seule (Yaw 0).',
+    },
+    {
+      title: 'Comment t’y prendre',
+      body:
+        'Une synthèse reprend l’Intermédiaire, sans liste de nœuds. Une règle à la fois :\n\n' +
+        '1. Quel Blueprint réagit, et à quel événement ?\n2. Comment être sûr que c’est le joueur ?\n3. Où vit l’information « il a la clé », et qui l’écrit, qui la lit ?\n4. Que faut-il faire attendre, et sur quel fil ?\n\n' +
+        'Teste chaque règle avec ▶ Play. Les indices s’ouvrent après un premier essai.',
+    },
+    {
+      title: 'Conseillée, pas obligatoire',
+      body: 'Rien n’est bloqué si tu passes au Confirmé sans elle. Si une règle résiste, la leçon à revoir est dans les indices.',
+    },
+  ],
+  objectives: [
+    'Sans la clé : un message avec le mot « clé », une seule fois, et la porte reste fermée.',
+    'La clé disparaît quand le joueur la touche, et il la possède.',
+    'Avec la clé : la porte s’ouvre, puis se referme seule 2 s plus tard.',
+  ],
+  hints: [
+    'Deux Blueprints à écrire : la clé (comme « Ramasser un objet ») et la porte (comme « La porte verrouillée », puis « La porte qui se referme »).',
+    'La clé : overlap, Cast To BP_Joueur, Set bACle, Destroy Actor. La porte : overlap, Cast To BP_Joueur, Get bACle, Branch, Set Relative Rotation, Delay, DoOnce, Print String.',
+    'Solution — BP_Cle : ActorBeginOverlap → Cast To BP_Joueur → Set bACle (coché) → Destroy Actor. BP_Porte : ActorBeginOverlap → Cast To BP_Joueur → Branch (As BP_Joueur › bACle) ; True → Set Relative Rotation (Porte, Yaw 90) → Delay 2 → Set Relative Rotation (Porte, Yaw 0) ; False → DoOnce → Print String « Il faut la clé ».',
+  ],
+  challenge: 'Fais que la porte reste ouverte tant que le joueur est dans sa Zone, et ne se referme que 2 s après son départ (Event ActorEndOverlap, Retriggerable Delay).',
+  setup: storeroomProject,
+  scenario: [
+    { wait: 0.2 },
+    { teleport: atDoor },
+    { wait: 0.3 },
+    { checkpoint: 'sans-cle' },
+    { teleport: away },
+    { wait: 0.3 },
+    { teleport: atDoor },
+    { wait: 0.3 },
+    { checkpoint: 'encore' },
+    { teleport: away },
+    { wait: 0.3 },
+    { teleport: KEY_AT },
+    { wait: 0.3 },
+    { checkpoint: 'cle' },
+    { teleport: away },
+    { wait: 0.3 },
+    { teleport: atDoor },
+    { wait: 0.3 },
+    { checkpoint: 'ouverte' },
+    { teleport: away },
+    { wait: 2.2 },
+    { checkpoint: 'refermee' },
+  ],
+  checks: [
+    {
+      id: 'locked',
+      label: 'Sans la clé : un message avec le mot « clé », et la porte reste fermée',
+      at: 'sans-cle',
+      test: (cx) => {
+        if (!doorIsClosed(cx)) return 'La porte s’ouvre au joueur qui n’a pas la clé.';
+        return cx.prints().some((t) => normText(t).includes('cle')) ? true : 'Le joueur arrive sans la clé, mais aucun message ne parle de la clé.';
+      },
+    },
+    {
+      id: 'once',
+      label: 'Revenu sans la clé : pas de second message',
+      at: 'encore',
+      test: (cx) => {
+        const n = cx.prints().filter((t) => normText(t).includes('cle')).length;
+        return n <= 1 ? true : `Le message sur la clé s’est affiché ${n} fois : une seule suffit.`;
+      },
+    },
+    {
+      id: 'picked',
+      label: 'La clé disparaît quand le joueur la touche, et il la possède',
+      at: 'cle',
+      test: (cx) => {
+        if (keyLeft(cx)) return 'Le joueur a touché la clé, mais elle est toujours là.';
+        return cx.variable('Joueur', 'bACle') === true ? true : 'La clé a disparu, mais bACle du joueur est toujours faux : c’est chez lui que l’information doit vivre.';
+      },
+    },
+    {
+      id: 'opens',
+      label: 'Avec la clé, la porte s’ouvre',
+      at: 'ouverte',
+      test: (cx) => (doorIsOpen(cx) ? true : `Le joueur a la clé, mais la porte est à ${doorYaw(cx)}° au lieu de 90°.`),
+    },
+    {
+      id: 'closes',
+      label: '2 secondes plus tard, elle s’est refermée toute seule',
+      at: 'refermee',
+      test: (cx) => (doorIsClosed(cx) ? true : 'Plus de 2 s après s’être ouverte, la porte est toujours ouverte.'),
+    },
+    noRuntimeErrors(),
+  ],
+  solve(p) {
+    const player = edit(p, 'BP_Joueur');
+    const has = player.cls.variables.find((v) => v.name === 'bACle')!.id;
+    const key = edit(p, 'BP_Cle');
+    const ke = key.node('event.actorBeginOverlap', {}, {}, [64, 96]);
+    const kc = key.node('cast.to', { class: player.cls.id }, {}, [360, 96]);
+    const ks = key.node('var.setExternal', { owner: player.cls.id, variable: has }, { value: true }, [680, 96]);
+    const kd = key.node('actor.destroy', {}, {}, [1000, 96]);
+    key.link(ke, 'then', kc, 'exec').link(ke, 'other', kc, 'object').link(kc, 'then', ks, 'exec').link(kc, 'as', ks, 'target').link(ks, 'then', kd, 'exec');
+
+    const d = edit(p, 'BP_Porte');
+    const e = d.node('event.actorBeginOverlap', {}, {}, [64, 96]);
+    const cast = d.node('cast.to', { class: player.cls.id }, {}, [360, 96]);
+    const get = d.node('var.getExternal', { owner: player.cls.id, variable: has }, {}, [420, 340]);
+    const br = d.node('flow.branch', {}, {}, [720, 96]);
+    const open = d.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [1000, 0]);
+    const wait = d.node('time.delay', {}, { duration: 2 }, [1320, 0]);
+    const close = d.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 0 } }, [1600, 0]);
+    const once = d.node('flow.doOnce', {}, {}, [1000, 360]);
+    const say = d.node('debug.printString', {}, { text: 'Il faut la clé' }, [1300, 360]);
+    d.link(e, 'then', cast, 'exec').link(e, 'other', cast, 'object').link(cast, 'then', br, 'exec');
+    d.link(cast, 'as', get, 'target').link(get, 'value', br, 'condition');
+    d.link(br, 'true', open, 'exec').target('Porte', open).link(open, 'then', wait, 'exec').link(wait, 'completed', close, 'exec').target('Porte', close);
+    d.link(br, 'false', once, 'exec').link(once, 'completed', say, 'exec');
   },
 };

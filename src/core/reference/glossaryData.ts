@@ -56,6 +56,13 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Déplacer un composant dans le Viewport change toutes les instances ; déplacer un acteur dans le niveau n’en change qu’une. Si une seule lampe doit être différente, c’est dans le niveau (ou une variable Instance Editable), pas dans le Blueprint.',
   },
   {
+    title: 'Pivot et Attach Parent',
+    names: ['Scene Component', 'Attach Parent'],
+    what: 'Un Scene Component est un repère invisible : une position et une rotation, rien d’autre. Accroché à lui (Details › Attach Parent), un composant a sa Location et sa Rotation relatives à ce repère, et le suit quand il bouge ou tourne.',
+    when: 'Pour faire tourner un composant autour d’un autre point que son centre : une porte sur son gond, un bras sur son épaule. Le Scene est placé au pivot, la pièce pend à lui avec un décalage, et c’est le Scene qu’on fait tourner.',
+    trap: 'Changer l’Attach Parent change le sens de la Location : elle devient relative au nouveau parent. Une pièce qui « saute » ailleurs garde ses anciens chiffres, mesurés depuis un autre point.',
+  },
+  {
     title: 'Target',
     names: ['Target'],
     what: 'La pin Target dit sur quoi le nœud agit. Laissée vide, elle vaut « self » : l’acteur lui-même, ce qui ne convient que si le nœud agit sur un acteur.',

@@ -19,27 +19,26 @@ const SPACING_TARGET = 15;
 /** Today's longest gaps above the target (steps), to bring down lot by lot. */
 const KNOWN_GAPS: Record<string, number> = {
   arrays: 20,
-  branch: 16,
   cast: 29,
   components: 21,
   construction: 38,
   'data-tables': 39,
-  destroy: 45,
+  destroy: 40,
   dispatchers: 33,
   'enhanced-input': 48,
-  enum: 48,
-  'flow-memory': 49,
+  enum: 50, // V7.14: +2, T2 and S2 inserted in the gap (Intermédiaire → Avancé), to bring down in lot 3
+  'flow-memory': 48,
   functions: 27,
   inheritance: 16,
   input: 48,
   interfaces: 35,
-  latent: 40,
+  latent: 27,
   locals: 24,
   loops: 22,
-  maps: 41,
+  maps: 43, // V7.14: +2, same cause
   'other-bp': 21,
   overlap: 26,
-  'player-controller': 64,
+  'player-controller': 66, // V7.14: +2, same cause
   random: 40,
   rotation: 36,
   'save-game': 24,
@@ -47,10 +46,10 @@ const KNOWN_GAPS: Record<string, number> = {
   sets: 20,
   spawn: 31,
   structs: 37,
-  switch: 48,
+  switch: 50, // V7.14: +2, same cause
   tick: 29,
-  timeline: 59,
-  timers: 16,
+  timeline: 60, // V7.14: +1, S2 after it
+  timers: 44, // V7.14: taught 44 steps earlier (Le gyrophare, Intermédiaire); next written in « Les vagues »: lot 3
   visibility: 21,
 };
 

@@ -27,7 +27,12 @@ import { predict10, predict9 } from './library/predicts2';
 import { debug7, debug8, debug9 } from './library/debugs';
 import { lessonFence } from './library/fence';
 import { lessonBuildLamp, predictWhereLight } from './library/building';
-import { synthesis1 } from './library/synthesis';
+import { synthesis1, synthesis2 } from './library/synthesis';
+import { lessonCoins, predictWhoEntered } from './library/pickups';
+import { lessonHinge } from './library/hinge';
+import { lessonPerLamp } from './library/perInstance';
+import { lessonBeacon } from './library/blinker';
+import { transferChest } from './library/chest';
 import { lessonFan, lessonGauge } from './library/gauges';
 import { debug10 } from './library/counterLie';
 import { debug11 } from './library/oven';
@@ -75,12 +80,17 @@ export const LESSONS: Lesson[] = [
   // Intermédiaire
   predict1,
   lesson5,
+  lessonHinge,
+  lessonCoins,
+  predictWhoEntered,
   lesson6,
   lesson7,
   transferBadge,
   lesson8,
   predict2,
+  lessonBeacon,
   debug8,
+  lessonPerLamp,
   lessonKeypad,
   lessonFan,
   predict10,
@@ -95,9 +105,11 @@ export const LESSONS: Lesson[] = [
   lessonInventory,
   lessonCodes,
   predict3,
+  transferChest,
   lessonSlidingDoor,
   complete3,
   autonomyTrap,
+  synthesis2,
   // Confirmé
   lesson9,
   debug1,

@@ -75,7 +75,8 @@ const buildChecks: Check[] = [
     label: 'En Play, les deux lampes éclairent',
     test: (cx) => {
       const lamp = bestLamp(cx.project);
-      const lit = cx.sim.actors.filter((a) => a.classId === lamp?.id && a.components.some((k) => k.kind === 'PointLight' && k.props.visible && k.props.intensity > 0));
+      if (!lamp) return 'Il faut d’abord le Blueprint avec ses deux composants.';
+      const lit = cx.sim.actors.filter((a) => a.classId === lamp.id && a.components.some((k) => k.kind === 'PointLight' && k.props.visible && k.props.intensity > 0));
       return lit.length >= 2 ? true : 'Une lampe n’éclaire pas : sa Point Light doit être Visible, avec une Intensity au-dessus de 0 (Details › Light).';
     },
   },

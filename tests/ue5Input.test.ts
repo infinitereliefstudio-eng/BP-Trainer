@@ -32,7 +32,10 @@ describe('UE5 input after the Player Controller lesson', () => {
       const defs = pc!.graphs[0] ? Object.values(pc!.graphs[0].nodes).map((n) => n.def) : [];
       expect(defs, l.id).toEqual(expect.arrayContaining(['event.beginPlay', 'actor.self', 'input.subsystem', 'input.addMappingContext']));
       // Every action event listens to an action mapped in IMC_Joueur, with no trigger: Started is the old Pressed.
-      for (const n of actions) expect(imc!.mappings.some((m) => m.action === n.config.action && m.triggers.length === 0), `${l.id}: ${n.config.action}`).toBe(true);
+      // A step about Enhanced Input itself (T2) sets its own trigger.
+      const ownTriggers = l.chain?.notion === 'enhanced-input';
+      for (const n of actions)
+        expect(imc!.mappings.some((m) => m.action === n.config.action && (ownTriggers || m.triggers.length === 0)), `${l.id}: ${n.config.action}`).toBe(true);
     }
   });
 

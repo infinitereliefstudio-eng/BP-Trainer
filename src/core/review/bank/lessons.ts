@@ -209,6 +209,48 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Un Timeline ne modifie rien lui-même : c’est le nœud branché sur Update qui agit, avec la valeur de la piste.',
   ),
 
+  q(
+    'l-gond',
+    'Une porte tourne autour de son milieu au lieu de son gond. Que faire dans le Blueprint ?',
+    ['La faire pendre à un Scene placé au gond, et tourner le Scene', 'Tourner la porte de 45° de plus', 'Déplacer l’acteur dans le niveau', 'Cocher Propagate to Children'],
+    'Un composant tourne autour de sa propre origine. Un Scene au pivot, la porte attachée à lui (Attach Parent) avec un décalage : c’est le Scene qui tourne.',
+  ),
+  q(
+    'l-pieces',
+    'Trois pièces du même Blueprint. Le joueur en touche une, dont le graphe fait Destroy Actor sans rien relier à Target. Combien en disparaît-il ?',
+    ['Une : celle qui a été touchée (self)', 'Les trois : elles partagent le même graphe', 'Aucune : il faut relier Target', 'Le joueur'],
+    'Chaque instance exécute son propre graphe. Target non reliée vaut self : l’acteur dont le graphe s’exécute, ici la pièce touchée.',
+  ),
+  q(
+    'p13-qui-entre',
+    'Cast To BP_Joueur reçoit une caisse sur Object. Que se passe-t-il ?',
+    ['Il sort par Cast Failed, sans erreur', 'Il cherche le joueur dans le niveau', 'Il transforme la caisse en joueur', 'Une erreur Accessed None'],
+    'Un Cast teste l’objet qu’on lui donne. Si ce n’est pas le bon type, il prend l’autre chemin, Cast Failed. Il ne va chercher personne.',
+  ),
+  q(
+    'l-gyrophare',
+    'Une lumière clignote avec un timer en boucle. Le joueur arrive et tu fais seulement Set Visibility (décoché). Que se passe-t-il ?',
+    ['Elle se rallume au prochain tour du timer', 'Elle reste éteinte', 'Le timer s’arrête tout seul', 'Une erreur : le timer est occupé'],
+    'Le timer tourne toujours : il rappellera l’événement qui inverse la lumière. Il faut l’arrêter avec Clear and Invalidate Timer by Handle, d’où la variable Timer Handle.',
+  ),
+  q(
+    'l-valeur-lampe',
+    'Trois lampes du même Blueprint doivent démarrer différemment. Où se règle la différence ?',
+    ['Une variable Instance Editable, réglée dans les Details de chaque lampe posée', 'Trois Blueprints, un par lampe', 'Un Branch qui teste le nom de la lampe', 'La valeur par défaut de la variable'],
+    'Le graphe est le même pour les trois. Une variable Instance Editable prend une valeur par instance, dans les Details du niveau ; la valeur par défaut ne sert qu’aux lampes non réglées.',
+  ),
+  q(
+    't2-coffre',
+    'IA_Interagir a un déclencheur Hold d’une seconde. Le joueur appuie 0,3 s puis relâche. Quelle sortie de l’événement part ?',
+    ['Canceled', 'Triggered', 'Completed', 'Aucune'],
+    'Avec Hold, Triggered ne part qu’une fois le seuil atteint. Relâchée avant, l’action passe de Ongoing à None : c’est Canceled.',
+  ),
+  q(
+    's2-reserve',
+    'La clé doit dire à la porte que le joueur l’a ramassée. Où ranger l’information « il a la clé » ?',
+    ['Dans une variable du joueur, que la clé écrit et que la porte lit', 'Dans une variable de la clé, détruite juste après', 'Dans le Delay de la porte', 'Nulle part : la porte voit la clé disparaître'],
+    'La clé disparaît : ce qu’elle garde disparaît avec elle. Ce que possède le joueur vit chez lui ; la clé l’écrit (Cast puis Set), la porte le lit (Cast puis Get).',
+  ),
   // -------------------------------------------------------------- Confirmé
   q(
     'l09-generateur',

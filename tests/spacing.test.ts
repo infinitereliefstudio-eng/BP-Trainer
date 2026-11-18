@@ -28,7 +28,6 @@ const KNOWN_GAPS: Record<string, number> = {
   dispatchers: 33,
   'enhanced-input': 48,
   enum: 48,
-  events: 25,
   'flow-memory': 49,
   functions: 27,
   inheritance: 16,

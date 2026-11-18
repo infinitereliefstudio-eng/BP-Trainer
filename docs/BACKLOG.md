@@ -258,6 +258,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.13 (18 novembre 2026), plan du parcours, lot 2a : Débutant revu (Construis ta lampe, Prédis P12 avec Get World Location, compteur avant la leçon à touche, rappels, synthèse S1).
 - V7.12 (18 novembre 2026), plan du parcours, lot 1b : 14 étapes Avancé en Enhanced Input ; le lot 1 est fini.
 - V7.11 (18 novembre 2026), plan du parcours, lot 1a : 16 étapes Intermédiaire et Confirmé en Enhanced Input (template UE5 : IA, IMC_Joueur, BP_PlayerController), textes à jour (Content Drawer, Description, Pin Options), Find References et Outliner dans les indices de Débogue.
 - V7.10 (18 novembre 2026), plan du parcours, lot 0 : règle d'aide par niveau (ouverte jusqu'à l'Intermédiaire, verrouillée ensuite), rappels et test d'espacement à cliquet, échelle à cinq marches, niveau Expert, étape de synthèse conseillée.

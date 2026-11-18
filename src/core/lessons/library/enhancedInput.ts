@@ -103,7 +103,7 @@ export const lessonInputLamp: Lesson = {
   number: 0,
   title: 'La lampe en Enhanced Input',
   situation:
-    'La lampe de la leçon 4 s’allume et s’éteint avec E, par un événement de touche. Dans UE5, on passe par Enhanced Input : fais-la marcher pareil, avec une Input Action.',
+    'La lampe d’« Interrupteur à touche » s’allume et s’éteint avec E, par un événement de touche. Dans UE5, on passe par Enhanced Input : fais-la marcher pareil, avec une Input Action.',
   notions: ['Input Action', 'Input Mapping Context', 'Add Mapping Context', 'Get Player Controller', 'Started / Triggered / Completed'],
   remember:
     'Enhanced Input en trois pièces : une Input Action (ce que le joueur fait), un Mapping Context (quelle touche la déclenche), et Add Mapping Context au BeginPlay pour l’activer, sur l’Enhanced Input Local Player Subsystem du Player Controller. Pour « une fois à l’appui », Started.',
@@ -111,7 +111,7 @@ export const lessonInputLamp: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        '- **BP_Lampe** : la solution de la leçon 4. Son graphe commence par l’événement de touche **E** (Pressed), puis le Branch sur `bEstAllumee`. Auto Receive Input est sur Player 0.\n' +
+        '- **BP_Lampe** : la solution d’« Interrupteur à touche ». Son graphe commence par l’événement de touche **E** (Pressed), puis le Branch sur `bEstAllumee`. Auto Receive Input est sur Player 0.\n' +
         '- **BP_Joueur** : le pion du joueur, graphe vide.\n\n' +
         'Le test appuie sur E en la **tenant une demi-seconde**, deux fois : la lampe doit s’allumer, puis s’éteindre.',
     },

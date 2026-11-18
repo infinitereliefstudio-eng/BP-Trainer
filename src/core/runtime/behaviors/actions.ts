@@ -1,6 +1,6 @@
 /** Impure nodes acting on the world: variables, printing, components, actors. */
 import type { Vec3 } from '../../types/values';
-import type { ActorRT, ComponentRT } from '../world';
+import { componentTransform, type ActorRT, type ComponentRT } from '../world';
 import { copyValue } from '../values';
 import type { Behavior } from './types';
 
@@ -103,6 +103,17 @@ export const actionBehaviors: Record<string, Behavior> = {
       const c = cx.world.component(cx.in('target'), 'Target');
       if (c) c.props.text = cx.str('value');
       return ['then'];
+    },
+  },
+
+  'component.getWorldLocation': {
+    pure: (cx) => {
+      const c = cx.world.component(cx.in('target'), 'Target');
+      const owner = c && cx.world.ownerOf(c);
+      if (!c || !owner) return { result: { x: 0, y: 0, z: 0 } };
+      const t = componentTransform(owner, c);
+      // Rounded to 0.01 cm: a 90° turn would otherwise print 6e-15 instead of 0.
+      return { result: { x: Math.round(t.x * 100) / 100, y: Math.round(t.y * 100) / 100, z: 0 } };
     },
   },
 

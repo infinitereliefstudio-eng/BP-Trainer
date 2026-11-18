@@ -69,4 +69,13 @@ describe('synthesis and Expert steps', () => {
     const e: Lesson = { ...base, id: 'x-expert-time', level: 'expert' };
     expect(estimatedMinutes(e)).toBeLessThanOrEqual(120);
   });
+
+  it('a synthesis gives no node list, and its hints open after a first try, even in Débutant', () => {
+    const s1 = LESSONS.find((l) => l.kind === 'synthesis' && l.level === 'debutant')!;
+    expect(s1).toBeDefined();
+    const before = helpOffers(s1, { tried: false, fails: 0, done: false });
+    expect(before.map((o) => o.kind)).not.toContain('nodes');
+    expect(before.every((o) => !o.available)).toBe(true);
+    expect(helpOffers(s1, { tried: true, fails: 1, done: false }).every((o) => o.available)).toBe(true);
+  });
 });

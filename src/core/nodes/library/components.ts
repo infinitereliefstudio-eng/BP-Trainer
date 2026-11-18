@@ -92,6 +92,16 @@ export const componentNodes: NodeDefinition[] = [
     ],
   },
   {
+    id: 'component.getWorldLocation',
+    title: 'Get World Location',
+    category: 'Transformation',
+    kind: 'pure',
+    description:
+      'La position du composant dans le monde, en cm : sa Location relative, tournée et décalée par chacun de ses parents puis par l’acteur. Vue de dessus : X vers la droite, Y vers le bas.',
+    keywords: ['world location', 'position', 'monde', 'composant', 'ou'],
+    pins: [dataIn('target', 'Target', T.object('SceneComponent'), { required: true }), dataOut('result', 'Return Value', T.vector)],
+  },
+  {
     id: 'component.isVisible',
     title: 'Is Visible',
     category: CAT,

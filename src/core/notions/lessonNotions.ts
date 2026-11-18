@@ -14,9 +14,11 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   // Débutant
   'l01-bonjour': N(['events', 'exec', 'print']),
   'l02-lampe': N(['components'], ['events', 'exec']),
+  'l-construis-lampe': N(['build-actor'], ['components']),
+  'p12-ou-lumiere': N(['transform'], ['components', 'events', 'print']),
   'l03-interrupteur': N(['overlap'], ['components']),
-  'l04-touche': N(['input', 'variables', 'branch', 'flow-memory', 'pure'], ['events']),
   'l-compteur': N(['variables', 'branch'], ['overlap']),
+  'l04-touche': N(['input'], ['events', 'components', 'variables', 'branch']),
   'l-barriere': N(['visibility'], ['components']),
   'l-jauge': N(['math'], ['variables']),
   'c1-torche': N(['math', 'branch'], ['variables', 'input']),
@@ -24,6 +26,8 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   'd7-lampe-allumee': N(['overlap', 'variables'], ['visibility']),
   'd10-compteur-ment': N(['pure', 'exec'], ['variables', 'branch', 'overlap']),
   'p6-division': N(['math'], ['variables']),
+  // A synthesis teaches nothing new: it mixes the level.
+  's1-passage': N([], ['input', 'variables', 'branch', 'overlap', 'print', 'visibility', 'components']),
   // Intermédiaire
   'p1-sequence-delay': N(['sequence', 'latent'], ['exec', 'print']),
   'l05-porte': N(['rotation', 'flow-memory'], ['overlap']),

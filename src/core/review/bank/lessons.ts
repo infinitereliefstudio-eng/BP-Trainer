@@ -27,6 +27,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Un nœud agit sur ce qui est branché sur Target : on place la référence du composant dans le graphe et on la relie à Target.',
   ),
   q(
+    'l-construis-lampe',
+    'Tu as posé trois BP_Lampe. Dans le Viewport de BP_Lampe, tu décales la Point Light de 50 cm. Quelles lampes changent ?',
+    ['Les trois, et celles posées plus tard', 'Seulement la dernière posée', 'Aucune : il faut les reposer', 'Seulement celle sélectionnée dans le niveau'],
+    'Le Blueprint est le modèle : ce qui est réglé dans son Viewport vaut pour toutes ses instances. Déplacer un acteur dans le niveau, lui, n’en change qu’une.',
+  ),
+  q(
+    'p12-ou-lumiere',
+    'Un composant est à Location X = 100, accroché à un parent tourné de Yaw 90. Le long de quel axe du monde est-il décalé ?',
+    ['L’axe Y du monde', 'L’axe X du monde', 'L’axe Z du monde', 'Aucun : il reste sur son parent'],
+    'La Location est relative au parent : elle tourne avec lui. Après un quart de tour, l’axe X du parent pointe là où pointait Y.',
+  ),
+  q(
     'l03-interrupteur',
     'Une Box Collision a Collision Enabled sur No Collision. Le joueur la traverse. Que reçoit le Blueprint ?',
     ['Aucun événement d’overlap', 'Begin Overlap seulement', 'Begin puis End Overlap', 'Event Hit'],
@@ -63,6 +75,12 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Entre deux Integer, la division est entière : le reste est jeté, sans arrondi. Pour 3,5, il faut diviser des Float.',
   ),
 
+  q(
+    's1-passage',
+    'Un cahier des charges dit « au 3e passage, la barrière s’ouvre ». Qu’est-ce qui doit être gardé d’un passage à l’autre ?',
+    ['Le nombre de passages, dans une variable Integer', 'Rien : l’événement d’overlap sait combien de fois il a eu lieu', 'Le joueur, dans une variable', 'La position de la barrière'],
+    'Un événement ne se souvient de rien : ce qui doit durer d’une fois à l’autre se range dans une variable, que l’on compare ensuite avec un Branch.',
+  ),
   // -------------------------------------------------------- Intermédiaire
   q(
     'p1-sequence-delay',

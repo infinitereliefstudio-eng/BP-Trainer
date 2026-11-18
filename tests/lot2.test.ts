@@ -27,7 +27,7 @@ describe('notions of the path', () => {
     expect(LESSONS.filter((l) => !LESSON_NOTIONS[l.id]).map((l) => l.id)).toEqual([]);
     expect(Object.keys(LESSON_NOTIONS).filter((id) => !getLesson(id))).toEqual([]);
     for (const [id, n] of Object.entries(LESSON_NOTIONS)) {
-      expect(n.teaches.length, id).toBeGreaterThan(0);
+      if (getLesson(id)?.kind !== 'synthesis') expect(n.teaches.length, id).toBeGreaterThan(0);
       for (const x of [...n.teaches, ...n.requires]) expect(ids.has(x), `${id}: ${x}`).toBe(true);
     }
   });
@@ -53,12 +53,12 @@ describe('notions of the path', () => {
     expect(missingNotions('l03-interrupteur', acquired)).toEqual([]);
   });
 
-  it('gives every step a duration between 5 and 30 minutes', () => {
+  it('gives every step a duration between 5 and 30 minutes (45 for a synthesis)', () => {
     for (const l of LESSONS) {
       const m = estimatedMinutes(l);
       expect(m % 5, l.id).toBe(0);
       expect(m, l.id).toBeGreaterThanOrEqual(5);
-      expect(m, l.id).toBeLessThanOrEqual(30);
+      expect(m, l.id).toBeLessThanOrEqual(l.kind === 'synthesis' ? 45 : 30);
     }
   });
 });
@@ -102,8 +102,8 @@ describe('the Cast To chain', () => {
     expect(isChainExercise(transferBadge)).toBe(true);
     expect(lessonLabel(transferBadge)).toBe('Transfert T1');
     expect(lessonLabel(autonomyTrap)).toBe('Autonomie A1');
-    expect(lessonLabel(getLesson('l07-verrou')!)).toBe('Leçon 10');
-    expect(lessonLabel(getLesson('l08-refermer')!)).toBe('Leçon 11');
+    expect(lessonLabel(getLesson('l07-verrou')!)).toBe('Leçon 11');
+    expect(lessonLabel(getLesson('l08-refermer')!)).toBe('Leçon 12');
     const order = LESSONS.map((l) => l.id);
     expect(order.indexOf('t1-badge')).toBe(order.indexOf('l07-verrou') + 1);
     expect(order.indexOf('a1-piege')).toBeGreaterThan(order.indexOf('t1-badge'));

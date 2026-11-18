@@ -258,8 +258,10 @@ export const lesson4: Lesson = {
   number: 4,
   title: 'Interrupteur à touche',
   situation: 'La touche E allume la lampe, puis l’éteint, puis la rallume…',
-  notions: ['Input E', 'Variable Boolean', 'Branch', 'FlipFlop'],
-  remember: 'Une variable garde un état d’un événement à l’autre ; Branch choisit le chemin selon un Boolean. Sans Auto Receive Input, un Blueprint n’entend pas les touches.',
+  recalls: ['components'],
+  notions: ['Input E', 'Auto Receive Input', 'Variable Boolean'],
+  remember:
+    'Un événement de touche a deux sorties : Pressed à l’appui, Released au relâché. Sans Auto Receive Input, un acteur du niveau n’entend pas les touches. Pour alterner, il faut se souvenir de l’état : une variable, lue par un Branch.',
   cards: [
     {
       title: 'Ce qui est en place',
@@ -274,13 +276,11 @@ export const lesson4: Lesson = {
         'Ici, seul Pressed sert. En Play, les boutons E, F et Espace sont à l’écran.',
     },
     {
-      title: 'Se souvenir avec une variable',
+      title: 'Rappel : se souvenir',
       body:
-        'Un appui sur E ne sait pas ce qui s’est passé avant. Pour alterner, la lampe doit **se souvenir** de son état : c’est le rôle d’une **variable**.\n\n' +
-        'Dans My Blueprint, Variables › **+**, type **Boolean**, nom `bEstAllumee` (le « b » est la convention d’UE pour un booléen). Sa valeur par défaut, décochée, dit « éteinte » au lancement.\n\n' +
-        '- **Get bEstAllumee** (vert, sans fil blanc) lit la valeur.\n- **Set bEstAllumee** (fil blanc) l’écrit.\n\n' +
-        'Get est un **nœud pur** : il n’a pas de pin blanche, donc aucun fil blanc n’y arrive, et pourtant il sert. Il ne s’exécute pas de lui-même : il est calculé au moment où un nœud traversé par le fil blanc (ici le Branch) lit sa sortie.\n\n' +
-        '**Branch** reçoit un booléen sur **Condition** et envoie le fil blanc sur **True** ou sur **False**. Une seule des deux sorties s’exécute.',
+        'Un appui sur E ne sait pas ce qui s’est passé avant. Pour alterner, la lampe doit **se souvenir** de son état, comme la borne du **compteur** se souvenait de ses passages : une **variable**.\n\n' +
+        'Cette fois, un état à deux valeurs : type **Boolean**, nom `bEstAllumee` (le « b » est la convention d’UE pour un booléen). Décochée par défaut : « éteinte » au lancement.\n\n' +
+        'Et comme au compteur, **Branch** lit le Boolean sur Condition et envoie le fil blanc par True ou par False.',
     },
     {
       title: 'Le plan',
@@ -292,9 +292,9 @@ export const lesson4: Lesson = {
     {
       title: 'D’autres façons',
       body:
-        '- **FlipFlop** alterne tout seul entre ses sorties A et B à chaque passage, sans variable visible.\n- **Toggle Visibility** inverse la visibilité d’un composant en un nœud.\n\n' +
-        'Elles marchent, mais la variable est la plus utile : d’autres Blueprints pourront lire `bEstAllumee` pour savoir si la lampe est allumée. Un FlipFlop garde son état pour lui.\n\n' +
-        'Dans UE, les touches se gèrent aujourd’hui avec **Enhanced Input** (des Input Actions plutôt que des touches en dur). L’idée de Pressed / Released reste la même (Started / Completed).',
+        '- **Toggle Visibility** inverse la visibilité d’un composant en un nœud.\n- **FlipFlop** alterne tout seul entre ses sorties A et B ; tu le reverras avec la porte.\n\n' +
+        'Elles marchent, mais la variable est la plus utile : d’autres Blueprints pourront lire `bEstAllumee` pour savoir si la lampe est allumée.\n\n' +
+        'Dans UE5, les touches passent par **Enhanced Input** (des Input Actions plutôt que des touches en dur) : tu y viendras au niveau Intermédiaire. L’idée de Pressed / Released reste la même (Started / Completed).',
     },
   ],
   objectives: [
@@ -307,7 +307,7 @@ export const lesson4: Lesson = {
     'Nœuds : Input E (Pressed), Get bEstAllumee → Branch, deux Set Visibility, deux Set bEstAllumee.',
     'Solution : E Pressed → Branch(bEstAllumee). True → Set Visibility décoché → Set bEstAllumee = false. False → Set Visibility coché → Set bEstAllumee = true.',
   ],
-  challenge: 'Refais-le sans variable : avec un FlipFlop, ou avec Toggle Visibility.',
+  challenge: 'Ajoute la touche F, qui éteint la lampe quoi qu’il arrive. Pense à la variable.',
   setup: () => lampProject('Leçon 4', false, true),
   scenario: [
     { wait: 0.2 },

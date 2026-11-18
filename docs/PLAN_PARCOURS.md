@@ -30,7 +30,7 @@ Une notion nouvelle par étape ; une échelle par notion (découvrir, guidé, mo
 |---|---|---|
 | 0 — Cadre | Règle d'aide par niveau, rappels (`Lesson.recalls`) et test d'espacement à cliquet, échelle à 5 marches, niveau Expert, type d'étape synthèse | **Fait en V7.10** |
 | 1 — Remise à jour et réflexes UE5 | Textes (Content Drawer, Description, Pin Options), Find References dans les Débogue, Enhanced Input comme règle après la leçon 15 ; en deux temps (Intermédiaire et Confirmé, puis Avancé) | **Fait** : 1a en V7.11 (16 étapes), 1b en V7.12 (14 étapes Avancé) |
-| 2 — Débutant et Intermédiaire | Leçon 4 scindée, Cast isolé, échelle Delay → timers, Construis ta lampe, La porte sur son gond, Prédis Où est la lumière, Une valeur par lampe, Appuyer ou fouiller, rappels, deux synthèses | À faire |
+| 2 — Débutant et Intermédiaire | Leçon 4 scindée, Cast isolé, échelle Delay → timers, Construis ta lampe, La porte sur son gond, Prédis Où est la lumière, Une valeur par lampe, Appuyer ou fouiller, rappels, deux synthèses ; en deux temps (Débutant, puis Intermédiaire) | **2a fait en V7.13** (Débutant : Construis ta lampe, P12, compteur avant la leçon à touche recentrée, rappels, synthèse S1) ; 2b à faire |
 | 3 — Confirmé | Choisis ton outil, Le menu pause, Qui a éteint la lumière (Find), Interagir comme dans UE5, rappels, synthèse ; composants et fonctions créés par l'apprenant | À faire |
 | 4 — Avancé et Expert | Cahiers des charges, Le levier universel, projets Expert (suite « jeu narratif »), entraînement mélangé | À faire |
 

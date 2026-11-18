@@ -49,6 +49,13 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Les propriétés réglées dans Details sont l’état au lancement. Ce qui change pendant le jeu passe par des nœuds.',
   },
   {
+    title: 'Construire un acteur',
+    names: ['Blueprint Class', 'Viewport', 'Place Actors'],
+    what: 'Un Blueprint Class est un modèle d’acteur : Content Drawer › + Add › Blueprint Class, parent Actor. On y ajoute des composants (Components › +), on les place dans son Viewport, puis on le pose dans le niveau (Place Actors, ou glisser depuis le Content Drawer).',
+    when: 'Dès qu’un objet du jeu a une forme, un comportement ou plusieurs exemplaires : une lampe, une porte, une borne. Ce qui est réglé dans le Blueprint vaut pour toutes ses instances.',
+    trap: 'Déplacer un composant dans le Viewport change toutes les instances ; déplacer un acteur dans le niveau n’en change qu’une. Si une seule lampe doit être différente, c’est dans le niveau (ou une variable Instance Editable), pas dans le Blueprint.',
+  },
+  {
     title: 'Target',
     names: ['Target'],
     what: 'La pin Target dit sur quoi le nœud agit. Laissée vide, elle vaut « self » : l’acteur lui-même, ce qui ne convient que si le nœud agit sur un acteur.',

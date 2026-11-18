@@ -15,6 +15,7 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'events', title: 'Événements', covers: 'BeginPlay, touches, overlaps : ce qui déclenche un graphe' },
   { id: 'exec', title: 'Fil d’exécution', covers: 'le fil blanc, l’ordre des nœuds, ce qui ne s’exécute pas' },
   { id: 'print', title: 'Print String et Output Log', covers: 'afficher pour voir ce qui se passe' },
+  { id: 'build-actor', title: 'Construire un acteur', covers: 'Blueprint Class, composants, Viewport, poser dans le niveau' },
   { id: 'components', title: 'Composants et Target', covers: 'agir sur un composant de l’acteur' },
   { id: 'visibility', title: 'Visibilité et collision', covers: 'Set Visibility, Hidden In Game, Collision Enabled' },
   { id: 'overlap', title: 'Overlaps', covers: 'Begin / End Overlap, Other Actor' },

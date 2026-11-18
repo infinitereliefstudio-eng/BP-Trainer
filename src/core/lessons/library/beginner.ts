@@ -41,6 +41,7 @@ export const lessonCounter: Lesson = {
   number: 0,
   title: 'Le compteur',
   situation: 'Une borne compte les passages du joueur et affiche le total. Au 3e passage, elle affiche « Trop de passages ! ».',
+  recalls: ['overlap', 'print'],
   notions: ['Variable Integer', 'Get / Set', 'Increment Int', '>= (Integer)', 'Branch'],
   remember: 'Un Set ne change la variable que quand le fil blanc passe par lui : posé seul, il ne s’exécute jamais. Lire la variable (Get) donne sa valeur du moment.',
   cards: [
@@ -176,6 +177,7 @@ export const lessonBarrier: Lesson = {
   number: 0,
   title: 'Visible, caché, traversable',
   situation: 'Une barrière bloque le passage. La touche E doit la faire disparaître : invisible, et traversable.',
+  recalls: ['input'],
   notions: ['Set Actor Hidden In Game', 'Set Visibility', 'Set Collision Enabled', 'ECollisionEnabled'],
   remember: 'Cacher (Hidden, Visible) ne change que l’affichage : la collision reste. Pour laisser passer, c’est Set Collision Enabled.',
   cards: [

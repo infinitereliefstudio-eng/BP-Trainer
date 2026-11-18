@@ -252,8 +252,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 93:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 93")
+        if await page.locator('.lesson-item').count() != 96:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 96")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -576,7 +576,7 @@ async def main():
             errs.append('Mémo : la fiche Enhanced Input ne s’ouvre pas')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Interrupteur à touche').tap()
+        await page.locator('.lesson-item', has_text='Interrupteur à touche').first.tap()
         await page.wait_for_timeout(500)
         await close_sheet()
         if await page.locator('.goal-strip').count() != 1:

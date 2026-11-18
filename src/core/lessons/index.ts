@@ -26,6 +26,8 @@ import { predict6, predict7, predict8 } from './library/predicts';
 import { predict10, predict9 } from './library/predicts2';
 import { debug7, debug8, debug9 } from './library/debugs';
 import { lessonFence } from './library/fence';
+import { lessonBuildLamp, predictWhereLight } from './library/building';
+import { synthesis1 } from './library/synthesis';
 import { lessonFan, lessonGauge } from './library/gauges';
 import { debug10 } from './library/counterLie';
 import { debug11 } from './library/oven';
@@ -57,9 +59,11 @@ export const LESSONS: Lesson[] = [
   // Débutant
   lesson1,
   lesson2,
+  lessonBuildLamp,
+  predictWhereLight,
   lesson3,
-  lesson4,
   lessonCounter,
+  lesson4,
   lessonBarrier,
   lessonGauge,
   complete1,
@@ -67,6 +71,7 @@ export const LESSONS: Lesson[] = [
   debug7,
   debug10,
   predict6,
+  synthesis1,
   // Intermédiaire
   predict1,
   lesson5,

@@ -247,7 +247,7 @@ describe('glossary', () => {
 
   it('knows where a notion was first met', () => {
     const fan = getLesson('l-ventilateur')!;
-    expect(firstSeen('Variable Integer', fan)?.id).toBe('l04-touche'); // same card as Variable Boolean
+    expect(firstSeen('Variable Integer', fan)?.id).toBe('l-compteur'); // same card as Variable Boolean
     expect(firstSeen('% (Integer)', fan)).toBeUndefined();
     expect(firstSeen('Event BeginPlay', getLesson('l01-bonjour')!)).toBeUndefined();
   });

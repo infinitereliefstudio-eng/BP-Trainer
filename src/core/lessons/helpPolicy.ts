@@ -61,10 +61,12 @@ export function ruleFor(lesson: Lesson): HelpRule {
   if (lesson.kind === 'predict') return OPEN;
   const rule: HelpRule = { ...HELP_RULES[lesson.level] };
   const step = lesson.chain?.step;
-  if (step === 'transfer' || step === 'autonomy') {
+  // A level synthesis is a specification with no node list, like an autonomy rung.
+  const alone = step === 'autonomy' || lesson.kind === 'synthesis';
+  if (step === 'transfer' || alone) {
     for (const k of KINDS) if ('open' in rule[k]) rule[k] = { afterTry: true };
   }
-  if (step === 'autonomy') rule.nodes = { absent: true };
+  if (alone) rule.nodes = { absent: true };
   return rule;
 }
 

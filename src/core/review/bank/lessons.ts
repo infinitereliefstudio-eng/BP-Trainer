@@ -101,6 +101,24 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'La donnée vit chez son propriétaire, le joueur. Un second piège la modifie alors aussi : chacun enlève son point de la même Vie.',
   ),
   q(
+    'l-ei-lampe',
+    'L’événement IA_Interagir, sans déclencheur dans le contexte, doit basculer une lampe une fois par appui. Quelle sortie utiliser ?',
+    ['Started', 'Triggered', 'Ongoing', 'Completed'],
+    'Sans déclencheur (Down), Triggered a lieu à chaque image tant que la touche est enfoncée : la lampe basculerait des dizaines de fois. Started n’a lieu qu’une fois, à l’appui.',
+  ),
+  q(
+    'd20-contexte',
+    'IA_Sauter et IMC_Joueur (Espace → IA_Sauter) existent, l’événement IA_Sauter est dans le joueur, et rien ne se passe, sans erreur. Que manque-t-il le plus souvent ?',
+    ['Add Mapping Context au BeginPlay', 'Auto Receive Input sur le joueur', 'Un Cast vers le joueur', 'Compiler IMC_Joueur'],
+    'Un Mapping Context n’agit qu’une fois ajouté pendant le jeu (Add Mapping Context). Son oubli est silencieux, dans UE comme ici.',
+  ),
+  q(
+    'l-ei-maintien',
+    'Une ligne a un déclencheur Hold de 1 s. Le joueur tient la touche 0,4 s puis la relâche. Quelles sorties de l’événement passent ?',
+    ['Started, Ongoing, puis Canceled', 'Started puis Triggered', 'Triggered puis Completed', 'Aucune'],
+    'Avec Hold : Started à l’appui, Ongoing à chaque image d’attente, et Canceled si la touche est relâchée avant le seuil. Triggered n’arrive qu’une fois le seuil atteint.',
+  ),
+  q(
     'l08-refermer',
     'Un Delay de 2 s est en cours depuis 1 s quand le fil blanc y entre à nouveau. Quand sort-il par Completed ?',
     ['1 s plus tard : le second appel est ignoré', '2 s plus tard : l’attente repart de zéro', 'Deux fois : à 1 s puis à 2 s', 'Jamais'],

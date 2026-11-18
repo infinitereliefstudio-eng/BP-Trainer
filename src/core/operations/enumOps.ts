@@ -60,6 +60,8 @@ export function takenNames(p: Project, except?: string): string[] {
     ...p.enums.filter((e) => e.id !== except).map((e) => e.name),
     ...(p.structs ?? []).filter((x) => x.id !== except).map((x) => x.name),
     ...(p.dataTables ?? []).filter((x) => x.id !== except).map((x) => x.name),
+    ...(p.inputActions ?? []).filter((x) => x.id !== except).map((x) => x.name),
+    ...(p.mappingContexts ?? []).filter((x) => x.id !== except).map((x) => x.name),
     ...p.classes.map((c) => c.name),
     ...p.interfaces.map((i) => i.name),
     ...Object.keys(BUILTIN_ENUMS),

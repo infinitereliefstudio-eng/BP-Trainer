@@ -17,12 +17,14 @@ import { randomStreamBehaviors } from './randomStream';
 import { transformBehaviors } from './transform';
 import { dataTableBehaviors } from './dataTables';
 import { saveGameBehaviors } from './saveGame';
+import { enhancedInputBehaviors } from './enhancedInput';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
   ...flowBehaviors,
   ...dataTableBehaviors,
   ...saveGameBehaviors,
+  ...enhancedInputBehaviors,
   ...actionBehaviors,
   ...actorBehaviors,
   ...arrayBehaviors,

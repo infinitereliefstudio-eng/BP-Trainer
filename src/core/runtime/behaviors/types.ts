@@ -67,6 +67,9 @@ export interface WorldApi {
   loadGame(slot: string, user: number): ActorRT | null;
   saveExists(slot: string, user: number): boolean;
   deleteSave(slot: string, user: number): boolean;
+  /** Enhanced Input: activate a Mapping Context for the player, or deactivate it. */
+  addMappingContext(id: string, priority: number): void;
+  removeMappingContext(id: string): void;
 }
 
 export interface ValueCx {

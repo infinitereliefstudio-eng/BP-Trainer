@@ -7,13 +7,13 @@ Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, péda
 
 ## Par où commencer
 
-Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Le lot 1 est fait (V7.2) et le pilote du lot 2 aussi (V7.3, chaîne Cast To) ; la suite du lot 2 dépendra de ce que donne le pilote. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
+Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Le lot 1 est fait (V7.2), le pilote du lot 2 aussi (V7.3, chaîne Cast To), et Enhanced Input (V7.4, première partie du lot 3). La suite du lot 2 dépendra de ce que donne le pilote ; le reste du lot 3 attend que Tristan approche des leçons du niveau Avancé. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
 | 1 | ~~Fiabilité~~ **fait en V7.2** (sauf H4) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
 | 2 | ~~Autonomie et transfert vers UE~~ **pilote fait en V7.3** | Guidé → transfert → autonomie différée, d'abord sur une notion pilote ; prérequis et « Montre-moi » ; passerelle vers l'éditeur d'Unreal | ★★★ | M à L |
-| 3 | **Entrées et interaction** (retenu) | Enhanced Input, regard indépendant du déplacement, interaction plus complète ; Tick maîtrisé en complément | ★★★ | M |
+| 3 | **Entrées et interaction** (Enhanced Input fait en V7.4) | Enhanced Input, regard indépendant du déplacement, interaction plus complète ; Tick maîtrisé en complément | ★★★ | M |
 | 4 | Navigation et prise en main | Recherche et filtres dans les 87 étapes, gestes guidés | ★★★ | M |
 | 5 | Composition | Actor Components : santé, inventaire, interaction, énergie | ★★★ | L |
 | 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger | ★★★ | L |
@@ -76,10 +76,10 @@ Choix du 18 novembre : Tristan en est vers l'étape 10 et ne pratique pas encore
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| Enhanced Input | UE5 passe par des Input Actions : assets Input Action (Bool, Axis2D) et Input Mapping Context dans le Content Browser ; nœud Add Mapping Context ; événement de l'action avec Started, Triggered, Completed et Action Value. Les touches et le joystick de Play deviennent des entrées du Mapping Context ; les événements de touche directs restent pour les premières leçons. Exercice E30 du recueil | ★★★ | M |
+| ~~Enhanced Input~~ **fait en V7.4** | Input Actions (Bool), Mapping Contexts, Add / Remove Mapping Context, déclencheurs Down, Pressed, Released, Hold, cinq sorties, Consume Input, trois étapes. Reste : actions Axis2D et déplacement par Add Movement Input, modificateurs (Negate, Swizzle), déclencheurs Tap, Pulse, Chorded, déclencheurs sur l'asset Input Action, Enhanced Input dans d'autres leçons | ★★★ | M |
 | Regard indépendant du déplacement | Viser avec un Line Trace oblige aujourd'hui à bouger : un second manche, ou tourner sur place | ★★★ | S à M |
 | Interaction plus complète (version intermédiaire) | Prolonge « Regarder et interagir » (Line Trace + BPI_Interactif) : action IA_Interagir, appui maintenu (déclencheur Hold), surbrillance de l'objet visé, invite « Appuie sur E ». Le composant réutilisable viendra avec les Actor Components (lot 5) | ★★★ | M |
-| Leçons Enhanced Input | Started / Triggered / Completed ; Débogue : l'oubli d'Add Mapping Context ; l'appui maintenu | ★★★ | avec la fonction |
+| ~~Leçons Enhanced Input~~ **faites en V7.4** | La lampe en Enhanced Input, D20 (Add Mapping Context oublié), Maintenir pour ouvrir (Hold) | ★★★ | fait |
 | Tick maîtrisé | Set Actor Tick Enabled, Tick Interval, Start with Tick Enabled, Event End Play (avec End Play Reason), Set Timer by Function Name | ★★ | S |
 
 ## Leçons à ajouter
@@ -242,6 +242,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.4 (18 novembre 2026), Enhanced Input : Input Actions, Input Mapping Contexts, Add / Remove Mapping Context, déclencheurs Down, Pressed, Released et Hold, événements Started, Ongoing, Triggered, Canceled, Completed, Consume Input ; trois étapes (la lampe, D20, maintenir pour ouvrir).
 - V7.3 (18 novembre 2026), pilote du lot 2 : première leçon corrigée (nœuds purs), aide utilisée mémorisée (seul, avec indices, solution vue), notions de référence et prérequis sur les cartes, durée indicative, « Montre-moi » après un échec, chaîne Cast To avec T1 « Le terminal à badge » et A1 « Le piège » (différé de deux jours).
 - V7.2 (18 novembre 2026), lot 1 Fiabilité : un projet illisible, d'un format plus récent ou que le stockage ne rend pas n'est plus jamais remplacé (dialogue de récupération, copie `rescue:*` gardée dans la sauvegarde complète) ; une seule politique de stockage avec révisions (la copie la plus récente gagne, écritures ordonnées par clé) ; transactions IndexedDB attendues jusqu'au bout ; projets et progressions vérifiés en entier avant toute écriture ; sauvegarde immédiate à la fermeture d'un espace ; slots Save Game enregistrés pendant Play ; échec d'enregistrement de la progression signalé, avec Réessayer ; restauration écrite d'un bloc ; règles de simulation et révisions de leçon versionnées, avec un avis une fois ; service worker : copie en cache sur erreur 5xx, seuls ses propres caches supprimés, manifest et icônes rafraîchis ; avis « Nouvelle version disponible ».
 - Réorganisation du backlog (18 novembre 2026) : revue Codex intégrée, doublons fusionnés, lots 1 à 3 retenus par Tristan.

@@ -41,6 +41,7 @@ export type CompileCode =
   | 'pickClass'
   | 'pickEnum'
   | 'pickTable'
+  | 'pickInputAsset'
   | 'pickSaveGame'
   | 'targetRequired'
   | 'badLink'
@@ -229,6 +230,10 @@ function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, 
   }
   if (n.def === 'flow.switchEnum' && !enumEntries(String(n.config.enum ?? ''), ctx.project)) out.push(['pickEnum', "choisis l'Enum dans Details."]);
   if (n.def.startsWith('dataTable.') && !(ctx.project?.dataTables ?? []).some((t) => t.id === n.config.table)) out.push(['pickTable', 'choisis la Data Table dans Details.']);
+  if (n.def === 'input.action' && !(ctx.project?.inputActions ?? []).some((a) => a.id === n.config.action)) out.push(['pickInputAsset', 'choisis l’Input Action dans Details.']);
+  if (n.def.endsWith('MappingContext') && n.def.startsWith('input.') && !(ctx.project?.mappingContexts ?? []).some((c) => c.id === n.config.context)) {
+    out.push(['pickInputAsset', 'choisis le Mapping Context dans Details.']);
+  }
   if (n.def === 'save.create' && !linked('saveClass')) {
     const id = n.defaults.saveClass;
     if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id && c.parent === 'SaveGame')) out.push(['pickSaveGame', 'choisis une classe SaveGame sur la pin Save Game Class.']);

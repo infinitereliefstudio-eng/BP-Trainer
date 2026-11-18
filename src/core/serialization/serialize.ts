@@ -107,6 +107,12 @@ function migrate(p: Project, from: number): Project {
     p.dataTables ??= [];
     cur = 8;
   }
+  if (cur === 8) {
+    // v9: Enhanced Input (Input Actions, Input Mapping Contexts).
+    p.inputActions ??= [];
+    p.mappingContexts ??= [];
+    cur = 9;
+  }
   p.format = cur;
   return p;
 }

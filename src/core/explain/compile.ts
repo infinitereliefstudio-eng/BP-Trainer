@@ -61,6 +61,10 @@ const COMPILE: Record<CompileCode, Explanation> = {
     why: 'Ce nœud lit une Data Table précise : sans table choisie (ou si elle a été supprimée), il n’a aucune ligne où chercher.',
     fixes: ['Sélectionne le nœud et choisis la Data Table dans Details.', 'Ou crée-en une : Content Browser › + Data Table.'],
   },
+  pickInputAsset: {
+    why: 'Ce nœud travaille sur un asset Enhanced Input précis (une Input Action ou un Mapping Context) : sans asset choisi, ou s’il a été supprimé, il ne sait pas lequel.',
+    fixes: ['Sélectionne le nœud et choisis l’asset dans Details.', 'Ou crée-le : Content Browser › + Input Action ou + Mapping Context.'],
+  },
   pickSaveGame: {
     why: 'Create Save Game Object fabrique un objet d’une classe SaveGame : il faut savoir laquelle, pour connaître ses variables.',
     fixes: ['Choisis la classe dans la liste de la pin Save Game Class.', 'Pas de classe SaveGame ? Content Browser › + Blueprint, classe parente SaveGame.'],

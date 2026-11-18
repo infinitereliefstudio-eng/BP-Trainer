@@ -35,6 +35,8 @@ export type Focus =
   | { kind: 'enum'; id: string }
   | { kind: 'struct'; id: string }
   | { kind: 'dataTable'; id: string }
+  | { kind: 'inputAction'; id: string }
+  | { kind: 'mappingContext'; id: string }
   | { kind: 'actor'; id: string }
   | { kind: 'playerStart' };
 

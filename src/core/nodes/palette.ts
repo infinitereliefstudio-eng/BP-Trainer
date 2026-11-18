@@ -132,6 +132,17 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
     out.push(entry(ctx, `dtnames:${t.id}`, 'dataTable.getRowNames', { table: t.id }, { category: cat, keywords: ['names', 'noms', ...kw] }));
     out.push(entry(ctx, `dtexists:${t.id}`, 'dataTable.rowExists', { table: t.id }, { category: cat, keywords: ['exist', 'existe', ...kw] }));
   }
+  if (graphKind === 'event') {
+    for (const a of ctx.project?.inputActions ?? []) {
+      const kw = ['enhanced', 'input', 'action', 'touche', a.name.toLowerCase()];
+      out.push(entry(ctx, `ia:${a.id}`, 'input.action', { action: a.id, consumeInput: true }, { category: 'Input|Enhanced Action Events', keywords: kw }));
+    }
+  }
+  for (const c of ctx.project?.mappingContexts ?? []) {
+    const kw = ['mapping context', 'imc', 'enhanced', 'input', 'contexte', c.name.toLowerCase()];
+    out.push(entry(ctx, `imcadd:${c.id}`, 'input.addMappingContext', { context: c.id }, { category: 'Input|Enhanced Input', keywords: ['add', 'ajouter', ...kw] }));
+    out.push(entry(ctx, `imcrem:${c.id}`, 'input.removeMappingContext', { context: c.id }, { category: 'Input|Enhanced Input', keywords: ['remove', 'retirer', ...kw] }));
+  }
   if (ctx.project) out.push(...communicationEntries(ctx, graphKind), ...parentEntries(ctx, graphKind));
   return out;
 }

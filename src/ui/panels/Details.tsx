@@ -1,4 +1,5 @@
 /** Right drawer: properties of whatever is selected. */
+import type { ConfigField } from '@core/nodes/definition';
 import type { ComponentChildren } from 'preact';
 import { findVariable, type Project, type Variable } from '@core/model/project';
 import { BUILTIN_ENUMS } from '@core/types/enums';
@@ -25,6 +26,7 @@ import { NameField } from '../widgets/NameField';
 import { ComponentDetails } from './ComponentDetails';
 import { EnumDetails } from './EnumDetails';
 import { DataTableDetails } from './DataTableDetails';
+import { InputActionDetails, MappingContextDetails } from './InputDetails';
 import { StructDetails } from './StructDetails';
 import { Check, Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
@@ -59,6 +61,8 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode }: DetailsP
   else if (f.kind === 'enum') body = <EnumDetails id={f.id} />;
   else if (f.kind === 'struct') body = <StructDetails id={f.id} />;
   else if (f.kind === 'dataTable') body = <DataTableDetails id={f.id} />;
+  else if (f.kind === 'inputAction') body = <InputActionDetails id={f.id} />;
+  else if (f.kind === 'mappingContext') body = <MappingContextDetails id={f.id} />;
   else
     body = (
       <p class="hint">
@@ -293,7 +297,9 @@ function confirmDeleteVariable(v: Variable, usage: number, openOverlay: OpenOver
 
 
 /** Choices of a node setting that come from the project (Enums, Blueprints). */
-function projectChoices(from: 'enums' | 'classes' | 'dataTables' | 'saveGames', p: Project): { value: string; label: string }[] {
+function projectChoices(from: NonNullable<ConfigField['choicesFrom']>, p: Project): { value: string; label: string }[] {
+  if (from === 'inputActions') return [{ value: '', label: 'None' }, ...(p.inputActions ?? []).map((a) => ({ value: a.id, label: a.name }))];
+  if (from === 'mappingContexts') return [{ value: '', label: 'None' }, ...(p.mappingContexts ?? []).map((c) => ({ value: c.id, label: c.name }))];
   if (from === 'dataTables') return [{ value: '', label: 'None' }, ...(p.dataTables ?? []).map((t) => ({ value: t.id, label: t.name }))];
   if (from === 'saveGames') return [{ value: '', label: 'None' }, ...p.classes.filter((c) => c.parent === 'SaveGame').map((c) => ({ value: c.id, label: c.name }))];
   if (from === 'classes') return [{ value: '', label: '—' }, ...p.classes.map((c) => ({ value: c.id, label: c.name }))];

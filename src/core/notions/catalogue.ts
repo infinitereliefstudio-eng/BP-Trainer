@@ -19,6 +19,7 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'visibility', title: 'Visibilité et collision', covers: 'Set Visibility, Hidden In Game, Collision Enabled' },
   { id: 'overlap', title: 'Overlaps', covers: 'Begin / End Overlap, Other Actor' },
   { id: 'input', title: 'Touches', covers: 'événements de touche, Auto Receive Input, Consume Input' },
+  { id: 'enhanced-input', title: 'Enhanced Input', covers: 'Input Action, Mapping Context, déclencheurs (Pressed, Hold…)' },
   { id: 'variables', title: 'Variables', covers: 'Get / Set, Boolean, Integer, valeur par défaut' },
   { id: 'branch', title: 'Branch et comparaisons', covers: 'choisir un chemin selon une condition' },
   { id: 'math', title: 'Calcul', covers: 'Integer et Float, Clamp, modulo, division' },

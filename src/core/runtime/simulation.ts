@@ -16,6 +16,7 @@ import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
 import { createActor, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
+import { EnhancedInput } from './enhancedInput';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
 import { RunRecord, type NoteCode } from './runRecord';
 import { movePlayer, type BlockingHit } from './movement';
@@ -80,6 +81,8 @@ export class Simulation implements InterpreterHost {
   readonly slots: Record<string, SavedGame>;
   /** Did a node write or delete a slot during this game? */
   slotsChanged = false;
+  /** Enhanced Input: active Mapping Contexts and the state of each action. */
+  readonly enhancedInput = new EnhancedInput();
   private readonly onSlotsChanged?: () => void;
 
   private readonly journal = new Journal();
@@ -238,6 +241,8 @@ export class Simulation implements InterpreterHost {
     if (this.paused) return;
     this.deltaSeconds = dt;
     this.phases.push(
+      // The player's input first, as UE's PlayerController ticks before the pawn moves.
+      () => this.fireActions(dt),
       () => {
         for (const h of movePlayer(this.player, this.move, this.actors, dt)) this.fireHit(h);
       },
@@ -354,11 +359,34 @@ export class Simulation implements InterpreterHost {
   // ---------------------------------------------------------------- input
 
   pressKey(key: InputKey): void {
+    this.enhancedInput.press(key);
     this.dispatchKey(key, 'pressed');
   }
 
   releaseKey(key: InputKey): void {
+    this.enhancedInput.release(key);
     this.dispatchKey(key, 'released');
+  }
+
+  /**
+   * Enhanced Input events of this frame, each sent down the input stack like
+   * a key: the first actor that binds the action keeps it (Consume Input).
+   */
+  private fireActions(dt: number): void {
+    for (const f of this.enhancedInput.process(this.project, dt)) {
+      const outputs = { value: f.value, elapsed: f.elapsed, triggeredSeconds: f.triggeredSeconds };
+      for (const a of this.inputStack()) {
+        if (this.interp.fireAction(a, f.action, f.event, outputs)) break;
+      }
+    }
+  }
+
+  addMappingContext(id: string, priority: number): void {
+    this.enhancedInput.addContext(id, priority);
+  }
+
+  removeMappingContext(id: string): void {
+    this.enhancedInput.removeContext(id);
   }
 
   private dispatchKey(key: InputKey, pin: 'pressed' | 'released'): void {
@@ -397,7 +425,9 @@ export class Simulation implements InterpreterHost {
   /** Actors with an input event that will not fire because input is off. */
   deafActors(key?: InputKey): ActorRT[] {
     return this.scripted().filter(
-      (a) => !a.receivesInput && this.interp.hasEvent(a, (n) => n.def === 'event.inputKey' && (!key || n.config.key === key)),
+      (a) =>
+        !a.receivesInput &&
+        this.interp.hasEvent(a, (n) => (n.def === 'event.inputKey' && (!key || n.config.key === key)) || (!key && n.def === 'input.action')),
     );
   }
 

@@ -33,11 +33,13 @@ import { randomStreamNodes } from './library/randomStream';
 import { transformNodes } from './library/transform';
 import { dataTableNodes } from './library/dataTables';
 import { saveGameNodes } from './library/saveGame';
+import { enhancedInputNodes } from './library/enhancedInput';
 
 const ALL: NodeDefinition[] = [
   ...eventNodes,
   ...dataTableNodes,
   ...saveGameNodes,
+  ...enhancedInputNodes,
   ...flowNodes,
   ...switchNodes,
   ...timeNodes,

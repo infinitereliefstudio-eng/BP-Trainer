@@ -274,6 +274,48 @@ export interface SavedGame {
   savedAt?: number;
 }
 
+/** Keys the app's Play offers (on-screen buttons). */
+export type KeyName = 'E' | 'F' | 'SpaceBar';
+export const KEY_NAMES: KeyName[] = ['E', 'F', 'SpaceBar'];
+
+/**
+ * When a mapped key makes its action fire, as UE's Input Triggers. None
+ * (an empty list) is UE's implicit Down: triggered every frame while held.
+ */
+export type InputTriggerKind = 'Down' | 'Pressed' | 'Released' | 'Hold';
+
+export interface InputTrigger {
+  kind: InputTriggerKind;
+  /** Hold: seconds the key must be held (Hold Time Threshold). */
+  holdTime?: number;
+  /** Hold: trigger once, not every frame after the threshold (Is One Shot). */
+  oneShot?: boolean;
+}
+
+/**
+ * An Input Action asset: something the player can do (Interagir, Sauter),
+ * whatever the key. The app's actions are digital (Value Type: Digital (bool)).
+ */
+export interface InputAction {
+  id: string;
+  name: string;
+  valueType: 'Bool';
+}
+
+/** A line of a Mapping Context: this key drives this action, with these triggers. */
+export interface InputMapping {
+  action: string;
+  key: KeyName;
+  triggers: InputTrigger[];
+}
+
+/** An Input Mapping Context asset: which keys drive which actions, active once added (Add Mapping Context). */
+export interface MappingContext {
+  id: string;
+  name: string;
+  mappings: InputMapping[];
+}
+
 export interface Project {
   /** Format version of the saved file, see serialization/migrate. */
   format: number;
@@ -284,6 +326,9 @@ export interface Project {
   enums: UserEnum[];
   structs: UserStruct[];
   dataTables: DataTable[];
+  /** Enhanced Input: Input Actions and Input Mapping Contexts. */
+  inputActions: InputAction[];
+  mappingContexts: MappingContext[];
   /**
    * Save slots, by "slot name|user index". They outlive Play, as files on
    * disk do in UE; a lesson's check starts from its own (Lesson.slots).
@@ -300,7 +345,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 8;
+export const PROJECT_FORMAT = 9;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -385,6 +430,8 @@ export function createProject(name = 'Mon projet'): Project {
     enums: [],
     structs: [],
     dataTables: [],
+    inputActions: [],
+    mappingContexts: [],
     level: createLevel(),
     createdAt: now,
     updatedAt: now,

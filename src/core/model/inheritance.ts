@@ -81,6 +81,8 @@ export function eventKey(n: NodeInstance): string {
       return `${n.def}:${c.component}`;
     case 'event.custom':
       return `${n.def}:${c.name}`;
+    case 'input.action':
+      return `${n.def}:${c.action}`;
     case 'event.interface':
       return `${n.def}:${c.interface}:${c.fn}`;
     default:

@@ -539,3 +539,8 @@ select.field { padding-right: 4px; }
 .stop.error { border-color: #8a2a2a; }
 .stop-text { flex: 1; }
 .stop .small-btn { padding: 4px 10px; min-height: 0; font-size: 12px; flex: none; }
+
+/* A line of an Input Mapping Context (panels/InputDetails.tsx) */
+.mapping-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.mapping-row .field { width: auto; min-width: 90px; }
+.mapping-row .d-field { flex-basis: 100%; }

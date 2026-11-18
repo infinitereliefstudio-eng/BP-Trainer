@@ -79,6 +79,28 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Plusieurs portes qui écoutent E : seule la dernière posée la reçoit, sans erreur. Et un acteur du niveau qui écoute E prive le joueur de cette touche.',
     pattern: 'Joueur : E → Line Trace ou overlap → Interact (message d’interface) sur l’objet visé',
   },
+  {
+    title: 'Enhanced Input',
+    names: ['Input Action', 'Input Mapping Context', 'Add Mapping Context'],
+    what: 'Le système de touches d’UE5, en trois pièces. Une Input Action dit ce que fait le joueur (IA_Interagir), sans touche. Un Input Mapping Context relie des touches à des actions (E → IA_Interagir). Add Mapping Context active un contexte pendant le jeu.',
+    when: 'Dans tout projet UE5. Changer de touche, ajouter la manette ou couper les contrôles dans un menu se fait dans les contextes, sans toucher aux graphes.',
+    trap: 'Oublier Add Mapping Context : les événements d’action ne se déclenchent jamais, sans aucune erreur.',
+    pattern: 'BP_Joueur : Event BeginPlay → Add Mapping Context (IMC_Joueur) ; ailleurs : événement IA_Interagir → …',
+  },
+  {
+    title: 'Les sorties d’une Input Action',
+    names: ['Started / Triggered / Completed', 'Canceled'],
+    what: 'Started : l’appui commence. Triggered : l’action a lieu, à chaque image tant qu’elle dure. Ongoing : en cours, pas encore validée (un Hold avant son seuil). Canceled : abandonnée avant d’avoir eu lieu. Completed : elle avait eu lieu et s’arrête.',
+    when: 'Started pour « une fois à l’appui » ; Triggered pour une action continue, ou avec un déclencheur Pressed ou Hold ; Canceled pour réagir à un appui trop bref.',
+    trap: 'Sans déclencheur, Triggered tombe à chaque image tant que la touche est enfoncée : un interrupteur branché dessus bascule des dizaines de fois.',
+  },
+  {
+    title: 'Déclencheurs (Triggers)',
+    names: ['Déclencheur Hold', 'Hold'],
+    what: 'Sur une ligne d’un Mapping Context, un déclencheur décide quand l’action a lieu : Down (aucun, à chaque image), Pressed (à l’appui), Released (au relâchement), Hold (après avoir tenu Hold Time Threshold secondes ; Is One Shot pour une seule fois).',
+    when: 'Pour régler la façon d’appuyer sans toucher au graphe : maintenir pour ouvrir, relâcher pour tirer.',
+    trap: 'Compter le temps soi-même dans le graphe (Delay, Tick) au lieu d’utiliser Hold : plus fragile, et le réglage n’est plus dans le contexte.',
+  },
   // -------------------------------------------------------------- variables
   {
     title: 'Variable',

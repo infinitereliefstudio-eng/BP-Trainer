@@ -1,7 +1,9 @@
-/** The project's assets: Blueprints, Blueprint Interfaces, Enums, Structures, Data Tables, and the save slots. */
+/** The project's assets: Blueprints, Blueprint Interfaces, Enums, Structures, Data Tables, Enhanced Input assets, and the save slots. */
 import { addEnum } from '@core/operations/enumOps';
 import { addStruct } from '@core/operations/structOps';
 import { addDataTable } from '@core/operations/dataTableOps';
+import { addInputAction, addMappingContext } from '@core/operations/inputOps';
+import { KEY_NAMES, type Project } from '@core/model/project';
 import { typeLabel } from '@core/types/pins';
 import { addClass, addInterface, addInterfaceFunction } from '@core/operations/projectOps';
 import { useStore } from '../hooks';
@@ -85,6 +87,30 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
       },
     });
   };
+  const createAsset = (
+    title: string,
+    initial: string,
+    label: string,
+    add: (p: Project, name: string) => { ok: true; value: { id: string } } | { ok: false; reason: string },
+    focus: 'inputAction' | 'mappingContext',
+  ) =>
+    openOverlay({
+      kind: 'prompt',
+      title,
+      initial,
+      confirmLabel: 'Créer',
+      onSubmit: (name) => {
+        const res = store.applyProject(label, (p) => add(p, name));
+        if (!res.ok) return res.reason;
+        store.setFocus({ kind: focus, id: res.value.id });
+        onOpenDetails();
+        return null;
+      },
+    });
+  const createAction = () => createAsset('Nouvelle Input Action', 'IA_Interagir', 'Créer une Input Action', (p, n) => addInputAction(p, n), 'inputAction');
+  const createContext = () =>
+    createAsset('Nouvel Input Mapping Context', 'IMC_Joueur', 'Créer un Mapping Context', (p, n) => addMappingContext(p, n), 'mappingContext');
+  const actionName = (id: string) => store.project.inputActions.find((a) => a.id === id)?.name ?? '?';
   const slots = Object.entries(store.project.saveSlots ?? {});
   const clearSlot = (key?: string) => {
     const p = store.project;
@@ -146,6 +172,12 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
           </button>
           <button class="btn" onClick={createSaveGame}>
             + SaveGame
+          </button>
+          <button class="btn" onClick={createAction}>
+            + Input Action
+          </button>
+          <button class="btn" onClick={createContext}>
+            + Mapping Context
           </button>
           <button class="btn" onClick={onClose}>
             Fermer
@@ -229,6 +261,38 @@ export function ContentBrowser({ onClose, openOverlay, onOpenDetails }: Props) {
               <span class="pi-title">{t.name}</span>
               <span class="pi-desc">
                 Lignes : {t.struct} · {t.rows.map((r) => r.name).join(', ') || 'aucune ligne'}
+              </span>
+            </button>
+          ))}
+          {(store.project.inputActions ?? []).length + (store.project.mappingContexts ?? []).length > 0 && <div class="palette-cat">Enhanced Input</div>}
+          {(store.project.inputActions ?? []).map((a) => (
+            <button
+              key={a.id}
+              class="palette-item"
+              onClick={() => {
+                store.setFocus({ kind: 'inputAction', id: a.id });
+                onClose();
+                onOpenDetails();
+              }}
+            >
+              <span class="pi-title">{a.name}</span>
+              <span class="pi-desc">Input Action · Digital (bool)</span>
+            </button>
+          ))}
+          {(store.project.mappingContexts ?? []).map((c) => (
+            <button
+              key={c.id}
+              class="palette-item"
+              onClick={() => {
+                store.setFocus({ kind: 'mappingContext', id: c.id });
+                onClose();
+                onOpenDetails();
+              }}
+            >
+              <span class="pi-title">{c.name}</span>
+              <span class="pi-desc">
+                Input Mapping Context ·{' '}
+                {c.mappings.map((m) => `${KEY_NAMES.includes(m.key) ? (m.key === 'SpaceBar' ? 'Space Bar' : m.key) : '?'} → ${actionName(m.action)}${m.triggers[0] ? ` (${m.triggers[0].kind})` : ''}`).join(', ') || 'aucune ligne'}
               </span>
             </button>
           ))}

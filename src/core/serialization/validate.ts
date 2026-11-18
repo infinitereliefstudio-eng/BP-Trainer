@@ -21,6 +21,8 @@ export class ProjectFileError extends Error {
 
 const GRAPH_KINDS = ['event', 'function', 'construction'];
 const COMPONENT_KINDS = ['Scene', 'StaticMesh', 'PointLight', 'BoxCollision', 'TextRender'];
+const KEYS = ['E', 'F', 'SpaceBar'];
+const TRIGGERS = ['Down', 'Pressed', 'Released', 'Hold'];
 
 type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -106,6 +108,19 @@ function checkAssets(p: Obj): void {
   for (const i of list(p, 'interfaces', 'Projet')) list(named(i, 'Une interface'), 'functions', 'Interface');
   for (const e of list(p, 'enums', 'Projet')) need(list(named(e, 'Une Enum'), 'entries', 'Enum').every(isStr), 'Enum mal formée.');
   for (const s of list(p, 'structs', 'Projet')) list(named(s, 'Une Structure'), 'members', 'Structure');
+  for (const a of list(p, 'inputActions', 'Projet')) named(a, 'Une Input Action');
+  for (const c of list(p, 'mappingContexts', 'Projet')) {
+    const imc = named(c, 'Un Input Mapping Context');
+    for (const m of list(imc, 'mappings', `Mapping Context « ${imc.name} »`)) {
+      need(isObj(m) && isStr(m.action) && KEYS.includes(m.key as string), `Mapping Context « ${imc.name} » : une ligne est mal formée.`);
+      const line = m as Obj;
+      line.triggers ??= [];
+      need(
+        Array.isArray(line.triggers) && (line.triggers as unknown[]).every((t) => isObj(t) && TRIGGERS.includes(t.kind as string)),
+        `Mapping Context « ${imc.name} » : un déclencheur est inconnu.`,
+      );
+    }
+  }
   for (const t of list(p, 'dataTables', 'Projet')) {
     const table = named(t, 'Une Data Table');
     need(isStr(table.struct), `Data Table « ${table.name} » sans structure.`);

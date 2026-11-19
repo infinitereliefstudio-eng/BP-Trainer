@@ -8,8 +8,8 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Où on en est
 
-- **Version en ligne : 7.23.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
-- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : lot 1 fait (V7.23) ; lots 2, 3 et 4 à suivre (V7.24 à V7.26). Le renumérotage des codes d'exercices est laissé de côté (optionnel, à proposer).
+- **Version en ligne : 7.24.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : lots 1 et 2 faits (V7.23, V7.24) ; lots 3 et 4 à suivre (V7.25, V7.26). Le renumérotage des codes d'exercices est laissé de côté (optionnel, à proposer).
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
@@ -711,6 +711,16 @@ Lancé par « tu peux lancer les corrections dans l'ordre que tu considères le 
 - Tests : `tests/heldKeys.test.ts`, `tests/enhancedInput.test.ts` (« Ignore All Pressed Keys Until Release »).
 
 Version 7.23.0.
+
+## V7.24 (2026-11-19) : revue, lot 2 (actions reçues par tous)
+
+- **Plus de Consume Input sur l'événement d'une Input Action** (`nodes/library/enhancedInput.ts`, `Interpreter.fireAction`) : dans UE, K2Node_EnhancedInputAction n'a pas cette propriété ; tous les acteurs de la pile qui écoutent l'action la reçoivent, du haut vers le bas. La priorité entre Mapping Contexts reste le seul arbitrage (déjà en place). Les événements de touche gardent leur Consume Input. Une ancienne config `consumeInput` sur un `input.action` est simplement ignorée. Règles de simulation version 5.
+- Les 40 étapes qui utilisent des actions passaient déjà sans cette consommation (vérifié pendant la revue) : aucune solution ne change.
+- **Textes** : R4 « Interagir comme dans UE5 » (fiches « Ce qui est en place » et « Ce qui cloche »), défi de « Les contrôles au Player Controller », glossaire Consume Input (les actions n'ont pas la case), note « Dans UE » de l'événement d'action.
+- **`runtime/inputStack.ts`** : la pile des entrées sortie de `simulation.ts` (`buildInputStack`, `sendKey`, `sendAction`, `keyKept`).
+- Tests : `tests/enhancedInput.test.ts`, `tests/playerController.test.ts` (le pion entend aussi l'action).
+
+Version 7.24.0.
 
 ## Méthode de travail
 

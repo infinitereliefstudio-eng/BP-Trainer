@@ -127,7 +127,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     title: 'Consume Input',
     names: ['Consume Input', 'Pile des entrées'],
     what: 'Une case du Details de chaque événement de touche, cochée par défaut. Les acteurs qui reçoivent les touches forment une pile : la touche part du dernier acteur abonné (le dernier posé dans le niveau) et descend jusqu’au pion du joueur, tout en bas. Cochée, le premier acteur qui a cette touche la garde : ceux d’en dessous ne la voient pas.',
-    when: 'Décoche-la quand plusieurs acteurs doivent entendre la même touche. Dans un vrai jeu, on évite le problème : seul le joueur écoute la touche, et il parle à l’objet visé (interface).',
+    when: 'Décoche-la quand plusieurs acteurs doivent entendre la même touche. Dans un vrai jeu, on évite le problème : seul le joueur écoute la touche, et il parle à l’objet visé (interface). Les événements d’Input Action (Enhanced Input) n’ont pas cette case : tous les acteurs qui écoutent l’action la reçoivent, et c’est la priorité des Mapping Contexts qui décide quelle action une touche déclenche.',
     trap: 'Plusieurs portes qui écoutent E : seule la dernière posée la reçoit, sans erreur. Et un acteur du niveau qui écoute E prive le joueur de cette touche.',
     pattern: 'Joueur : E → Line Trace ou overlap → Interact (message d’interface) sur l’objet visé',
   },

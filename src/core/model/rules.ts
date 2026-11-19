@@ -39,6 +39,13 @@ export const RULE_CHANGES: readonly RuleChange[] = [
     text:
       'Enhanced Input : Add et Remove Mapping Context ont l’option Ignore All Pressed Keys Until Release, cochée par défaut comme dans UE. Une touche déjà enfoncée au moment où un contexte est ajouté ou retiré ne compte pour les associations qui deviennent actives qu’une fois relâchée.',
   },
+  {
+    version: 5,
+    since: Date.parse('2026-11-19T16:45:00+01:00'),
+    app: '7.24',
+    text:
+      'Enhanced Input : l’événement d’une Input Action n’a plus de case Consume Input, comme dans UE. Tous les acteurs qui reçoivent les entrées et écoutent l’action la reçoivent ; les événements de touche gardent leur Consume Input.',
+  },
 ];
 
 export const RULES_VERSION = RULE_CHANGES[RULE_CHANGES.length - 1].version;

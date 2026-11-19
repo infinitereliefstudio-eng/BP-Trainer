@@ -27,7 +27,7 @@ Copie du Claude Doc « BP Trainer — Revue des V7.2 à V7.22 » : https://claud
 | Lot | Contenu | Version | État |
 | --- | --- | --- | --- |
 | 1 | F1, V1, V2 : changer de contexte comme dans UE | V7.23 | fait |
-| 2 | F2, C1 : actions reçues par tous | V7.24 | à faire |
+| 2 | F2, C1 : actions reçues par tous | V7.24 | fait |
 | 3 | P1, P2, P3 (durées) : aide et repères | V7.25 | à faire |
 | 4 | I1, C2, C3, actions GitHub : retouches | V7.26 | à faire |
 

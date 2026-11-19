@@ -71,7 +71,7 @@ function lampOnAction(p: Project, action: string): void {
   const key = Object.values(b.graph.nodes).find((n) => n.def === 'event.inputKey')!;
   const next = Object.values(b.graph.links).find((l) => l.from.node === key.id && l.from.pin === 'pressed')!.to.node;
   removeNodes(b.graph, [key.id]);
-  const ev = b.node('input.action', { action, consumeInput: true }, {}, [64, 200]);
+  const ev = b.node('input.action', { action }, {}, [64, 200]);
   b.link(ev, 'started', next, 'exec');
 }
 
@@ -388,7 +388,7 @@ export const lessonInputHold: Lesson = {
     context.mappings[0].triggers = [{ kind: 'Hold', holdTime: 1, oneShot: true }];
     const action = p.inputActions[0].id;
     const b = edit(p, 'BP_Porte');
-    const ev = b.node('input.action', { action, consumeInput: true }, {}, [64, 96]);
+    const ev = b.node('input.action', { action }, {}, [64, 96]);
     const rot = b.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [420, 0]);
     const say = b.node('debug.printString', {}, { text: 'Maintiens E pour ouvrir' }, [420, 320]);
     b.link(ev, 'triggered', rot, 'exec').target('Porte', rot).link(ev, 'canceled', say, 'exec');
@@ -469,7 +469,7 @@ export const lessonInputController: Lesson = {
     'Nœuds dans BP_PlayerController : Event BeginPlay, Self (ou Get Player Controller), Enhanced Input Local Player Subsystem, Add Mapping Context (IMC_Joueur).',
     'Solution : Content Drawer › + Add › Blueprint Class › Player Controller (BP_PlayerController), Class Settings › Player Controller Class coché. BeginPlay → Add Mapping Context (IMC_Joueur), Target = Self → Enhanced Input Local Player Subsystem. Dans BP_Joueur, supprime BeginPlay et la chaîne.',
   ],
-  challenge: 'Dans BP_PlayerController, écoute aussi IA_Interagir (Started) pour afficher « Interaction » avec Print String : avec Consume Input décoché sur la lampe, les deux l’entendent.',
+  challenge: 'Dans BP_PlayerController, écoute aussi IA_Interagir (Started) pour afficher « Interaction » avec Print String : la lampe et le Player Controller l’entendent tous les deux. Un événement d’Input Action n’a pas de Consume Input : pour qu’une touche ne serve qu’à un mode, on passe par un Mapping Context de plus haute priorité.',
   setup() {
     const p = lessonInputLamp.setup();
     lessonInputLamp.solve(p);

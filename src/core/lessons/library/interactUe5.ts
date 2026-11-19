@@ -32,7 +32,7 @@ function listensItself(b: ClassBuilder, action: string, act: (b: ClassBuilder, a
   const leave = b.node('event.actorEndOverlap', {}, {}, [64, 300]);
   b.link(enter, 'then', b.node('var.set', { variable: near }, { value: true }, [380, 96]), 'exec');
   b.link(leave, 'then', b.node('var.set', { variable: near }, { value: false }, [380, 300]), 'exec');
-  const ev = b.node('input.action', { action, consumeInput: false }, {}, [64, 560]);
+  const ev = b.node('input.action', { action }, {}, [64, 560]);
   const branch = b.node('flow.branch', {}, {}, [380, 560]);
   b.link(ev, 'started', branch, 'exec').link(b.node('var.get', { variable: near }, {}, [220, 760]), 'value', branch, 'condition');
   act(b, branch);
@@ -115,14 +115,14 @@ export const refactor4: Lesson = {
       body:
         'Le projet est réglé comme le template UE5 : **IMC_Joueur** relie E à **IA_Interagir**, BP_PlayerController l’ajoute au BeginPlay.\n\n' +
         '**BP_Lampe**, **BP_Porte** et **BP_Generateur** ont chacun :\n\n' +
-        '- **Auto Receive Input** sur Player 0 (Class Settings) ;\n- une variable `bProche`, mise à true par ActorBeginOverlap et à false par ActorEndOverlap ;\n- **IA_Interagir** (Started, Consume Input décoché) → **Branch** (bProche) → leur action.\n\n' +
+        '- **Auto Receive Input** sur Player 0 (Class Settings) ;\n- une variable `bProche`, mise à true par ActorBeginOverlap et à false par ActorEndOverlap ;\n- **IA_Interagir** (Started) → **Branch** (bProche) → leur action.\n\n' +
         '**BP_Coffre** (un Coffre, un Couvercle, une Zone) a un graphe vide. **BP_Joueur** aussi.',
     },
     {
       title: 'Ce qui cloche',
       body:
         '- **Trois copies** de la même logique (bProche, Branch) : un quatrième objet en demanderait une quatrième.\n' +
-        '- **Tous les objets entendent la touche**, partout dans le niveau, et doivent vérifier eux-mêmes si ça les concerne. Il a fallu décocher Consume Input pour que chacun l’entende.\n' +
+        '- **Tous les objets entendent l’action**, partout dans le niveau, et doivent vérifier eux-mêmes si ça les concerne : dans UE, chaque acteur qui reçoit les entrées et écoute IA_Interagir la reçoit.\n' +
         '- Dans un vrai projet UE5, **Auto Receive Input** sur des objets du décor est un réflexe d’UE4 : ils ne reçoivent pas d’entrées, c’est le joueur qui en reçoit.\n\n' +
         'Ce qui est nouveau ici : tu connais déjà l’interface (« Interagir avec tout »). Cette fois il faut **défaire** une logique qui marche, sans rien casser.',
     },

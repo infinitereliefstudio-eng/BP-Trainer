@@ -191,13 +191,13 @@ describe('Ignore All Pressed Keys Until Release (V7.23)', () => {
 
 describe('in the simulation', () => {
   /** Two lamps listen to the same action, the context is added at BeginPlay. */
-  function twoListeners(consume: boolean): Project {
+  function twoListeners(): Project {
     const { p, action, context } = assets();
     const lamp = createClass('BP_Lampe');
     lamp.autoReceiveInput = true;
     p.classes.push(lamp);
     const b = edit(p, 'BP_Lampe');
-    const ev = b.node('input.action', { action, consumeInput: consume }, {}, [64, 96]);
+    const ev = b.node('input.action', { action }, {}, [64, 96]);
     const say = b.node('debug.printString', {}, { text: 'reçu' }, [400, 96]);
     b.link(ev, 'started', say, 'exec');
     addAtBeginPlay(edit(p, 'BP_A'), context);
@@ -218,9 +218,8 @@ describe('in the simulation', () => {
     return sim.log.filter((l) => l.message === 'reçu').length;
   };
 
-  it('the first actor of the input stack keeps the action (Consume Input), unless unchecked', () => {
-    expect(received(twoListeners(true))).toBe(1);
-    expect(received(twoListeners(false))).toBe(2);
+  it('every actor of the input stack that binds the action hears it: an action event has no Consume Input (V7.24)', () => {
+    expect(received(twoListeners())).toBe(2);
   });
 
   it('gives Elapsed Seconds and Action Value to the event', () => {

@@ -172,7 +172,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
   if (graphKind === 'event' && !inComponent) {
     for (const a of ctx.project?.inputActions ?? []) {
       const kw = ['enhanced', 'input', 'action', 'touche', a.name.toLowerCase()];
-      out.push(entry(ctx, `ia:${a.id}`, 'input.action', { action: a.id, consumeInput: true }, { category: 'Input|Enhanced Action Events', keywords: kw }));
+      out.push(entry(ctx, `ia:${a.id}`, 'input.action', { action: a.id }, { category: 'Input|Enhanced Action Events', keywords: kw }));
     }
   }
   for (const c of ctx.project?.mappingContexts ?? []) {

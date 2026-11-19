@@ -18,6 +18,7 @@ import type { PrintOptions } from './behaviors/types';
 import { createActor, createController, createInputSubsystem, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { EnhancedInput } from './enhancedInput';
+import { buildInputStack, keyKept, sendAction, sendKey } from './inputStack';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
 import { RunRecord, type NoteCode } from './runRecord';
 import { movePlayer, type BlockingHit } from './movement';
@@ -453,8 +454,9 @@ export class Simulation implements InterpreterHost {
   }
 
   /**
-   * Enhanced Input events of this frame, each sent down the input stack like
-   * a key: the first actor that binds the action keeps it (Consume Input).
+   * Enhanced Input events of this frame, each sent to every actor of the
+   * input stack that binds the action, from the top: an action event has no
+   * Consume Input in UE.
    */
   private fireActions(dt: number): void {
     for (const f of this.enhancedInput.process(this.project, dt)) {
@@ -463,10 +465,7 @@ export class Simulation implements InterpreterHost {
         this.record.pausedActions.add(f.action);
         continue;
       }
-      const outputs = { value: f.value, elapsed: f.elapsed, triggeredSeconds: f.triggeredSeconds };
-      for (const a of this.inputStack()) {
-        if (this.interp.fireAction(a, f.action, f.event, outputs)) break;
-      }
+      sendAction(this.inputStack(), this.interp, f.action, f.event, { value: f.value, elapsed: f.elapsed, triggeredSeconds: f.triggeredSeconds });
     }
   }
 
@@ -484,36 +483,18 @@ export class Simulation implements InterpreterHost {
     this.record.keys.add(key);
     // Key events do not execute while the game is paused (their Execute when Paused is off, UE's default).
     if (this.gamePaused) return;
-    for (const a of this.inputStack()) {
-      if (this.interp.fireKey(a, key, pin)) break;
-    }
+    sendKey(this.inputStack(), this.interp, key, pin);
     this.runPhases();
   }
 
-  /**
-   * UE's input stack (BuildInputStack), from the top: the actors that receive
-   * input, the last registered first (the last placed in the level, then the
-   * spawned ones), then the PlayerController, then the possessed pawn, which
-   * "gets last dibs". Not shuffled by the actor order option: UE's stack
-   * order is fixed.
-   */
+  /** UE's input stack, from the top (see inputStack.ts). */
   inputStack(): ActorRT[] {
-    const actors = this.actors.filter((a) => a.receivesInput && !a.destroyed).reverse();
-    const pc = this.controller.classId ? [this.controller] : [];
-    const pawn = this.player.classId && this.player.receivesInput ? [this.player] : [];
-    return [...actors, ...pc, ...pawn];
+    return buildInputStack(this.actors, this.controller, this.player);
   }
 
-  /**
-   * When an actor keeps the key (Consume Input), the actors below it on the
-   * input stack that also bind it: they will not hear it.
-   */
+  /** When an actor keeps a key (Consume Input), the actors below it that bind it too. */
   keyKeptFrom(key: InputKey): { by: ActorRT; missed: ActorRT[] } | undefined {
-    const stack = this.inputStack();
-    const i = stack.findIndex((a) => this.interp.keyBinding(a, key, 'pressed') === 'consume');
-    if (i < 0) return undefined;
-    const missed = stack.slice(i + 1).filter((a) => this.interp.keyBinding(a, key, 'pressed') !== 'none');
-    return missed.length ? { by: stack[i], missed } : undefined;
+    return keyKept(this.inputStack(), this.interp, key);
   }
 
   /** Actors with an input event that will not fire because input is off. */

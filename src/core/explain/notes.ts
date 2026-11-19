@@ -73,6 +73,7 @@ const IN_UE: Record<string, string> = {
   'event.inputKey': 'Dans un projet UE5, on passe en général par Enhanced Input (Input Actions). Ces événements de touche restent utiles pour apprendre et prototyper.',
   'actor.getPlayerPawn': 'Ici il n’y a qu’un joueur, le pion à l’index 0.',
   'player.getController': 'Ici il n’y a qu’un joueur : son Player Controller est à l’index 0. Dans UE, un Blueprint Player Controller se choisit dans le Game Mode (Player Controller Class).',
+  'input.action': 'Contrairement à un événement de touche, l’événement d’une Input Action n’a pas de case Consume Input dans UE : chaque acteur qui reçoit les entrées et écoute l’action la reçoit. Pour qu’une touche change de sens (menu, dialogue), on ajoute un Mapping Context de plus haute priorité.',
   'input.addMappingContext': 'Dans UE, le Mapping Context se choisit sur une pin du nœud, à côté de Priority et d’une pin Options (une structure à éclater). Ici, le contexte et Ignore All Pressed Keys Until Release, la seule option simulée, se règlent dans Details.',
   'actor.setLocation': 'Le niveau est vu de dessus : Z est ignoré. Le déplacement se fait sans Sweep : l’acteur peut se poser dans un mur.',
   'timeline.node': 'Ici une piste est faite de segments droits entre ses points clés. Dans UE, on double-clique le nœud pour ouvrir l’éditeur de courbes, où chaque point peut aussi être arrondi (Auto) ; un Timeline peut porter des pistes Vector, Color et Event.',

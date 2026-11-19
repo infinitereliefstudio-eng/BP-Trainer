@@ -10,7 +10,8 @@
  *   the Enhanced Input Local Player Subsystem at BeginPlay (Self →
  *   Subsystem → Add Mapping Context);
  * - every key event becomes the action event of its key, keeping Consume
- *   Input. Actors that listened to a key keep Auto Receive Input: in UE an
+ *   Input on the key form only (an action event has none). Actors that
+ *   listened to a key keep Auto Receive Input: in UE an
  *   actor with input enabled receives action events too.
  *
  * The lesson keeps its own code: `asEnhancedInput` converts its starting
@@ -130,7 +131,7 @@ export function keyEventsToActions(p: Project, actions: Map<KeyName, string>): v
         'event.inputKey',
         (config) => {
           const action = actions.get((config.key as KeyName) ?? 'E');
-          return action ? { def: 'input.action', config: { action, consumeInput: config.consumeInput !== false } } : undefined;
+          return action ? { def: 'input.action', config: { action } } : undefined;
         },
         KEY_PIN,
       );

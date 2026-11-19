@@ -26,7 +26,6 @@ import type { ActorRT, RValue } from './world';
 
 /** Where execution currently is: used for error messages and the trace. */
 /** Exec outputs of an Enhanced Input action event. */
-const ACTION_PINS = ['triggered', 'started', 'ongoing', 'canceled', 'completed'];
 
 export interface NodeSite {
   actor: ActorRT;
@@ -266,17 +265,15 @@ export class Interpreter {
   }
 
   /**
-   * An Enhanced Input event: fire it, and tell whether the actor keeps the
-   * action. Any wired event of the action is a binding; Consume Input (on
-   * unless unchecked) stops it for the actors below on the input stack.
+   * An Enhanced Input event: fire it. Unlike a key event, it keeps nothing
+   * from the actors below on the input stack: in UE, every actor that binds
+   * the action hears it; which key reaches which action is settled between
+   * Mapping Contexts, by priority.
    */
-  fireAction(actor: ActorRT, action: string, pin: string, outputs: Record<string, RValue>): boolean {
+  fireAction(actor: ActorRT, action: string, pin: string, outputs: Record<string, RValue>): void {
     const isAction = (n: NodeInstance) => n.def === 'input.action' && n.config.action === action;
     const frames = this.eventFrames(actor, isAction, pin, outputs);
     if (frames.length) this.queue.push(frames);
-    const all = this.eventFrames(actor, isAction, 'triggered', {});
-    const bound = all.filter((f) => ACTION_PINS.some((p) => (f.gi.execOut.get(`${f.node}:${p}`)?.length ?? 0) > 0));
-    return bound.some((f) => f.gi.graph.nodes[f.node].config.consumeInput !== false);
   }
 
   private keyFrames(actor: ActorRT, key: string, pin: string): Frame[] {

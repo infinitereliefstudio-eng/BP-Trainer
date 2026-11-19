@@ -105,7 +105,7 @@ export const transferChest: Lesson = {
     const action = p.inputActions.find((a) => a.name === 'IA_Interagir')!.id;
     for (const m of context.mappings) if (m.action === action) m.triggers = [{ kind: 'Hold', holdTime: 1, oneShot: true }];
     const b = edit(p, 'BP_Coffre');
-    const ev = b.node('input.action', { action, consumeInput: true }, {}, [64, 200]);
+    const ev = b.node('input.action', { action }, {}, [64, 200]);
     const search = b.node('debug.printString', {}, { text: 'Tu fouilles le coffre' }, [420, 40]);
     const open = b.node('component.setVisibility', {}, { visible: false }, [420, 360]);
     const say = b.node('debug.printString', {}, { text: 'Le coffre s’ouvre' }, [760, 360]);

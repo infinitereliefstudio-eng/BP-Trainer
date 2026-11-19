@@ -129,10 +129,10 @@ describe('the Player Controller', () => {
     const lamp = pb.blueprint('BP_Lampe');
     lamp.cls.autoReceiveInput = true;
     pb.place(lamp, 100, 0);
-    lamp.link(lamp.node('input.action', { action, consumeInput: false }), 'started', lamp.node('debug.printString', {}, { text: 'lampe' }), 'exec');
+    lamp.link(lamp.node('input.action', { action }), 'started', lamp.node('debug.printString', {}, { text: 'lampe' }), 'exec');
     const sim = pressE(p);
-    // The controller keeps the action (Consume Input checked): the pawn below never hears it.
-    expect(prints(sim)).toEqual(['contrôleur prêt', 'lampe', 'contrôleur']);
+    // From the top of the stack down, and every actor that binds the action hears it (V7.24).
+    expect(prints(sim)).toEqual(['contrôleur prêt', 'lampe', 'contrôleur', 'pion']);
     expect(sim.inputStack().map((a) => a.id)).toEqual([sim.inputStack()[0].id, 'controller', 'player']);
   });
 

@@ -303,6 +303,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.24 (19 novembre 2026), revue, lot 2 : l'événement d'une Input Action n'a plus de Consume Input (comme dans UE, tous les acteurs qui l'écoutent la reçoivent) ; textes de R4 et du défi Player Controller corrigés ; pile des entrées dans `runtime/inputStack.ts`.
 - V7.23 (19 novembre 2026), revue des V7.2 à V7.22 ([REVUE_V7.md](REVUE_V7.md)), lot 1 : Ignore All Pressed Keys Until Release sur Add / Remove Mapping Context (cochée par défaut, comme dans UE) ; le correcteur rejoue chaque solution avec des appuis tenus 0,1 s ; X1 vérifie qu'aucune réplique n'est sautée.
 - V7.22 (19 novembre 2026), chantier Actor Components, étape 4 : rappels (La salle de contrôle, M2 avec un Line Trace), conseil « Chaîne copiée entre Blueprints » (parent ou composant), fiches sur L'héritage, X2 et S4, glossaire et mémo « Interface ou composant ». Chantier terminé.
 - V7.21 (19 novembre 2026), chantier Actor Components, étape 3 : quatre étapes d'usage en Avancé : « Interagir par composant », Débogue D23 « La batterie qui ne sait pas où elle est », « Le sac et le coffre », Autonomie A2 « L'énergie de la station ». 124 étapes.

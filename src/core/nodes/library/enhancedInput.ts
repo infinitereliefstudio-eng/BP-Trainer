@@ -39,16 +39,8 @@ export const enhancedInputNodes: NodeDefinition[] = [
     description:
       'Se déclenche pour une Input Action, quand une touche qui lui est associée dans un Mapping Context ajouté (Add Mapping Context) passe par les étapes de ses déclencheurs. Started : l’évaluation commence (appui). Ongoing : en cours, pas encore validée (un Hold avant son seuil). Triggered : l’action a lieu (à chaque image tant qu’elle dure). Canceled : abandonnée avant d’avoir eu lieu (relâchée trop tôt). Completed : elle avait eu lieu et s’arrête.',
     keywords: ['enhanced', 'input', 'action', 'ia', 'touche'],
-    config: [
-      { key: 'action', label: 'Input Action', kind: 'choice', choicesFrom: 'inputActions' },
-      {
-        key: 'consumeInput',
-        label: 'Consume Input',
-        kind: 'bool',
-        help: 'Cochée (par défaut, comme dans UE) : le premier acteur de la pile des entrées qui écoute cette action la garde, les autres ne la reçoivent pas.',
-      },
-    ],
-    defaultConfig: { action: '', consumeInput: true },
+    config: [{ key: 'action', label: 'Input Action', kind: 'choice', choicesFrom: 'inputActions' }],
+    defaultConfig: { action: '' },
     pins: [
       execOut('triggered', 'Triggered'),
       execOut('started', 'Started'),

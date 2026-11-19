@@ -38,6 +38,10 @@ const TRAPS: Record<string, string> = {
   'actor.spawn': 'Le BeginPlay du nouvel acteur a déjà tourné quand Return Value sort : un Set fait après arrive trop tard pour lui. Utilise Expose on Spawn.',
   'time.setTimerByEvent': 'Relancer le même événement remplace son timer au lieu d’en ajouter un. Garde le Return Value (Timer Handle) pour l’arrêter avec Clear Timer.',
   'dispatcher.bind': 'Seuls les appels faits après le Bind sont reçus : fais le Bind tôt, au BeginPlay, avant le premier Call.',
+  'actor.getComponentByClass': 'Renvoie None sur un acteur qui n’a pas ce composant (un mur, une caisse sans santé) : teste avec Is Valid avant de t’en servir, sinon c’est Accessed None.',
+  'component.getOwner': 'Dans un Actor Component, Self est le composant : les nœuds d’acteur (Get Actor Location, Destroy Actor…) ont besoin de Get Owner sur Target.',
+  'actor.getOwner': 'Ce n’est pas l’acteur qui porte un composant : celui-là s’obtient avec le Get Owner d’un Actor Component. L’Owner d’un acteur est presque toujours None.',
+  'event.componentDispatcher': 'Abonné par UE dès que l’acteur existe, sans Bind Event : il reçoit tous les appels du composant, même ceux de son BeginPlay.',
   'var.getLocal': 'Chaque appel de la fonction repart de la valeur par défaut : une variable locale ne garde rien d’un appel à l’autre. Pour compter entre deux appels, utilise une variable du Blueprint.',
   'dataTable.getRow': 'Out Row n’a de sens que sur le chemin Row Found. Relier aussi Row Not Found au même Print String affiche une ligne vide, sans erreur : traite les deux sorties séparément.',
   'save.fromSlot': 'Slot absent : Return Value vaut None, sans erreur, et le Cast qui suit échoue en silence. À la toute première partie, il n’y a encore rien : teste Does Save Game Exist et crée une sauvegarde neuve sinon.',
@@ -75,6 +79,7 @@ const IN_UE: Record<string, string> = {
   'trace.lineByChannel': 'Ici le rayon est tracé dans le plan du sol. Un Static Mesh qui bloque arrête les deux canaux ; une Box Collision (zone de déclenchement) n’en arrête aucun ; la capsule du joueur ignore Visibility et bloque Camera, comme le preset Pawn. Dans UE, cela se règle composant par composant dans Collision Presets.',
   'event.hit': 'Ici, seul le joueur se déplace en balayant le décor : Event Hit vient donc toujours d’un contact avec lui. Dans UE, un acteur déplacé avec Sweep coché, ou simulé par la physique (Simulation Generates Hit Events), en reçoit aussi.',
   'cs.entry': 'Dans UE, le Construction Script sert aussi à créer des composants (Add Static Mesh Component…). Ici il règle les composants existants.',
+  'actor.getOwner': 'Dans UE, l’Owner d’un acteur se donne avec la pin Owner de Spawn Actor (le réseau s’en sert). Ici, Spawn Actor n’a pas cette pin : Get Owner d’un acteur renvoie toujours None.',
   'actor.getLocation': 'Le niveau est vu de dessus : Z vaut toujours 0.',
 };
 

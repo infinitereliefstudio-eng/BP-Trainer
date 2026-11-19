@@ -1,7 +1,7 @@
 /** Project-level mutators: Blueprint classes. */
 import { descendants, inheritedView, isA, rootParent } from '../model/inheritance';
 import { newId } from '../model/ids';
-import { componentDefaults, createClass, isPlaceableParent, uniqueName, type BlueprintClass, type BlueprintInterface, type ParentClass, type Project } from '../model/project';
+import { componentDefaults, createClass, familyOf, isPlaceableParent, isSceneComponent, uniqueName, type BlueprintClass, type BlueprintInterface, type ClassFamily, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { renameTypeRefs } from './enumOps';
@@ -12,7 +12,7 @@ export function pruneProject(p: Project): void {
   for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
 }
 
-const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'Self'];
+const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
   const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
@@ -43,12 +43,20 @@ export function removeClass(p: Project, id: string): OpResult {
   if (p.classes.length <= 1) return { ok: false, reason: 'Le projet doit garder au moins un Blueprint.' };
   const child = p.classes.find((c) => c.parentClassId === id);
   if (child) return { ok: false, reason: `${child.name} hérite de ce Blueprint : change d’abord sa classe parente (Class Settings).` };
+  const user = p.classes.find((c) => c.components.some((k) => k.kind === 'ActorComponent' && k.classId === id));
+  if (user) return { ok: false, reason: `${user.name} utilise ce Blueprint comme composant : retire-le d’abord de ses Components.` };
   p.classes = p.classes.filter((c) => c.id !== id);
   p.level.actors = p.level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;
   if (p.playerControllerClassId === id) delete p.playerControllerClassId;
   return { ok: true, value: undefined };
 }
+
+const FAMILY_REFUSAL: Record<ClassFamily, string> = {
+  save: 'Un SaveGame ne peut hériter que de SaveGame ou d’un autre SaveGame.',
+  component: 'Un Actor Component ne peut hériter que d’ActorComponent ou d’un autre Actor Component.',
+  actor: 'Un acteur ne peut hériter ni d’un SaveGame ni d’un Actor Component : crée un Blueprint à part (Content Drawer › + Add › Blueprint Class).',
+};
 
 /**
  * Parent Class: Actor, Pawn, or another Blueprint (by id). A Blueprint cannot
@@ -57,17 +65,16 @@ export function removeClass(p: Project, id: string): OpResult {
 export function setParentClass(p: Project, classId: string, parent: string): OpResult {
   const cls = p.classes.find((c) => c.id === classId);
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
-  // A SaveGame is an object, an Actor lives in the level: one cannot become the other.
-  const saveFamily = rootParent(p, cls) === 'SaveGame';
+  // A SaveGame is an object, an Actor lives in the level, an Actor Component lives in an actor: none can become another.
+  const family = familyOf(rootParent(p, cls));
   const base = p.classes.find((c) => c.id === parent);
-  const wantsSave = parent === 'SaveGame' || (!!base && rootParent(p, base) === 'SaveGame');
-  if (saveFamily !== wantsSave) {
-    return { ok: false, reason: saveFamily ? 'Un SaveGame ne peut hériter que de SaveGame ou d’un autre SaveGame.' : 'Un acteur ne peut pas hériter d’un SaveGame : crée un Blueprint SaveGame à part (Content Drawer › + Add › Blueprint Class › SaveGame).' };
-  }
-  if (parent === 'SaveGame') {
+  const wanted: ClassFamily = base ? familyOf(rootParent(p, base)) : familyOf(parent as ParentClass);
+  if (family !== wanted) return { ok: false, reason: FAMILY_REFUSAL[family] };
+  const saveFamily = family === 'save';
+  if (parent === 'SaveGame' || parent === 'ActorComponent') {
     delete cls.parentClassId;
-    cls.parent = 'SaveGame';
-    for (const c of descendants(p, cls)) c.parent = 'SaveGame';
+    cls.parent = parent;
+    for (const c of descendants(p, cls)) c.parent = parent;
     pruneProject(p);
     return { ok: true, value: undefined };
   }
@@ -80,9 +87,9 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
     if (isA(p, base.id, cls.id)) return { ok: false, reason: `${base.name} hérite déjà de ${cls.name} : il ne peut pas être sa classe parente.` };
     cls.parentClassId = base.id;
     // As in UE, a child has no root of its own: it uses the parent's. Its own components hang under it.
-    const baseRoot = inheritedView(base, p).components.find((c) => !c.parent);
+    const baseRoot = inheritedView(base, p).components.find((c) => !c.parent && isSceneComponent(c));
     if (baseRoot) {
-      for (const root of cls.components.filter((c) => !c.parent)) {
+      for (const root of cls.components.filter((c) => !c.parent && isSceneComponent(c))) {
         if (root.kind === 'Scene') {
           for (const c of cls.components) if (c.parent === root.id) c.parent = baseRoot.id;
           cls.components = cls.components.filter((c) => c.id !== root.id);
@@ -90,10 +97,10 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
       }
     }
   }
-  if (!saveFamily && !cls.parentClassId && cls.components.every((c) => !!c.parent)) {
+  if (!saveFamily && family !== 'component' && !cls.parentClassId && cls.components.filter(isSceneComponent).every((c) => !!c.parent)) {
     // Back to a native parent: a root of its own again.
     const root = { id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene' as const, props: componentDefaults('Scene') };
-    for (const c of cls.components) if (!cls.components.some((o) => o.id === c.parent)) c.parent = root.id;
+    for (const c of cls.components) if (isSceneComponent(c) && !cls.components.some((o) => o.id === c.parent)) c.parent = root.id;
     cls.components.unshift(root);
   }
   // The native class at the top follows the new chain, for this class and its children.

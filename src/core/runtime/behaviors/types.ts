@@ -41,6 +41,12 @@ export interface WorldApi {
   /** Is the actor of this class, or of a Blueprint that inherits from it? */
   isA(actor: ActorRT, classId: unknown): boolean;
   ownerOf(c: ComponentRT): ActorRT | undefined;
+  /** The objects of an actor's Actor Components made in Blueprint, alive, in Components order. */
+  componentsOf(actor: ActorRT): ActorRT[];
+  /** The actor carrying an Actor Component's object (Get Owner), or null. */
+  ownerActor(obj: ActorRT): ActorRT | null;
+  /** Get Components by Class: the actor's components of that class (a Blueprint id or a native class name). */
+  componentsByClass(actor: ActorRT, classId: unknown): RValue[];
   destroy(actor: ActorRT): void;
   displayName(ref: RValue): string;
   /** Log a Blueprint Runtime Error at the current node. */

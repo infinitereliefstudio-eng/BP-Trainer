@@ -119,6 +119,11 @@ function migrate(p: Project, from: number): Project {
     for (const c of p.classes ?? []) wireSubsystemTargets(c.graphs ?? []);
     cur = 10;
   }
+  if (cur === 10) {
+    // v11: Actor Components made in Blueprint (parent ActorComponent, components that point to their class).
+    // Nothing to convert: the number keeps an older app from opening these projects.
+    cur = 11;
+  }
   p.format = cur;
   return p;
 }

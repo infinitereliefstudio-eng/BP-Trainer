@@ -16,7 +16,8 @@ function ofClass(cx: ValueCx): ActorRT[] {
 
 export const actorBehaviors: Record<string, Behavior> = {
   'actor.destroy': {
-    // Event Destroyed runs first (a synchronous call), then the actor goes.
+    // As UE's AActor::Destroyed: Event End Play (the actor's, then its components'), then
+    // Event Destroyed, all synchronous calls; then the actor goes, with its components.
     exec: (cx) => {
       const st = cx.state(() => ({ pending: '' }));
       if (cx.entry === RESUME) {
@@ -27,10 +28,16 @@ export const actorBehaviors: Record<string, Behavior> = {
       }
       const a = cx.world.actor(cx.in('target'), 'Target');
       if (!a) return ['then'];
-      if (!a.isPlayer && cx.callEvents(a, (n) => n.def === 'event.destroyed', {}) > 0) {
-        st.pending = a.id;
-        cx.resume();
-        return [];
+      if (!a.isPlayer && a.id !== cx.world.playerController().id) {
+        const endPlay = (n: { def: string }) => n.def === 'event.endPlay';
+        let calls = cx.callEvents(a, endPlay, { reason: 0 });
+        for (const c of cx.world.componentsOf(a)) calls += cx.callEvents(c, endPlay, { reason: 0 });
+        calls += cx.callEvents(a, (n) => n.def === 'event.destroyed', {});
+        if (calls > 0) {
+          st.pending = a.id;
+          cx.resume();
+          return [];
+        }
       }
       cx.world.destroy(a);
       return ['then'];
@@ -53,9 +60,13 @@ export const actorBehaviors: Record<string, Behavior> = {
       const cls = a && cx.node.defaults.class === id ? cx.world.classOf(a) : undefined;
       if (a && cls) for (const v of spawnPins(cls)) a.vars[v.id] = copyValue(cx.in(`expose:${v.id}`));
       cx.out('result', a ? ref(a) : null);
-      // The Construction Script sees the exposed values, then BeginPlay runs.
-      if (a) cx.callConstruction(a);
-      if (a) cx.callEvents(a, (n) => n.def === 'event.beginPlay', {});
+      // The Construction Script sees the exposed values, then BeginPlay runs: its components' first, then its own.
+      if (a) {
+        cx.callConstruction(a);
+        const beginPlay = (n: { def: string }) => n.def === 'event.beginPlay';
+        for (const c of cx.world.componentsOf(a)) cx.callEvents(c, beginPlay, {});
+        cx.callEvents(a, beginPlay, {});
+      }
       return ['then'];
     },
   },

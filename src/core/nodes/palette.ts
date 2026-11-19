@@ -8,7 +8,9 @@ import type { BlueprintClass, Graph, GraphKind, NodeInstance } from '../model/pr
 import { isAssignable, type PinType } from '../types/pins';
 import type { Value } from '../types/values';
 import type { NodeContext, PinSpec } from './definition';
-import { NATIVE_CASTS } from './library/communication';
+import { classById, NATIVE_CASTS } from './library/communication';
+import { NOT_IN_COMPONENT, selfIs } from './library/actorComponents';
+import { NATIVE_DISPATCHERS, NATIVE_SIGNATURE_OWNER } from './library/nativeDispatchers';
 import { allDefinitions, getDefinition, resolvePins } from './registry';
 
 export interface PaletteEntry {
@@ -29,9 +31,14 @@ export interface PaletteEntry {
 export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind'>): PaletteEntry[] {
   const graphKind = graph.kind;
   const out: PaletteEntry[] = [];
+  const inComponent = selfIs(ctx, 'ActorComponent');
+  // Each Get Owner shows where it means something; the other one when searching or dragging a wire.
+  const elsewhere = (id: string) => (id === 'component.getOwner' && !inComponent) || (id === 'actor.getOwner' && inComponent);
   for (const d of allDefinitions()) {
     if (d.hiddenFromPalette) continue;
     if (d.allowedIn && !d.allowedIn.includes(graphKind)) continue;
+    // An Actor Component has no shape, no input, no Timeline (UE leaves them out of its palette).
+    if (inComponent && NOT_IN_COMPONENT[d.id]) continue;
     const config = { ...(d.defaultConfig ?? {}) };
     if (d.id === 'fn.return') config.graph = graph.id;
     const title =
@@ -44,6 +51,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       def: d.id,
       config,
       keywords: d.keywords ?? [],
+      ...(elsewhere(d.id) ? { contextOnly: true } : {}),
     });
   }
   for (const v of ctx.cls.variables) {
@@ -119,6 +127,34 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       config: { component: c.id },
       keywords: ['component', 'composant', c.name.toLowerCase()],
     });
+    // An Actor Component's dispatchers: UE's green + in its Details, an event already bound.
+    const comp = c.kind === 'ActorComponent' && graphKind === 'event' ? classById(ctx, c.classId) : undefined;
+    for (const d of comp?.dispatchers ?? []) {
+      out.push(
+        entry(ctx, `cdisp:${c.id}:${d.id}`, 'event.componentDispatcher', { component: c.id, dispatcher: d.id }, {
+          category: `Add Event|${c.name}`,
+          keywords: ['on', 'event', 'dispatcher', 'component', 'composant', d.name.toLowerCase(), c.name.toLowerCase()],
+        }),
+      );
+    }
+  }
+  if (graphKind === 'event') {
+    // An actor's own dispatchers: an Actor Component binds to its owner's overlaps this way.
+    for (const nd of Object.values(NATIVE_DISPATCHERS)) {
+      const cfg = { dispatcher: nd.name };
+      const kw = ['bind', 'overlap', 'dispatcher', nd.name.toLowerCase(), nd.title.toLowerCase()];
+      out.push(entry(ctx, `nbind:${nd.name}`, 'dispatcher.bindNative', cfg, { category: 'Collision', keywords: [...kw, 'abonner'] }));
+      out.push(entry(ctx, `nunbind:${nd.name}`, 'dispatcher.unbindNative', cfg, { category: 'Collision', keywords: [...kw, 'unbind'], contextOnly: true }));
+      out.push(
+        entry(ctx, `ndev:${nd.name}`, 'event.custom', { name: `${nd.name}_Event`, signature: nd.name, signatureOwner: NATIVE_SIGNATURE_OWNER }, {
+          title: `Add Custom Event for ${nd.title}`,
+          category: 'Add Event',
+          description: `Crée un Custom Event avec les paramètres de ${nd.title} (Overlapped Actor, Other Actor), prêt à être relié à Bind Event.`,
+          keywords: ['custom', 'event', 'bind', 'overlap', nd.name.toLowerCase()],
+          contextOnly: true,
+        }),
+      );
+    }
   }
   for (const st of ctx.project?.structs ?? []) {
     const kw = ['struct', 'structure', st.name.toLowerCase()];
@@ -133,7 +169,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
     out.push(entry(ctx, `dtnames:${t.id}`, 'dataTable.getRowNames', { table: t.id }, { category: cat, keywords: ['names', 'noms', ...kw] }));
     out.push(entry(ctx, `dtexists:${t.id}`, 'dataTable.rowExists', { table: t.id }, { category: cat, keywords: ['exist', 'existe', ...kw] }));
   }
-  if (graphKind === 'event') {
+  if (graphKind === 'event' && !inComponent) {
     for (const a of ctx.project?.inputActions ?? []) {
       const kw = ['enhanced', 'input', 'action', 'touche', a.name.toLowerCase()];
       out.push(entry(ctx, `ia:${a.id}`, 'input.action', { action: a.id, consumeInput: true }, { category: 'Input|Enhanced Action Events', keywords: kw }));

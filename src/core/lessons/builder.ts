@@ -4,7 +4,7 @@
  */
 import { createProject, type BlueprintClass, type ComponentKind, type ComponentProps, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
-import { addComponent, addVariable, updateComponentProps } from '../operations/classOps';
+import { addActorComponent, addComponent, addVariable, updateComponentProps } from '../operations/classOps';
 import { ensureConstructionScript } from '../operations/constructionOps';
 import { addNode, connect } from '../operations/graphOps';
 import { placeActor } from '../operations/levelOps';
@@ -40,6 +40,16 @@ export class ClassBuilder {
     c.name = name;
     updateComponentProps(this.cls, c.id, props);
     return c.id;
+  }
+
+  /** Add an Actor Component made in Blueprint (`comp`, parent ActorComponent), with values for its Instance Editable variables. */
+  logic(comp: ClassBuilder, name?: string, values: Record<string, Value> = {}): string {
+    if (!this.project) throw new Error('logic() needs the project');
+    const r = addActorComponent(this.project, this.cls, comp.cls.id);
+    if (!r.ok) throw new Error(r.reason);
+    if (name) r.value.name = name;
+    r.value.values = { ...values };
+    return r.value.id;
   }
 
   variable(name: string, type: PinType, defaultValue?: Value): string {

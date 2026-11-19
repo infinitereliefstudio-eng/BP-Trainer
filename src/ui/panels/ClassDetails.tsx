@@ -2,6 +2,7 @@
 import { implementInterface, removeImplementedInterface } from '@core/operations/classOps';
 import { isA, rootParent } from '@core/model/inheritance';
 import { removeClass, renameClass, setParentClass, setPlayerClass, setPlayerControllerClass } from '@core/operations/projectOps';
+import { familyOf } from '@core/model/project';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
@@ -60,6 +61,59 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
     </Group>
   );
 
+  if (root === 'ActorComponent') {
+    const users = project.classes.filter((c) => c.components.some((k) => k.kind === 'ActorComponent' && k.classId === cls.id));
+    return (
+      <>
+        <Group title="Class Options">
+          <Field label="Parent Class">
+            <select class="field" value={cls.parentClassId ?? cls.parent} onChange={(e) => setParent((e.target as HTMLSelectElement).value)}>
+              <option value="ActorComponent">ActorComponent</option>
+              {project.classes
+                .filter((c) => c.id !== cls.id && c.parent === 'ActorComponent' && !isA(project, c.id, cls.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+        </Group>
+        <Group title="Interfaces">
+          <Field label="Implemented Interfaces">
+            <span class="muted small">{implemented.length ? implemented.map((i) => i.name).join(', ') : 'aucune'}</span>
+          </Field>
+          <button class="btn" onClick={addInterface}>
+            + Add
+          </button>
+        </Group>
+        <Group title="Utilisé par" app>
+          {users.length ? (
+            users.map((u) => <p key={u.id}>{u.name}</p>)
+          ) : (
+            <p class="muted small">Aucun acteur ne le porte encore : ouvre un Blueprint d’acteur, Components › + Add › {cls.name}.</p>
+          )}
+        </Group>
+        {blueprint}
+        <AppHelp>
+          <p>
+            Un <b>Actor Component</b> est de la logique qu’on ajoute à des acteurs, comme un Static Mesh, mais sans place dans le monde : pas de position, pas de
+            forme, pas de Viewport ni de Construction Script. Chaque acteur qui le porte a sa propre copie et ses propres variables.
+          </p>
+          <p>
+            Dans ses graphes, <b>Self</b> est le composant. Pour agir sur l’acteur qui le porte (le bouger, le cacher, le détruire), passe par{' '}
+            <b>Get Owner</b>. Il a BeginPlay, Tick et End Play, mais ni overlap, ni entrées, ni Timeline : son acteur s’en charge, ou il s’abonne à On Actor
+            Begin Overlap de son Owner.
+          </p>
+          <p>
+            <b>Parent ou composant ?</b> Un parent dit « est un » (une pompe est une machine) ; un composant dit « a un » (une caisse, une tourelle et le joueur
+            ont une santé).
+          </p>
+        </AppHelp>
+      </>
+    );
+  }
+
   if (root === 'SaveGame') {
     return (
       <>
@@ -97,7 +151,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             <option value="Pawn">Pawn</option>
             <option value="PlayerController">PlayerController</option>
             {store.project.classes
-              .filter((c) => c.id !== cls.id && c.parent !== 'SaveGame' && !isA(store.project, c.id, cls.id))
+              .filter((c) => c.id !== cls.id && familyOf(c.parent) === 'actor' && !isA(store.project, c.id, cls.id))
               .map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}

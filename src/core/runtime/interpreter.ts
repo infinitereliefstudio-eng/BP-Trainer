@@ -741,8 +741,12 @@ export class Interpreter {
         return actor.vars[String(src.config.variable)] ?? null;
       case 'var.getLocal':
         return scope.locals[String(src.config.variable)] ?? null;
-      case 'var.component':
-        return { ref: 'component', actor: actor.id, id: String(src.config.component) };
+      case 'var.component': {
+        // An Actor Component made in Blueprint is an object of its own; a scene component lives in the actor.
+        const id = String(src.config.component);
+        const obj = actor.logic?.[id];
+        return obj ? { ref: 'actor', id: obj } : { ref: 'component', actor: actor.id, id };
+      }
       case 'actor.self':
         return { ref: 'actor', id: actor.id };
       case 'util.reroute':

@@ -40,7 +40,7 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 3 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 4 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant, interface, changement de niveau, sauvegarde | ★★★ | L |
 
-Chantier n° 1 analysé le 19 novembre : [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (quatre versions, V7.19 à V7.22 ; questions à Tristan en fin de document). Rien n'est lancé.
+Chantier n° 1 : [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (quatre versions, V7.19 à V7.22, recommandations validées). **V7.19 faite** (le moteur) ; V7.20 à V7.22 attendent le feu vert de Tristan.
 
 Plus tard, selon le cas :
 - **Passerelle « Dans Unreal »** : exercices compagnons à refaire dans le vrai éditeur, avec une liste d'observations (construction d'un acteur, Enhanced Input et Player Controller, interaction entre deux Blueprints), et graphes de référence pour comparer le simulateur à UE5 (voir « Une référence indépendante pour la fidélité »). Remonte avant le chantier 1 dès que Tristan peut ouvrir Unreal régulièrement.
@@ -294,6 +294,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.19 (19 novembre 2026), chantier Actor Components, étape 1 : classe ActorComponent, une copie par acteur (valeurs par classe d'acteur et par acteur posé), BeginPlay des composants avant l'acteur, Tick, End Play à la destruction, Get Owner, Get Component(s) by Class, « On … (Composant) », Bind Event to On Actor Begin / End Overlap, règles de compilation d'UE (self n'est pas un Actor, pas d'overlap, d'entrée ni de Timeline), interface (Pick Parent Class, + Add, Details, Debug, Outliner en direct), format 11.
 - Backlog revu (19 novembre 2026) : prochains chantiers choisis après l'analyse de couverture, reste du plan du parcours noté à étudier, entrées faites retirées (Find References en V7.8, maintenance du lint en V7.8, mini-projets autonomes, trois architectures, synthèse de la V3).
 - V7.18 (19 novembre 2026), plan du parcours, lot 4b : niveau Expert, projets X2 L'atelier des machines (héritage, Parent: Tick, Delta Seconds, Sequence, Delay) et X1 La radio de la station (dialogue en Data Table, journal de faits, Mapping Context de dialogue par le Player Controller, porte à code). Le plan du parcours est terminé.
 - V7.17 (19 novembre 2026), plan du parcours, lot 4a : l'Avancé en cahiers des charges (fiches de méthode après la réussite, premiers indices en questions, objectifs sans recette), Le levier universel, entraînements M1 Le sas et M2 Le distributeur, synthèse S4 Les fusibles. Reste le lot 4b (Expert).

@@ -14,6 +14,7 @@ import { addEnum } from '@core/operations/enumOps';
 import { addInputAction, addMappingContext } from '@core/operations/inputOps';
 import { addClass, addInterface, addInterfaceFunction, setParentClass } from '@core/operations/projectOps';
 import { addStruct } from '@core/operations/structOps';
+import { rootParent } from '@core/model/inheritance';
 import { NATIVE_PARENTS, type ParentClass, type Project } from '@core/model/project';
 import type { Focus } from '@core/store/editorStore';
 import { useStore } from '../hooks';
@@ -34,10 +35,11 @@ interface Props {
 type Mode = 'browse' | 'add' | 'parent' | 'rowStruct';
 
 /** Native parents offered first, with UE's descriptions. */
-const COMMON: { id: 'Actor' | 'Pawn' | 'PlayerController'; name: string; text: string }[] = [
+const COMMON: { id: 'Actor' | 'Pawn' | 'PlayerController' | 'ActorComponent'; name: string; text: string }[] = [
   { id: 'Actor', name: 'Actor', text: 'Un objet qui peut être posé ou créé (Spawn) dans le monde.' },
   { id: 'Pawn', name: 'Pawn', text: 'Un acteur qui peut être « possédé » et recevoir les entrées d’un contrôleur : le joueur.' },
   { id: 'PlayerController', name: 'Player Controller', text: 'Un acteur qui représente le joueur et le contrôle : il reçoit les entrées et possède le Pawn.' },
+  { id: 'ActorComponent', name: 'Actor Component', text: 'De la logique réutilisable qu’on ajoute à n’importe quel acteur (santé, inventaire…). Il n’a pas de place dans le monde.' },
 ];
 
 type Result = { ok: true; value: { id: string } } | { ok: false; reason: string };
@@ -105,10 +107,12 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
     const isNative = (NATIVE_PARENTS as string[]).includes(parent);
     create(
       `Nouveau Blueprint (parent : ${parentName})`,
-      parent === 'SaveGame' ? 'BP_Sauvegarde' : parent === 'PlayerController' ? 'BP_PlayerController' : 'BP_NewBlueprint',
+      parent === 'SaveGame' ? 'BP_Sauvegarde' : parent === 'PlayerController' ? 'BP_PlayerController' : parent === 'ActorComponent' ? 'BP_NewComponent' : 'BP_NewBlueprint',
       'Créer un Blueprint',
       (p, name) => {
-        const r = addClass(p, name, isNative ? (parent as ParentClass) : 'Actor');
+        // A child starts from its parent's native class: the families (actor, SaveGame, Actor Component) never mix.
+        const base = p.classes.find((c) => c.id === parent);
+        const r = addClass(p, name, isNative ? (parent as ParentClass) : base ? rootParent(p, base) : 'Actor');
         if (!r.ok || isNative) return r;
         const s = setParentClass(p, r.value.id, parent);
         return s.ok ? r : s;

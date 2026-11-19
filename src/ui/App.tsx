@@ -12,6 +12,7 @@ import { runLesson, runRobustness } from '@core/lessons/runner';
 import { newAdvice } from '@core/quality/lessonAdvice';
 import { avoidHits, sizeReport, verdict } from '@core/quality/review';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
+import { familyOf } from '@core/model/project';
 import { addNode } from '@core/operations/graphOps';
 import { placeActor } from '@core/operations/levelOps';
 import type { Simulation } from '@core/runtime/simulation';
@@ -407,7 +408,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         </div>
       )}
       <div class="editor-body">
-      <EdgeHandle side="left" label="Components · My Blueprint" aria="Ouvrir My Blueprint" hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
+      <EdgeHandle side="left" label={familyOf(store.cls.parent) === 'actor' ? 'Components · My Blueprint' : 'My Blueprint'} aria="Ouvrir My Blueprint" hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
       <main class="workspace">
         {view === 'graph' && viewport && !playing ? (
           <ViewportCanvas ref={viewportCanvas} store={store} requests={viewportRequests} />
@@ -509,7 +510,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         <aside class={`drawer left${left ? ' open' : ''}`} aria-hidden={!left}>
           <div class="drawer-head">
-            <strong>{store.cls.parent === 'SaveGame' ? 'My Blueprint' : 'Components · My Blueprint'}</strong>
+            <strong>{familyOf(store.cls.parent) === 'actor' ? 'Components · My Blueprint' : 'My Blueprint'}</strong>
             <button class="btn" onClick={() => setLeft(false)}>
               ✕
             </button>
@@ -538,7 +539,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           {view === 'level' && levelPanel === 'outliner' ? (
             <LevelOutliner onCenter={(id) => setCenterOn((c) => ({ id, n: (c?.n ?? 0) + 1 }))} onDetails={() => setLevelPanel('details')} />
           ) : (
-            <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} />
+            <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} placeNode={placeNode} />
           )}
         </aside>
 

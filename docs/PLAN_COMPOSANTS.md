@@ -1,6 +1,6 @@
 # Chantier Actor Components — analyse (19 novembre 2026)
 
-Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). **Analyse seulement : rien n'est lancé.** Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document) ; la V7.19 attend son feu vert explicite.
+Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document). **V7.19 faite le 19 novembre** (détail dans HANDOFF.md, « V7.19 ») ; V7.20 à V7.22 attendent son feu vert.
 
 ## En bref
 

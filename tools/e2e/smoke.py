@@ -765,6 +765,67 @@ async def main():
         if await page.locator('.lesson-body button', has_text='indice').count():
             errs.append('Expert : un indice est proposé')
 
+        # V7.19: Actor Components. Pick Parent Class › Actor Component, + Add in an actor, its Details, the level, Play and Debug.
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await page.wait_for_timeout(600)
+        await page.locator('.content-drawer-btn').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.btn', has_text='+ Add').first.tap()
+        await page.locator('.palette-item', has_text='Blueprint Class').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.palette-item', has_text='Actor Component').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('input.field').last.fill('BP_Sante')
+        await page.locator('.btn', has_text='Créer').last.tap()
+        await page.wait_for_timeout(500)
+        made = await page.evaluate("() => { const s = window.bpStore; return [s.cls.name, s.cls.parent, s.cls.components.length]; }")
+        if made != ['BP_Sante', 'ActorComponent', 0]:
+            errs.append(f'Actor Component : création inattendue {made}')
+        if await page.locator('.graph-tabs .tab', has_text='Viewport').count():
+            errs.append('Actor Component : un onglet Viewport est proposé')
+        # Its logic: a Vie (Instance Editable) lowered on Tick, and a dispatcher.
+        await page.evaluate("""() => { const s = window.bpStore; s.apply('logique', (cl, g) => {
+          cl.variables.push({ id: 'v_vie', name: 'Vie', type: { category: 'int' }, defaultValue: 100, instanceEditable: true, category: 'Default', tooltip: '' });
+          cl.dispatchers.push({ id: 'd_mort', name: 'OnMort', params: [] });
+          g.nodes.t = { id: 't', def: 'event.tick', x: 0, y: 0, config: {}, defaults: {} };
+          g.nodes.i = { id: 'i', def: 'var.decrementInt', x: 260, y: 0, config: {}, defaults: {} };
+          g.nodes.g = { id: 'g', def: 'var.get', x: 100, y: 160, config: { variable: 'v_vie' }, defaults: {} };
+          g.links.l1 = { id: 'l1', from: { node: 't', pin: 'then' }, to: { node: 'i', pin: 'exec' } };
+          g.links.l2 = { id: 'l2', from: { node: 'g', pin: 'value' }, to: { node: 'i', pin: 'value' } };
+        }); }""")
+        await page.evaluate(OPEN, 'BP_Lampe')
+        await graph(page)
+        await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.mb-add[aria-label="Ajouter dans Components"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('73_add_actor_component')
+        await page.locator('button', has_text='BP_Sante · Actor Component').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.drawer.left .drawer-head .btn').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('74_actor_component_details')
+        await page.locator('.drawer.right .event-add').first.scroll_into_view_if_needed()
+        await page.locator('.drawer.right .event-add').first.tap()
+        await page.wait_for_timeout(300)
+        if not await page.evaluate("() => Object.values(window.bpStore.graph.nodes).some(n => n.def === 'event.componentDispatcher')"):
+            errs.append('Actor Component : le + de On OnMort n’a pas ajouté l’événement')
+        await page.locator('.tb.play').first.tap()
+        await page.wait_for_timeout(900)
+        await page.evaluate(OPEN, 'BP_Sante')
+        await page.wait_for_timeout(300)
+        await page.locator('.doc-tab', has_text='BP_Sante').first.tap()
+        await page.wait_for_timeout(300)
+        await page.get_by_text('Debug', exact=True).first.tap()
+        await page.wait_for_timeout(500)
+        await shot('75_actor_component_debug')
+        if await page.locator('.debug-panel select option', has_text='BP_Sante').count() == 0 and await page.locator('.debug-panel', has_text='(BP_Lampe)').count() == 0:
+            errs.append('Actor Component : sa copie n’est pas proposée comme objet débogué')
+
         print('errors', errs)
         await b.close()
         return errs

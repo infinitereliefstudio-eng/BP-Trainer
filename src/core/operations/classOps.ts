@@ -3,6 +3,8 @@ import { newId } from '../model/ids';
 import {
   COMPONENT_LABEL,
   componentDefaults,
+  findClass,
+  isSceneComponent,
   type ComponentProps,
   type Dispatcher,
   type Param,
@@ -21,7 +23,7 @@ import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
 const MAX_NAME = 64;
 
 /** Nodes that point to a component of the class. */
-const COMPONENT_NODES = ['var.component', 'event.componentBeginOverlap', 'event.componentEndOverlap'];
+const COMPONENT_NODES = ['var.component', 'event.componentBeginOverlap', 'event.componentEndOverlap', 'event.componentDispatcher'];
 
 export function validateName(name: string, taken: string[]): string | null {
   const n = name.trim();
@@ -122,10 +124,11 @@ const DEFAULT_COMPONENT_NAME: Record<ComponentKind, string> = {
   PointLight: 'PointLight',
   BoxCollision: 'Box',
   TextRender: 'TextRender',
+  ActorComponent: 'ActorComponent',
 };
 
 export function addComponent(cls: BlueprintClass, kind: ComponentKind): Component {
-  const root = cls.components.find((c) => !c.parent);
+  const root = cls.components.find((c) => !c.parent && isSceneComponent(c));
   const c: Component = {
     id: newId('cmp'),
     name: uniqueName(DEFAULT_COMPONENT_NAME[kind], namesInUse(cls)),
@@ -135,6 +138,36 @@ export function addComponent(cls: BlueprintClass, kind: ComponentKind): Componen
   };
   cls.components.push(c);
   return c;
+}
+
+/**
+ * Add an Actor Component made in Blueprint (parent ActorComponent) to an
+ * actor's Blueprint. It is named after its class, as UE does, and is never
+ * attached: it has no place in the world, only logic.
+ */
+export function addActorComponent(p: Project, cls: BlueprintClass, classId: string, taken: string[] = []): OpResult<Component> {
+  const comp = findClass(p, classId);
+  if (comp?.parent !== 'ActorComponent') return { ok: false, reason: 'Ce Blueprint n’est pas un Actor Component.' };
+  if (cls.parent === 'ActorComponent' || cls.parent === 'SaveGame') return { ok: false, reason: `${cls.name} n’est pas un acteur : il ne peut pas porter de composants.` };
+  const c: Component = {
+    id: newId('cmp'),
+    name: uniqueName(comp.name, [...namesInUse(cls), ...taken]),
+    kind: 'ActorComponent',
+    props: componentDefaults('ActorComponent'),
+    classId,
+    values: {},
+  };
+  cls.components.push(c);
+  return { ok: true, value: c };
+}
+
+/** An Instance Editable variable of an Actor Component, for this actor class: a value, or back to the class default (undefined). */
+export function setComponentValue(cls: BlueprintClass, id: string, variable: string, value: Value | undefined): void {
+  const c = cls.components.find((x) => x.id === id);
+  if (c?.kind !== 'ActorComponent') return;
+  c.values ??= {};
+  if (value === undefined) delete c.values[variable];
+  else c.values[variable] = value;
 }
 
 export function updateComponentProps(cls: BlueprintClass, id: string, patch: Partial<ComponentProps>): void {
@@ -154,7 +187,7 @@ export function renameComponent(cls: BlueprintClass, id: string, name: string): 
 export function removeComponent(cls: BlueprintClass, id: string): OpResult {
   const c = cls.components.find((x) => x.id === id);
   if (!c) return { ok: false, reason: 'Composant introuvable.' };
-  if (!c.parent) return { ok: false, reason: `Le composant racine (${COMPONENT_LABEL[c.kind]}) ne peut pas être supprimé.` };
+  if (!c.parent && isSceneComponent(c)) return { ok: false, reason: `Le composant racine (${COMPONENT_LABEL[c.kind]}) ne peut pas être supprimé.` };
   // Children move up to the removed component's parent.
   for (const child of cls.components) if (child.parent === id) child.parent = c.parent;
   cls.components = cls.components.filter((x) => x.id !== id);
@@ -174,7 +207,7 @@ export function setVariableDefault(cls: BlueprintClass, id: string, value: Value
 // -------------------------------------------------------------- dispatchers
 
 /** Nodes that point to a dispatcher of a class (in any class of the project). */
-const DISPATCHER_NODES = ['dispatcher.call', 'dispatcher.bind', 'dispatcher.unbind', 'dispatcher.unbindAll'];
+const DISPATCHER_NODES = ['dispatcher.call', 'dispatcher.bind', 'dispatcher.unbind', 'dispatcher.unbindAll', 'event.componentDispatcher'];
 
 export function addDispatcher(cls: BlueprintClass, name = 'NewEventDispatcher'): Dispatcher {
   const d: Dispatcher = {

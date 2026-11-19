@@ -16,6 +16,7 @@ import {
 import { T, type PinType } from '../../types/pins';
 import { defaultValueFor } from '../../types/values';
 import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition, type PinSpec } from '../definition';
+import { NATIVE_DISPATCHERS, NATIVE_SIGNATURE_OWNER } from './nativeDispatchers';
 
 export function classById(ctx: NodeContext, id: unknown): BlueprintClass | undefined {
   if (ctx.cls.id === id) return ctx.cls;
@@ -51,6 +52,7 @@ function dispatcherOf(ctx: NodeContext, n: NodeInstance) {
 /** Parameters carried by a Custom Event: those of the dispatcher it was made for. */
 export function customEventParams(ctx: NodeContext, n: NodeInstance): Param[] {
   if (!n.config.signature) return [];
+  if (n.config.signatureOwner === NATIVE_SIGNATURE_OWNER) return NATIVE_DISPATCHERS[String(n.config.signature)]?.params ?? [];
   const owner = classById(ctx, n.config.signatureOwner);
   return (owner && findDispatcher(owner, String(n.config.signature))?.params) || [];
 }

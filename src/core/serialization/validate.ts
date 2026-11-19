@@ -20,7 +20,7 @@ export class ProjectFileError extends Error {
 }
 
 const GRAPH_KINDS = ['event', 'function', 'construction'];
-const COMPONENT_KINDS = ['Scene', 'StaticMesh', 'PointLight', 'BoxCollision', 'TextRender'];
+const COMPONENT_KINDS = ['Scene', 'StaticMesh', 'PointLight', 'BoxCollision', 'TextRender', 'ActorComponent'];
 const KEYS = ['E', 'F', 'SpaceBar'];
 const TRIGGERS = ['Down', 'Pressed', 'Released', 'Hold'];
 
@@ -93,6 +93,10 @@ function checkClass(c: unknown): void {
     const cmp = named(k, `Un composant de « ${cls.name} »`);
     need(COMPONENT_KINDS.includes(cmp.kind as string), `${where} : composant « ${cmp.name} » d’un type inconnu.`);
     need(isObj(cmp.props), `${where} : propriétés du composant « ${cmp.name} » manquantes.`);
+    if (cmp.kind === 'ActorComponent') {
+      cmp.values ??= {};
+      need(isObj(cmp.values), `${where} : valeurs du composant « ${cmp.name} » mal formées.`);
+    }
   }
   for (const v of list(cls, 'variables', where)) {
     need(isObj(named(v, `Une variable de « ${cls.name} »`).type), `${where} : une variable n’a pas de type.`);
@@ -143,6 +147,9 @@ function checkLevel(p: Obj, classIds: Set<string>): void {
     numberOr(actor, 'yaw', 0, where);
     actor.overrides ??= {};
     need(isObj(actor.overrides), `${where} : valeurs modifiées mal formées.`);
+    if (actor.componentOverrides !== undefined) {
+      need(isObj(actor.componentOverrides) && Object.values(actor.componentOverrides).every(isObj), `${where} : valeurs de ses composants mal formées.`);
+    }
   }
   level.playerStart ??= { x: 0, y: 0, yaw: 0 };
   const start = level.playerStart;
@@ -163,6 +170,11 @@ export function validateProject(value: unknown): asserts value is Project {
   need(classIds.size === classes.length, 'Deux Blueprints ont le même identifiant.');
   for (const c of classes as Obj[]) {
     need(c.parentClassId === undefined || classIds.has(c.parentClassId as string), `Blueprint « ${c.name} » : son Blueprint parent est introuvable.`);
+  }
+  // An Actor Component whose Blueprint is gone (or is not an Actor Component) cannot run: dropped, as UE drops a missing component class.
+  const componentClasses = new Set((classes as Obj[]).filter((c) => c.parent === 'ActorComponent').map((c) => c.id as string));
+  for (const c of classes as Obj[]) {
+    c.components = (c.components as Obj[]).filter((k) => k.kind !== 'ActorComponent' || componentClasses.has(k.classId as string));
   }
   checkAssets(p);
   checkLevel(p, classIds);

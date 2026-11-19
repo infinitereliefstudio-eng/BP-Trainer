@@ -1,7 +1,7 @@
 /** Left drawer: Components, then My Blueprint (graphs, variables…). */
 import type { ComponentChildren } from 'preact';
-import { COMPONENT_LABEL, type Component, type ComponentKind } from '@core/model/project';
-import { addComponent, addDispatcher, addVariable } from '@core/operations/classOps';
+import { COMPONENT_LABEL, familyOf, isSceneComponent, type Component, type ComponentKind } from '@core/model/project';
+import { addActorComponent, addComponent, addDispatcher, addVariable } from '@core/operations/classOps';
 import { ensureConstructionScript } from '@core/operations/constructionOps';
 import { addFunction } from '@core/operations/functionOps';
 import { addLocalVariable } from '@core/operations/localOps';
@@ -23,13 +23,23 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
   const cls = store.cls;
   const focus = store.focus;
 
+  // The project's Actor Components come first, as UE lists its "Custom" components at the top of + Add.
+  const logicClasses = store.project.classes.filter((c) => c.parent === 'ActorComponent');
+  const addLogic = (classId: string) => {
+    const taken = store.ctx.cls.components.map((c) => c.name);
+    const res = store.apply('Ajouter un Actor Component', (cl) => addActorComponent(store.project, cl, classId, taken));
+    if (!res.ok) store.warn(res.reason);
+    else store.setFocus({ kind: 'component', id: res.value.id });
+  };
   const addComp = (sx: number, sy: number) =>
     openOverlay({
       kind: 'menu',
       sx,
       sy,
       title: 'Ajouter un composant',
-      items: ADDABLE.map((k) => ({
+      items: [
+        ...logicClasses.map((c) => ({ label: `${c.name} · Actor Component`, action: () => addLogic(c.id) })),
+        ...ADDABLE.map((k) => ({
         label: COMPONENT_LABEL[k],
         action: () => {
           // A child Blueprint attaches new components to the root it inherits.
@@ -42,6 +52,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           store.setFocus({ kind: 'component', id: c.id });
         },
       })),
+      ],
     });
 
   const functions = cls.graphs.filter((g) => g.kind === 'function' && !g.iface);
@@ -88,7 +99,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
 
   return (
     <div class="panel-scroll">
-      {cls.parent !== 'SaveGame' && (
+      {familyOf(cls.parent) === 'actor' && (
         <Section
         title="Components"
         onAdd={(e) => {
@@ -96,7 +107,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           addComp(r.left, r.bottom);
         }}
       >
-        {tree(view.components).map(({ c, depth }) => {
+        {tree(view.components.filter(isSceneComponent)).map(({ c, depth }) => {
           const mine = cls.components.some((o) => o.id === c.id);
           return (
             <Row
@@ -110,6 +121,23 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
             />
           );
         })}
+        {/* Actor Components have no place in the actor: listed under the tree, as UE does. */}
+        {view.components
+          .filter((c) => !isSceneComponent(c))
+          .map((c) => {
+            const mine = cls.components.some((o) => o.id === c.id);
+            const of = store.project.classes.find((x) => x.id === c.classId)?.name ?? '?';
+            return (
+              <Row
+                key={c.id}
+                selected={focus.kind === 'component' && focus.id === c.id}
+                onClick={mine ? () => store.setFocus({ kind: 'component', id: c.id }) : fromParent}
+                label={c.name}
+                sub={`${of}${mine ? '' : ' · hérité'}`}
+                actions={[{ label: 'Get', onClick: () => placeNode('var.component', { component: c.id }) }]}
+              />
+            );
+          })}
       </Section>
       )}
 
@@ -120,7 +148,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           .map((g) => (
             <Row key={g.id} label={g.name} selected={store.graphId === g.id} onClick={() => store.openGraph(g.id)} />
           ))}
-        <Row
+        {familyOf(cls.parent) === 'actor' && <Row
           label="ConstructionScript"
           sub={construction && Object.keys(construction.nodes).length > 1 ? undefined : 'vide'}
           selected={store.graph.kind === 'construction'}
@@ -129,7 +157,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
             const g = construction ?? store.apply('Ouvrir le Construction Script', (cl) => ensureConstructionScript(cl));
             store.openGraph(g.id);
           }}
-        />
+        />}
       </Section>
 
       <Section title="Functions" onAdd={addFn}>

@@ -39,6 +39,19 @@ export const MEMO_QUIZ: QuizQuestion[] = [
     'La position d’un composant est relative à son parent : la porte tourne correctement où que l’acteur soit posé.',
   ),
   q(
+    'm-actor-components',
+    'Dans le graphe d’un Actor Component, un Destroy Actor sans rien sur Target ne compile pas. Pourquoi ?',
+    ['Self est le composant, pas un acteur : il faut relier Get Owner', 'Un composant ne peut rien détruire', 'Il manque un Is Valid', 'Destroy Actor doit être dans une fonction'],
+    'Dans un Actor Component, Self est le composant. Pour agir sur l’acteur qui le porte, on relie Get Owner à Target.',
+  ),
+  q(
+    'm-actor-components',
+    'Une caisse, une tourelle et le joueur doivent avoir une santé, sans être de la même famille. Que fait-on dans UE ?',
+    ['Un Actor Component BP_Sante ajouté aux trois', 'Un parent commun BP_Sante pour les trois', 'La même logique copiée dans les trois', 'Une variable Vie dans le Level Blueprint'],
+    'Le composant dit « a un » : chacun a une santé, sans changer de parent. Un acteur n’a qu’un parent mais autant de composants qu’il veut.',
+    2,
+  ),
+  q(
     'm-framework',
     'Quelle classe garde ses variables quand on change de niveau avec Open Level ?',
     ['GameInstance', 'GameMode', 'PlayerController', 'Le Pawn du joueur'],

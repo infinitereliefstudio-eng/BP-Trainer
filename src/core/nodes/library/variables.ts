@@ -83,7 +83,9 @@ export const variableNodes: NodeDefinition[] = [
     description: "Donne une référence vers un composant de ce Blueprint, pour l'utiliser comme Target.",
     pins: (n, ctx) => {
       const c = findComponent(ctx.cls, String(n.config.component));
-      return [dataOut('value', c?.name ?? '?', T.object(c ? COMPONENT_CLASS[c.kind] : 'SceneComponent'), { hideName: true })];
+      // An Actor Component made in Blueprint is typed by its class (BP_Sante), so its members plug in directly.
+      const own = c?.kind === 'ActorComponent' ? ctx.project?.classes.find((x) => x.id === c.classId)?.name : undefined;
+      return [dataOut('value', c?.name ?? '?', T.object(own ?? (c ? COMPONENT_CLASS[c.kind] : 'SceneComponent')), { hideName: true })];
     },
   },
   ...(['Int', 'Float'] as const).flatMap((kind): NodeDefinition[] =>

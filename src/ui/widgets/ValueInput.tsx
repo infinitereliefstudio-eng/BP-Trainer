@@ -1,5 +1,7 @@
 /** Editors for literal values, used in Details and in the value dialog. */
 import { useEffect, useState } from 'preact/hooks';
+import { familyOf, type ParentClass } from '@core/model/project';
+import { NATIVE_COMPONENT_CLASSES } from '@core/nodes/library/actorComponents';
 import type { PinType } from '@core/types/pins';
 import { enumEntries } from '@core/types/enums';
 import { defaultValueFor, formatValue, parseValue, type StructValue, type Value, type Vec3 } from '@core/types/values';
@@ -119,11 +121,16 @@ function EnumValue({ type, value, onChange }: { type: PinType; value: Value; onC
   );
 }
 
-/** A Class Reference literal: a Blueprint of the project, stored by id. */
-/** A Class Reference: only the classes of the pin's family (SaveGame classes for Create Save Game Object, actors elsewhere). */
+/**
+ * A Class Reference: only the classes of the pin's family, stored by id
+ * (SaveGame classes for Create Save Game Object, Actor Components for Get
+ * Component by Class, which also offers UE's native component classes by
+ * name, actors elsewhere).
+ */
 function ClassValue({ base, value, onChange }: { base?: string; value: Value; onChange: (v: Value) => void }) {
   const store = useStore();
-  const fits = (parent: string) => (base === 'SaveGame' ? parent === 'SaveGame' : base === 'Object' || !base ? true : parent !== 'SaveGame');
+  const family = base === 'SaveGame' ? 'save' : base === 'ActorComponent' ? 'component' : base === 'Object' || !base ? undefined : 'actor';
+  const fits = (parent: ParentClass) => !family || familyOf(parent) === family;
   return (
     <select class="field" value={typeof value === 'string' ? value : ''} onChange={(e) => onChange((e.target as HTMLSelectElement).value || null)}>
       <option value="">None</option>
@@ -132,6 +139,12 @@ function ClassValue({ base, value, onChange }: { base?: string; value: Value; on
           {c.name}
         </option>
       ))}
+      {family === 'component' &&
+        NATIVE_COMPONENT_CLASSES.map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
     </select>
   );
 }

@@ -10,7 +10,7 @@
  */
 import { explainRuntime } from '../explain/runtime';
 import { inheritedView, isA, lineage } from '../model/inheritance';
-import { findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Project, type SavedGame } from '../model/project';
+import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Project, type SavedGame } from '../model/project';
 import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
@@ -21,7 +21,7 @@ import { EnhancedInput } from './enhancedInput';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
 import { RunRecord, type NoteCode } from './runRecord';
 import { movePlayer, type BlockingHit } from './movement';
-import { endOverlapsWith, updateOverlaps, type Fire } from './overlaps';
+import { endOverlapsWith, updateOverlaps, type Broadcast, type Fire } from './overlaps';
 import { TimerSet } from './timers';
 import { lineTrace, type DebugLine, type TraceHit } from './trace';
 import { isRef, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
@@ -110,6 +110,19 @@ export class Simulation implements InterpreterHost {
   /** Instances made so far per class, for UE-style names (BP_Lampe_C_2). */
   private counters = new Map<string, number>();
   private readonly fire: Fire = (actor, match, pin, outputs) => this.interp.fire(actor, match, pin, outputs);
+  /**
+   * An actor's own Event Dispatchers (On Actor Begin Overlap…), after its
+   * matching event, as UE broadcasts them: the events bound to it run, with
+   * Overlapped Actor and Other Actor.
+   */
+  private readonly broadcast: Broadcast = (actor, dispatcher, otherId) => {
+    for (const b of [...(actor.bindings[dispatcher] ?? [])]) {
+      const listener = this.findActor(b.actor);
+      if (listener && !listener.destroyed) {
+        this.interp.fire(listener, (n) => n.id === b.node, 'then', { overlapped: { ref: 'actor', id: actor.id }, other: { ref: 'actor', id: otherId } });
+      }
+    }
+  };
 
   constructor(
     readonly project: Project,
@@ -137,6 +150,8 @@ export class Simulation implements InterpreterHost {
     this.controller = createController(pcClass && inheritedView(pcClass, project, true));
     if (this.controller.classId) this.counters.set(this.controller.classId, 1);
     this.spawnLevel();
+    this.attachComponents(this.player);
+    this.attachComponents(this.controller);
     this.order = opts.order ?? 'level';
     this.rankActors(this.order);
     this.construct();
@@ -185,9 +200,43 @@ export class Simulation implements InterpreterHost {
       a.yaw = la.yaw;
       this.actors.push(a);
       this.markClass(cls.id);
+      this.attachComponents(a, la.componentOverrides);
     }
     if (this.player.classId) this.markClass(this.player.classId);
     if (this.controller.classId) this.markClass(this.controller.classId);
+  }
+
+  /**
+   * The actor's Actor Components made in Blueprint: one object each, which
+   * runs the component's graphs with its own variables (Self is the
+   * component, Get Owner the actor). Its Instance Editable variables take the
+   * values set in the actor's Blueprint, then those set on this placed actor.
+   */
+  private attachComponents(a: ActorRT, overrides: Record<string, Record<string, Value>> = {}): void {
+    const cls = this.classOf(a);
+    for (const c of cls?.components ?? []) {
+      if (c.kind !== 'ActorComponent' || !c.classId) continue;
+      const ccls = findClass(this.project, c.classId);
+      if (ccls?.parent !== 'ActorComponent') continue;
+      const values = { ...(c.values ?? {}), ...(overrides[c.id] ?? {}) };
+      const obj = createActor(`cmp_${nextId()}`, `${c.name} (${a.label})`, `${a.objectName}.${c.name}`, inheritedView(ccls, this.project, true), values);
+      obj.owner = a.id;
+      obj.componentId = c.id;
+      this.objects.push(obj);
+      a.logic ??= {};
+      a.logic[c.id] = obj.id;
+      this.markClass(ccls.id);
+    }
+  }
+
+  /** The objects of the actor's Actor Components, still alive, in the order of its Components panel. */
+  componentsOf(actor: ActorRT): ActorRT[] {
+    const out: ActorRT[] = [];
+    for (const id of Object.values(actor.logic ?? {})) {
+      const o = this.objects.find((x) => x.id === id);
+      if (o && !o.destroyed) out.push(o);
+    }
+    return out;
   }
 
   /** An actor of this class exists: so does one of each class it inherits from (diagnostics). */
@@ -209,11 +258,16 @@ export class Simulation implements InterpreterHost {
     for (const [i, id] of ids.entries()) this.rank.set(id, i);
   }
 
-  /** Actors that run Blueprint logic (the controller and the player only if they are Blueprints), in event order. */
+  /**
+   * Objects that run Blueprint logic, in event order: each actor (the
+   * controller and the player only if they are Blueprints), its Actor
+   * Components just before it. UE begins play the same way: an actor's
+   * components first, then the actor's own Event BeginPlay.
+   */
   private scripted(): ActorRT[] {
     const list = [...this.actors.filter((a) => !a.destroyed), ...[this.controller, this.player].filter((a) => a.classId)];
     const rank = (a: ActorRT) => this.rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
-    return list.sort((a, b) => rank(a) - rank(b));
+    return list.sort((a, b) => rank(a) - rank(b)).flatMap((a) => [...this.componentsOf(a), a]);
   }
 
   private fireAll(match: (n: NodeInstance) => boolean, pin: string, outputs?: Record<string, RValue>): void {
@@ -273,7 +327,7 @@ export class Simulation implements InterpreterHost {
         for (const h of movePlayer(this.player, this.move, this.actors, dt)) this.fireHit(h);
       },
       () => {
-        updateOverlaps([this.player, ...this.actors.filter((a) => !a.destroyed)], this.fire);
+        updateOverlaps([this.player, ...this.actors.filter((a) => !a.destroyed)], this.fire, this.broadcast);
       },
       () => this.fireAll((n) => n.def === 'event.tick', 'then', { delta: dt }),
       () => {
@@ -339,14 +393,18 @@ export class Simulation implements InterpreterHost {
     const gone = this.actors.filter((a) => a.destroyed);
     if (!gone.length) return;
     this.actors = this.actors.filter((a) => !a.destroyed);
-    const goneIds = new Set(gone.map((g) => g.id));
+    // An actor's Actor Components go with it.
+    const goneObjects = this.objects.filter((o) => o.destroyed && o.owner);
+    for (let i = this.objects.length - 1; i >= 0; i--) if (this.objects[i].destroyed && this.objects[i].owner) this.objects.splice(i, 1);
+    const goneIds = new Set([...gone, ...goneObjects].map((g) => g.id));
     const remaining = [this.player, ...this.actors];
-    for (const a of remaining) {
+    for (const a of [...remaining, this.controller, ...this.objects]) {
       for (const key of Object.keys(a.bindings)) a.bindings[key] = a.bindings[key].filter((b) => !goneIds.has(b.actor));
     }
+    for (const o of goneObjects) this.timers.dropOwner(o.id);
     for (const g of gone) {
       this.timers.dropOwner(g.id);
-      endOverlapsWith(g, remaining, this.fire);
+      endOverlapsWith(g, remaining, this.fire, this.broadcast);
     }
   }
 
@@ -499,6 +557,20 @@ export class Simulation implements InterpreterHost {
     this.journal.print(this.time, actor.id, actor.objectName, text, opts);
   }
 
+  /** An actor, a component's object or a SaveGame by id (destroyed ones included). */
+  objectById(id: string): ActorRT | undefined {
+    return this.findActor(id);
+  }
+
+  /**
+   * What the debugger can watch for a class: its placed and spawned actors,
+   * the controller and the player, and the objects of its Actor Components.
+   */
+  instancesOf(classId: string): ActorRT[] {
+    const all = [...this.actors, this.player, ...(this.controller.classId ? [this.controller] : []), ...this.objects.filter((o) => o.owner)];
+    return all.filter((a) => !a.destroyed && this.isA(a, classId));
+  }
+
   private findActor(id: string): ActorRT | undefined {
     if (id === this.player.id) return this.player;
     if (id === this.controller.id) return this.controller;
@@ -621,6 +693,28 @@ export class Simulation implements InterpreterHost {
     return [this.player, this.controller, ...this.actors].find((a) => a.components.includes(c));
   }
 
+  /** The actor carrying an Actor Component's object (Get Owner), or null. */
+  ownerActor(obj: ActorRT): ActorRT | null {
+    const a = obj.owner ? this.findActor(obj.owner) : undefined;
+    return a && !a.destroyed ? a : null;
+  }
+
+  /**
+   * The actor's components of a class (Get Components by Class): its scene
+   * components when the class is a native one (StaticMeshComponent…), then
+   * its Actor Components made in Blueprint of that class or a child of it.
+   */
+  componentsByClass(actor: ActorRT, classId: unknown): RValue[] {
+    if (typeof classId !== 'string' || !classId) return [];
+    const out: RValue[] = [];
+    if (classId in BUILTIN_HIERARCHY) {
+      const h = makeHierarchy();
+      for (const c of actor.components) if (h.isA(COMPONENT_CLASS[c.kind], classId)) out.push({ ref: 'component', actor: actor.id, id: c.id });
+    }
+    for (const o of this.componentsOf(actor)) if (this.isA(o, classId)) out.push({ ref: 'actor', id: o.id });
+    return out;
+  }
+
   allActors(): ActorRT[] {
     return [...this.actors.filter((a) => !a.destroyed), this.player];
   }
@@ -630,6 +724,10 @@ export class Simulation implements InterpreterHost {
     if (!cls) return null;
     if (cls.parent === 'SaveGame') {
       this.runtimeError(`SpawnActor failed : ${cls.name} est un SaveGame, pas un acteur. Utilise Create Save Game Object.`);
+      return null;
+    }
+    if (cls.parent === 'ActorComponent') {
+      this.runtimeError(`SpawnActor : ${cls.name} est un Actor Component, pas un acteur. On l’ajoute dans les Components d’un acteur.`);
       return null;
     }
     if (!isPlaceableParent(cls.parent)) {
@@ -643,6 +741,7 @@ export class Simulation implements InterpreterHost {
     a.yaw = yaw;
     this.actors.push(a);
     this.markClass(cls.id);
+    this.attachComponents(a);
     return a;
   }
 
@@ -676,9 +775,12 @@ export class Simulation implements InterpreterHost {
       this.runtimeError('Destroy Actor : le Player Controller ne peut pas être détruit dans cette version.');
       return;
     }
-    actor.destroyed = true;
-    actor.destroyedInRun = this.interp.run;
-    actor.latent = {};
+    // Its Actor Components go with it, in the same chain of execution.
+    for (const o of [actor, ...this.componentsOf(actor)]) {
+      o.destroyed = true;
+      o.destroyedInRun = this.interp.run;
+      o.latent = {};
+    }
     this.record.destroyed.add(actor.id);
   }
 

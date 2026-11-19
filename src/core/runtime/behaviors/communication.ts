@@ -168,8 +168,14 @@ export const communicationBehaviors: Record<string, Behavior> = {
       const owner = dispatcherOwner(cx);
       if (!owner) return ['then'];
       const params = cx.params();
-      const list = owner.bindings[String(cx.node.config.dispatcher)] ?? [];
-      if (!list.length) cx.world.note('dispatcher.noListener', owner.label);
+      const key = String(cx.node.config.dispatcher);
+      const list = owner.bindings[key] ?? [];
+      // An Actor Component's dispatcher: the "On … (Component)" events of the actor carrying it, bound by UE itself.
+      const carrier = owner.owner ? cx.world.ownerActor(owner) : null;
+      const shortcut = carrier
+        ? cx.callEvents(carrier, (n) => n.def === 'event.componentDispatcher' && n.config.component === owner.componentId && n.config.dispatcher === key, params)
+        : 0;
+      if (!list.length && !shortcut) cx.world.note('dispatcher.noListener', owner.label);
       for (const b of [...list]) {
         const listener = cx.world.tryActor({ ref: 'actor', id: b.actor });
         if (listener) cx.callEvents(listener, (n) => n.id === b.node, params);

@@ -118,6 +118,21 @@ const COMPILE: Record<CompileCode, Explanation> = {
     why: 'Un nœud Parent: appelle la version de la classe parente. Ici, aucune classe parente n’a cet événement : il n’y a rien à appeler.',
     fixes: ['Supprime le nœud Parent:.', 'Ou vérifie la classe parente dans Class Settings.'],
   },
+  selfType: {
+    why: 'Une pin Target laissée vide veut dire « self », l’objet de ce Blueprint. Ce nœud agit sur un objet d’une autre sorte (un acteur, souvent) : ici, self n’en est pas un. Dans un Actor Component, self est le composant, pas l’acteur qui le porte.',
+    fixes: [
+      'Dans un Actor Component : relie Target à Get Owner, l’acteur qui porte le composant.',
+      'Ailleurs : relie une référence vers l’objet visé (une variable, un Cast, Other Actor…).',
+    ],
+  },
+  notInComponent: {
+    why: 'Un Actor Component n’a ni forme ni place dans le niveau : il ne reçoit ni overlap, ni Hit, ni clic, ni entrées, et UE n’y accepte pas de Timeline. C’est son acteur qui vit dans le monde.',
+    fixes: [
+      'Pour un overlap : au BeginPlay du composant, Bind Event to On Actor Begin Overlap avec Target = Get Owner.',
+      'Pour une touche : l’acteur (ou le Player Controller) reçoit l’entrée et appelle une fonction du composant.',
+      'Pour animer : un timer (Set Timer by Event), ou un Timeline dans l’acteur.',
+    ],
+  },
   duplicateCustomEvent: {
     why: 'Un Custom Event est appelé par son nom : deux du même nom dans un Blueprint seraient ambigus.',
     fixes: ['Renomme l’un des deux dans Details.'],

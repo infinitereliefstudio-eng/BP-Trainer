@@ -2,6 +2,7 @@
  * Node geometry in world units: size, pin anchors, inline value boxes.
  * Shared by the renderer and the hit-tester so they always agree.
  */
+import { BUILTIN_HIERARCHY } from '@core/types/pins';
 import type { Graph, NodeInstance } from '@core/model/project';
 import type { NodeContext, NodeDefinition, NodeStyle, PinSpec } from '@core/nodes/definition';
 import { COMMENT_MIN } from '@core/nodes/library/organization';
@@ -60,6 +61,8 @@ export function inlineText(node: NodeInstance, p: PinSpec, ctx: NodeContext): st
   const v = pinValue(node, p);
   if (p.type.category === 'class') {
     const cls = typeof v === 'string' ? ctx.project?.classes.find((c) => c.id === v) : undefined;
+    // A native class (Get Component by Class › StaticMeshComponent) is kept by its name.
+    if (!cls && typeof v === 'string' && v in BUILTIN_HIERARCHY) return v;
     return cls?.name ?? 'Choisir…';
   }
   if (p.type.category === 'struct') return String(v ?? '#ffffff');

@@ -2,7 +2,9 @@
 import { COMPONENT_LABEL, findComponent, type ComponentProps, type MeshShape } from '@core/model/project';
 import { removeComponent, renameComponent, updateComponentProps } from '@core/operations/classOps';
 import { BUILTIN_ENUMS } from '@core/types/enums';
+import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
+import { LogicComponentDetails } from './LogicComponentDetails';
 import { NameField } from '../widgets/NameField';
 import { AppHelp, Check, Field, Group, NumberField, TextCommit } from './fields';
 
@@ -12,10 +14,11 @@ const SHAPES: { value: MeshShape; label: string }[] = [
   { value: 'door', label: 'Porte (pivot au gond)' },
 ];
 
-export function ComponentDetails({ id }: { id: string }) {
+export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; placeNode?: (def: string, config: Record<string, Value>) => void; onOpenClass?: (classId: string) => void }) {
   const store = useStore();
   const c = findComponent(store.cls, id);
   if (!c) return null;
+  if (c.kind === 'ActorComponent') return <LogicComponentDetails c={c} placeNode={placeNode} onOpenClass={onOpenClass} />;
   const parent = c.parent ? findComponent(store.cls, c.parent) : undefined;
   const set = (patch: Partial<ComponentProps>) => store.apply(`Modifier ${c.name}`, (cl) => updateComponentProps(cl, c.id, patch));
   const p = c.props;

@@ -49,6 +49,14 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Les propriétés réglées dans Details sont l’état au lancement. Ce qui change pendant le jeu passe par des nœuds.',
   },
   {
+    title: 'Actor Component',
+    names: ['Actor Component', 'Get Owner', 'Get Component by Class'],
+    what: 'Un Blueprint de parent ActorComponent : de la logique sans place dans le monde (santé, inventaire), ajoutée à des acteurs par Components › + Add. Chaque acteur a sa copie. Dans ses graphes, Self est le composant ; Get Owner donne l’acteur qui le porte.',
+    when: 'Quand plusieurs Blueprints sans lien de parenté ont besoin de la même logique : l’écrire une fois dans un composant, l’ajouter à chacun. Get Component by Class le retrouve sur n’importe quel acteur, sans Cast.',
+    trap: 'Self n’est pas un acteur : Get Actor Location ou Destroy Actor sans Target ne compile pas. Et Get Component by Class renvoie None sur un acteur qui n’a pas ce composant : Is Valid avant de s’en servir.',
+    pattern: 'Other Actor → Get Component by Class (BP_Sante) → Is Valid → Infliger Degats',
+  },
+  {
     title: 'Construire un acteur',
     names: ['Blueprint Class', 'Viewport', 'Place Actors'],
     what: 'Un Blueprint Class est un modèle d’acteur : Content Drawer › + Add › Blueprint Class, parent Actor. On y ajoute des composants (Components › +), on les place dans son Viewport, puis on le pose dans le niveau (Place Actors, ou glisser depuis le Content Drawer).',

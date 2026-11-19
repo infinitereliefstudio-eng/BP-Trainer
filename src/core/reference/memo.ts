@@ -98,6 +98,24 @@ export const MEMO: MemoCard[] = [
       'La position de l’acteur est celle de son composant racine. Dans UE, le **Sweep** d’un déplacement ne teste que la collision de la racine : un acteur qui doit buter contre les murs a sa forme de collision en racine.\n\n' +
       'Quand la même logique revient dans trois Blueprints, c’est souvent un **Actor Component** à créer.',
   },
+  {
+    id: 'm-actor-components',
+    theme: 'bases',
+    title: 'Actor Components',
+    summary: 'De la logique réutilisable qu’on ajoute à des acteurs : santé, inventaire, interaction.',
+    keywords: ['actor component', 'composant', 'get owner', 'get component by class', 'composition', 'reutiliser', 'sante', 'inventaire'],
+    body:
+      'Un **Actor Component** est un Blueprint de parent **ActorComponent** (Content Drawer › + Add › Blueprint Class › Actor Component). On l’ajoute à un acteur comme un Static Mesh (Components › + Add), mais il n’a **ni position ni forme** : seulement des variables, des fonctions, des événements et des Event Dispatchers.\n\n' +
+      '- **Une copie par acteur** : deux caisses avec BP_Sante ont chacune leur Vie. Les variables cochées **Instance Editable** se règlent dans les Details du composant (pour toutes les caisses), puis dans ceux d’une caisse posée (pour elle seule).\n' +
+      '- **Self est le composant**, pas l’acteur. Get Actor Location, Destroy Actor ou Set Actor Hidden In Game sans Target : erreur de compilation (« self is not a Actor »). On relie **Get Owner**, l’acteur qui le porte.\n' +
+      '- **BeginPlay** du composant passe **avant** l’Event BeginPlay de son acteur. Il a aussi **Tick** et **End Play** (quand l’acteur est détruit).\n' +
+      '- **Pas d’overlap, pas d’entrées, pas de Timeline** : il n’a pas de forme et ne reçoit pas les touches. Il s’abonne à **On Actor Begin Overlap** de son Owner (Bind Event), ou l’acteur l’appelle.\n' +
+      '- **Prévenir l’acteur** : un Event Dispatcher du composant (OnMort). Dans l’acteur, le **+** vert des Details du composant ajoute « On OnMort (Sante) », déjà abonné.\n' +
+      '- **Le trouver sans connaître l’acteur** : **Get Component by Class** (BP_Sante) sur Other Actor, puis **Is Valid** : None s’il n’en a pas. Aucun Cast vers chaque sorte d’ennemi.\n\n' +
+      '**Parent ou composant ?** Un parent dit « est un » (une pompe **est une** machine) ; un composant dit « a un » (une caisse, une tourelle et le joueur **ont une** santé). Un acteur n’a qu’un parent, mais autant de composants qu’il veut.\n\n' +
+      'Un **message d’interface** envoyé à l’acteur ne va pas à ses composants : envoie-le au composant (Get Component by Class), ou fais répondre l’acteur.\n\n' +
+      'Pas simulés ici : les Scene Components faits en Blueprint (avec une position), Add Component by Class et Destroy Component en cours de partie, Activate / Deactivate.',
+  },
 
   // -------------------------------------------------------------- framework
   {

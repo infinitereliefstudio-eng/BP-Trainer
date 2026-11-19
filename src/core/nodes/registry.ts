@@ -35,6 +35,7 @@ import { dataTableNodes } from './library/dataTables';
 import { saveGameNodes } from './library/saveGame';
 import { enhancedInputNodes } from './library/enhancedInput';
 import { controllerNodes } from './library/controller';
+import { actorComponentNodes } from './library/actorComponents';
 
 const ALL: NodeDefinition[] = [
   ...controllerNodes,
@@ -49,6 +50,7 @@ const ALL: NodeDefinition[] = [
   ...traceNodes,
   ...variableNodes,
   ...actorNodes,
+  ...actorComponentNodes,
   ...componentNodes,
   ...communicationNodes,
   ...functionNodes,

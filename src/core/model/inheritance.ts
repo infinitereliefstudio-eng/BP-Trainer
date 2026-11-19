@@ -8,7 +8,7 @@
  * The model keeps each class as written. `inheritedView` builds the merged
  * class that graphs, compilation and the runtime work with.
  */
-import type { BlueprintClass, Component, Graph, NodeInstance, ParentClass, Project } from './project';
+import { isSceneComponent, type BlueprintClass, type Component, type Graph, type NodeInstance, type ParentClass, type Project } from './project';
 
 /** The Blueprint parent of `cls`, if any. */
 export function parentOf(p: Project | undefined, cls: BlueprintClass): BlueprintClass | undefined {
@@ -30,7 +30,7 @@ export function isA(p: Project | undefined, classId: string | undefined, ancesto
   return !!cls && lineage(p, cls).some((c) => c.id === ancestorId);
 }
 
-/** The native class at the top of the chain: Actor or Pawn. */
+/** The native class at the top of the chain: Actor, Pawn, PlayerController, SaveGame or ActorComponent. */
 export function rootParent(p: Project | undefined, cls: BlueprintClass): ParentClass {
   return lineage(p, cls).at(-1)!.parent;
 }
@@ -52,8 +52,9 @@ export function inheritedView(cls: BlueprintClass, p: Project | undefined, withP
   if (chain.length < 2) return cls;
   const base = inheritedView(parent, p, withPrivate);
   const ownNames = new Set(cls.graphs.filter((g) => g.kind === 'function').map((g) => g.name));
-  const parentRoot = base.components.find((c) => !c.parent);
-  const ownComponents: Component[] = cls.components.map((c) => (c.parent || !parentRoot ? c : { ...c, parent: parentRoot.id }));
+  const parentRoot = base.components.find((c) => !c.parent && isSceneComponent(c));
+  // A child's own scene components hang under the root it inherits; Actor Components are never attached.
+  const ownComponents: Component[] = cls.components.map((c) => (c.parent || !parentRoot || !isSceneComponent(c) ? c : { ...c, parent: parentRoot.id }));
   return {
     ...cls,
     parent: base.parent,
@@ -81,6 +82,8 @@ export function eventKey(n: NodeInstance): string {
       return `${n.def}:${c.component}`;
     case 'event.custom':
       return `${n.def}:${c.name}`;
+    case 'event.componentDispatcher':
+      return `${n.def}:${c.component}:${c.dispatcher}`;
     case 'input.action':
       return `${n.def}:${c.action}`;
     case 'event.interface':

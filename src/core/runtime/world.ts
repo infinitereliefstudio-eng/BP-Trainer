@@ -85,6 +85,14 @@ export interface ActorRT {
   hidden: boolean;
   destroyed: boolean;
   /**
+   * An actor's Actor Components made in Blueprint: component id (in its
+   * class) → id of the object that runs its logic.
+   */
+  logic?: Record<string, string>;
+  /** For the object of an Actor Component: the actor that carries it (Get Owner), and its component id there. */
+  owner?: string;
+  componentId?: string;
+  /**
    * The chain of execution (Interpreter.run) in which Destroy Actor hit it.
    * As in UE, where the actor really goes at the end of the frame, the rest
    * of that chain still runs; its latent actions and later events do not.

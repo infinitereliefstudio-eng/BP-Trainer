@@ -15,6 +15,9 @@ export function placeActor(p: Project, classId: string, x: number, y: number): O
   const cls = p.classes.find((c) => c.id === classId);
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
   if (cls.parent === 'SaveGame') return { ok: false, reason: `${cls.name} est un SaveGame : un objet, pas un acteur, il ne se pose pas dans le niveau.` };
+  if (cls.parent === 'ActorComponent') {
+    return { ok: false, reason: `${cls.name} est un Actor Component : il ne se pose pas dans le niveau, on l’ajoute dans les Components d’un acteur (+ Add).` };
+  }
   if (!isPlaceableParent(cls.parent)) return { ok: false, reason: `${cls.name} est un Player Controller : le jeu le crée lui-même (Player Controller Class), il ne se pose pas dans le niveau.` };
   const a: LevelActor = {
     id: newId('a'),
@@ -57,6 +60,18 @@ export function setActorOverride(p: Project, id: string, variableId: string, val
   else a.overrides[variableId] = value;
 }
 
+/** An Instance Editable variable of one of the actor's Actor Components, on this placed actor: a value, or back to its Blueprint's (undefined). */
+export function setComponentOverride(p: Project, id: string, componentId: string, variableId: string, value: Value | undefined): void {
+  const a = p.level.actors.find((x) => x.id === id);
+  if (!a) return;
+  const own = { ...(a.componentOverrides?.[componentId] ?? {}) };
+  if (value === undefined) delete own[variableId];
+  else own[variableId] = value;
+  a.componentOverrides = { ...(a.componentOverrides ?? {}), [componentId]: own };
+  if (!Object.keys(own).length) delete a.componentOverrides[componentId];
+  if (!Object.keys(a.componentOverrides).length) delete a.componentOverrides;
+}
+
 /** Value stored in an instance's Details for a reference to a placed actor. */
 export const actorRefValue = (id: string) => `actor:${id}`;
 
@@ -65,6 +80,9 @@ export function removeActor(p: Project, id: string): void {
   // References to it, set in other instances' Details, become None.
   for (const a of p.level.actors) {
     for (const [k, v] of Object.entries(a.overrides)) if (v === actorRefValue(id)) a.overrides[k] = null;
+    for (const values of Object.values(a.componentOverrides ?? {})) {
+      for (const [k, v] of Object.entries(values)) if (v === actorRefValue(id)) values[k] = null;
+    }
   }
 }
 
@@ -75,6 +93,7 @@ export function duplicateActor(p: Project, id: string): OpResult<LevelActor> {
   if (res.ok) {
     res.value.yaw = src.yaw;
     res.value.overrides = structuredClone(src.overrides);
+    if (src.componentOverrides) res.value.componentOverrides = structuredClone(src.componentOverrides);
   }
   return res;
 }

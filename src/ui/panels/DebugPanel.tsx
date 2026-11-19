@@ -39,11 +39,9 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
   }
   const sim = session.sim;
   const paused = sim.paused;
-  // A parent's graphs also run on its children's actors.
-  const instances = [...sim.actors, sim.player].filter((a) => sim.isA(a, store.classId));
-  const actor = paused
-    ? [...sim.actors, sim.player].find((a) => a.id === paused.actorId)
-    : (instances.find((a) => a.id === session.selected) ?? instances[0]);
+  // A parent's graphs also run on its children's actors; an Actor Component's, on each actor that carries it.
+  const instances = sim.instancesOf(store.classId);
+  const actor = paused ? sim.objectById(paused.actorId) : (instances.find((a) => a.id === session.selected) ?? instances[0]);
   const selected = store.selection.size === 1 ? [...store.selection][0] : undefined;
   const watchId = paused?.nodeId ?? selected;
   const watchGraph = paused?.graphId ?? store.graphId;

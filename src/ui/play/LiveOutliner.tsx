@@ -25,6 +25,40 @@ function editable(t: PinType): boolean {
   return ['bool', 'int', 'float', 'string', 'enum', 'vector', 'rotator'].includes(t.category);
 }
 
+/** The variables of a running actor (or of one of its Actor Components), editable when they can be typed in. */
+function LiveVariables({ session, obj, title }: { session: PlaySession; obj: ActorRT; title: string }) {
+  const sim = session.sim;
+  const cls = sim.classOf(obj);
+  const show = (v: RValue, t: PinType): string => {
+    if (Array.isArray(v)) return `[${v.length}] ${v.map((x) => show(x, { ...t, container: undefined })).join(', ')}`;
+    if (isRef(v)) return sim.displayName(v);
+    if (t.category === 'class') return (typeof v === 'string' && findClass(sim.project, v)?.name) || 'None';
+    return formatValue(v as Value, t, sim.project);
+  };
+  const setVar = (v: Variable, value: Value) => {
+    obj.vars[v.id] = value as RValue;
+    session.notifyUi();
+  };
+  if (!cls?.variables.length) return null;
+  return (
+    <Group title={title}>
+      {cls.variables.map((v) =>
+        editable(v.type) ? (
+          <Field key={v.id} label={v.name}>
+            <ValueInput type={v.type} value={obj.vars[v.id] as Value} onChange={(val) => setVar(v, val)} />
+          </Field>
+        ) : (
+          <Field key={v.id} label={v.name}>
+            <span class="dbg-val" title={typeLabel(v.type)}>
+              {show(obj.vars[v.id] ?? null, v.type)}
+            </span>
+          </Field>
+        ),
+      )}
+    </Group>
+  );
+}
+
 export function LiveOutliner({ session }: Props) {
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.onUi(() => force(0)), [session]);
@@ -52,16 +86,6 @@ function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT 
   const sim = session.sim;
   const cls = actor.classId ? sim.classOf(actor) : undefined;
   const timers = [...sim.timers.values()].filter((t) => t.actor === actor.id);
-  const show = (v: RValue, t: PinType): string => {
-    if (Array.isArray(v)) return `[${v.length}] ${v.map((x) => show(x, { ...t, container: undefined })).join(', ')}`;
-    if (isRef(v)) return sim.displayName(v);
-    if (t.category === 'class') return (typeof v === 'string' && findClass(sim.project, v)?.name) || 'None';
-    return formatValue(v as Value, t, sim.project);
-  };
-  const setVar = (v: Variable, value: Value) => {
-    actor.vars[v.id] = value as RValue;
-    session.notifyUi();
-  };
   /** Change the running actor, then refresh the panels. */
   const live = (change: () => void) => {
     change();
@@ -91,23 +115,11 @@ function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT 
           <Check checked={actor.hidden} onChange={(h) => live(() => { actor.hidden = h; })} />
         </Field>
       </Group>
-      {cls && cls.variables.length > 0 && (
-        <Group title="Variables (en direct)">
-          {cls.variables.map((v) =>
-            editable(v.type) ? (
-              <Field key={v.id} label={v.name}>
-                <ValueInput type={v.type} value={actor.vars[v.id] as Value} onChange={(val) => setVar(v, val)} />
-              </Field>
-            ) : (
-              <Field key={v.id} label={v.name}>
-                <span class="dbg-val" title={typeLabel(v.type)}>
-                  {show(actor.vars[v.id] ?? null, v.type)}
-                </span>
-              </Field>
-            ),
-          )}
-        </Group>
-      )}
+      {cls && cls.variables.length > 0 && <LiveVariables session={session} obj={actor} title="Variables (en direct)" />}
+      {/* Its Actor Components: each copy with its own variables. */}
+      {sim.componentsOf(actor).map((o) => (
+        <LiveVariables key={o.id} session={session} obj={o} title={`${o.objectName.split('.').pop()} (${o.className})`} />
+      ))}
       {actor.components.length > 1 && (
         <Group title="Composants">
           {actor.components

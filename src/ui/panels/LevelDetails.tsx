@@ -1,7 +1,7 @@
 /** Details of what is selected in the level: an actor instance or the Player Start. */
 import { inheritedView, isA, rootParent } from '@core/model/inheritance';
-import { findClass } from '@core/model/project';
-import { actorRefValue, removeActor, setActorOverride, updateActor } from '@core/operations/levelOps';
+import { findClass, type Variable } from '@core/model/project';
+import { actorRefValue, removeActor, setActorOverride, setComponentOverride, updateActor } from '@core/operations/levelOps';
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
@@ -16,6 +16,12 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
   const editable = cls?.variables.filter((v) => v.instanceEditable) ?? [];
   const patch = (label: string, fn: () => void) => store.applyProject(label, fn);
   const categories = [...new Set(editable.map((v) => v.category || 'Default'))];
+  // Its Actor Components: their Instance Editable variables, set for this actor only (UE: Details › the component).
+  const logic = (cls?.components ?? []).flatMap((comp) => {
+    const own = comp.kind === 'ActorComponent' && comp.classId ? findClass(store.project, comp.classId) : undefined;
+    const of = own && inheritedView(own, store.project);
+    return of ? [{ comp, of, vars: of.variables.filter((v) => v.instanceEditable) }] : [];
+  });
 
   return (
     <>
@@ -39,40 +45,37 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
         </Field>
       </Group>
       {categories.map((cat) => (
-      <Group key={cat} title={cat}>
-        {editable.filter((v) => (v.category || 'Default') === cat).map((v) => {
-            const value = v.id in a.overrides ? a.overrides[v.id] : v.defaultValue;
-            const set = (val: Value) => patch('Régler une variable', () => setActorOverride(store.project, a.id, v.id, val));
-            if (v.type.category === 'object' && v.type.container !== 'array') {
-              // UE's actor picker: any placed actor of the right class, or None.
-              const wanted = v.type.subtype ?? 'Actor';
-              const choices = store.project.level.actors.filter((o) => {
-                const oc = findClass(store.project, o.classId);
-                const wantedId = store.project.classes.find((c) => c.name === wanted)?.id;
-                // A child Blueprint fits where its parent is expected.
-                const fits = wanted === 'Actor' || (wanted === 'Pawn' && !!oc && rootParent(store.project, oc) === 'Pawn') || (!!wantedId && isA(store.project, o.classId, wantedId));
-                return o.id !== a.id && fits;
-              });
-              return (
-                <Field key={v.id} label={v.name}>
-                  <select class="field" value={String(value ?? '')} onChange={(e) => set((e.target as HTMLSelectElement).value || null)}>
-                    <option value="">None</option>
-                    {choices.map((o) => (
-                      <option key={o.id} value={actorRefValue(o.id)}>
-                        {o.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              );
-            }
+        <Group key={cat} title={cat}>
+          {editable
+            .filter((v) => (v.category || 'Default') === cat)
+            .map((v) => (
+              <VariableField
+                key={v.id}
+                v={v}
+                actorId={a.id}
+                value={v.id in a.overrides ? a.overrides[v.id] : v.defaultValue}
+                onChange={(val) => patch('Régler une variable', () => setActorOverride(store.project, a.id, v.id, val))}
+              />
+            ))}
+        </Group>
+      ))}
+      {logic.map(({ comp, of, vars }) => (
+        <Group key={comp.id} title={`${comp.name} (${of.name})`}>
+          {vars.length === 0 && <p class="muted small">Aucune variable Instance Editable dans {of.name}.</p>}
+          {vars.map((v) => {
+            const own = a.componentOverrides?.[comp.id];
+            const value = own && v.id in own ? own[v.id] : comp.values && v.id in comp.values ? comp.values[v.id] : v.defaultValue;
             return (
-              <Field key={v.id} label={v.name}>
-                <ValueInput type={v.type} value={value} onChange={set} />
-              </Field>
+              <VariableField
+                key={v.id}
+                v={v}
+                actorId={a.id}
+                value={value}
+                onChange={(val) => patch('Régler une variable du composant', () => setComponentOverride(store.project, a.id, comp.id, v.id, val))}
+              />
             );
           })}
-      </Group>
+        </Group>
       ))}
       <Group title="Acteur" app>
         <button class="btn danger" onClick={() => patch('Supprimer l’acteur', () => removeActor(store.project, a.id))}>
@@ -85,8 +88,47 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
           Les variables cochées <b>Instance Editable</b> dans le Blueprint apparaissent ici, sous leur Category, pour être réglées acteur par acteur.
           {editable.length === 0 && ' Ce Blueprint n’en a aucune.'}
         </p>
+        {logic.length > 0 && (
+          <p>
+            Ses <b>Actor Components</b> ont chacun leur section : leurs variables Instance Editable s’y règlent pour cet acteur seulement, par-dessus les
+            valeurs choisies dans le Blueprint de l’acteur.
+          </p>
+        )}
       </AppHelp>
     </>
+  );
+}
+
+/** An Instance Editable variable on a placed actor: a picker of placed actors for a reference (UE's actor picker), else its value editor. */
+function VariableField({ v, actorId, value, onChange }: { v: Variable; actorId: string; value: Value; onChange: (v: Value) => void }) {
+  const store = useStore();
+  if (v.type.category === 'object' && v.type.container !== 'array') {
+    // UE's actor picker: any placed actor of the right class, or None.
+    const wanted = v.type.subtype ?? 'Actor';
+    const choices = store.project.level.actors.filter((o) => {
+      const oc = findClass(store.project, o.classId);
+      const wantedId = store.project.classes.find((c) => c.name === wanted)?.id;
+      // A child Blueprint fits where its parent is expected.
+      const fits = wanted === 'Actor' || (wanted === 'Pawn' && !!oc && rootParent(store.project, oc) === 'Pawn') || (!!wantedId && isA(store.project, o.classId, wantedId));
+      return o.id !== actorId && fits;
+    });
+    return (
+      <Field label={v.name}>
+        <select class="field" value={String(value ?? '')} onChange={(e) => onChange((e.target as HTMLSelectElement).value || null)}>
+          <option value="">None</option>
+          {choices.map((o) => (
+            <option key={o.id} value={actorRefValue(o.id)}>
+              {o.name}
+            </option>
+          ))}
+        </select>
+      </Field>
+    );
+  }
+  return (
+    <Field label={v.name}>
+      <ValueInput type={v.type} value={value} onChange={onChange} />
+    </Field>
   );
 }
 

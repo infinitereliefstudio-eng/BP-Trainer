@@ -12,6 +12,8 @@ export const BUILTIN_ENUMS: Record<string, string[]> = {
   ETraceTypeQuery: ['Visibility', 'Camera'],
   /** Draw Debug Type of a Line Trace. */
   EDrawDebugTrace: ['None', 'For One Frame', 'For Duration', 'Persistent'],
+  /** Why Event End Play runs (UE's EEndPlayReason). */
+  EEndPlayReason: ['Destroyed', 'Level Transition', 'End Play In Editor', 'Removed From World', 'Quit'],
 };
 
 /** Entries of an enum by name, or undefined if it does not exist. */

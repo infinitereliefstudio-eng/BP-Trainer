@@ -16,6 +16,7 @@ import {
   type Project,
 } from '../model/project';
 import { castClassName, classById, findCustomEvent } from '../nodes/library/communication';
+import { componentDispatcher, NOT_IN_COMPONENT, selfIs } from '../nodes/library/actorComponents';
 import { interfaceMatch } from '../operations/interfaceOps';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
@@ -52,7 +53,9 @@ export type CompileCode =
   | 'noParentEvent'
   | 'localScope'
   | 'interfaceFunction'
-  | 'interfaceName';
+  | 'interfaceName'
+  | 'selfType'
+  | 'notInComponent';
 
 export interface CompileMessage {
   severity: Severity;
@@ -153,7 +156,20 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       });
     }
     for (const [code, msg] of nodeChecks(n, g, ctx)) out.push({ severity: 'error', code, text: `${title} : ${msg}`, ...at });
+    if (NOT_IN_COMPONENT[n.def] && selfIs(ctx, 'ActorComponent')) {
+      out.push({ severity: 'error', code: 'notInComponent', text: `${title} n’est pas permis dans un Actor Component : ${NOT_IN_COMPONENT[n.def]}`, ...at });
+    }
     for (const p of resolvePins(n, ctx)) {
+      // Target left empty means self: self must then be of the pin's class (UE: "This blueprint (self) is not a …").
+      const sub = p.type.category === 'object' && !p.type.container ? p.type.subtype : undefined;
+      if (p.dir === 'in' && p.defaultsToSelf && sub && !linkedInputs.has(`${n.id}:${p.id}`) && !ctx.hierarchy.isA(cls.name, sub)) {
+        out.push({
+          severity: 'error',
+          code: 'selfType',
+          text: `${title} : Self n’est pas un ${sub} ici (${cls.name} est ${selfIs(ctx, 'ActorComponent') ? 'un Actor Component' : `un ${cls.parent}`}) : relie la pin ${p.name}${selfIs(ctx, 'ActorComponent') && sub === 'Actor' ? ', par exemple à Get Owner' : ''}. (« This blueprint (self) is not a ${sub}, therefore '${p.name}' must have a connection. »)`,
+          ...at,
+        });
+      }
       if (p.dir === 'in' && p.required && !linkedInputs.has(`${n.id}:${p.id}`)) {
         out.push({
           severity: 'error',
@@ -248,6 +264,12 @@ function brokenReference(n: NodeInstance, cls: BlueprintClass, ctx: NodeContext)
   switch (n.def) {
     case 'cast.to':
       return castClassName(ctx, c.class) ? undefined : ['ownerGone', "le Blueprint ciblé n'existe plus."];
+    case 'event.componentDispatcher': {
+      const { comp, owner, d } = componentDispatcher(ctx, n);
+      if (!comp) return undefined; // reported as componentGone
+      if (!owner) return ['ownerGone', "le Blueprint du composant n'existe plus."];
+      return d ? undefined : ['memberGone', `l'Event Dispatcher n'existe plus dans ${owner.name}.`];
+    }
     case 'struct.make':
     case 'struct.break':
     case 'struct.setMembers':

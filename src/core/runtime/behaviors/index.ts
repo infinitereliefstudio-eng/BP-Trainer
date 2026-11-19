@@ -19,6 +19,7 @@ import { dataTableBehaviors } from './dataTables';
 import { saveGameBehaviors } from './saveGame';
 import { enhancedInputBehaviors } from './enhancedInput';
 import { controllerBehaviors } from './controller';
+import { actorComponentBehaviors } from './actorComponents';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
@@ -29,6 +30,7 @@ const ALL: Record<string, Behavior> = {
   ...controllerBehaviors,
   ...actionBehaviors,
   ...actorBehaviors,
+  ...actorComponentBehaviors,
   ...arrayBehaviors,
   ...mathBehaviors,
   ...pureBehaviors,

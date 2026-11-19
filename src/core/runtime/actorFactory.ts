@@ -1,5 +1,5 @@
 /** Runtime actors made from a Blueprint class (level instances, spawns, the player). */
-import type { BlueprintClass } from '../model/project';
+import { isSceneComponent, type BlueprintClass } from '../model/project';
 import { defaultValueFor, type Value } from '../types/values';
 import type { ActorRT, RValue } from './world';
 
@@ -49,7 +49,8 @@ export function createActor(id: string, label: string, objectName: string, cls: 
     ...blank(id, label, objectName, cls.name),
     native: cls.parent,
     classId: cls.id,
-    components: cls.components.map((c) => ({ id: c.id, name: c.name, kind: c.kind, parent: c.parent, props: structuredClone(c.props) })),
+    // Actor Components have no place in the world: their logic runs in an object of their own (Simulation.attachComponents).
+    components: cls.components.filter(isSceneComponent).map((c) => ({ id: c.id, name: c.name, kind: c.kind, parent: c.parent, props: structuredClone(c.props) })),
     vars,
     receivesInput: cls.autoReceiveInput,
   };

@@ -5,6 +5,7 @@
  * The level editor has Save, Place Actors and Play.
  */
 import type { CompileStatus } from '@core/compiler/validate';
+import { familyOf } from '@core/model/project';
 import { ensureConstructionScript } from '@core/operations/constructionOps';
 import { saveProject } from '@storage/persistence';
 import { useStore } from '../hooks';
@@ -78,12 +79,12 @@ export function BlueprintToolbar(
       <PlayButton {...p} />
       <span class="tb-sep" />
       <div class="tabs graph-tabs" role="tablist">
-        {cls.parent !== 'SaveGame' && (
+        {familyOf(cls.parent) === 'actor' && (
           <button role="tab" class={`tab${p.viewport ? ' active' : ''}`} disabled={p.playing} onClick={p.onViewport}>
             Viewport
           </button>
         )}
-        {cls.parent !== 'SaveGame' && (
+        {familyOf(cls.parent) === 'actor' && (
           <button
             role="tab"
             class={`tab${current.kind === 'construction' && !p.viewport ? ' active' : ''}`}

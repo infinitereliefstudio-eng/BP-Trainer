@@ -20,6 +20,7 @@ import { inUeFor, trapFor } from '@core/explain/notes';
 import { readTimeline, TIMELINE_NODE } from '@core/nodes/library/timeline';
 import type { Simulation } from '@core/runtime/simulation';
 import { hasInlineValue } from '@editor/layout';
+import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { TypeSelect } from '../widgets/TypeSelect';
@@ -47,9 +48,11 @@ interface DetailsProps {
   onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
   /** Find References: open Find Results on this search. */
   onFind?: (query: string) => void;
+  /** Place a node in the open graph (an Actor Component's « On … » event). */
+  placeNode?: (def: string, config: Record<string, Value>) => void;
 }
 
-export function Details({ openOverlay, onOpenClass, run, onFocusNode, onFind }: DetailsProps) {
+export function Details({ openOverlay, onOpenClass, run, onFocusNode, onFind, placeNode }: DetailsProps) {
   const store = useStore();
   const f = store.focus;
   const [search, setSearch] = useState('');
@@ -60,7 +63,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode, onFind }: 
   if (f.kind === 'nodes') body = <NodeDetails run={run} onFocusNode={onFocusNode} openOverlay={openOverlay} onFind={onFind} />;
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} onFind={onFind} />;
   else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
-  else if (f.kind === 'component') body = <ComponentDetails id={f.id} />;
+  else if (f.kind === 'component') body = <ComponentDetails id={f.id} placeNode={placeNode} onOpenClass={onOpenClass} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
   else if (f.kind === 'classDefaults') body = <ClassDefaults />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;

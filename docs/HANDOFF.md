@@ -4,11 +4,11 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.18)
+## Reprise rapide (2026-11-19, après la V7.19)
 
 ### Où on en est
 
-- **Version en ligne : 7.18.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.19.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
@@ -32,7 +32,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-**Chantier n° 1, Actor Components : analysé le 19 novembre** dans [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX). Tristan a validé les cinq recommandations le 19 novembre ; attendre son feu vert explicite pour lancer la V7.19 (le moteur).
+**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **V7.19 faite** (le moteur, voir « V7.19 » plus bas). Suite : V7.20 (leçons de découverte en Avancé, après « L'héritage »), V7.21 (usages), V7.22 (reprise de l'existant), chacune après le feu vert de Tristan.
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
@@ -634,6 +634,21 @@ Lancé par « tu peux enchainer ». Fin du plan du parcours : 115 étapes. Tests
 - Notion de catalogue `input-mode` ; fiches de glossaire « Projet Expert », « Modes de contrôle », « Journal de faits » ; 2 questions de révision (145). `smoke.py` attend 115 étapes, capture 72 (aide d'un projet Expert).
 
 Version 7.18.0.
+
+## V7.19 (2026-11-19) : chantier Actor Components, étape 1 (le moteur)
+
+Lancé par « tu peux lancer » après l'analyse [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX) et la validation des cinq recommandations. Aucune leçon : le moteur, les nœuds, la compilation et l'interface. Tests : `tests/actorComponents.test.ts` (14).
+
+- **Modèle** : classe native `ActorComponent` (`ParentClass`, `NATIVE_PARENTS`, `familyOf` : acteurs, SaveGame et composants ne se mélangent pas, `setParentClass` refuse et `FAMILY_REFUSAL` dit pourquoi). Dans un acteur, un composant de type `'ActorComponent'` pointe vers sa classe (`Component.classId`) et garde les valeurs de ses variables Instance Editable pour cette classe d'acteur (`Component.values`, `setComponentValue`) ; un acteur posé peut les changer (`LevelActor.componentOverrides`, `setComponentOverride`). `isSceneComponent` distingue les composants avec une place (racine, Viewport, rendu, collision) des Actor Components, jamais attachés. `addActorComponent` (nom = celui de la classe, comme UE). Supprimer un Blueprint utilisé comme composant est refusé ; le poser ou le faire apparaître aussi. **Format 11** (rien à convertir) ; `validate.ts` retire un composant dont la classe a disparu.
+- **Moteur** : `Simulation.attachComponents` crée un objet (`ActorRT` avec `owner`, `componentId`) par Actor Component, pour les acteurs du niveau, le joueur, le contrôleur et les Spawn ; l'acteur garde `logic` (composant → objet). `scripted()` met chaque composant juste avant son acteur : **BeginPlay des composants avant celui de l'acteur** (comme `AActor::BeginPlay`), Tick, latents, timers. Le Get du composant (`var.component`) renvoie l'objet (`{ ref: 'actor' }`), typé par sa classe : Cast, appels de fonctions, Get / Set, dispatchers marchent sans changement. Destroy Actor : **Event End Play** de l'acteur, puis de ses composants, puis Event Destroyed (comme `AActor::Destroyed`) ; les composants partent avec lui. Un message d'interface envoyé à l'acteur ne va pas à ses composants (testé).
+- **Nœuds** (`nodes/library/actorComponents.ts`, `runtime/behaviors/actorComponents.ts`) : Get Owner (composant), Get Owner (acteur, toujours None ici), Get Component by Class et Get Components by Class (pin Component Class : Blueprints composants et classes natives StaticMeshComponent…, sortie typée), Event End Play (End Play Reason, enum `EEndPlayReason`), « On … (Composant) » (`event.componentDispatcher`, le + vert d'UE : appelé par `dispatcher.call` sur l'acteur porteur, sans Bind), Bind / Unbind Event to On Actor Begin / End Overlap (`dispatcher.bindNative`, `nodes/library/nativeDispatchers.ts` ; diffusés par `overlaps.ts` après l'événement d'overlap, Custom Event avec Overlapped Actor et Other Actor).
+- **Compilation** : `selfType` (Target laissé à self alors que self n'est pas de la bonne classe : « self is not a Actor », avec Get Owner proposé) ; `notInComponent` (`NOT_IN_COMPONENT` : overlap, Hit, clic, Event Destroyed, entrées, Timeline, Construction Script). La palette d'un composant les cache aussi ; chaque Get Owner n'est listé que là où il a un sens (l'autre en recherche ou en tirant un fil).
+- **Interface** : Pick Parent Class › Actor Component ; l'éditeur d'un composant n'a ni Viewport, ni Construction Script, ni section Components (« My Blueprint ») ; Class Settings du composant (Parent Class de sa famille, interfaces, « Utilisé par », aide « est un / a un ») ; Components › + Add d'un acteur propose d'abord les Actor Components du projet, listés sous l'arbre ; leurs Details (`LogicComponentDetails.tsx` : nom, classe, Edit Blueprint, variables Instance Editable, Events avec le + vert) ; Details d'un acteur posé : une section par composant ; Debug : la copie déboguée « BP_Sante (BP_Lampe) » (`Simulation.instancesOf`, `objectById`) ; Outliner en direct : les variables de chaque composant.
+- Mémo « Actor Components » (`m-actor-components`, 2 questions), glossaire « Actor Component », notes Piège et Dans UE des nouveaux nœuds. `smoke.py` : captures 73 à 75.
+
+Non fait, prévu ou hors chantier : Start with Tick Enabled (le Tick tourne s'il y a un Event Tick), Scene Components en Blueprint, Add Component by Class / Destroy Component, Activate / Deactivate. À vérifier dans UE avant d'en faire une leçon : l'ordre de Tick entre un acteur et ses composants (ici, le composant d'abord), les événements Enhanced Input dans un composant (refusés ici).
+
+Version 7.19.0.
 
 ## Méthode de travail
 

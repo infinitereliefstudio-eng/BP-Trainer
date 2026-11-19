@@ -106,17 +106,32 @@ export type ComponentKind =
   | 'StaticMesh'
   | 'PointLight'
   | 'BoxCollision'
-  | 'TextRender';
+  | 'TextRender'
+  /** A Blueprint of the project whose parent is ActorComponent: logic only, no place in the world. */
+  | 'ActorComponent';
 
 export interface Component {
   id: string;
   name: string;
   kind: ComponentKind;
-  /** Parent component id; the root has none. */
+  /** Parent component id; the root has none. An Actor Component is never attached: it has none either. */
   parent?: string;
   /** Initial values of the component's properties (Details panel). */
   props: ComponentProps;
+  /** An Actor Component: its Blueprint class (parent ActorComponent). */
+  classId?: string;
+  /**
+   * An Actor Component: values of its class's Instance Editable variables for
+   * this actor class, by variable id (Details of the component in the actor's Blueprint).
+   */
+  values?: Record<string, Value>;
 }
+
+/**
+ * Scene components have a place in the actor (a transform, a parent). An
+ * Actor Component made in Blueprint has none: it only carries logic.
+ */
+export const isSceneComponent = (c: { kind: ComponentKind }): boolean => c.kind !== 'ActorComponent';
 
 export type MeshShape = 'cube' | 'cylinder' | 'door';
 
@@ -153,10 +168,17 @@ export interface ComponentProps {
  * the game makes by itself for the player (never placed): it sits on the
  * input stack and owns the Enhanced Input Local Player Subsystem.
  */
-export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame';
+export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent';
 
 /** Native parents a Blueprint can be created from. */
-export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame'];
+export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent'];
+
+/**
+ * Three families that never mix: actors (Actor, Pawn, PlayerController),
+ * SaveGame objects, and Actor Components (added to actors, never placed).
+ */
+export type ClassFamily = 'actor' | 'save' | 'component';
+export const familyOf = (parent: ParentClass): ClassFamily => (parent === 'SaveGame' ? 'save' : parent === 'ActorComponent' ? 'component' : 'actor');
 
 /** Can instances of this native class be placed in the level or spawned? */
 export const isPlaceableParent = (parent: ParentClass): boolean => parent === 'Actor' || parent === 'Pawn';
@@ -220,6 +242,8 @@ export interface LevelActor {
   yaw: number;
   /** Values of Instance Editable variables, keyed by variable id. */
   overrides: Record<string, Value>;
+  /** Values of its Actor Components' Instance Editable variables for this actor: component id → variable id → value. */
+  componentOverrides?: Record<string, Record<string, Value>>;
 }
 
 export interface Level {
@@ -354,7 +378,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 10;
+export const PROJECT_FORMAT = 11;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -362,6 +386,7 @@ const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   PointLight: { sizeX: 0, sizeY: 0, intensity: 5000, radius: 600, color: '#ffd27a' },
   BoxCollision: { sizeX: 200, sizeY: 200, blocks: false },
   TextRender: { text: 'Text', color: '#ffffff' },
+  ActorComponent: {},
 };
 
 export function componentDefaults(kind: ComponentKind): ComponentProps {
@@ -394,6 +419,7 @@ export const COMPONENT_CLASS: Record<ComponentKind, string> = {
   PointLight: 'PointLightComponent',
   BoxCollision: 'BoxComponent',
   TextRender: 'TextRenderComponent',
+  ActorComponent: 'ActorComponent',
 };
 
 export const COMPONENT_LABEL: Record<ComponentKind, string> = {
@@ -402,6 +428,7 @@ export const COMPONENT_LABEL: Record<ComponentKind, string> = {
   PointLight: 'Point Light',
   BoxCollision: 'Box Collision',
   TextRender: 'Text Render',
+  ActorComponent: 'Actor Component',
 };
 
 // ---------------------------------------------------------------- factories
@@ -418,8 +445,8 @@ export function createClass(name: string, parent: ParentClass = 'Actor'): Bluepr
     name,
     parent,
     autoReceiveInput: false,
-    // A SaveGame is an object, not an actor: no components at all.
-    components: parent === 'SaveGame' ? [] : [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
+    // A SaveGame is an object and an Actor Component has no place in the world: no components at all.
+    components: familyOf(parent) !== 'actor' ? [] : [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
     variables: [],
     graphs: [createGraph('EventGraph', 'event')],
     dispatchers: [],

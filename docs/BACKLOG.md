@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG). Rien ne se fait sans le feu vert de Tristan.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG), puis le soir du 19 novembre après la V7.30 (chantier n° 2 terminé, ce qu'il laisse noté, liste « Déjà fait » remise dans l'ordre). Rien ne se fait sans le feu vert de Tristan.
 
 Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) et les **lots du plan du parcours** (0 à 4, [PLAN_PARCOURS.md](PLAN_PARCOURS.md), tous faits). Ici, « lot » sans précision désigne ceux du backlog.
 
@@ -9,7 +9,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 
 ## Par où commencer
 
-État au 19 novembre, après la V7.22 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22). **La suite est dans « Prochains chantiers » juste en dessous** : les révisions de graphes espacées, puis les lots 7 et 6, puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
+État au 19 novembre, après la V7.30 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22) ; le chantier n° 2, révisions de graphes espacées, est fait (V7.27 à V7.30). **La suite est dans « Prochains chantiers » juste en dessous** : l'UMG minimal (lot 7), puis les niveaux (lot 6), puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
@@ -20,18 +20,18 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | 5 | ~~Composition~~ **fait en V7.19 à V7.22** | Actor Components : santé, inventaire, interaction, énergie (chantier n° 1) | ★★★ | L |
 | 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger. **Chantier n° 4** | ★★★ | L |
 | 7 | Interface de jeu | Quelques widgets prédéfinis (texte, bouton, jauge), puis réévaluer un éditeur UMG complet. **Chantier n° 3** | ★★★ | M, XL pour l'éditeur |
-| 8 | Motivation et diffusion | Objectif du jour, série avec gel, rappels, défi du jour | ★★ à ★★★ | S à L |
+| 8 | Motivation et diffusion | Objectif du jour, série avec gel, rappels (le défi du jour est devenu la file « À retravailler en Blueprint », V7.28) | ★★ à ★★★ | S à L |
 
 L'objectif du jour et le gel de série sont deux petites passes (S) : ils peuvent se glisser entre deux lots sans attendre le lot 8.
 
 Questions ouvertes :
 - Lot 3 : le composant d'interaction réutilisable est fait (« Interagir par composant », V7.21). Reste à décider si la version intermédiaire (appui maintenu, surbrillance, invite « Appuie sur E ») vaut une passe, par exemple avec l'UMG (l'invite est un widget).
-- Quel objectif du jour par défaut : une leçon, ou cinq questions de révision ?
+- Quel objectif du jour par défaut : une leçon, cinq questions de révision, ou une carte de la file « À retravailler en Blueprint » ?
 - Tranchée le 19 novembre : la suite narrative avance avec les chantiers (X1 fait en V7.18, puis l'inventaire et le projet Expert final), sans attendre une appli plus généraliste.
 
 ## Prochains chantiers, dans l'ordre (choix du 19 novembre)
 
-Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.26.
+Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.30.
 
 | # | Chantier | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
@@ -41,22 +41,29 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
-### Chantier n° 2 : révisions de graphes espacées
+### Chantier n° 2 (fait) : révisions de graphes espacées
 
-Tiré de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, étudiée le 19 novembre ; Tristan a validé l'intégration et l'ordre. Le constat : les questions de révision reviennent dans le temps (`core/review/schedule.ts`), les graphes jamais. Reconnaître ce que fait un nœud une semaine plus tard n'est pas savoir le recâbler. Tristan en est vers l'étape 10 : la file doit lui servir tout de suite, d'où des familles pilotes prises dans les notions qu'il pratique, pas dans les Dispatchers ou les composants.
+Tiré de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, étudiée le 19 novembre ; Tristan a validé l'intégration et l'ordre. Le constat : les questions de révision reviennent dans le temps (`core/review/schedule.ts`), les graphes jamais. Reconnaître ce que fait un nœud une semaine plus tard n'est pas savoir le recâbler. **Terminé le 19 novembre**, une étape par version ; Tristan n'a encore essayé aucune des quatre.
 
-| Étape | Contenu | Difficulté |
+| Étape | Livré | Version |
 |---|---|---|
-| A — Journal des tentatives (**fait en V7.27**) | Par essai : date, étape, révision du contenu, réussi ou non, nombre de vérifications, aide utilisée, catégories d'erreur que le correcteur connaît déjà (compilation, Accessed None, événement jamais déclenché, nœud jamais atteint, vérification ratée par id). Local, dans la progression, versionné, exporté avec la sauvegarde complète. Ni gestes, ni graphes complets | M |
-| B — File « À retravailler en Blueprint » (**fait en V7.28**, par notion : les familles viendront avec C) | Échéance en jours par notion et par famille ; point de départ à essayer : J+1, J+3, J+7, puis J+14 à J+21. Rapprochée après un échec ou une solution vue, espacée après une réussite seule. Distincte de la file des questions mais affichée avec elle ; jamais bloquante, reportable | M |
-| C — Trois familles de mini-exercices à variantes (**fait en V7.29**) | 2 à 5 min : compléter deux ou trois nœuds, réparer, reconstruire une chaîne courte. Chaque famille est un modèle avec une graine reproductible ; pour chaque graine testée en CI, la solution de référence passe et des erreurs typiques échouent. Les variantes changent aussi le raisonnement (référence absente, deuxième instance, mauvais ordre), pas seulement les nombres. Familles pilotes : variables et Branch, overlap et événements, Cast | L |
-| D — Hypothèse avant l'indice (**fait en V7.30**) | Dans les Débogue : une question à choix (« l'événement, la référence ou la condition ? ») avant le premier indice | S |
+| A — Journal des essais | Par essai : date, étape, révision, réussi ou non, vérifications, aide, catégories d'erreur du correcteur, vérifications ratées par id. Dans la progression, versionné, exporté avec la sauvegarde complète ; Carnet › « Journal des essais », effaçable | V7.27 |
+| B — File « À retravailler en Blueprint » | Échéance en jours par notion, recalculée à partir du journal (et des étapes réussies avant lui) : J+1, J+3, J+7, J+14, J+21 ; rapprochée après un échec ou la solution vue, espacée après une réussite seule quand la notion était due. Dans l'onglet Révision, sous les questions ; reprise de zéro dans un espace à part ; « Une autre étape », « Reporter à demain » | V7.28 |
+| C — Mini-exercices à variantes | Trois familles (Variables et Branch, Overlaps et événements, Cast To) de trois situations, en trois formats (à compléter, à réparer, à reconstruire), tirés d'une graine reproductible ; pour 36 graines par famille, le départ échoue et la solution passe, et chaque erreur typique échoue avec une raison | V7.29 |
+| D — Hypothèse avant l'indice | Dans les Débogue et les mini-exercices à réparer : « l'événement, la référence ou la condition ? » avant le premier indice, puis ce que montre la vérification ; gardée dans le journal | V7.30 |
 
-Mesure : la réussite différée par notion (réussie seule, plusieurs jours après), affichée dans le Carnet.
+Ce chantier a repris et remplacé : « Révision par notion », « Révision variée » et « Reprise différée des erreurs » (lot 2), « S'adapter à l'apprenant » (reste du plan du parcours), « Défi du jour » (la séance du jour est la file). Laissé de côté, à reprendre selon ce que donnent les essais :
 
-Ce chantier reprend et remplace : « Révision par notion », « Révision variée » et « Reprise différée des erreurs » (lot 2), « S'adapter à l'apprenant » (reste du plan du parcours), « Maîtrise par notion » et « Défi du jour » (motivation : la séance du jour devient la file), et la piste « mesures d'autonomie dans le Carnet ».
-
-Écarté de l'analyse : le plan d'évaluation statistique (un seul apprenant), les profils à six états et le knowledge tracing (des règles simples suffisent), la génération par IA. Plus tard, après un pilote réussi : recommandation expliquée (« pourquoi cet exercice maintenant ? »), composition de deux ou trois concepts, exercices à réordonner (nœuds fournis à brancher, type Parsons), étendre les familles à Dispatchers, interfaces et composants.
+| Point | Où on en est | Pertinence | Difficulté |
+|---|---|---|---|
+| Mesure : réussite différée par notion | **Pas faite.** Prévue par le chantier (« réussie seule, plusieurs jours après », dans le Carnet) et promise par « Maîtrise par notion ». Le journal a tout ce qu'il faut : `practiceEvents` et `reworkSchedule` donnent, par notion, la dernière pratique, son résultat et sa boîte | ★★★ | S à M |
+| Régler le calendrier à l'usage | Hypothèses de départ, à revoir avec les retours de Tristan : intervalles 1, 3, 7, 14, 21 jours (puis 21 sans fin), réussite comptée « à l'heure » à une demi-journée près, essai laissé 2 h compté comme un échec, trois cartes affichées à la fois | ★★★ | S |
+| Premier lancement | Les étapes réussies avant le journal comptent au jour de leur réussite : la file peut se remplir d'un coup. À regarder sur la progression réelle de Tristan ; au besoin, étaler les premières échéances | ★★ | S |
+| Autres familles de mini-exercices | Les notions sans famille font refaire une étape entière (10 à 30 min au lieu de 3 à 5). Candidates, dans l'ordre où Tristan les rencontrera : Delay et timers, Event Dispatchers, interfaces, Enhanced Input (les familles actuelles n'utilisent que des overlaps), composants | ★★★ | M par famille |
+| Diagnostic de l'hypothèse | 13 des 23 Débogue du parcours désignent une cause (Accessed None, Cast jamais réussi, Branch d'un seul côté, événement muet). Les autres (une valeur fausse, l'ordre des nœuds) laissent l'apprenant tester seul : chaque vérification pourrait désigner sa cause, comme pour « Montre-moi » | ★ | M |
+| Recommandation expliquée | « Pourquoi cet exercice maintenant ? » : la phrase de chaque carte le dit en partie (dernière pratique, suite prévue) ; un profil par notion et par type de tâche (construire, réparer) reste à faire | ★★ | M |
+| Autres formats | Composer deux ou trois notions dans un même mini-exercice ; exercices à réordonner (nœuds fournis à brancher, type Parsons) | ★★ | M à L |
+| Écarté de l'analyse | Le plan d'évaluation statistique (un seul apprenant), les profils à six états et le knowledge tracing (des règles simples suffisent), la génération par IA | — | — |
 
 ### Chantier n° 1 (fait)
 
@@ -105,7 +112,7 @@ Issus de la revue du 17 novembre (V7.1.0, commit `b0c2ddd`, 773 tests réussis d
 - toutes les leçons hors Prédis vérifient l'absence d'erreurs d'exécution (le soupçon contraire n'a pas été confirmé) ;
 - fonctionnement local, export et sauvegarde complète.
 
-**Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,6 Mo (486 Ko compressés) en V7.22 ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
+**Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,7 Mo (495 Ko compressés) en V7.30 ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
 
 ## Lot 1 — Fiabilité : fait en V7.2
 
@@ -133,7 +140,7 @@ Le plan du parcours (V7.10 à V7.18) a repris une bonne part de ce qui suit ; ce
 | Passerelle vers Unreal | Passée dans « Prochains chantiers », plus tard (dès que Tristan peut ouvrir Unreal) | ★★★ | M (contenu) |
 | ~~Même problème, trois architectures~~ | **Fait** en V7.15 : « Choisis ton outil », puis imposé par la synthèse S3 | ★★ | fait |
 | Revoir le bilan de qualité | Dans `core/quality/review.ts`, le nombre de nœuds pèse sur le verdict et les étoiles. En faire un indicateur secondaire ; critères distincts : fonctionnement, robustesse, notion travaillée, lisibilité, coût d'exécution | ★★ | M |
-| Durée affinée | La durée est estimée d'après la taille de la solution ; l'affiner avec le temps réellement passé | ★ | S à M |
+| Durée affinée | La durée est estimée d'après la taille de la solution ; l'affiner avec le temps réellement passé, que le journal des essais garde depuis la V7.27 (début et fin de chaque essai) | ★ | S à M |
 
 ## Plan du parcours (validé le 18 novembre)
 
@@ -280,7 +287,7 @@ La base existe depuis la V4 : l'accueil compte les jours d'affilée (`Progress.d
 | ~~Défi du jour~~ | Repris par le chantier n° 2 : la séance du jour est la file « À retravailler en Blueprint » | ★★★ | — |
 | Rappel dans l'appli | À l'ouverture, un bandeau dit ce que la série risque et ce qui est dû | ★★ | S |
 | Rappel du jour (notification) | « Ta série de 6 jours tient encore : 4 questions à revoir. » Voir ci-dessous | ★★★ | M à L |
-| ~~Maîtrise par notion~~ | Repris par le chantier n° 2 (réussite différée par notion dans le Carnet) | ★★ | — |
+| Maîtrise par notion | Prévue par le chantier n° 2 mais **pas faite** : la réussite différée par notion, dans le Carnet (voir « Chantier n° 2 », laissé de côté) | ★★ | S à M |
 | Modificateurs de défi | Rejouer une leçon sans Tick, sans Cast, en moins de N nœuds, à 30 images par seconde, BeginPlay inversés | ★★ | M |
 | Succès | Badges liés à de vrais acquis (« premier Accessed None réparé »), pas au temps passé | ★★ | S à M |
 | Examen de fin de niveau | Cinq exercices tirés au hasard, sans indices | ★★ | M |
@@ -306,10 +313,10 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 |---|---|---|---|
 | ~~Remettre `HANDOFF.md` au propre~~ | **Fait en V7.26** : sections anciennes mises à jour ; la « Reprise rapide » fait foi, la suite est l'historique des versions | ★★ | fait |
 | Borner les journaux | `runtime/journal.ts` accumule les Print String ordinaires : un Print sur Tick fait grossir la mémoire. Borner l'affichage sans fausser les compteurs dont les vérifications ont besoin | ★★ | S à M |
-| Découper au fil des travaux | `simulation.ts` (839 lignes, +200 avec les Actor Components), `interpreter.ts` (775), `App.tsx` (643), `LessonSheet.tsx` (573) : découper selon leurs responsabilités quand on les modifie, pas pour la taille seule | ★★ | M par lot |
+| Découper au fil des travaux | `simulation.ts` (820 lignes), `interpreter.ts` (772), `App.tsx` (684 en V7.30, +40 avec les reprises et l'hypothèse), `LessonSheet.tsx` (586) : découper selon leurs responsabilités quand on les modifie, pas pour la taille seule | ★★ | M par lot |
 | Intégration continue | **Actions sur Node.js 24 en V7.26.** Reste : `ubuntu-latest` change d'image de temps en temps | ★ | S |
 | Version de test avant la production | L'APK suit le site dès la publication : une prévisualisation séparée permettrait d'essayer avant | ★★ | M |
-| Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan (`tools/e2e/smoke.py` a 82 captures en V7.22) | ★★ | M |
+| Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan (`tools/e2e/smoke.py` a 97 captures en V7.30) | ★★ | M |
 | Rappel de sauvegarde | Proposer un export quand le dernier date de plus d'un mois | ★ | S |
 | CI sur les pull requests | Le workflow ne réagit qu'aux push sur `main` ; peu utile tant que tout est publié directement sur `main` | ★ | S |
 | Test du joystick | Le smoke test ne déplace pas le joueur au doigt | ★ | S à M |
@@ -321,11 +328,11 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
-- V7.26 (19 novembre 2026), revue, lot 4 : barre d'outils lisible en paysage, restauration dans la file d'écriture, actions GitHub sur Node.js 24, HANDOFF.md remis au propre. La revue des V7.2 à V7.22 est terminée.
-- V7.27 (19 novembre 2026), chantier n° 2, étape A : journal des essais (`core/progress/attempts.ts`, `core/lessons/outcome.ts`), un essai par étape du premier Vérifier à la réussite, à Recommencer, à une mise à jour de l'étape ou après 2 h d'absence ; dans la progression, versionné, exporté avec la sauvegarde complète ; affiché dans le Carnet (« Journal des essais »), effaçable.
-- V7.28 (19 novembre 2026), chantier n° 2, étape B : file « À retravailler en Blueprint » (`core/rework/`) dans l'onglet Révision, calculée à partir du journal (et des étapes réussies avant lui) : J+1, J+3, J+7, J+14, J+21 par notion ; une étape réussie à refaire de zéro dans un espace à part (`project:practice:<id>`), notions d'une même étape réunies sur une carte, « Une autre étape », « Reporter à demain » ; compteur et bandeau de l'accueil.
-- V7.29 (19 novembre 2026), chantier n° 2, étape C : mini-exercices à variantes (`core/drills/`), trois familles (Variables et Branch, Overlaps et événements, Cast To) de trois situations chacune, en trois formats (à compléter, à réparer, à reconstruire), tirés d'une graine reproductible ; pour 36 graines par famille, le départ échoue et la solution passe, et chaque erreur typique échoue avec une raison (`tests/drills.test.ts`). La file propose d'abord un mini-exercice de la famille, au format du calendrier (compléter à J+1, reconstruire, puis réparer).
 - V7.30 (19 novembre 2026), chantier n° 2, étape D : dans les Débogue et les mini-exercices à réparer, une question « l'événement, la référence ou la condition ? » (ou « Je ne sais pas encore ») remplace le premier bouton d'indice ; l'indice s'ouvre ensuite, avec ce que montre la vérification (`core/explain/hypothesis.ts` : Accessed None ou Cast jamais réussi → référence, Branch jamais sorti d'un côté → condition, événement jamais déclenché → événement ; sinon, tester soi-même). Hypothèse gardée dans l'aide de l'étape et dans le journal. Le chantier n° 2 est terminé.
+- V7.29 (19 novembre 2026), chantier n° 2, étape C : mini-exercices à variantes (`core/drills/`), trois familles (Variables et Branch, Overlaps et événements, Cast To) de trois situations chacune, en trois formats (à compléter, à réparer, à reconstruire), tirés d'une graine reproductible ; pour 36 graines par famille, le départ échoue et la solution passe, et chaque erreur typique échoue avec une raison (`tests/drills.test.ts`). La file propose d'abord un mini-exercice de la famille, au format du calendrier (compléter à J+1, reconstruire, puis réparer).
+- V7.28 (19 novembre 2026), chantier n° 2, étape B : file « À retravailler en Blueprint » (`core/rework/`) dans l'onglet Révision, calculée à partir du journal (et des étapes réussies avant lui) : J+1, J+3, J+7, J+14, J+21 par notion ; une étape réussie à refaire de zéro dans un espace à part (`project:practice:<id>`), notions d'une même étape réunies sur une carte, « Une autre étape », « Reporter à demain » ; compteur et bandeau de l'accueil.
+- V7.27 (19 novembre 2026), chantier n° 2, étape A : journal des essais (`core/progress/attempts.ts`, `core/lessons/outcome.ts`), un essai par étape du premier Vérifier à la réussite, à Recommencer, à une mise à jour de l'étape ou après 2 h d'absence ; dans la progression, versionné, exporté avec la sauvegarde complète ; affiché dans le Carnet (« Journal des essais »), effaçable.
+- V7.26 (19 novembre 2026), revue, lot 4 : barre d'outils lisible en paysage, restauration dans la file d'écriture, actions GitHub sur Node.js 24, HANDOFF.md remis au propre. La revue des V7.2 à V7.22 est terminée.
 - V7.25 (19 novembre 2026), revue, lot 3 : la première marche d'une notion (découverte, guidée) garde sa méthode et ouvre sa solution après 3 échecs, même en Avancé (R5, L'héritage) ; libellés Entraînement M1/M2 et Projet X1/X2 ; durées calculées sur le travail réel.
 - V7.24 (19 novembre 2026), revue, lot 2 : l'événement d'une Input Action n'a plus de Consume Input (comme dans UE, tous les acteurs qui l'écoutent la reçoivent) ; textes de R4 et du défi Player Controller corrigés ; pile des entrées dans `runtime/inputStack.ts`.
 - V7.23 (19 novembre 2026), revue des V7.2 à V7.22 ([REVUE_V7.md](REVUE_V7.md)), lot 1 : Ignore All Pressed Keys Until Release sur Add / Remove Mapping Context (cochée par défaut, comme dans UE) ; le correcteur rejoue chaque solution avec des appuis tenus 0,1 s ; X1 vérifie qu'aucune réplique n'est sautée.

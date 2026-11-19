@@ -63,6 +63,8 @@ import { predictSpawnOrder } from './library/predicts3';
 import { lessonUniversalLever } from './library/universalLever';
 import { mixedDispenser, mixedSas } from './library/mixed';
 import { synthesis4 } from './library/synthesis4';
+import { expertRadio } from './library/expertRadio';
+import { expertWorkshop } from './library/expertWorkshop';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -187,6 +189,9 @@ export const LESSONS: Lesson[] = [
   complete6,
   lessonGrid,
   synthesis4,
+  // Expert
+  expertWorkshop,
+  expertRadio,
 ];
 
 let n = 0;

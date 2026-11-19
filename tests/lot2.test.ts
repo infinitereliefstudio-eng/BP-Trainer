@@ -53,12 +53,12 @@ describe('notions of the path', () => {
     expect(missingNotions('l03-interrupteur', acquired)).toEqual([]);
   });
 
-  it('gives every step a duration between 5 and 30 minutes (45 for a synthesis)', () => {
+  it('gives every step a duration between 5 and 30 minutes (45 for a synthesis, 120 for an Expert project)', () => {
     for (const l of LESSONS) {
       const m = estimatedMinutes(l);
       expect(m % 5, l.id).toBe(0);
       expect(m, l.id).toBeGreaterThanOrEqual(5);
-      expect(m, l.id).toBeLessThanOrEqual(l.kind === 'synthesis' ? 45 : 30);
+      expect(m, l.id).toBeLessThanOrEqual(l.level === 'expert' ? 120 : l.kind === 'synthesis' ? 45 : 30);
     }
   });
 });

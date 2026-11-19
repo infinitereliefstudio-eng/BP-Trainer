@@ -252,8 +252,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 113:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 113")
+        if await page.locator('.lesson-item').count() != 115:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 115")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -747,6 +747,23 @@ async def main():
             errs.append('Avancé : la fiche « Le plan » devrait attendre la réussite')
         if await page.locator('.lesson-body .card h4', has_text='Le plan').count():
             errs.append('Avancé : la fiche « Le plan » est visible avant la réussite')
+
+        # Lot 4b: the Expert level on the home screen, a project with no hint
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        if await page.locator('.module h2', has_text='Expert').count() != 1:
+            errs.append('Accueil : le niveau Expert n’apparaît pas')
+        await page.locator('.lesson-item', has_text='La radio de la station').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='La radio de la station').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.lesson-tabs').count() == 0:
+            await page.locator('.tb.lesson').tap()
+            await page.wait_for_timeout(300)
+        await page.locator('.lesson-tabs button', has_text='Aide').tap()
+        await page.wait_for_timeout(200)
+        await shot('72_expert_help')
+        if await page.locator('.lesson-body button', has_text='indice').count():
+            errs.append('Expert : un indice est proposé')
 
         print('errors', errs)
         await b.close()

@@ -65,6 +65,7 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'find', title: 'Chercher dans le projet', covers: 'Find References, Find in all Blueprints : qui utilise quoi' },
   { id: 'pause', title: 'Pause du jeu', covers: 'Set Game Paused, Is Game Paused, Trigger when Paused' },
   { id: 'reusable', title: 'Blueprint réutilisable', covers: 'un même Blueprint posé plusieurs fois, réglé acteur par acteur, sans connaître ses cibles' },
+  { id: 'input-mode', title: 'Modes de contrôle', covers: 'un Mapping Context par mode de jeu (dialogue, menu), ajouté et retiré par le Player Controller' },
   { id: 'mixed', title: 'Entraînement mélangé', covers: 'choisir soi-même l’outil, sans que la consigne le dise' },
 ];
 

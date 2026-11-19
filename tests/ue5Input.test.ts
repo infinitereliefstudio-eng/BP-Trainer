@@ -34,8 +34,12 @@ describe('UE5 input after the Player Controller lesson', () => {
       // Every action event listens to an action mapped in IMC_Joueur, with no trigger: Started is the old Pressed.
       // A step about Enhanced Input itself (T2) sets its own trigger.
       const ownTriggers = l.chain?.notion === 'enhanced-input';
+      // A step may add its own mode contexts (a dialogue Mapping Context, Expert X1): its actions are mapped there.
       for (const n of actions)
-        expect(imc!.mappings.some((m) => m.action === n.config.action && (ownTriggers || m.triggers.length === 0)), `${l.id}: ${n.config.action}`).toBe(true);
+        expect(
+          p.mappingContexts.some((c) => c.mappings.some((m) => m.action === n.config.action && (ownTriggers || m.triggers.length === 0))),
+          `${l.id}: ${n.config.action}`,
+        ).toBe(true);
     }
   });
 

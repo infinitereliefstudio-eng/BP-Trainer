@@ -103,7 +103,7 @@ Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en ti
 | Leçon ou série | Contenu | Pertinence | Difficulté |
 |---|---|---|---|
 | Synthèse de la V3 | Un projet final : porte à Timeline, visée par Line Trace, fiche d'objet en structure, Construction Script | ★★★ | M |
-| Suite « jeu narratif » | Calquée sur Station enterrée. Déjà là : objet à examiner et dialogue en Data Table (V7), porte à code (V3). Reste : journal de quêtes par faits acquis (Set de Name), inventaire en composant (demande les Actor Components), une synthèse qui assemble le tout | ★★★ | M à L |
+| Suite « jeu narratif » | Calquée sur Station enterrée. Fait : objet à examiner et dialogue en Data Table (V7), porte à code (V3), journal de faits et mode dialogue (X1, V7.18). Reste : inventaire en composant (demande les Actor Components), un projet Expert qui assemble le tout avec une sauvegarde | ★★★ | M à L |
 | Débogue en série | For Each qui retire des éléments pendant le parcours, Tick qui continue sur un acteur caché. Déjà couverts : timer jamais arrêté (D9), Delay dans une boucle (P2). Écarté : le Bind fait deux fois, sans effet dans UE | ★★★ | S chacun |
 | Architecture | « Le Blueprint qui fait tout » à découper ; la même logique dans trois Blueprints à sortir dans un parent, puis dans un composant | ★★★ | M |
 | Lecture de graphe | Un graphe touffu, trois questions dessus (que vaut X après Y ?) | ★★ | M |
@@ -258,6 +258,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.18 (19 novembre 2026), plan du parcours, lot 4b : niveau Expert, projets X2 L'atelier des machines (héritage, Parent: Tick, Delta Seconds, Sequence, Delay) et X1 La radio de la station (dialogue en Data Table, journal de faits, Mapping Context de dialogue par le Player Controller, porte à code). Le plan du parcours est terminé.
 - V7.17 (19 novembre 2026), plan du parcours, lot 4a : l'Avancé en cahiers des charges (fiches de méthode après la réussite, premiers indices en questions, objectifs sans recette), Le levier universel, entraînements M1 Le sas et M2 Le distributeur, synthèse S4 Les fusibles. Reste le lot 4b (Expert).
 - V7.16 (19 novembre 2026), plan du parcours, lot 3b : rappels dans sept étapes Confirmé, Prédis P14 « Qui parle en premier ? », synthèse S3 « Le poste de garde » ; le lot 3 est fini.
 - V7.15 (19 novembre 2026), plan du parcours, lot 3a : quatre étapes Confirmé (Choisis ton outil, Débogue D21 « Qui a éteint la lumière ? », Refactor R4 « Interagir comme dans UE5 », Le menu pause) ; nœuds Set Game Paused et Is Game Paused, Trigger when Paused sur les Input Actions. Reste le lot 3b (rappels, synthèse S3).

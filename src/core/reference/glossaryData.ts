@@ -541,4 +541,27 @@ export const GLOSSARY: GlossaryEntry[] = [
     when: 'Pour chaque règle du cahier des charges : à quel moment doit-elle s’exécuter (éditeur, événement, chaque seconde), que faut-il garder, et quel outil connu fait exactement ça ?',
     trap: 'Prendre le dernier outil appris parce qu’il est frais en mémoire. Le bon outil est celui dont la question correspond à la règle.',
   },
+  {
+    title: 'Projet Expert',
+    names: ['Projet Expert'],
+    what: 'Un projet long, construit à partir du décor : tous les Blueprints, interfaces et assets d’entrée sont à créer. Le cahier des charges dit ce qui doit se passer, le scénario de test comment ce sera vérifié ; il n’y a ni indice ni liste de nœuds.',
+    when: 'Après l’Avancé, sur plusieurs séances : le travail est gardé d’une ouverture à l’autre. Commence par découper le cahier des charges en Blueprints et en liens entre eux, puis construis et teste un lien à la fois.',
+    trap: 'Tout écrire avant de lancer Play. Un projet long se construit par petits morceaux vérifiés, comme un vrai jeu.',
+  },
+  {
+    title: 'Modes de contrôle',
+    names: ['Mapping Context de dialogue'],
+    what: 'Un mode de jeu (dialogue, menu, véhicule) a son propre Input Mapping Context, ajouté avec une priorité plus haute que celui du joueur, puis retiré à la sortie. La même touche change de sens : pendant le dialogue, E passe à IA_Suivant au lieu d’IA_Interagir.',
+    when: 'Dès qu’une touche doit faire autre chose dans une situation : on change de contexte plutôt que de tester un mode dans chaque Blueprint. Le contexte s’ajoute par Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context.',
+    trap: 'Oublier la priorité, ou de retirer le contexte : les deux actions partent ensemble, ou le jeu reste bloqué dans le mode.',
+    pattern: 'Get Player Controller → Subsystem → Add Mapping Context (IMC_Dialogue, Priority 1)',
+  },
+  {
+    title: 'Journal de faits',
+    names: ['Journal de faits'],
+    what: 'Ce que le joueur a appris (un code, un nom, une promesse) rangé comme des Name dans un Set : chaque fait une fois, et la question « le sait-il ? » se pose avec Contains. Les dialogues ajoutent des faits, les portes et les personnages les lisent.',
+    when: 'Pour un jeu narratif : les quêtes et les répliques dépendent de faits acquis plutôt que d’une variable booléenne par événement.',
+    trap: 'Un booléen par fait (bConnaitCode, bAParleAuGarde…) : le joueur devient impossible à faire évoluer. Un Set de Name garde la liste ouverte.',
+    pattern: 'Réplique › Donne → Add (Faits) ; porte → Contains (Faits, CodePorte) → Branch',
+  },
 ];

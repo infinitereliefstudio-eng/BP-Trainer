@@ -32,11 +32,11 @@ Une notion nouvelle par étape ; une échelle par notion (découvrir, guidé, mo
 | 1 — Remise à jour et réflexes UE5 | Textes (Content Drawer, Description, Pin Options), Find References dans les Débogue, Enhanced Input comme règle après la leçon 15 ; en deux temps (Intermédiaire et Confirmé, puis Avancé) | **Fait** : 1a en V7.11 (16 étapes), 1b en V7.12 (14 étapes Avancé) |
 | 2 — Débutant et Intermédiaire | Leçon 4 scindée, Cast isolé, échelle Delay → timers, Construis ta lampe, La porte sur son gond, Prédis Où est la lumière, Une valeur par lampe, Appuyer ou fouiller, rappels, deux synthèses ; en deux temps (Débutant, puis Intermédiaire) | **Fait** : 2a en V7.13 (Débutant : Construis ta lampe, P12, compteur avant la leçon à touche recentrée, rappels, synthèse S1), 2b en V7.14 (Intermédiaire : La porte sur son gond, Les pièces, P13, Le gyrophare, Une valeur par lampe, T2 Appuyer ou fouiller, synthèse S2) |
 | 3 — Confirmé | Choisis ton outil, Le menu pause, Qui a éteint la lumière (Find), Interagir comme dans UE5, rappels, synthèse ; composants et fonctions créés par l'apprenant | **Fait** : 3a en V7.15 (les quatre étapes), 3b en V7.16 (rappels, Prédis P14, synthèse S3) |
-| 4 — Avancé et Expert | Cahiers des charges, Le levier universel, projets Expert (suite « jeu narratif »), entraînement mélangé | **4a fait en V7.17** (Avancé) ; 4b à faire (Expert) |
+| 4 — Avancé et Expert | Cahiers des charges, Le levier universel, projets Expert (suite « jeu narratif »), entraînement mélangé | **Fait** : 4a en V7.17 (Avancé), 4b en V7.18 (Expert) |
 
 ## Ce qui reste (pour la reprise)
 
-État au 2026-11-19 : lots 0 à 3 faits (V7.10 à V7.16), lot 4a fait (V7.17, l'Avancé). Le lot 4b (Expert) ne commence qu'avec le feu vert explicite de Tristan.
+État au 2026-11-19 : les cinq lots sont faits (V7.10 à V7.18). La suite (un troisième projet Expert, « S'adapter à l'apprenant », les écarts restants) est à décider avec Tristan.
 
 ### Lot 3a — fait en V7.15
 
@@ -61,9 +61,13 @@ Une notion nouvelle par étape ; une échelle par notion (découvrir, guidé, mo
 - **Synthèse S4 « Les fusibles »** (`library/synthesis4.ts`, fin de l'Avancé) : SaveGame et Set of Name créés par l'apprenant, sauvegarde à chaque fusible, nouvelle partie où les fusibles pris ne reviennent pas (piège de l'ordre des BeginPlay : chaque fusible relit la sauvegarde), porte qui compte.
 - **Espacement** : enhanced-input et input atteignent la cible ; construction 41 → 29, random 43 → 40, spawn 33 → 30. Ce qui court jusqu'à la fin du parcours (player-controller, tick, inheritance, sequence, latent, structs, data-tables, save-game, visibility) est commenté « Expert projects (lot 4b) » dans `KNOWN_GAPS`.
 
-### Lot 4b — Expert, à faire
+### Lot 4b — fait en V7.18 (Expert)
 
-Repères : cahier des charges + scénario de test, aucun indice (« Montre-moi » après un échec), bilan après réussite, **décor seul**, 25 nœuds et plus, sur plusieurs séances (décision de Tristan). Prévu : projets Expert, dont la suite « jeu narratif » calquée sur Station enterrée (au BACKLOG : journal de quêtes par faits acquis, inventaire, dialogue en Data Table, porte à code) ; héritage repris en Expert ; faire revenir player-controller (par exemple un Mapping Context de dialogue ajouté et retiré par le Player Controller), Tick, Sequence, Delay, structures et Data Tables.
+Repères respectés : cahier des charges + scénario de test (fiche « Le scénario de test »), aucun indice ni liste de nœuds (`HELP_RULES.expert`), « Montre-moi » après un échec, solution et bilan après réussite, décor seul (`expertScenery` : murs et plots), 40 à 60 nœuds, plusieurs séances (projet gardé ; durée estimée jusqu'à 120 min). Fiche commune `EXPERT_RULES`.
+
+- **X2 « L'atelier des machines »** (`library/expertWorkshop.ts`, premier) : BP_Machine parent (interface, Demarrer / Arreter, Sequence + Delay, carburant usé sur Tick avec Delta Seconds), BP_Pompe et BP_Ventilo enfants (le ventilateur ajoute son Hélice et appelle Parent: Tick), testé à 30 images par seconde. Bloquant : les enfants héritent de BP_Machine et ne réagissent pas eux-mêmes à E.
+- **X1 « La radio de la station »** (`library/expertRadio.ts`) : suite « jeu narratif ». DT_Radio et S_Replique fournis (les données de l'auteur) ; l'apprenant crée IMC_Dialogue (E → IA_Suivant, F → IA_Quitter), ajouté avec une priorité plus haute par Get Player Controller → Subsystem pendant la conversation, le journal de faits (Set of Name), BP_Radio et BP_PorteCode. Testé : E ne relance pas la conversation pendant le dialogue (un contexte de même priorité échoue), F raccroche, E interagit de nouveau après.
+- **Espacement** : inheritance, tick, sequence, latent et visibility reviennent dans X2, player-controller et data-tables dans X1 ; player-controller reste le plus long écart (de la leçon Player Controller à X1) : un rappel naturel au Confirmé ou à l'Avancé reste à trouver.
 
 ### Non attribué à un lot (demander à Tristan avant)
 

@@ -4,23 +4,23 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.17)
+## Reprise rapide (2026-11-19, après la V7.18)
 
 ### Où on en est
 
-- **Version en ligne : 7.17.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.18.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
   - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
   - lot 3 (Confirmé) : fait, V7.15 (3a, quatre nouvelles étapes) et V7.16 (3b, rappels, P14, synthèse S3, lancé par « tu peux passer a 3b ») ;
-  - lot 4 (Avancé et Expert) : **4a fait en V7.17** (l'Avancé, lancé par « tu peux passer au lot 4 ») ; **4b (Expert) à faire, prochain**, seulement quand Tristan le demande.
-- **En attente de Tristan** : son retour sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), et l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **Ne rien commencer du lot 4b sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
+  - lot 4 (Avancé et Expert) : fait, V7.17 (4a, l'Avancé) et V7.18 (4b, Expert, lancé par « tu peux enchainer »). **Le plan du parcours est terminé.**
+- **En attente de Tristan** : son retour sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite) et les deux projets Expert (X2, X1). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **La suite est à décider avec lui** (pistes dans « Ce qui reste à faire ») ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-113 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 28 (fin : synthèse S4), Expert 0 (le niveau existe, vide jusqu'au lot 4b). 143 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+115 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 28 (fin : synthèse S4), Expert 2 (X2, X1). 145 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -34,7 +34,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
-1. **Lot 4b — Expert** : projets sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), héritage repris, et les notions qui ne reviennent plus en fin de parcours (player-controller, Tick, Sequence, Delay, structures, Data Tables). Détail dans PLAN_PARCOURS.md, « Lot 4b ».
+1. **Après le plan** (à proposer, rien n'est lancé) : un troisième projet Expert qui assemble la suite narrative avec une sauvegarde (et l'inventaire, s'il faut ajouter les Actor Components) ; réécrire en cahier des charges les fiches « Ce qui est en place » des étapes Avancé existantes ; « S'adapter à l'apprenant » ; un rappel de Player Controller au Confirmé ou à l'Avancé.
 2. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
 
 ### Ajouter ou modifier une étape : la liste à cocher
@@ -621,6 +621,17 @@ Lancé par « tu peux passer au lot 4 » ; fait en deux temps comme les lots 2 e
 - Révision : 4 questions (143). `smoke.py` attend 113 étapes, capture 71 (fiche de méthode retenue).
 
 Version 7.17.0.
+
+## V7.18 (2026-11-19) : plan du parcours, lot 4b (Expert)
+
+Lancé par « tu peux enchainer ». Fin du plan du parcours : 115 étapes. Tests : `tests/lot4.test.ts` (section 4b).
+
+- **Niveau Expert** visible à l'accueil (il a des étapes). Aide : seulement la solution, après la réussite (`HELP_RULES.expert`, testé). `cardsFor` garde aussi les fiches de méthode en Expert (il n'y en a pas). Durée estimée jusqu'à 120 min (`tests/lot2.test.ts` l'accepte pour l'Expert).
+- **X2 « L'atelier des machines »** (`expertWorkshop.ts`) et **X1 « La radio de la station »** (`expertRadio.ts`, qui exporte `expertScenery` et `EXPERT_RULES`) : voir PLAN_PARCOURS.md, « Lot 4b ». Pièges testés : un contexte de dialogue de même priorité laisse E relancer la conversation ; un ventilateur sans Parent: Tick ne tombe jamais en panne.
+- `tests/ue5Input.test.ts` : une action peut être mappée dans un autre Mapping Context que IMC_Joueur (un mode de jeu), toujours sans déclencheur.
+- Notion de catalogue `input-mode` ; fiches de glossaire « Projet Expert », « Modes de contrôle », « Journal de faits » ; 2 questions de révision (145). `smoke.py` attend 115 étapes, capture 72 (aide d'un projet Expert).
+
+Version 7.18.0.
 
 ## Méthode de travail
 

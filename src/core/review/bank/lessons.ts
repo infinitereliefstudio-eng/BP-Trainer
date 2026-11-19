@@ -307,6 +307,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'L’ordre des BeginPlay n’est pas garanti : le joueur n’a peut-être pas encore chargé. Chaque acteur qui dépend de la sauvegarde la relit lui-même.',
   ),
   q(
+    'x1-radio',
+    'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
+    ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],
+    'Un mode de jeu est un Mapping Context : ajouté avec une priorité plus haute, il garde la touche pour ses actions ; retiré, E retrouve son sens habituel.',
+  ),
+  q(
+    'x2-atelier',
+    'BP_Ventilo, enfant de BP_Machine, redéfinit Event Tick pour faire tourner ses pales. Son carburant ne baisse plus. Pourquoi ?',
+    ['Son Tick remplace celui du parent : il faut appeler Parent: Tick', 'Un enfant ne peut pas avoir de Tick', 'Le carburant d’un enfant est une copie du parent', 'Il faut cocher Tick Even When Paused'],
+    'Un événement redéfini dans l’enfant masque celui du parent. Parent: Tick exécute la logique commune avant (ou après) ce que l’enfant ajoute.',
+  ),
+  q(
     'l-menu-pause',
     'IA_Pause met le jeu en pause avec Set Game Paused. Le second appui sur Espace ne fait plus rien. Pourquoi ?',
     ['Trigger when Paused n’est pas coché sur IA_Pause', 'Set Game Paused ne peut être appelé qu’une fois', 'Le Player Controller est détruit en pause', 'Il faut un Delay avant de reprendre'],

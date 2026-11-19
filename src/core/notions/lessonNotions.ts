@@ -129,4 +129,7 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   'c6-annuler': N(['arrays', 'structs', 'loops'], ['copies']),
   'l-reseau': N(['sets', 'loops', 'other-bp'], ['sets', 'arrays']),
   's4-fusibles': N([], ['save-game', 'sets', 'cast', 'other-bp', 'destroy', 'begin-order', 'overlap', 'rotation']),
+  // Expert
+  'x1-radio': N(['input-mode'], ['player-controller', 'enhanced-input', 'data-tables', 'structs', 'sets', 'interfaces', 'cast']),
+  'x2-atelier': N(['inheritance'], ['tick', 'sequence', 'latent', 'interfaces', 'rotation', 'visibility']),
 };

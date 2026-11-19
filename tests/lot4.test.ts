@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLesson, LESSONS } from '../src/core/lessons';
 import { edit } from '../src/core/lessons/builder';
-import { cardsFor, PLAN_CARD_TITLES } from '../src/core/lessons/helpPolicy';
+import { cardsFor, helpOffers, PLAN_CARD_TITLES } from '../src/core/lessons/helpPolicy';
 import { runLesson } from '../src/core/lessons/runner';
 import type { Lesson } from '../src/core/lessons/types';
 import type { Project } from '../src/core/model/project';
@@ -108,5 +108,37 @@ describe('Les fusibles (S4)', () => {
     const run = runLesson(l, p);
     expect(run.compileErrors).toEqual([]);
     expect(run.results.filter((r) => !r.ok).map((r) => r.check.id)).toContain('resume');
+  });
+});
+
+describe('lot 4b: the Expert projects', () => {
+  it('the Expert level gives no hint and no node list, the solution after success', () => {
+    for (const id of ['x1-radio', 'x2-atelier']) {
+      const offers = helpOffers(lesson(id), { tried: true, fails: 5, done: false });
+      expect(offers.map((o) => o.kind), id).toEqual(['solution']);
+      expect(offers[0].available, id).toBe(false);
+    }
+  });
+
+  it('X1: a dialogue context with the same priority lets E restart the conversation', () => {
+    const l = lesson('x1-radio');
+    const p = solved(l, (p) => {
+      const radio = edit(p, 'BP_Radio');
+      for (const n of Object.values(radio.graph.nodes)) if (n.def === 'input.addMappingContext') n.defaults.priority = 0;
+    });
+    expect(failed(l, p)).toContain('next');
+  });
+
+  it('X2: a fan whose Tick forgets Parent: Tick never runs dry', () => {
+    const l = lesson('x2-atelier');
+    const p = solved(l, (p) => {
+      const fan = edit(p, 'BP_Ventilo');
+      const up = Object.values(fan.graph.nodes).find((n) => n.def === 'call.parentEvent')!;
+      const tick = Object.values(fan.graph.nodes).find((n) => n.def === 'event.tick')!;
+      const br = Object.values(fan.graph.nodes).find((n) => n.def === 'flow.branch')!;
+      removeNodes(fan.graph, [up.id]);
+      fan.link(tick.id, 'then', br.id, 'exec');
+    });
+    expect(failed(l, p)).toContain('dry');
   });
 });

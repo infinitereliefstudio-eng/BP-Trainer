@@ -27,6 +27,23 @@ Questions ouvertes :
 - La suite narrative pour Station enterrée passe-t-elle avant une appli plus généraliste ?
 - Quel objectif du jour par défaut : une leçon, ou cinq questions de révision ?
 
+## Prochains chantiers, dans l'ordre (choix du 19 novembre)
+
+Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.18.
+
+| # | Chantier | Contenu | Pertinence | Difficulté |
+|---|---|---|---|---|
+| 1 | **Actor Components** (lot 5 ci-dessous) | Blueprints de composant créés par l'apprenant, ajoutés à plusieurs acteurs ; Get Owner, Get Component by Class, BeginPlay et Tick du composant ; exercices santé, interaction réutilisable, inventaire. Débloque l'inventaire de la suite narrative | ★★★ | L |
+| 2 | **UMG minimal** (lot 7) | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
+| 3 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
+| 4 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant, interface, changement de niveau, sauvegarde | ★★★ | L |
+
+Plus tard, selon le cas :
+- **Passerelle « Dans Unreal »** : exercices compagnons à refaire dans le vrai éditeur, avec une liste d'observations (construction d'un acteur, Enhanced Input et Player Controller, interaction entre deux Blueprints), et graphes de référence pour comparer le simulateur à UE5. Remonte avant le chantier 1 dès que Tristan peut ouvrir Unreal régulièrement.
+- Personnage 3D, caméra, Enhanced Input Axis2D : après les quatre chantiers.
+- Animation, IA, rendu : fiches de découverte et pratique dans UE, sans les simuler.
+- Piste peu coûteuse : afficher dans le Carnet les mesures d'autonomie (étapes réussies sans indice et sans solution), déjà enregistrées.
+
 ## Reste du plan du parcours : à étudier, à faire selon l'étude
 
 Décision de Tristan du 19 novembre, après la V7.18 : le plan du parcours (lots 0 à 4) est livré ; ce qui n'a été atteint qu'en partie est noté ici, à étudier avant de décider s'il faut le faire. Rien n'est lancé.

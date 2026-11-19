@@ -12,6 +12,8 @@ import { nextRework } from '@core/rework/schedule';
 import { notionTitle, type ReworkCard, reworkCards, whyNow } from '@core/rework/suggest';
 import { type Progress, withPostponed } from '../workspace';
 
+const FORMAT = { complete: 'à compléter', repair: 'à réparer', rebuild: 'à reconstruire' } as const;
+
 /** Shown at once: a short sitting on a phone. */
 const SHOWN = 3;
 
@@ -37,16 +39,22 @@ function Card({ card, progress, now, onPractice, onPostpone }: { card: ReworkCar
           {r}
         </span>
       ))}
-      <span class="small">
-        À refaire de zéro : <strong>{lessonLabel(step)}</strong> · {step.title}
-      </span>
+      {step.drill ? (
+        <span class="small">
+          <strong>Mini-exercice</strong> · {step.title} · {FORMAT[step.drill.format]}
+        </span>
+      ) : (
+        <span class="small">
+          À refaire de zéro : <strong>{lessonLabel(step)}</strong> · {step.title}
+        </span>
+      )}
       <div class="row-buttons flush">
         <button class="btn primary" onClick={() => onPractice(step.id)}>
-          {underway ? 'Reprendre où j’en étais' : 'Refaire de zéro'}
+          {underway ? 'Reprendre où j’en étais' : step.drill ? 'Commencer' : 'Refaire de zéro'}
         </button>
         {card.steps.length > 1 && (
           <button class="btn" onClick={() => setPick(pick + 1)}>
-            Une autre étape
+            {card.steps[(pick + 1) % card.steps.length].drill ? 'Le mini-exercice' : 'Une autre étape'}
           </button>
         )}
         <button class="btn" onClick={onPostpone}>
@@ -70,7 +78,8 @@ export function ReworkQueue({ progress, onProgress, onPractice }: { progress: Pr
       <h2>À retravailler en Blueprint</h2>
       <p class="muted">
         Reconnaître un nœud ne suffit pas : il faut savoir encore le câbler quelques jours plus tard. Chaque notion revient le lendemain de l’étape qui l’enseigne, puis à J+3,
-        J+7, J+14 et J+21 tant que tu la refais sans aide. Une erreur ou la solution vue la ramène au lendemain. Ton projet de la leçon n’est jamais touché.
+        J+7, J+14 et J+21 tant que tu la refais sans aide. Une erreur ou la solution vue la ramène au lendemain. Selon la notion, un mini-exercice de quelques minutes (à
+        compléter, puis à reconstruire, puis à réparer) ou une étape réussie à refaire de zéro. Ton projet de la leçon n’est jamais touché.
       </p>
       {cards.length > 0 ? (
         <>

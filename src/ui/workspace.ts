@@ -98,7 +98,7 @@ function freshProject(ref: WorkspaceRef): Project {
     lesson.solve(project);
     project.name = `${lesson.title} (solution)`;
   }
-  if (ref.kind === 'practice') project.name = `${lesson.title} (reprise)`;
+  if (ref.kind === 'practice') project.name = lesson.drill ? `${lesson.title} (mini-exercice)` : `${lesson.title} (reprise)`;
   return project;
 }
 

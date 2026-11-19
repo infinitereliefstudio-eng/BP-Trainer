@@ -21,6 +21,7 @@
  * (answered by choosing), not the syntheses and Expert projects (too long
  * to redo; they teach nothing new).
  */
+import { drillNotions, isDrillId } from '../drills';
 import { getLesson, LESSONS } from '../lessons';
 import type { Lesson } from '../lessons/types';
 import { LESSON_NOTIONS } from '../notions/lessonNotions';
@@ -66,6 +67,8 @@ export function countsForRework(lesson: Lesson): boolean {
 
 /** The notions a step practises, for the queue (none for steps that do not count). */
 export function reworkNotions(stepId: string): string[] {
+  // A drill practises the notions of its family.
+  if (isDrillId(stepId)) return drillNotions(stepId);
   const lesson = getLesson(stepId);
   if (!lesson || !countsForRework(lesson)) return [];
   return LESSON_NOTIONS[stepId]?.teaches ?? [];

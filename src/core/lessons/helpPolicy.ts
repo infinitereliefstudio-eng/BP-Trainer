@@ -63,7 +63,8 @@ export function ruleFor(lesson: Lesson): HelpRule {
   // A « Prédis » is the first rung of a notion (discover): answered, not checked, its help stays open.
   if (lesson.kind === 'predict') return OPEN;
   const rule: HelpRule = { ...HELP_RULES[lesson.level] };
-  const step = lesson.chain?.step;
+  // A drill of the « À retravailler » queue is remembering, like a transfer: help after a first try.
+  const step = lesson.drill ? 'transfer' : lesson.chain?.step;
   // A level synthesis is a specification with no node list, like an autonomy rung.
   const alone = step === 'autonomy' || lesson.kind === 'synthesis';
   if (step === 'transfer' || alone) {

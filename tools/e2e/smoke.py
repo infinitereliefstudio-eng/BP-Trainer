@@ -575,6 +575,13 @@ async def main():
             if await page.locator('.practice-bar').count() != 1:
                 errs.append('Reprise de zéro : le bandeau de reprise manque')
             await shot('52c_practice')
+            # V7.29: a drill « à compléter » shows its gaps as yellow frames in the graph
+            if await page.locator('.practice-bar', has_text='Mini-exercice').count() == 1:
+                await graph(page)
+                await page.wait_for_timeout(300)
+                await shot('52d_drill_graph')
+                if await page.evaluate("() => Object.values(window.bpStore.graph.nodes).filter(n => n.def === 'util.comment').length") < 2:
+                    errs.append('Mini-exercice à compléter : les cadres jaunes des nœuds manquants ne sont pas dans le graphe')
             await page.locator('.practice-bar .btn', has_text='Retour à la file').tap()
             await page.wait_for_timeout(400)
             if await page.locator('.home-tabs button.active', has_text='Révision').count() != 1:

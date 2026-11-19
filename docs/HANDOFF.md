@@ -4,15 +4,15 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_V7.md](REVUE_V7.md) (la dernière revue). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.28)
+## Reprise rapide (2026-11-19, après la V7.29)
 
 ### Où on en est
 
-- **Version en ligne : 7.28.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.29.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : **tous faits** (V7.23 à V7.26). Laissés de côté : le renumérotage des codes d'exercices et l'ordre X2 puis X1 (optionnels, à proposer).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **Chantier en cours : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »). L'étape C (trois familles de mini-exercices à variantes) attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois). Ensuite D (hypothèse avant l'indice), puis l'UMG minimal.
+- **Chantier en cours : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »). L'étape D (hypothèse avant l'indice dans les Débogue) attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois). Ensuite l'UMG minimal.
 
 ### Le parcours aujourd'hui
 
@@ -28,7 +28,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (en cours : A et B faits, C à lancer), puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (en cours : A, B et C faits, D à lancer), puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
 
 Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 
@@ -758,6 +758,22 @@ Lancée par Tristan le 19 novembre (« tu peux lancer l'étape b »).
 Hypothèses à revoir à l'usage : les intervalles (point de départ de l'analyse), la tolérance d'une demi-journée, l'abandon compté comme un échec après 2 h. Les familles de mini-exercices (étape C) remplaceront « une étape à refaire » comme pratique proposée.
 
 Version 7.28.0. Suite : étape C, sur feu vert.
+
+## V7.29 (2026-11-19) : révisions de graphes espacées, étape C (mini-exercices à variantes)
+
+Lancée par Tristan le 19 novembre (« tu peux lancer c »).
+
+- **Modèle** (`core/drills/`) : une famille réunit des **situations** ; une situation sait construire son niveau (`base`, variables comprises, graphe vide), sa **chaîne de référence** (`chain`, qui rend ses nœuds par rôle), vérifier le comportement (`scenario`, `checks`, messages qui disent quoi faire), et l'abîmer de façon typique (`mistakes`, avec `applies` quand une erreur ne se voit que dans une variante). Un mini-exercice est une `Lesson` ordinaire (`Lesson.drill`), donc l'éditeur, le correcteur, l'aide, le journal et l'espace de reprise marchent sans changement. Formats : **complete** (deux ou trois nœuds retirés, leur place marquée d'un cadre jaune nommé, `kit.gap`), **repair** (`kind: 'debug'`, une erreur typique, fiche « La méthode »), **rebuild** (graphe vide). La solution vide le graphe et reconstruit la chaîne.
+- **Graine** (`make.ts`, `rng.ts` = mulberry32) : id `drill:<famille>:<graine>` ; situation = graine % S, format = ⌊graine / S⌋ % 3, puis nombres, variante, trous ou erreur tirés de la graine. Le même id redonne toujours le même exercice (`getLesson` le résout).
+- **Familles pilotes** (Tristan est vers l'étape 10) :
+  - **Variables et Branch** (`variables`, `branch`, Débutant) : le compteur de passages (alerte **à partir du** Ne passage ou **seulement au** Ne : >= ou ==), le distributeur (crédits, Branch à deux sorties), l'interrupteur (NOT, lumière allumée ou éteinte au départ). Erreurs : Increment ou Decrement à côté du fil, affichage avant l'Increment, seuil décalé d'un, == et >= inversés, alerte sur False, condition >= 0, True et False inversés, sans NOT, lumière réglée avant l'inversion, mauvais composant visé.
+  - **Overlaps et événements** (`overlap`, `events`, Débutant) : la plaque de pression (ou l'inverse : la lumière s'éteint quand on marche dessus), le portique (BeginPlay, entrée, sortie ; ou rien à l'entrée), « Qui est dans la zone ? » (avec une **caisse** déjà dedans : un overlap compte tout acteur). Erreurs : pas d'End Overlap, même valeur aux deux Set Visibility, Begin et End inversés, « Prêt » sur un overlap, sortie sur Begin Overlap, Print hors du fil, sortie qui ajoute.
+  - **Cast To** (`cast`, `other-bp`, Intermédiaire) : le bonus (une **caisse** le touche dès le lancement, ou **deux** bonus : ajouter, pas remplacer), le terminal à badge (le joueur l'a ou non ; caisse devant), le levier et son sas (**deux** leviers et deux sas : le sien seulement). Erreurs : Object non relié, suite sur Cast Failed, Set au lieu d'ajouter, le terminal lit **son propre** bBadge, Cast Failed qui répond, premier sas trouvé (Get Actor Of Class), case décochée.
+- **Aide** : un mini-exercice est traité comme un transfert (`helpPolicy`) : indices après un premier Vérifier. Durée : 3 min à compléter, 5 sinon (`duration.ts`).
+- **File** (`core/rework/suggest.ts`) : les notions d'une même famille partagent une carte, et sa première proposition est un mini-exercice (`drillFor` : celui laissé en cours, sinon le suivant), au format de la notion la moins avancée (`formatForBox` : J+1 compléter, puis reconstruire, puis réparer, ensuite l'un ou l'autre) ; la situation change à chaque mini-exercice tenté (`nextDrillId`). Les étapes réussies restent proposées ensuite (« Une autre étape »). Un mini-exercice compte pour toutes les notions de sa famille (`reworkNotions`). Carte : « Mini-exercice · <situation> · à compléter », bouton Commencer ; bandeau « Mini-exercice » dans l'éditeur.
+- **Tests** : `tests/drills.test.ts` (286 : pour 36 graines par famille, projet de départ valide et qui échoue, solution qui passe ; pour chaque situation, six tirages et chacune de leurs erreurs typiques échoue avec une raison ; textes, glossaire, formats, situations qui changent). `tests/rework.test.ts` (+6 : cartes par famille, mini-exercice réussi, raté, id qui le reconstruit). Smoke : mini-exercice ouvert depuis la file, cadres jaunes dans le graphe (capture `52d_drill_graph`).
+
+À étendre plus tard (BACKLOG, après un pilote réussi) : Dispatchers, interfaces, composants ; exercices à réordonner. Version 7.29.0. Suite : étape D (hypothèse avant l'indice), sur feu vert.
 
 ## Méthode de travail
 

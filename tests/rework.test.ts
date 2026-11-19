@@ -22,6 +22,7 @@ import {
 import { DAY } from '../src/core/review/schedule';
 import { countsForRework, dueRework, nextRework, practiceEvents, REWORK_INTERVALS, reworkNotions, reworkSchedule, stepsFor } from '../src/core/rework/schedule';
 import { reworkCards, suggestedSteps, whyNow } from '../src/core/rework/suggest';
+import { drillNotions, isDrillId } from '../src/core/drills';
 
 const T0 = Date.UTC(2026, 10, 2, 9, 0);
 const MIN = 60 * 1000;
@@ -222,20 +223,65 @@ describe('rework: which step to redo', () => {
 
 describe('rework: cards of the queue', () => {
   it('notions practised by the same step make one card, redone once', () => {
-    const p: Progress = { done: ['l01-bonjour', 'l06-cle'], doneAt: { 'l06-cle': T0 } };
+    const p: Progress = { done: ['l05-porte'], doneAt: { 'l05-porte': T0 } };
     const cards = reworkCards(p, T0 + DAY);
-    const first = cards.find((c) => c.steps[0].id === 'l01-bonjour')!;
-    expect(first.notions.map((s) => s.notion).sort()).toEqual([...LESSON_NOTIONS['l01-bonjour'].teaches].sort());
-    expect(new Set(cards.map((c) => c.steps[0].id)).size).toBe(cards.length);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].steps[0].id).toBe('l05-porte');
+    expect(cards[0].notions.map((s) => s.notion).sort()).toEqual([...LESSON_NOTIONS['l05-porte'].teaches].sort());
+  });
+
+  it('notions of a drill family share a card, a drill first, then the passed steps', () => {
+    const p: Progress = { done: ['l-compteur', 'l01-bonjour'], doneAt: { 'l-compteur': T0, 'l01-bonjour': T0 } };
+    const cards = reworkCards(p, T0 + DAY);
+    const vb = cards.find((c) => c.notions.some((s) => s.notion === 'variables'))!;
+    expect(vb.notions.map((s) => s.notion).sort()).toEqual(['branch', 'variables']);
+    expect(vb.steps[0].drill).toMatchObject({ family: 'variables-branch', format: 'complete' });
+    expect(vb.steps.slice(1).map((l) => l.id)).toEqual(['l-compteur']);
+    // Events belongs to the overlap family: its own card, apart from what Leçon 1 also practises.
+    expect(cards.find((c) => c.notions.some((s) => s.notion === 'events'))!.steps[0].drill?.family).toBe('overlap-events');
     expect(cards.flatMap((c) => c.notions).length).toBe(dueRework(p, T0 + DAY).length);
   });
 
-  it('in a card, the steps that practise all its notions come first', () => {
+  it('in a card, the first step practises all its notions', () => {
     const done = LESSONS.map((l) => l.id);
     const p: Progress = { done, doneAt: Object.fromEntries(done.map((id) => [id, T0])) };
     for (const card of reworkCards(p, T0 + DAY)) {
-      const covers = (id: string) => card.notions.filter((s) => LESSON_NOTIONS[id].teaches.includes(s.notion)).length;
-      expect(covers(card.steps[0].id), card.notions.map((s) => s.notion).join()).toBe(card.notions.length);
+      const first = card.steps[0];
+      const covered = first.drill ? drillNotions(first.id) : LESSON_NOTIONS[first.id].teaches;
+      for (const s of card.notions) expect(covered, `${first.id} › ${s.notion}`).toContain(s.notion);
     }
+  });
+});
+
+describe('rework: drills', () => {
+  const start: Progress = { done: ['l-compteur'], doneAt: { 'l-compteur': T0 } };
+  const drillOf = (p: Progress, now: number) => reworkCards(p, now).find((c) => c.notions.some((s) => s.notion === 'variables'))!.steps[0];
+
+  it('a drill passed counts for every notion of its family, and the next one is another situation', () => {
+    const first = drillOf(start, T0 + DAY);
+    let p = withPracticeOpen(start, first.id, true);
+    expect(drillOf(p, T0 + DAY).id).toBe(first.id);
+    p = verify(p, first.id, pass, T0 + DAY, true);
+    for (const n of ['variables', 'branch']) expect(reworkSchedule(p, T0 + DAY).find((s) => s.notion === n)).toMatchObject({ box: 1, last: { step: first.id, practice: true } });
+    const next = drillOf(p, T0 + 4 * DAY);
+    expect(next.id).not.toBe(first.id);
+    expect(next.drill!.situation).not.toBe(first.drill!.situation);
+    expect(next.drill!.format).toBe('rebuild');
+  });
+
+  it('a drill not passed brings the family back to the next day, to complete again', () => {
+    const first = drillOf(start, T0 + DAY);
+    let p = verify(start, first.id, pass, T0 + DAY, true);
+    const second = drillOf(p, T0 + 4 * DAY);
+    p = verify(p, second.id, fail, T0 + 4 * DAY, true);
+    p = withHelpReset(p, second.id, true);
+    expect(reworkSchedule(p, T0 + 4 * DAY).find((s) => s.notion === 'branch')).toMatchObject({ box: 0, due: T0 + 5 * DAY });
+    expect(drillOf(p, T0 + 5 * DAY).drill!.format).toBe('complete');
+  });
+
+  it('the drill of a card is a real one: its id rebuilds it', () => {
+    const d = drillOf(start, T0 + DAY);
+    expect(getLesson(d.id)).toBe(d);
+    expect(isDrillId(d.id)).toBe(true);
   });
 });

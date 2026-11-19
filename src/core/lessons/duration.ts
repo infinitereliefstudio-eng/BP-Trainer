@@ -60,7 +60,9 @@ export function estimatedMinutes(lesson: Lesson): number {
   const known = cache.get(lesson.id);
   if (known !== undefined) return known;
   let minutes: number;
-  if (lesson.kind === 'predict') minutes = 5;
+  // A drill is made to be short: two or three nodes to place, one mistake, or a chain of four or five nodes.
+  if (lesson.drill) minutes = lesson.drill.format === 'complete' ? 3 : 5;
+  else if (lesson.kind === 'predict') minutes = 5;
   else {
     // One starting project and its solved copy: node and asset ids match.
     const start = lesson.setup();

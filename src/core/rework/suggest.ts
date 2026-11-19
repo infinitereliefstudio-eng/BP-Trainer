@@ -9,8 +9,11 @@ import type { Lesson } from '../lessons/types';
 import { getNotion } from '../notions/catalogue';
 import { LESSON_NOTIONS } from '../notions/lessonNotions';
 import { DAY } from '../review/schedule';
-import { dueRework, type NotionSchedule, REWORK_INTERVALS, stepsFor } from './schedule';
+import { familiesFor, getDrill, nextDrillId, parseDrillId } from '../drills';
+import type { Family } from '../drills/types';
+import { readableLog } from '../progress/attempts';
 import type { Progress } from '../progress/progress';
+import { dueRework, type NotionSchedule, REWORK_INTERVALS, stepsFor } from './schedule';
 
 /** Formats that make the learner do more than redo the same build. */
 const varied = (l: Lesson) => (l.kind && l.kind !== 'build') || l.chain?.step === 'transfer' || l.chain?.step === 'autonomy';
@@ -55,29 +58,47 @@ export function whyNow(s: NotionSchedule, now: number): string {
 
 export const notionTitle = (id: string) => getNotion(id)?.title ?? id;
 
+/** The drill to offer for a family: the one left unfinished, or the next one, in the format the notion is at. */
+export function drillFor(family: Family, box: number, p: Pick<Progress, 'log' | 'rework'>): Lesson {
+  const open = p.rework?.open?.find((id) => parseDrillId(id)?.family === family.id);
+  if (open) {
+    const drill = getDrill(open);
+    if (drill) return drill;
+  }
+  const attempts = readableLog(p.log) ? p.log.attempts : [];
+  const tried = new Set(attempts.filter((a) => parseDrillId(a.lesson)?.family === family.id).map((a) => a.lesson)).size;
+  return getDrill(nextDrillId(family, box, tried))!;
+}
+
 /**
- * One card of the queue: the notions due that the same step practises
- * together (Leçon 1 covers Événements, Fil d'exécution and Print String at
- * once), the most overdue first. Redoing the step counts for each of them.
+ * One card of the queue: the notions due that one practice covers at once,
+ * the most overdue first. Notions of a drill family (Variables and Branch…)
+ * share a card, and its first suggestion is a drill of the family; other
+ * notions share a card when the same step practises them (Leçon 1 covers
+ * Fil d'exécution and Print String at once).
  */
 export interface ReworkCard {
   notions: NotionSchedule[];
-  /** The steps to offer, the best first (for the first notion). */
+  /** What to practise, the best first: a drill, then passed steps. */
   steps: Lesson[];
 }
 
 export function reworkCards(p: Progress, now: number): ReworkCard[] {
-  const cards = new Map<string, ReworkCard>();
+  const groups = new Map<string, { family?: Family; notions: NotionSchedule[] }>();
   for (const s of dueRework(p, now)) {
-    const steps = suggestedSteps(s, p.done);
-    const card = cards.get(steps[0].id);
-    if (card) card.notions.push(s);
-    else cards.set(steps[0].id, { notions: [s], steps });
+    const family = familiesFor(s.notion)[0];
+    const key = family ? `family:${family.id}` : suggestedSteps(s, p.done)[0].id;
+    const group = groups.get(key);
+    if (group) group.notions.push(s);
+    else groups.set(key, { family, notions: [s] });
   }
-  // Within a card, the steps that practise the most of its notions first (stable: the best suggestion stays first).
-  for (const card of cards.values()) {
-    const covers = (l: Lesson) => card.notions.filter((n) => (LESSON_NOTIONS[l.id]?.teaches ?? []).includes(n.notion)).length;
-    card.steps = [...card.steps].sort((a, b) => covers(b) - covers(a));
-  }
-  return [...cards.values()];
+  return [...groups.values()].map(({ family, notions }) => {
+    // The steps that practise the most of the card's notions first (stable: the best suggestion stays first).
+    const covers = (l: Lesson) => notions.filter((n) => (LESSON_NOTIONS[l.id]?.teaches ?? []).includes(n.notion)).length;
+    const steps = [...suggestedSteps(notions[0], p.done)].sort((a, b) => covers(b) - covers(a));
+    if (!family) return { notions, steps };
+    // A drill at the pace of the least advanced notion of the card.
+    const box = Math.min(...notions.map((n) => n.box));
+    return { notions, steps: [drillFor(family, box, p), ...steps] };
+  });
 }

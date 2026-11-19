@@ -2,6 +2,7 @@
  * The learning path, in order, level by level. Add a lesson by listing it
  * here. Lessons are numbered by their place in the path (exercises have a code).
  */
+import { getDrill, isDrillId } from '../drills';
 import { complete2, lessonCleanDestroy, lessonPureFunctions } from './library/advanced';
 import { complete1, lessonBarrier, lessonCounter } from './library/beginner';
 import { lessonDoorStates, lessonKeypad, refactor2 } from './library/choices';
@@ -270,6 +271,7 @@ for (const [i, l] of LESSONS.entries()) {
   if (names) LESSONS[i] = asEnhancedInput(l, names);
 }
 
+/** A step of the path, or a drill of the « À retravailler en Blueprint » queue (core/drills). */
 export function getLesson(id: string): Lesson | undefined {
-  return LESSONS.find((l) => l.id === id);
+  return LESSONS.find((l) => l.id === id) ?? (isDrillId(id) ? getDrill(id) : undefined);
 }

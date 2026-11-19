@@ -177,6 +177,11 @@ export interface Lesson {
    * starts from these, not from the slots the learner's own Play left.
    */
   slots?: () => Record<string, SavedGame>;
+  /**
+   * Set on a short drill with variants (core/drills), offered by the
+   * « À retravailler en Blueprint » queue: never on a step of the path.
+   */
+  drill?: { family: string; seed: number; format: 'complete' | 'repair' | 'rebuild'; situation: string };
 }
 
 /**
@@ -214,6 +219,7 @@ export const isNumbered = (l: Lesson) => (!l.kind || l.kind === 'build') && !isC
 
 /** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1", "Entraînement M1", "Projet X1". */
 export function lessonLabel(l: Lesson): string {
+  if (l.drill) return 'Mini-exercice';
   if (l.kind === 'predict') return `Prédis ${l.code ?? ''}`.trim();
   if (l.kind === 'debug') return `Débogue ${l.code ?? ''}`.trim();
   if (l.kind === 'complete') return `Complète ${l.code ?? ''}`.trim();

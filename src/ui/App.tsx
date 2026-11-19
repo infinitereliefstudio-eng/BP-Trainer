@@ -391,7 +391,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       {practice && lesson && (
         <div class="scratch-bar practice-bar">
           <span>
-            <strong>Reprise de zéro</strong> — refais l’étape sans regarder ta solution. Ton projet de la leçon n’est pas touché.
+            {lesson.drill ? (
+              <>
+                <strong>Mini-exercice</strong> — quelques minutes, de mémoire. Les indices s’ouvrent après un premier Vérifier.
+              </>
+            ) : (
+              <>
+                <strong>Reprise de zéro</strong> — refais l’étape sans regarder ta solution. Ton projet de la leçon n’est pas touché.
+              </>
+            )}
           </span>
           <button
             class="btn"

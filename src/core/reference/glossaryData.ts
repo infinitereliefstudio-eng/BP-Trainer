@@ -57,6 +57,28 @@ export const GLOSSARY: GlossaryEntry[] = [
     pattern: 'Other Actor → Get Component by Class (BP_Sante) → Is Valid → Infliger Degats',
   },
   {
+    title: 'Parent ou composant',
+    names: ['Parent ou composant', 'Composition'],
+    what: 'Deux façons de partager une logique. Un Blueprint parent dit ce qu’un acteur est (une porte blindée est une porte) ; un Actor Component dit ce qu’il a (une porte et un terminal ont un verrou). Un acteur n’a qu’un parent, mais autant de composants qu’il veut.',
+    when: 'Parent quand les acteurs sont des variantes d’une même chose ; composant quand des acteurs sans lien de parenté ont besoin du même comportement. Les deux se combinent : la porte blindée hérite de la porte et porte un verrou.',
+    trap: 'Mettre un comportement dans un parent pour le partager : tous les enfants le reçoivent, même ceux qui n’en veulent pas, et un acteur d’une autre famille ne peut pas l’avoir.',
+  },
+  {
+    title: 'Les événements d’un composant',
+    names: ['BeginPlay d’un composant', 'On … (Composant)', 'On Actor Begin Overlap'],
+    what: 'Un Actor Component a son BeginPlay, son Tick et son End Play. Son BeginPlay passe avant l’Event BeginPlay de l’acteur qui le porte. Il n’a pas de forme : pour un overlap, il s’abonne à On Actor Begin Overlap de son Owner (Bind Event, Target = Get Owner).',
+    when: 'Pour que l’acteur réagisse à un Event Dispatcher de son composant, le + vert des Details du composant ajoute « On OnMort (BP_Sante) » : l’abonnement est fait par UE, sans Bind Event.',
+    trap: 'Entre deux acteurs, l’ordre des BeginPlay n’est pas garanti ; entre un acteur et ses composants, il l’est : les composants d’abord.',
+    pattern: 'BeginPlay → Bind Event to On Actor Begin Overlap (Target = Get Owner)',
+  },
+  {
+    title: 'Is Valid',
+    names: ['Is Valid'],
+    what: 'Is Valid vérifie qu’une référence pointe vers un objet qui existe : Is Valid si oui, Is Not Valid si elle vaut None ou un acteur détruit.',
+    when: 'Avant de se servir d’une référence qui peut être vide : la sortie de Get Component by Class, une variable d’acteur qu’on a pu détruire, un Load Game from Slot.',
+    trap: 'Une référence vide n’arrête pas le Blueprint : le nœud qui s’en sert est sauté avec Accessed None, et la suite continue avec des valeurs par défaut (une Vie à 0 inventée).',
+  },
+  {
     title: 'Construire un acteur',
     names: ['Blueprint Class', 'Viewport', 'Place Actors'],
     what: 'Un Blueprint Class est un modèle d’acteur : Content Drawer › + Add › Blueprint Class, parent Actor. On y ajoute des composants (Components › +), on les place dans son Viewport, puis on le pose dans le niveau (Place Actors, ou glisser depuis le Content Drawer).',

@@ -252,8 +252,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 115:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 115")
+        if await page.locator('.lesson-item').count() != 120:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 120")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -825,6 +825,27 @@ async def main():
         await shot('75_actor_component_debug')
         if await page.locator('.debug-panel select option', has_text='BP_Sante').count() == 0 and await page.locator('.debug-panel', has_text='(BP_Lampe)').count() == 0:
             errs.append('Actor Component : sa copie n’est pas proposée comme objet débogué')
+
+        # V7.20: the Actor Components steps after « L’héritage »: a Prédis, the refactor's brief, the badge lock.
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Qui commence ?').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='Qui commence ?').tap()
+        await page.wait_for_timeout(500)
+        await shot('76_predict_component_order')
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La santé est partout').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='La santé est partout').tap()
+        await page.wait_for_timeout(500)
+        await shot('77_refactor_health')
+        if await page.locator('.lesson-body .card h4', has_text='La réécriture').count():
+            errs.append('R5 : la fiche « La réécriture » est visible avant la réussite')
+        await close_sheet()
+        await page.evaluate(OPEN, 'BP_Drone')
+        await graph(page)
+        await page.wait_for_timeout(300)
+        await shot('78_refactor_health_graph')
 
         print('errors', errs)
         await b.close()

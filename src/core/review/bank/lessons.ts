@@ -483,6 +483,36 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Redéfinir remplace la version du parent ; « Parent: … » la rappelle, à l’endroit voulu.',
   ),
   q(
+    'p15-qui-commence',
+    'Un robot porte un Actor Component qui remplit sa Vie dans son BeginPlay. Le BeginPlay du robot lit cette Vie. Que lit-il ?',
+    ['La Vie remplie : le composant a commencé avant le robot', 'La Vie de départ : le robot commence avant ses composants', 'Ça dépend de la partie', 'Rien : un composant n’a pas de BeginPlay'],
+    'UE lance le BeginPlay des composants d’un acteur, puis l’Event BeginPlay de l’acteur. Entre deux acteurs différents, l’ordre n’est pas garanti.',
+  ),
+  q(
+    'r5-sante-partout',
+    'Une caisse, un drone et une tourelle ont la même logique de santé recopiée. Où l’écrire une seule fois ?',
+    ['Dans un Actor Component ajouté aux trois', 'Dans un parent commun aux trois', 'Dans le Level Blueprint', 'Dans une macro recopiée dans chacun'],
+    'Ils ne sont pas de la même famille, mais ils ont tous une santé : un Actor Component, chacun avec sa copie et ses valeurs.',
+  ),
+  q(
+    'd22-scanner',
+    'Get Component by Class (BP_Sante) sur un acteur qui n’a pas de BP_Sante : que se passe-t-il ?',
+    ['Il renvoie None, sans erreur ; s’en servir sans Is Valid donne Accessed None', 'Le Blueprint ne compile pas', 'Il ajoute un BP_Sante à l’acteur', 'Il renvoie le BP_Sante du joueur'],
+    'Ne pas trouver le composant est normal : la sortie vaut None. L’erreur vient de lire ou d’appeler à travers cette sortie sans Is Valid.',
+  ),
+  q(
+    't3-piege',
+    'Un piège doit blesser tout ce qui a une santé, quelle que soit sa classe. Que fait-il de Other Actor ?',
+    ['Get Component by Class (BP_Sante), Is Valid, puis InfligerDegats', 'Un Cast vers chaque classe d’ennemi', 'Une variable Vie lue directement sur Other Actor', 'Un message d’interface envoyé au composant du joueur'],
+    'On demande à l’acteur ce qu’il a, pas ce qu’il est : un nouvel ennemi qui porte BP_Sante est blessé sans changer le piège.',
+  ),
+  q(
+    'l-verrou-badge',
+    'Une porte blindée (enfant de BP_PorteBase) et un terminal ont besoin du même verrou. Que fait-on ?',
+    ['Un Actor Component BP_Verrou posé sur les deux', 'Mettre le verrou dans BP_PorteBase et faire hériter le terminal de la porte', 'Copier le verrou dans les deux', 'Mettre le verrou dans BP_Joueur'],
+    'Le terminal n’est pas une porte : il a un verrou. Un composant se pose sur n’importe quel acteur, à côté de son parent.',
+  ),
+  q(
     'l-salle-controle',
     'Un Blueprint doit prévenir « mon état a changé » sans connaître ceux que ça intéresse. Quel outil ?',
     ['Un Event Dispatcher', 'Un Cast To vers chacun', 'Une variable Private', 'Un Line Trace'],

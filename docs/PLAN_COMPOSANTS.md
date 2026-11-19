@@ -1,6 +1,6 @@
 # Chantier Actor Components — analyse (19 novembre 2026)
 
-Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document). **V7.19 faite le 19 novembre** (détail dans HANDOFF.md, « V7.19 ») ; V7.20 à V7.22 attendent son feu vert.
+Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document). **V7.19 et V7.20 faites le 19 novembre** (détail dans HANDOFF.md) ; V7.21 et V7.22 attendent son feu vert. En V7.20, D22 est « Le scanner et le chariot » (Get Component by Class sans Is Valid) et « Parent ou composant ? » est devenu « Le verrou à badge ».
 
 ## En bref
 

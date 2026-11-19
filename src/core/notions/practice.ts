@@ -49,6 +49,7 @@ const NODE_NOTIONS: [RegExp, string][] = [
   [/^call\.parentEvent$|^call\.function$/, 'inheritance'],
   [/^trace\./, 'trace'],
   [/^event\.hit$/, 'hit'],
+  [/^(component\.getOwner|actor\.getComponentsByClass|actor\.getComponentByClass|event\.componentDispatcher|dispatcher\.bindNative)$/, 'actor-components'],
 ];
 
 /** The notions whose practice can be seen in a graph, so whose spacing is checked (not « exec » or « pure »: ideas, not nodes). */

@@ -57,6 +57,7 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'tick', title: 'Event Tick', covers: 'chaque image, Delta Seconds, son coût' },
   { id: 'save-game', title: 'Save Game', covers: 'sauver et charger entre deux parties' },
   { id: 'inheritance', title: 'Héritage', covers: 'Blueprint parent et enfant, redéfinir' },
+  { id: 'actor-components', title: 'Actor Components', covers: 'une logique qu’on ajoute à des acteurs : une copie chacun, Get Owner, Get Component by Class' },
   { id: 'trace', title: 'Line Trace', covers: 'viser : ce que touche un rayon' },
   { id: 'hit', title: 'Event Hit', covers: 'un contact bloquant' },
   { id: 'transform', title: 'Repères et Transform', covers: 'repère local et repère monde' },

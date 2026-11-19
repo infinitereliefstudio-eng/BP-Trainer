@@ -4,11 +4,11 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.19)
+## Reprise rapide (2026-11-19, après la V7.20)
 
 ### Où on en est
 
-- **Version en ligne : 7.19.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.20.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
@@ -20,7 +20,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Le parcours aujourd'hui
 
-115 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 28 (fin : synthèse S4), Expert 2 (X2, X1). 145 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+120 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 33 (fin : synthèse S4), Expert 2 (X2, X1). 150 questions de révision sur les leçons. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -32,7 +32,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **V7.19 faite** (le moteur, voir « V7.19 » plus bas). Suite : V7.20 (leçons de découverte en Avancé, après « L'héritage »), V7.21 (usages), V7.22 (reprise de l'existant), chacune après le feu vert de Tristan.
+**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **V7.19 faite** (le moteur) et **V7.20 faite** (cinq étapes de découverte après « L'héritage », voir « V7.20 » plus bas). Suite : V7.21 (usages : le sac et le coffre, interagir par composant, la batterie, l'autonomie différée), V7.22 (reprise de l'existant et rappels : input, enhanced-input, loops, actor-components), chacune après le feu vert de Tristan.
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
@@ -49,7 +49,7 @@ Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) 
 5. Une question de révision (`core/review/bank/lessons.ts`, bonne réponse en premier).
 6. `recalls` si la solution réécrit une notion ancienne ; relancer `tests/spacing.test.ts` et suivre ses messages.
 7. Si la leçon change le projet de départ d'une étape existante : `revision` + 1 (l'appli signale alors la leçon comme changée).
-8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~255 (nombre d'étapes attendu) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
+8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~255 (nombre d'étapes attendu, 120 depuis la V7.20) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
 9. Les textes qui renvoient à une leçon la nomment par son **titre**, jamais par son numéro (les numéros bougent).
 
 ### Livrer une version
@@ -649,6 +649,25 @@ Lancé par « tu peux lancer » après l'analyse [PLAN_COMPOSANTS.md](PLAN_COMPO
 Non fait, prévu ou hors chantier : Start with Tick Enabled (le Tick tourne s'il y a un Event Tick), Scene Components en Blueprint, Add Component by Class / Destroy Component, Activate / Deactivate. À vérifier dans UE avant d'en faire une leçon : l'ordre de Tick entre un acteur et ses composants (ici, le composant d'abord), les événements Enhanced Input dans un composant (refusés ici).
 
 Version 7.19.0.
+
+## V7.20 (2026-11-19) : chantier Actor Components, étape 2 (leçons de découverte)
+
+Lancé par « tu peux lancer la suite ». Cinq étapes en Avancé, juste après « L'héritage » (120 étapes, 150 questions de révision sur les leçons). Tests : `tests/actorComponentLessons.test.ts` (mauvaises solutions typiques refusées, place dans le parcours), et les tests génériques de chaque étape.
+
+| Étape | Fichier | Ce qu'elle fait travailler |
+|---|---|---|
+| Prédis P15 « Qui commence ? » | `componentOrder.ts` | Le BeginPlay d'un composant passe avant celui de son acteur (contrairement à deux acteurs). Échelle `actor-components` : discover |
+| Refactor R5 « La santé est partout » | `healthEverywhere.ts` | Trois acteurs sans parenté recopient la santé : BP_Sante (Actor Component) créé par l'apprenant, Vie réglée par composant, « On OnMort (BP_Sante) ». Échelle : guided. Fiche « La réécriture » gardée jusqu'à la réussite |
+| Débogue D22 « Le scanner et le chariot » | `scanner.ts` | Get Component by Class sur un acteur sans santé : None, puis Accessed None et une « Vie : 0 » inventée ; correction Is Valid + « Rien à mesurer » |
+| Transfert T3 « Le piège qui blesse tout » | `trapAll.ts` | Écrire le piège : Get Component by Class + Is Valid, aucun Cast ; caisse détruite, drone à 30, mur intact, joueur à 50. Échelle : transfer |
+| Leçon « Le verrou à badge » | `badgeLock.ts` | Parent ou composant : les portes ont un parent, le verrou (BP_Verrou) est un composant posé sur la porte blindée et sur le terminal ; Bind Event to On Actor Begin Overlap sur Get Owner, Event Dispatcher, valeurs par acteur ; la porte blindée redéfinit Ouvrir (Parent: Ouvrir). Cas « Et si… » : badge 3 au terminal |
+
+- `library/health.ts` : BP_Sante fini (`healthComponent`, `writeHealth`), `lifeOf` (Vie d'un acteur pendant le scénario), `carries`, `isComponentClass`.
+- Notion de catalogue `actor-components` (nœuds Get Owner, Get Component(s) by Class, « On … (Composant) », Bind Event to On Actor Begin Overlap dans `practice.ts`) ; fiches de glossaire « Parent ou composant », « Les événements d'un composant », « Is Valid » ; 5 questions de révision.
+- Espacement : l'insertion a allongé de 5 les écarts qui la traversent (`KNOWN_GAPS` mis à jour) ; `actor-components` (22, jusqu'à la fin du parcours), `input`, `enhanced-input` et `loops` (16) sont notés pour la V7.21 et la V7.22. Rappels déclarés : R5 (functions, dispatchers), D22 (print), T3 (overlap, functions), verrou (cast, dispatchers, inheritance).
+- `smoke.py` attend 120 étapes, captures 76 à 78.
+
+Version 7.20.0.
 
 ## Méthode de travail
 

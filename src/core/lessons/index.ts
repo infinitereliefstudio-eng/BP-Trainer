@@ -65,6 +65,11 @@ import { mixedDispenser, mixedSas } from './library/mixed';
 import { synthesis4 } from './library/synthesis4';
 import { expertRadio } from './library/expertRadio';
 import { expertWorkshop } from './library/expertWorkshop';
+import { predictComponentOrder } from './library/componentOrder';
+import { refactor5 } from './library/healthEverywhere';
+import { debug22 } from './library/scanner';
+import { transferTrap } from './library/trapAll';
+import { lessonBadgeLock } from './library/badgeLock';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -170,6 +175,12 @@ export const LESSONS: Lesson[] = [
   refactor1,
   lesson12,
   lessonInheritance,
+  // Actor Components (V7.20): discover, guided, repair, transfer, parent or component.
+  predictComponentOrder,
+  refactor5,
+  debug22,
+  transferTrap,
+  lessonBadgeLock,
   lessonControlRoom,
   lessonUniversalLever,
   lessonLook,

@@ -276,6 +276,7 @@ Non simulés, à expliquer dans le mémo : versions Async des nœuds de sauvegar
 | Niveau : tourner un acteur au doigt | Aujourd'hui par Details | ★ | S à M |
 | Icônes des nœuds | Rapprocher encore le dessin de celui d'UE | ★ | S à M |
 | Accessibilité du graphe | Le Canvas n'expose ni nœuds ni fils aux lecteurs d'écran ; une liste de nœuds navigable servirait aussi à chercher et diagnostiquer | ★ | M |
+| Blueprint ouvert au départ d'une étape | Remarqué le 19 novembre (smoke, V7.30 comme V7.32) : « Débogue D15 — Les meubles sur une grille tournée » s'ouvre sur l'Event Graph vide de BP_Sol, alors que le graphe à réparer est dans BP_Poseur. Les étapes n'indiquent pas quel Blueprint montrer d'abord : vérifier les autres étapes à plusieurs Blueprints, et au besoin donner à chaque étape son Blueprint de départ | ★★ | S |
 | Retouches | Save d'un projet d'essai qui enregistre pour rien ; force des vibrations. (Faits en V7.32 : menu ⋮, « 0 » du Timeline, en-tête de l'accueil en paysage) | ★ | S |
 
 ## Motivation : séries, rappels, défis

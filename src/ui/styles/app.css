@@ -397,6 +397,9 @@ select.field { padding-right: 4px; }
 .note-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .note-text { line-height: 1.45; font-size: 13.5px; }
 .note-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.review > .rework { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line-2); }
+.rework-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.rework-item { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line-2); }
 .attempt-log { max-width: 980px; display: flex; flex-direction: column; gap: 8px; }
 .attempt-log summary { cursor: pointer; font-weight: 700; min-height: 40px; display: flex; align-items: center; gap: 8px; list-style: none; }
 .attempt-log summary::-webkit-details-marker { display: none; }
@@ -691,3 +694,6 @@ select.field { padding-right: 4px; }
 .help-rule { margin: 0 0 8px; }
 .synthesis-advice { display: block; width: 100%; text-align: left; margin: 0 0 8px; padding: 8px 12px; border-radius: var(--radius); border: 1px dashed var(--line-2); color: var(--muted); font-size: 13px; }
 .lesson-item.exercise.synthesis { border-left: 3px solid var(--accent); }
+
+/* Révision › À retravailler en Blueprint (V7.28) */
+.rework-item .row-buttons .btn { height: 38px; }

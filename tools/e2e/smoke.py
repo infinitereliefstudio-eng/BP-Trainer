@@ -563,6 +563,22 @@ async def main():
         await page.wait_for_timeout(300)
         if await page.locator('.count-badge').count() != 1:
             errs.append('Révision : pas de compteur de questions à revoir sur l’onglet')
+        # V7.28: « À retravailler en Blueprint », a passed step redone from scratch, apart from the lesson
+        if await page.locator('.rework-item').count() < 1:
+            errs.append('Révision : rien à retravailler en Blueprint alors que des étapes sont réussies depuis longtemps')
+        else:
+            await page.locator('.rework').scroll_into_view_if_needed()
+            await shot('52b_rework_queue')
+            await page.locator('.rework-item .btn.primary').first.tap()
+            await page.wait_for_timeout(600)
+            await close_sheet()
+            if await page.locator('.practice-bar').count() != 1:
+                errs.append('Reprise de zéro : le bandeau de reprise manque')
+            await shot('52c_practice')
+            await page.locator('.practice-bar .btn', has_text='Retour à la file').tap()
+            await page.wait_for_timeout(400)
+            if await page.locator('.home-tabs button.active', has_text='Révision').count() != 1:
+                errs.append('Reprise de zéro : le retour ne ramène pas à l’onglet Révision')
         await page.locator('.review .btn.big').first.tap()
         await page.wait_for_timeout(300)
         await shot('53_review_question')

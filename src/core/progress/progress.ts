@@ -52,7 +52,20 @@ export interface Progress {
   passedWith?: Record<string, HelpLevel>;
   /** One line per attempt at a step (core/progress/attempts.ts). */
   log?: AttemptLog;
+  /** The learner's choices on the « À retravailler en Blueprint » queue (core/rework). */
+  rework?: ReworkChoices;
 }
+
+/** What the learner did with the « À retravailler en Blueprint » queue; the schedule itself is computed from the log. */
+export interface ReworkChoices {
+  /** Notions put off: not due before `until`, unless practised again after `at`. */
+  postponed?: Record<string, { at: number; until: number }>;
+  /** Steps being redone from scratch, not passed yet: reopened as they were left. */
+  open?: string[];
+}
+
+/** The key of the help used while redoing a step from scratch, apart from the lesson's own. */
+export const practiceHelpKey = (lessonId: string) => `practice:${lessonId}`;
 
 export const emptyProgress = (): Progress => ({ done: [] });
 
@@ -86,13 +99,14 @@ export function withHelp(p: Progress, lessonId: string, change: (h: LessonHelp) 
   return { ...p, help: { ...p.help, [lessonId]: after } };
 }
 
-/** Starting a lesson over starts its help count over too, and ends its attempt. */
-export function withHelpReset(p: Progress, lessonId: string): Progress {
-  const log = closeAttempt(p.log, lessonId);
+/** Starting a lesson (or its practice) over starts its help count over too, and ends its attempt. */
+export function withHelpReset(p: Progress, lessonId: string, practice = false): Progress {
+  const log = closeAttempt(p.log, { lesson: lessonId, practice });
   const next = log === p.log ? p : { ...p, log };
-  if (!next.help?.[lessonId]) return next;
+  const key = practice ? practiceHelpKey(lessonId) : lessonId;
+  if (!next.help?.[key]) return next;
   const help = { ...next.help };
-  delete help[lessonId];
+  delete help[key];
   return { ...next, help };
 }
 
@@ -101,10 +115,23 @@ export function withHelpReset(p: Progress, lessonId: string): Progress {
  * outcome, with the help used so far. Call it before the help changes for
  * this Vérifier and before the step is marked passed.
  */
-export function withCheck(p: Progress, step: { lesson: string; rev: number }, outcome: CheckOutcome, now = Date.now()): Progress {
-  const h = p.help?.[step.lesson];
+export function withCheck(p: Progress, step: { lesson: string; rev: number; practice?: boolean }, outcome: CheckOutcome, now = Date.now()): Progress {
+  const h = p.help?.[step.practice ? practiceHelpKey(step.lesson) : step.lesson];
   const log = logCheck(p.log, { ...step, wasDone: p.done.includes(step.lesson) }, outcome, { level: helpLevel(h), hints: h?.hints ?? 0 }, now);
   return log === p.log ? p : withToday({ ...p, log }, now);
+}
+
+/** A notion of the queue put off until `until`. */
+export function withPostponed(p: Progress, notion: string, until: number, now = Date.now()): Progress {
+  return { ...p, rework: { ...p.rework, postponed: { ...p.rework?.postponed, [notion]: { at: now, until } } } };
+}
+
+/** A step redone from scratch was started (true) or passed (false): whether it reopens as it was left. */
+export function withPracticeOpen(p: Progress, lessonId: string, open: boolean): Progress {
+  const list = p.rework?.open ?? [];
+  if (list.includes(lessonId) === open) return p;
+  const next = open ? [...list, lessonId] : list.filter((id) => id !== lessonId);
+  return { ...p, rework: { ...p.rework, open: next } };
 }
 
 /** The progress with the attempt log emptied (the learner asked for it). */
@@ -139,6 +166,10 @@ const lessonHelp = (v: unknown) =>
     (h) => isObj(h) && isNum(h.hints) && (h.tried === undefined || typeof h.tried === 'boolean') && (h.solution === undefined || typeof h.solution === 'boolean') && (h.fails === undefined || isNum(h.fails)),
   );
 const helpLevels = (v: unknown) => isObj(v) && Object.values(v).every((l) => HELP_LEVELS.includes(l as HelpLevel));
+const reworkChoices = (v: unknown) =>
+  isObj(v) &&
+  (v.postponed === undefined || (isObj(v.postponed) && Object.values(v.postponed).every((x) => isObj(x) && isNum(x.at) && isNum(x.until)))) &&
+  (v.open === undefined || strings(v.open));
 const resumeRef = (v: unknown) =>
   isObj(v) && (v.kind === 'sandbox' || (v.kind === 'lesson' && typeof v.lessonId === 'string'));
 
@@ -151,6 +182,7 @@ const FIELDS: [keyof Progress, (v: unknown) => boolean][] = [
   ['days', strings],
   ['help', lessonHelp],
   ['passedWith', helpLevels],
+  ['rework', reworkChoices],
 ];
 
 /** What is wrong in a progress, field by field (empty when nothing is). */

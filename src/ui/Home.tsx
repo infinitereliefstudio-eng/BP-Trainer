@@ -12,6 +12,7 @@ import { acquiredNotions, missingNotions } from '@core/notions';
 import type { HelpLevel } from '@core/progress/progress';
 import { QUIZ } from '@core/review';
 import { dueQuestions, streak } from '@core/review/schedule';
+import { reworkCards } from '@core/rework/suggest';
 import { APP_VERSION } from '../version';
 import { BackupDialog } from './home/BackupDialog';
 import { Memo } from './home/Memo';
@@ -26,6 +27,8 @@ interface Props {
   onProgress: (change: (p: Progress) => Progress) => void;
   /** Reload the progress from storage (after a backup was restored). */
   onReload: () => void;
+  /** The tab shown first (Révision when coming back from a practice). */
+  initialTab?: Tab;
 }
 
 const KIND_LABEL: Record<Exclude<LessonKind, 'build'>, string> = {
@@ -47,12 +50,20 @@ function eyebrowOf(l: Lesson): string | undefined {
 
 const HELP_LABEL: Record<HelpLevel, string> = { alone: 'réussie seul', hints: 'avec indices', solution: 'solution vue' };
 
+/** « 3 questions à revoir et 2 Blueprints à refaire ». */
+function dueLabel(questions: number, graphs: number): string {
+  const q = questions ? `${questions} question${questions > 1 ? 's' : ''}` : '';
+  const g = graphs ? `${graphs} Blueprint${graphs > 1 ? 's' : ''} à refaire` : '';
+  if (q && g) return `${q} à revoir et ${g}`;
+  return g || `${q} à revoir`;
+}
+
 const dateLabel = (t: number) => new Date(t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 
-type Tab = 'path' | 'review' | 'notebook' | 'nodes' | 'memo';
+export type Tab = 'path' | 'review' | 'notebook' | 'nodes' | 'memo';
 
-export function Home({ progress, onOpen, onProgress, onReload }: Props) {
-  const [tab, setTab] = useState<Tab>('path');
+export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'path' }: Props) {
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [memoId, setMemoId] = useState<string | undefined>(undefined);
   const [backup, setBackup] = useState(false);
   const done = new Set(progress.done);
@@ -62,7 +73,9 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
   const passed = LESSONS.filter((l) => done.has(l.id)).length;
   const open = (l: Lesson) => onOpen({ kind: 'lesson', lessonId: l.id });
   const openLesson = (id: string) => onOpen({ kind: 'lesson', lessonId: id });
-  const due = useMemo(() => dueQuestions(QUIZ, progress, Date.now()).length, [progress]);
+  const questions = useMemo(() => dueQuestions(QUIZ, progress, Date.now()).length, [progress]);
+  const graphs = useMemo(() => reworkCards(progress, Date.now()).length, [progress]);
+  const due = questions + graphs;
   const days = streak(progress.days ?? [], Date.now());
 
   // "Reprendre" : the last workspace, when it is not what "Continuer" already offers.
@@ -142,10 +155,8 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
           {due > 0 && (
             <button class="review-banner" onClick={() => go('review')}>
               <span>
-                <strong>
-                  {due} question{due > 1 ? 's' : ''} à revoir
-                </strong>
-                <span class="muted"> · deux minutes pour ne pas oublier ce que tu as appris</span>
+                <strong>{dueLabel(questions, graphs)}</strong>
+                <span class="muted"> · {graphs > 0 ? 'un graphe à refaire de zéro, pour le savoir encore dans une semaine' : 'deux minutes pour ne pas oublier ce que tu as appris'}</span>
               </span>
               <span class="review-go">Réviser ›</span>
             </button>
@@ -202,6 +213,7 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
           progress={progress}
           onProgress={onProgress}
           onOpenLesson={openLesson}
+          onPractice={(id) => onOpen({ kind: 'practice', lessonId: id })}
           onOpenMemo={(id) => {
             setMemoId(id);
             setTab('memo');

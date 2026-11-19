@@ -4,7 +4,7 @@ import { getLesson } from '@core/lessons';
 import { flushSaves, startAutosave } from '@storage/persistence';
 import { watchForUpdates } from '../updates';
 import { App } from './App';
-import { Home } from './Home';
+import { Home, type Tab as HomeTab } from './Home';
 import { NoticeDialog } from './status/NoticeDialog';
 import { RecoveryDialog } from './status/RecoveryDialog';
 import { StatusBar, type StatusMessage } from './status/StatusBar';
@@ -19,10 +19,12 @@ import {
   saveProgress,
   startOver,
   type LessonHelp,
-  withHelp,
+  practiceHelpKey,
   withCheck,
+  withHelp,
   withHelpReset,
   withPassed,
+  withPracticeOpen,
   type WorkspaceRef,
 } from './workspace';
 
@@ -36,6 +38,7 @@ export function Root() {
   const [problem, setProblem] = useState<LoadedProgress['problem']>(undefined);
   const [saveFailed, setSaveFailed] = useState(false);
   const [ws, setWs] = useState<OpenedWorkspace | null>(null);
+  const [homeTab, setHomeTab] = useState<HomeTab>('path');
   const [blocked, setBlocked] = useState<BlockedWorkspace | null>(null);
   const [notices, setNotices] = useState<string[]>([]);
   const [newer, setNewer] = useState<string | null>(null);
@@ -88,13 +91,16 @@ export function Root() {
     setNotices(next.notices);
     setWs(next);
     const ref = next.ref;
-    if (!isScratch(ref)) changeProgress((p) => ({ ...p, last: ref }));
+    if (ref.kind === 'sandbox' || ref.kind === 'lesson') changeProgress((p) => ({ ...p, last: ref }));
     // Opening the reference solution counts as help, like its third hint.
     if (ref.kind === 'solution') changeProgress((p) => withHelp(p, ref.lessonId, (h) => ({ ...h, solution: true })));
   };
 
   const open = async (ref: WorkspaceRef) => {
-    const result = await openWorkspace(ref);
+    // A practice starts from scratch, unless the last one was left unfinished.
+    const fresh = ref.kind === 'practice' && !latest.current?.rework?.open?.includes(ref.lessonId);
+    const result = await openWorkspace(ref, { fresh });
+    if (result.ok && fresh && ref.kind === 'practice') changeProgress((p) => withPracticeOpen(withHelpReset(p, ref.lessonId, true), ref.lessonId, true));
     if (result.ok) opened(result.workspace);
     else setBlocked(result.blocked);
   };
@@ -153,13 +159,16 @@ export function Root() {
   if (!ws) {
     return (
       <>
-        <Home progress={progress} onOpen={open} onProgress={changeProgress} onReload={reload} />
+        <Home progress={progress} onOpen={open} onProgress={changeProgress} onReload={reload} initialTab={homeTab} />
         {overlays}
       </>
     );
   }
 
   const lessonId = ws.ref.kind === 'lesson' ? ws.ref.lessonId : undefined;
+  const practiceId = ws.ref.kind === 'practice' ? ws.ref.lessonId : undefined;
+  const checked = lessonId ?? practiceId;
+  const helpKey = practiceId ? practiceHelpKey(practiceId) : lessonId;
   const altOf = ws.ref.kind === 'alternative' ? getLesson(ws.ref.lessonId) : undefined;
   const solutionOf = ws.ref.kind === 'solution' ? getLesson(ws.ref.lessonId) : undefined;
   return (
@@ -169,22 +178,29 @@ export function Root() {
         workspace={ws}
         alternative={altOf && ws.ref.kind === 'alternative' ? { lesson: altOf, title: altOf.alternatives?.[ws.ref.index]?.title ?? '' } : undefined}
         solution={solutionOf}
-        lesson={lessonId ? getLesson(lessonId) : solutionOf}
+        lesson={checked ? getLesson(checked) : solutionOf}
         lessonDone={!!lessonId && progress.done.includes(lessonId)}
-        onHome={() => setWs(null)}
+        practice={!!practiceId}
+        onHome={() => {
+          // Back from a practice: to the queue it came from.
+          setHomeTab(ws.ref.kind === 'practice' ? 'review' : 'path');
+          setWs(null);
+        }}
         onLessonPassed={() => {
           if (lessonId) changeProgress((p) => withPassed(p, lessonId));
+          // A practice passed: the next one starts from scratch.
+          if (practiceId) changeProgress((p) => withPracticeOpen(p, practiceId, false));
         }}
-        help={lessonId ? progress.help?.[lessonId] : undefined}
+        help={helpKey ? progress.help?.[helpKey] : undefined}
         onHelp={(change: (h: LessonHelp) => LessonHelp) => {
-          if (lessonId) changeProgress((p) => withHelp(p, lessonId, change));
+          if (helpKey) changeProgress((p) => withHelp(p, helpKey, change));
         }}
         onHelpReset={() => {
-          if (lessonId) changeProgress((p) => withHelpReset(p, lessonId));
+          if (checked) changeProgress((p) => withHelpReset(p, checked, !!practiceId));
         }}
         onChecked={(outcome) => {
-          const l = lessonId ? getLesson(lessonId) : undefined;
-          if (l) changeProgress((p) => withCheck(p, { lesson: l.id, rev: l.revision ?? 1 }, outcome));
+          const l = checked ? getLesson(checked) : undefined;
+          if (l) changeProgress((p) => withCheck(p, { lesson: l.id, rev: l.revision ?? 1, practice: !!practiceId }, outcome));
         }}
         onOpen={open}
       />

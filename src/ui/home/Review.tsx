@@ -10,11 +10,14 @@ import { QUIZ, type QuizQuestion } from '@core/review';
 import { DAY, dueDate, dueQuestions, knownCount, shuffled, unlocked } from '@core/review/schedule';
 import { haptic } from '@editor/haptics';
 import { withAnswer, type Progress } from '../workspace';
+import { ReworkQueue } from './ReworkQueue';
 
 interface Props {
   progress: Progress;
   onProgress: (change: (p: Progress) => Progress) => void;
   onOpenLesson: (lessonId: string) => void;
+  /** Redo a passed step from scratch (« À retravailler en Blueprint »). */
+  onPractice: (lessonId: string) => void;
   onOpenMemo: (memoId: string) => void;
 }
 
@@ -44,7 +47,7 @@ function inDays(t: number, now: number): string {
   return d === 1 ? 'demain' : `dans ${d} jours`;
 }
 
-export function Review({ progress, onProgress, onOpenLesson, onOpenMemo }: Props) {
+export function Review({ progress, onProgress, onOpenLesson, onPractice, onOpenMemo }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [choice, setChoice] = useState<string | null>(null);
   const now = Date.now();
@@ -108,6 +111,7 @@ export function Review({ progress, onProgress, onOpenLesson, onOpenMemo }: Props
             </p>
           )}
         </section>
+        <ReworkQueue progress={progress} onProgress={onProgress} onPractice={onPractice} />
       </main>
     );
   }

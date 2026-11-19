@@ -57,6 +57,8 @@ export interface Attempt {
   passed: boolean;
   /** The step was already passed when this attempt started (a replay). */
   again?: boolean;
+  /** Redone from scratch from the « À retravailler en Blueprint » queue, apart from the lesson's own project. */
+  practice?: boolean;
   /** The help used by the last Vérifier (the help of a step only grows until Recommencer). */
   help: HelpLevel;
   /** Hints shown (3 = the solution's text). */
@@ -93,11 +95,22 @@ export interface HelpAtCheck {
 /** True when this app can read and extend the log. */
 export const readableLog = (log: AttemptLog | undefined): log is AttemptLog => !!log && log.v === ATTEMPT_LOG_VERSION;
 
+/** Where an attempt was made: the lesson's own project, or a practice from scratch. */
+export interface StepRef {
+  lesson: string;
+  practice?: boolean;
+}
+
+const sameStep = (a: Attempt, s: StepRef) => a.lesson === s.lesson && !!a.practice === !!s.practice;
+
+/** Whether an attempt is over: passed, started over, or left for ATTEMPT_GAP. */
+export const attemptOver = (a: Attempt, now: number) => a.passed || !!a.closed || now - a.end >= ATTEMPT_GAP;
+
 /** The open attempt on a step, if the next Vérifier still belongs to it. */
-function openIndex(attempts: Attempt[], lesson: string, rev: number, now: number): number {
+function openIndex(attempts: Attempt[], step: StepRef, rev: number, now: number): number {
   for (let i = attempts.length - 1; i >= 0; i--) {
     const a = attempts[i];
-    if (a.lesson !== lesson) continue;
+    if (!sameStep(a, step)) continue;
     const open = !a.passed && !a.closed && a.rev === rev && now - a.end < ATTEMPT_GAP;
     return open ? i : -1;
   }
@@ -114,18 +127,18 @@ const count = (into: Record<string, number>, keys: string[]) => {
  */
 export function logCheck(
   log: AttemptLog | undefined,
-  step: { lesson: string; rev: number; wasDone: boolean },
+  step: StepRef & { rev: number; wasDone: boolean },
   outcome: CheckOutcome,
   help: HelpAtCheck,
   now: number,
 ): AttemptLog | undefined {
   if (log && !readableLog(log)) return log;
   const attempts = [...(log?.attempts ?? [])];
-  const i = openIndex(attempts, step.lesson, step.rev, now);
+  const i = openIndex(attempts, step, step.rev, now);
   const before: Attempt =
     i >= 0
       ? attempts[i]
-      : { lesson: step.lesson, rev: step.rev, start: now, end: now, checks: 0, passed: false, help: 'alone', hints: 0, errors: {}, failed: {}, ...(step.wasDone ? { again: true } : {}) };
+      : { lesson: step.lesson, rev: step.rev, start: now, end: now, checks: 0, passed: false, help: 'alone', hints: 0, errors: {}, failed: {}, ...(step.wasDone ? { again: true } : {}), ...(step.practice ? { practice: true } : {}) };
   const errors = { ...before.errors };
   count(errors, outcome.errors);
   const failed = { ...before.failed };
@@ -149,11 +162,11 @@ export function logCheck(
 }
 
 /** The log once a step is started over: its open attempt ends there, unfinished. */
-export function closeAttempt(log: AttemptLog | undefined, lesson: string): AttemptLog | undefined {
+export function closeAttempt(log: AttemptLog | undefined, step: StepRef): AttemptLog | undefined {
   if (!readableLog(log)) return log;
   for (let i = log.attempts.length - 1; i >= 0; i--) {
     const a = log.attempts[i];
-    if (a.lesson !== lesson) continue;
+    if (!sameStep(a, step)) continue;
     if (a.passed || a.closed) return log;
     const attempts = [...log.attempts];
     attempts[i] = { ...a, closed: true };
@@ -181,6 +194,7 @@ export function isAttempt(v: unknown): v is Attempt {
     isNum(v.checks) &&
     typeof v.passed === 'boolean' &&
     optBool(v.again) &&
+    optBool(v.practice) &&
     optBool(v.closed) &&
     HELP_LEVELS.includes(v.help as HelpLevel) &&
     isNum(v.hints) &&

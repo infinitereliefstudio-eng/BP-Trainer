@@ -65,6 +65,8 @@ interface Props {
   onHelp?: (change: (h: LessonHelp) => LessonHelp) => void;
   /** The lesson was started over: so is its help. */
   onHelpReset?: () => void;
+  /** The lesson is redone from scratch (« À retravailler en Blueprint »), apart from its own project. */
+  practice?: boolean;
   /** Vérifier was pressed: what it found, for the attempt log. */
   onChecked?: (outcome: CheckOutcome) => void;
 }
@@ -77,7 +79,7 @@ export function App(props: Props) {
   );
 }
 
-function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset, onChecked }: Props) {
+function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset, onChecked, practice }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
   const [view, setView] = useState<'graph' | 'level'>(lesson && !alternative && !solution ? 'level' : 'graph');
@@ -295,7 +297,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
   const close = () => setOverlay(null);
   const lessonIndex = lesson ? LESSONS.indexOf(lesson) : -1;
-  const nextLesson = lessonIndex >= 0 ? LESSONS[lessonIndex + 1] : undefined;
+  // A practice ends back at the queue, not on the next step of the path.
+  const nextLesson = lessonIndex >= 0 && !practice ? LESSONS[lessonIndex + 1] : undefined;
   const playing = !!session;
 
   return (
@@ -382,6 +385,22 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             }}
           >
             Revenir à mon travail
+          </button>
+        </div>
+      )}
+      {practice && lesson && (
+        <div class="scratch-bar practice-bar">
+          <span>
+            <strong>Reprise de zéro</strong> — refais l’étape sans regarder ta solution. Ton projet de la leçon n’est pas touché.
+          </span>
+          <button
+            class="btn"
+            onClick={() => {
+              stop();
+              onHome();
+            }}
+          >
+            Retour à la file
           </button>
         </div>
       )}

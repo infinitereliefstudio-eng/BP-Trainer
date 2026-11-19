@@ -4,15 +4,15 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_V7.md](REVUE_V7.md) (la dernière revue). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.27)
+## Reprise rapide (2026-11-19, après la V7.28)
 
 ### Où on en est
 
-- **Version en ligne : 7.27.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.28.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : **tous faits** (V7.23 à V7.26). Laissés de côté : le renumérotage des codes d'exercices et l'ordre X2 puis X1 (optionnels, à proposer).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **Chantier en cours : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais). L'étape B (file « À retravailler en Blueprint ») attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois). Ensuite C (familles de mini-exercices), D (hypothèse avant l'indice), puis l'UMG minimal.
+- **Chantier en cours : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »). L'étape C (trois familles de mini-exercices à variantes) attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois). Ensuite D (hypothèse avant l'indice), puis l'UMG minimal.
 
 ### Le parcours aujourd'hui
 
@@ -28,7 +28,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (en cours : A fait, B à lancer), puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (en cours : A et B faits, C à lancer), puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
 
 Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 
@@ -743,6 +743,21 @@ Tristan a lancé le chantier n° 2 le 19 novembre (« tu peux lancer ») ; livr�
 - **Tests** : `tests/attempts.test.ts` (18 : regroupement, nouvel essai, Recommencer, aide, plafond, stockage, version plus récente, catégories, et pour chacune des 124 étapes : le départ échoue avec des ids connus, la solution passe sans vérification ratée). `tools/e2e/smoke.py` garde le journal écrit par les Vérifier quand il remplace la progression, puis vérifie l'essai réussi dans le Carnet (capture `51b_attempt_log`).
 
 Version 7.27.0. Suite : étape B (file « À retravailler en Blueprint »), sur feu vert.
+
+## V7.28 (2026-11-19) : révisions de graphes espacées, étape B (file « À retravailler en Blueprint »)
+
+Lancée par Tristan le 19 novembre (« tu peux lancer l'étape b »).
+
+- **Calendrier** (`core/rework/schedule.ts`) : par notion, en jours, **recalculé à chaque fois** à partir du journal des essais ; rien n'est stocké que les choix de l'élève. Événements (`practiceEvents`) : chaque essai terminé (réussi, Recommencer, ou laissé 2 h sans Vérifier : `attemptOver`), plus, pour une étape réussie dont la réussite n'est pas dans le journal (avant la V7.27), une réussite à `doneAt` (0 si absent : dû tout de suite) avec `passedWith`. Une notion entre à la première réussite d'une étape qui l'enseigne (`LESSON_NOTIONS.teaches`) : J+1. Ensuite : réussite sans aide alors qu'elle était due (à 12 h près) → boîte suivante (1, 3, 7, 14, 21 jours, puis 21) ; sans aide avant l'échéance → rien ne bouge ; avec indices → même intervalle ; solution vue ou essai sans réussite → J+1. Comptent les étapes où l'on construit ou répare (`countsForRework` : ni Prédis, ni synthèses, ni projets Expert). Une autre étape qui enseigne la notion compte comme une pratique.
+- **Choix de l'élève** (`Progress.rework`, vérifié par `checkProgress`) : `postponed[notion] = { at, until }` (« Reporter à demain » ; tient jusqu'à la prochaine pratique de la notion) et `open` (reprises commencées et pas encore réussies : rouvertes telles quelles ; sinon une reprise repart du projet de départ).
+- **Étape proposée** (`core/rework/suggest.ts`) : parmi les étapes réussies qui comptent et enseignent la notion, pas celle pratiquée la dernière fois s'il y en a une autre ; boîtes 0 et 1 : la plus courte ; ensuite une étape Débogue, Complète, Refactor, transfert ou autonomie avant une construction simple. Les notions dues qu'une même étape pratique sont réunies sur une carte (`reworkCards`), les étapes qui les couvrent toutes en premier. `whyNow` : une phrase sur la dernière pratique et la suite.
+- **Reprise de zéro** : espace de travail `{ kind: 'practice', lessonId }` (`ui/workspace.ts`), clé `project:practice:<id>` (dans la sauvegarde complète), ouvert avec `fresh` sauf si la reprise est dans `rework.open`. Aide comptée sous `practice:<id>`, essais du journal marqués `practice: true` (séparés de ceux de la leçon), jamais `withPassed` ni `last`. Dans l'éditeur : bandeau « Reprise de zéro » (ambre, comme les autres espaces à part) avec « Retour à la file », pas de bouton Suivant ; la fiche de la leçon se comporte comme avant réussite (fiches de méthode cachées en Avancé). Retour : onglet Révision (`Home.initialTab`).
+- **Interface** : Révision › « À retravailler en Blueprint » (`ui/home/ReworkQueue.tsx`) sous les questions : trois cartes, puis « Voir les N autres » ; par carte, notions, raison, étape et durée, « Refaire de zéro » (ou « Reprendre où j'en étais »), « Une autre étape », « Reporter à demain ». Le compteur de l'onglet Révision et le bandeau de l'accueil comptent aussi les cartes (« 3 questions à revoir et 2 Blueprints à refaire »).
+- **Tests** : `tests/rework.test.ts` (21 : étapes qui comptent, intervalles, à l'avance, indices, solution, Recommencer, essai abandonné, étapes d'avant le journal, report, reprise à part, sauvegarde, étape proposée, cartes). `tools/e2e/smoke.py` : file présente, reprise ouverte avec son bandeau, retour à Révision (captures `52b_rework_queue`, `52c_practice`).
+
+Hypothèses à revoir à l'usage : les intervalles (point de départ de l'analyse), la tolérance d'une demi-journée, l'abandon compté comme un échec après 2 h. Les familles de mini-exercices (étape C) remplaceront « une étape à refaire » comme pratique proposée.
+
+Version 7.28.0. Suite : étape C, sur feu vert.
 
 ## Méthode de travail
 

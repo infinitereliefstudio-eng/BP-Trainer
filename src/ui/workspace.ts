@@ -17,11 +17,14 @@ import { readStored, writeStored } from '@storage/storage';
 
 export {
   type LessonHelp,
+  practiceHelpKey,
   withAnswer,
   withCheck,
   withHelp,
   withHelpReset,
   withPassed,
+  withPostponed,
+  withPracticeOpen,
   withoutLog,
   withRead,
   withToday,
@@ -34,7 +37,15 @@ type ScratchRef =
   /** The reference solution of a lesson, as a graph to read: never saved. */
   | { kind: 'solution'; lessonId: string };
 
-export type WorkspaceRef = { kind: 'sandbox' } | { kind: 'lesson'; lessonId: string } | ScratchRef;
+export type WorkspaceRef =
+  | { kind: 'sandbox' }
+  | { kind: 'lesson'; lessonId: string }
+  /** A passed step redone from scratch (« À retravailler en Blueprint »), apart from the lesson's own project. */
+  | { kind: 'practice'; lessonId: string }
+  | ScratchRef;
+
+/** The lesson a workspace is checked against: its own project, or a practice from scratch. */
+export const checkedLesson = (ref: WorkspaceRef): string | undefined => (ref.kind === 'lesson' || ref.kind === 'practice' ? ref.lessonId : undefined);
 
 export interface Workspace {
   ref: WorkspaceRef;
@@ -63,6 +74,7 @@ export type OpenResult = { ok: true; workspace: OpenedWorkspace } | { ok: false;
 export function workspaceKey(ref: WorkspaceRef): string {
   if (ref.kind === 'alternative') return `scratch:alternative:${ref.lessonId}:${ref.index}`;
   if (ref.kind === 'solution') return `scratch:solution:${ref.lessonId}`;
+  if (ref.kind === 'practice') return `project:practice:${ref.lessonId}`;
   return ref.kind === 'sandbox' ? SANDBOX_KEY : `project:lesson:${ref.lessonId}`;
 }
 
@@ -86,6 +98,7 @@ function freshProject(ref: WorkspaceRef): Project {
     lesson.solve(project);
     project.name = `${lesson.title} (solution)`;
   }
+  if (ref.kind === 'practice') project.name = `${lesson.title} (reprise)`;
   return project;
 }
 
@@ -107,7 +120,8 @@ function noticesFor(ref: WorkspaceRef, project: Project): string[] {
   const rules = rulesNotice(rulesChangedSince(project));
   if (rules) notices.push(rules);
   project.rules = RULES_VERSION;
-  const lesson = ref.kind === 'lesson' ? getLesson(ref.lessonId) : undefined;
+  const lessonId = checkedLesson(ref);
+  const lesson = lessonId ? getLesson(lessonId) : undefined;
   const current = lesson?.revision ?? 1;
   if (lesson && (project.lessonRevision ?? 1) < current) {
     notices.push(
@@ -118,7 +132,11 @@ function noticesFor(ref: WorkspaceRef, project: Project): string[] {
   return notices;
 }
 
-export async function openWorkspace(ref: WorkspaceRef): Promise<OpenResult> {
+/**
+ * Opens a workspace: its saved project, or a new one from the lesson's setup.
+ * `fresh` starts it from the setup whatever was saved (a new practice).
+ */
+export async function openWorkspace(ref: WorkspaceRef, options: { fresh?: boolean } = {}): Promise<OpenResult> {
   const key = workspaceKey(ref);
   if (isScratch(ref)) {
     const store = new EditorStore(freshProject(ref));
@@ -127,6 +145,11 @@ export async function openWorkspace(ref: WorkspaceRef): Promise<OpenResult> {
       if (cls) store.openClass(cls);
     }
     return { ok: true, workspace: { ref, key, store, fresh: true, notices: [] } };
+  }
+  if (options.fresh) {
+    const project = freshProject(ref);
+    await saveProject(project, key).catch(() => undefined);
+    return { ok: true, workspace: { ref, key, store: new EditorStore(project), fresh: true, notices: [] } };
   }
   const saved = await loadSavedProject(key);
   if (saved.status === 'ok') {
@@ -158,7 +181,7 @@ export async function startOver(blocked: BlockedWorkspace): Promise<OpenedWorksp
 
 /** Throw away a lesson's work and start it again from its setup. */
 export function resetLesson(ws: Workspace): void {
-  if (ws.ref.kind !== 'lesson') return;
+  if (ws.ref.kind !== 'lesson' && ws.ref.kind !== 'practice') return;
   ws.store.replaceProject(freshProject(ws.ref));
 }
 

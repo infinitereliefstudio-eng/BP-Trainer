@@ -185,7 +185,13 @@ export const expertRadio: Lesson = {
       id: 'opens',
       label: 'E à la radio : la conversation commence à R1',
       at: 'r1',
-      test: (cx) => (said(cx, 0) === 1 ? true : `E à la radio : « ${lineText(0)} » affiché ${said(cx, 0)} fois au lieu d’une.`),
+      test: (cx) => {
+        if (said(cx, 0) !== 1) return `E à la radio : « ${lineText(0)} » affiché ${said(cx, 0)} fois au lieu d’une.`;
+        // The E that opens the conversation must not also be « next line » in the dialogue's context.
+        return said(cx, 1) === 0
+          ? true
+          : `Un seul appui sur E a affiché R1 puis aussitôt « ${lineText(1)} » : la touche encore tenue a compté dans le contexte du dialogue. Laisse cochée Ignore All Pressed Keys Until Release sur Add Mapping Context (Details).`;
+      },
     },
     {
       id: 'next',

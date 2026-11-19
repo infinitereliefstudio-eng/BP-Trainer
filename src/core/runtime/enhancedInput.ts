@@ -13,6 +13,13 @@
  *    Ongoing→None Canceled; Triggered→Triggered Triggered; Triggered→Ongoing
  *    Ongoing; Triggered→None Completed.
  *
+ * 4. Ignore All Pressed Keys Until Release (Add / Remove Mapping Context
+ *    options, on by default in UE): a mapping that becomes active while its
+ *    key is already down ignores that key until it is released. It still
+ *    keeps the key from the contexts below. Without it, the E that opens a
+ *    dialogue would, one frame later, also be « next line » in the
+ *    dialogue's context.
+ *
  * Simplifications: digital (bool) actions only, triggers on the mappings
  * only (not on the Input Action asset), no modifiers, no chorded actions.
  */
@@ -79,6 +86,8 @@ export class EnhancedInput {
   private tapped = new Set<string>();
   private mappings = new Map<string, MappingMemory>();
   private actions = new Map<string, ActionMemory>();
+  /** Mappings (`context:index`) that ignore their key until it is released. */
+  private ignored = new Set<string>();
 
   press(key: string): void {
     this.held.add(key);
@@ -89,34 +98,84 @@ export class EnhancedInput {
     this.held.delete(key);
   }
 
-  /** Add Mapping Context: added again, it only takes its new priority. */
-  addContext(id: string, priority: number): void {
-    this.contexts = this.contexts.filter((c) => c.id !== id);
-    this.contexts.push({ id, priority });
+  /**
+   * Add Mapping Context: added again, it only takes its new priority. With
+   * `ignorePressed` (UE's default), its mappings whose key is already down
+   * wait for that key to be released.
+   */
+  addContext(id: string, priority: number, project?: Project, ignorePressed = true): void {
+    this.change(project, ignorePressed, () => {
+      this.contexts = this.contexts.filter((c) => c.id !== id);
+      this.contexts.push({ id, priority });
+    });
   }
 
-  removeContext(id: string): void {
-    this.contexts = this.contexts.filter((c) => c.id !== id);
+  /** Remove Mapping Context: the mappings it hid become active, and wait for held keys to be released (UE's default). */
+  removeContext(id: string, project?: Project, ignorePressed = true): void {
+    this.change(project, ignorePressed, () => {
+      this.contexts = this.contexts.filter((c) => c.id !== id);
+    });
   }
 
   get activeContexts(): readonly string[] {
     return this.contexts.map((c) => c.id);
   }
 
-  /** One frame of evaluation: the events to fire, action by action, in UE's order. */
-  process(project: Project, dt: number): ActionFiring[] {
-    const ordered = this.contexts
+  /** Apply a change of the active contexts; with `ignorePressed`, the mappings it makes active on a held key are ignored. */
+  private change(project: Project | undefined, ignorePressed: boolean, apply: () => void): void {
+    const before = project && ignorePressed ? this.liveMappings(project) : undefined;
+    apply();
+    if (!project || !before) return;
+    for (const [mapping, key] of this.liveMappings(project)) {
+      if (!before.has(mapping) && this.held.has(key)) this.ignored.add(mapping);
+    }
+  }
+
+  /** The active contexts that exist, highest priority first (the earliest added first on a tie). */
+  private ordered(project: Project) {
+    return this.contexts
       .map((c, i) => ({ ...c, i, ctx: project.mappingContexts?.find((x) => x.id === c.id) }))
       .filter((c): c is { id: string; priority: number; i: number; ctx: MappingContext } => !!c.ctx)
       .sort((a, b) => b.priority - a.priority || a.i - b.i);
+  }
+
+  /** Mappings a key can reach now (`context:index` → key): those not hidden by a context of higher priority. */
+  private liveMappings(project: Project): Map<string, string> {
+    const live = new Map<string, string>();
+    const taken = new Set<string>();
+    for (const { id, ctx } of this.ordered(project)) {
+      const here = new Set<string>();
+      ctx.mappings.forEach((m, index) => {
+        if (taken.has(m.key) || !project.inputActions?.some((a) => a.id === m.action)) return;
+        live.set(`${id}:${index}`, m.key);
+        here.add(m.key);
+      });
+      for (const k of here) taken.add(k);
+    }
+    return live;
+  }
+
+  /** One frame of evaluation: the events to fire, action by action, in UE's order. */
+  process(project: Project, dt: number): ActionFiring[] {
     const states = new Map<string, { state: TriggerState; value: boolean }>();
     const consumed = new Set<string>();
-    for (const { id, ctx } of ordered) {
+    for (const { id, ctx } of this.ordered(project)) {
       const usedHere = new Set<string>();
       ctx.mappings.forEach((m, index) => {
         if (consumed.has(m.key) || !project.inputActions?.some((a) => a.id === m.action)) return;
         const key = `${id}:${index}`;
         const mem = this.mappings.get(key) ?? { wasActuated: false, heldFor: 0, fired: false };
+        if (this.ignored.has(key)) {
+          if (this.held.has(m.key)) {
+            // Ignored until released, but the key stays taken from the contexts below.
+            usedHere.add(m.key);
+            return;
+          }
+          this.ignored.delete(key);
+          mem.wasActuated = false;
+          mem.heldFor = 0;
+          mem.fired = false;
+        }
         const actuated = this.held.has(m.key) || this.tapped.has(m.key);
         if (actuated) mem.heldFor += dt;
         const triggers = m.triggers.length ? m.triggers : [undefined];

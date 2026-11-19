@@ -73,9 +73,12 @@ export interface WorldApi {
   loadGame(slot: string, user: number): ActorRT | null;
   saveExists(slot: string, user: number): boolean;
   deleteSave(slot: string, user: number): boolean;
-  /** Enhanced Input: activate a Mapping Context for the player, or deactivate it. */
-  addMappingContext(id: string, priority: number): void;
-  removeMappingContext(id: string): void;
+  /**
+   * Enhanced Input: activate a Mapping Context for the player, or deactivate
+   * it. `ignorePressed`: UE's Ignore All Pressed Keys Until Release (default on).
+   */
+  addMappingContext(id: string, priority: number, ignorePressed?: boolean): void;
+  removeMappingContext(id: string, ignorePressed?: boolean): void;
   /** The player's PlayerController, always there while the game runs. */
   playerController(): ActorRT;
   /** The player's Enhanced Input Local Player Subsystem (an object, not an actor). */

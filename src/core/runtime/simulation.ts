@@ -470,12 +470,12 @@ export class Simulation implements InterpreterHost {
     }
   }
 
-  addMappingContext(id: string, priority: number): void {
-    this.enhancedInput.addContext(id, priority);
+  addMappingContext(id: string, priority: number, ignorePressed = true): void {
+    this.enhancedInput.addContext(id, priority, this.project, ignorePressed);
   }
 
-  removeMappingContext(id: string): void {
-    this.enhancedInput.removeContext(id);
+  removeMappingContext(id: string, ignorePressed = true): void {
+    this.enhancedInput.removeContext(id, this.project, ignorePressed);
   }
 
   private dispatchKey(key: InputKey, pin: 'pressed' | 'released'): void {

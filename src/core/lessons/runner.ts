@@ -4,12 +4,14 @@
  *
  * UE does not guarantee the order actors run BeginPlay (or Tick) in, so a
  * passing run is replayed with the order reversed: a solution that only works
- * in one order fails, with the reason.
+ * in one order fails, with the reason. It is replayed once more with each key
+ * held a moment, as a finger does (the scenario presses and releases within
+ * one frame): a solution that only works with instant presses fails too.
  */
 import { compileClass, type CompileMessage } from '../compiler/validate';
 import type { Project } from '../model/project';
 import { type ActorOrder, Simulation, STEP } from '../runtime/simulation';
-import type { Check, CheckContext, Lesson, RobustnessCase } from './types';
+import type { Check, CheckContext, Lesson, RobustnessCase, ScenarioStep } from './types';
 
 export interface CheckResult {
   check: Check;
@@ -42,9 +44,47 @@ export function runLesson(lesson: Lesson, project: Project): LessonRun {
   const inOrder = playScenario(lesson, project, 'level');
   if (!inOrder.passed) return inOrder;
   const reversed = playScenario(lesson, project, 'reversed');
-  if (reversed.passed) return inOrder;
-  return { ...reversed, notes: [ORDER_NOTE, ...reversed.notes] };
+  if (!reversed.passed) return { ...reversed, notes: [ORDER_NOTE, ...reversed.notes] };
+  if (lesson.kind === 'predict') return inOrder;
+  const scenario = heldTaps(lesson.scenario);
+  if (scenario === lesson.scenario) return inOrder;
+  const held = playScenario({ ...lesson, scenario }, project, 'level');
+  return held.passed ? inOrder : { ...held, notes: [HOLD_NOTE, ...held.notes] };
 }
+
+/** How long a finger holds a key, in seconds. */
+export const HOLD_SECONDS = 0.1;
+
+/**
+ * The scenario with each tap (a press, then the release of the same key) held
+ * HOLD_SECONDS. When a wait follows the tap, the hold is taken from it, so
+ * that the scenario keeps its timing. Returns the same array when there is no
+ * tap.
+ */
+export function heldTaps(scenario: ScenarioStep[]): ScenarioStep[] {
+  const out: ScenarioStep[] = [];
+  let changed = false;
+  for (let i = 0; i < scenario.length; i++) {
+    const s = scenario[i];
+    const release = scenario[i + 1];
+    if (!('press' in s) || !release || !('release' in release) || release.release !== s.press) {
+      out.push(s);
+      continue;
+    }
+    out.push(s, { wait: HOLD_SECONDS }, release);
+    const after = scenario[i + 2];
+    if (after && 'wait' in after && after.wait >= HOLD_SECONDS - 1e-9) {
+      out.push({ wait: after.wait - HOLD_SECONDS });
+      i += 2;
+    } else i += 1;
+    changed = true;
+  }
+  return changed ? out : scenario;
+}
+
+/** Shown when a solution passes with instant presses only. */
+export const HOLD_NOTE =
+  'Ta solution marche quand la touche est relâchée aussitôt, mais pas quand on la tient un instant, comme avec le doigt (0,1 s). Souvent : Triggered, sans déclencheur, se répète à chaque image tant que la touche est tenue ; Started ne part qu’une fois par appui.';
 
 /** Shown when a solution passes in level order only. */
 export const ORDER_NOTE =

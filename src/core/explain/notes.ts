@@ -73,7 +73,7 @@ const IN_UE: Record<string, string> = {
   'event.inputKey': 'Dans un projet UE5, on passe en général par Enhanced Input (Input Actions). Ces événements de touche restent utiles pour apprendre et prototyper.',
   'actor.getPlayerPawn': 'Ici il n’y a qu’un joueur, le pion à l’index 0.',
   'player.getController': 'Ici il n’y a qu’un joueur : son Player Controller est à l’index 0. Dans UE, un Blueprint Player Controller se choisit dans le Game Mode (Player Controller Class).',
-  'input.addMappingContext': 'Dans UE, le Mapping Context se choisit sur une pin du nœud, à côté de Priority et d’un Options (ignoré ici). Ici, il se choisit dans Details.',
+  'input.addMappingContext': 'Dans UE, le Mapping Context se choisit sur une pin du nœud, à côté de Priority et d’une pin Options (une structure à éclater). Ici, le contexte et Ignore All Pressed Keys Until Release, la seule option simulée, se règlent dans Details.',
   'actor.setLocation': 'Le niveau est vu de dessus : Z est ignoré. Le déplacement se fait sans Sweep : l’acteur peut se poser dans un mur.',
   'timeline.node': 'Ici une piste est faite de segments droits entre ses points clés. Dans UE, on double-clique le nœud pour ouvrir l’éditeur de courbes, où chaque point peut aussi être arrondi (Auto) ; un Timeline peut porter des pistes Vector, Color et Event.',
   'trace.lineByChannel': 'Ici le rayon est tracé dans le plan du sol. Un Static Mesh qui bloque arrête les deux canaux ; une Box Collision (zone de déclenchement) n’en arrête aucun ; la capsule du joueur ignore Visibility et bloque Camera, comme le preset Pawn. Dans UE, cela se règle composant par composant dans Collision Presets.',

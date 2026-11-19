@@ -29,7 +29,7 @@ export const enhancedInputBehaviors: Record<string, Behavior> = {
       // As UE, a call on None is skipped with "Accessed None", and the chain goes on.
       if (!subsystem(cx, 'Add Mapping Context')) return ['then'];
       const id = cx.node.config.context;
-      if (typeof id === 'string' && id) cx.world.addMappingContext(id, Math.trunc(cx.num('priority')));
+      if (typeof id === 'string' && id) cx.world.addMappingContext(id, Math.trunc(cx.num('priority')), cx.node.config.ignorePressed !== false);
       else cx.world.runtimeError('Add Mapping Context : aucun Mapping Context choisi (Details).');
       return ['then'];
     },
@@ -38,7 +38,7 @@ export const enhancedInputBehaviors: Record<string, Behavior> = {
     exec: (cx) => {
       if (!subsystem(cx, 'Remove Mapping Context')) return ['then'];
       const id = cx.node.config.context;
-      if (typeof id === 'string' && id) cx.world.removeMappingContext(id);
+      if (typeof id === 'string' && id) cx.world.removeMappingContext(id, cx.node.config.ignorePressed !== false);
       return ['then'];
     },
   },

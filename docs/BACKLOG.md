@@ -303,6 +303,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.23 (19 novembre 2026), revue des V7.2 à V7.22 ([REVUE_V7.md](REVUE_V7.md)), lot 1 : Ignore All Pressed Keys Until Release sur Add / Remove Mapping Context (cochée par défaut, comme dans UE) ; le correcteur rejoue chaque solution avec des appuis tenus 0,1 s ; X1 vérifie qu'aucune réplique n'est sautée.
 - V7.22 (19 novembre 2026), chantier Actor Components, étape 4 : rappels (La salle de contrôle, M2 avec un Line Trace), conseil « Chaîne copiée entre Blueprints » (parent ou composant), fiches sur L'héritage, X2 et S4, glossaire et mémo « Interface ou composant ». Chantier terminé.
 - V7.21 (19 novembre 2026), chantier Actor Components, étape 3 : quatre étapes d'usage en Avancé : « Interagir par composant », Débogue D23 « La batterie qui ne sait pas où elle est », « Le sac et le coffre », Autonomie A2 « L'énergie de la station ». 124 étapes.
 - V7.20 (19 novembre 2026), chantier Actor Components, étape 2 : cinq étapes en Avancé après « L'héritage » : Prédis P15 « Qui commence ? », Refactor R5 « La santé est partout », Débogue D22 « Le scanner et le chariot », Transfert T3 « Le piège qui blesse tout », « Le verrou à badge » (parent ou composant). 120 étapes.

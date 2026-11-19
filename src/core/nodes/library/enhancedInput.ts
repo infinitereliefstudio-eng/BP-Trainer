@@ -14,7 +14,16 @@ import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition
 const actionName = (ctx: NodeContext, n: NodeInstance) => (ctx.project && findInputAction(ctx.project, n.config.action)?.name) || 'None';
 const contextName = (ctx: NodeContext, n: NodeInstance) => (ctx.project && findMappingContext(ctx.project, n.config.context)?.name) || 'None';
 
-const CONTEXT = [{ key: 'context', label: 'Mapping Context', kind: 'choice' as const, choicesFrom: 'mappingContexts' as const }];
+const CONTEXT = [
+  { key: 'context', label: 'Mapping Context', kind: 'choice' as const, choicesFrom: 'mappingContexts' as const },
+  {
+    key: 'ignorePressed',
+    label: 'Ignore All Pressed Keys Until Release',
+    kind: 'bool' as const,
+    help: 'Cochée (par défaut, comme dans UE, dans Options) : une touche déjà enfoncée au moment du changement ne compte pour les nouvelles associations qu’une fois relâchée. Sans elle, le E qui ouvre un dialogue serait aussi, une image plus tard, « réplique suivante » dans le contexte du dialogue.',
+  },
+];
+const CONTEXT_DEFAULTS = { context: '', ignorePressed: true };
 
 /** The subsystem the context is added to: always connected, as in UE (no self here). */
 const target = () => dataIn('target', 'Target', T.object('EnhancedInputLocalPlayerSubsystem'), { required: true });
@@ -61,6 +70,7 @@ export const enhancedInputNodes: NodeDefinition[] = [
       'Active un Input Mapping Context pour le joueur : ses touches déclenchent maintenant leurs Input Actions. Sans lui, les événements d’action ne se déclenchent jamais, sans aucune erreur. Target est l’Enhanced Input Local Player Subsystem du joueur, obtenu depuis son Player Controller. Priority départage deux contextes qui utilisent la même touche (le plus haut gagne).',
     keywords: ['add mapping context', 'imc', 'enhanced', 'input', 'contexte'],
     config: CONTEXT,
+    defaultConfig: CONTEXT_DEFAULTS,
     pins: [execIn(), target(), dataIn('priority', 'Priority', T.int, { default: 0 }), execOut()],
   },
   {
@@ -72,6 +82,7 @@ export const enhancedInputNodes: NodeDefinition[] = [
     description: 'Désactive un Input Mapping Context : ses touches ne déclenchent plus ses actions (par exemple en ouvrant un menu ou en montant dans un véhicule).',
     keywords: ['remove mapping context', 'imc', 'enhanced', 'input', 'contexte'],
     config: CONTEXT,
+    defaultConfig: CONTEXT_DEFAULTS,
     pins: [execIn(), target(), execOut()],
   },
   {

@@ -32,6 +32,13 @@ export const RULE_CHANGES: readonly RuleChange[] = [
     text:
       'Touches : Consume Input est coché par défaut. Si plusieurs acteurs écoutent la même touche, seul le dernier posé la reçoit ; décoche Consume Input pour que tous la reçoivent.',
   },
+  {
+    version: 4,
+    since: Date.parse('2026-11-19T16:40:00+01:00'),
+    app: '7.23',
+    text:
+      'Enhanced Input : Add et Remove Mapping Context ont l’option Ignore All Pressed Keys Until Release, cochée par défaut comme dans UE. Une touche déjà enfoncée au moment où un contexte est ajouté ou retiré ne compte pour les associations qui deviennent actives qu’une fois relâchée.',
+  },
 ];
 
 export const RULES_VERSION = RULE_CHANGES[RULE_CHANGES.length - 1].version;

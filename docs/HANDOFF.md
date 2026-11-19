@@ -8,7 +8,8 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Où on en est
 
-- **Version en ligne : 7.22.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.23.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : lot 1 fait (V7.23) ; lots 2, 3 et 4 à suivre (V7.24 à V7.26). Le renumérotage des codes d'exercices est laissé de côté (optionnel, à proposer).
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
@@ -698,6 +699,18 @@ Lancé par « tu peux lancer la suite ». Le chantier est terminé.
 - Tests : `tests/quality.test.ts` (le conseil, famille ou non, niveau), `tests/actorComponentLessons.test.ts` (« V7.22 recalls »). `smoke.py` : capture 82.
 
 Version 7.22.0.
+
+## V7.23 (2026-11-19) : revue, lot 1 (changer de contexte comme dans UE)
+
+Lancé par « tu peux lancer les corrections dans l'ordre que tu considères le plus logique ».
+
+- **Ignore All Pressed Keys Until Release** (`runtime/enhancedInput.ts`) : option de Add et Remove Mapping Context (config `ignorePressed`, cochée par défaut comme dans UE, dans Details). Un changement de contextes calcule les associations accessibles avant et après (`liveMappings`) ; celles qui deviennent actives sur une touche tenue sont ignorées jusqu'au relâchement, tout en gardant la touche aux contextes du dessous. Règles de simulation version 4 (`model/rules.ts`).
+- **Appui tenu dans le correcteur** (`lessons/runner.ts`, `heldTaps`) : une solution qui passe dans l'ordre du niveau et dans l'ordre inverse est rejouée avec chaque appui tenu 0,1 s (pris sur l'attente qui suit quand il y en a une) ; un échec donne `HOLD_NOTE` (Triggered se répète tant que la touche est tenue). Toutes les solutions de référence passent ; c'est ce qui révélait X1.
+- **X1** : le check `opens` refuse R2 dès le premier appui, avec un message qui nomme l'option.
+- Glossaire « Modes de contrôle » : le piège de l'option décochée. Note d'explication de Add Mapping Context à jour.
+- Tests : `tests/heldKeys.test.ts`, `tests/enhancedInput.test.ts` (« Ignore All Pressed Keys Until Release »).
+
+Version 7.23.0.
 
 ## Méthode de travail
 

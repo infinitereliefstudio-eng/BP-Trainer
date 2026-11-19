@@ -591,7 +591,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     names: ['Mapping Context de dialogue'],
     what: 'Un mode de jeu (dialogue, menu, véhicule) a son propre Input Mapping Context, ajouté avec une priorité plus haute que celui du joueur, puis retiré à la sortie. La même touche change de sens : pendant le dialogue, E passe à IA_Suivant au lieu d’IA_Interagir.',
     when: 'Dès qu’une touche doit faire autre chose dans une situation : on change de contexte plutôt que de tester un mode dans chaque Blueprint. Le contexte s’ajoute par Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context.',
-    trap: 'Oublier la priorité, ou de retirer le contexte : les deux actions partent ensemble, ou le jeu reste bloqué dans le mode.',
+    trap: 'Oublier la priorité, ou de retirer le contexte : les deux actions partent ensemble, ou le jeu reste bloqué dans le mode. Et décocher Ignore All Pressed Keys Until Release (Options, cochée par défaut) : le E encore tenu qui ouvre le dialogue compte aussitôt comme « réplique suivante ».',
     pattern: 'Get Player Controller → Subsystem → Add Mapping Context (IMC_Dialogue, Priority 1)',
   },
   {

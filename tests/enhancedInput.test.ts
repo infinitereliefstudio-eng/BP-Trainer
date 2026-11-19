@@ -120,6 +120,75 @@ describe('trigger states and events', () => {
   });
 });
 
+describe('Ignore All Pressed Keys Until Release (V7.23)', () => {
+  /** IMC_Test (E → IA_Test) at 0, IMC_Haut (E → IA_Haut) to add above it. */
+  function twoContexts() {
+    const { p, context, action } = assets();
+    const upper = addInputAction(p, 'IA_Haut');
+    const high = addMappingContext(p, 'IMC_Haut');
+    if (!upper.ok || !high.ok) throw new Error('assets');
+    addMapping(p, high.value.id, upper.value.id, 'E');
+    return { p, low: context, lowAction: action, high: high.value.id, highAction: upper.value.id };
+  }
+  const fired = (input: EnhancedInput, p: Project) => input.process(p, STEP).map((f) => `${f.action}:${f.event}`);
+
+  it('a context added while E is held ignores E until it is released, and still keeps it from the context below', () => {
+    const { p, low, lowAction, high, highAction } = twoContexts();
+    const input = new EnhancedInput();
+    input.addContext(low, 0, p);
+    input.press('E');
+    expect(fired(input, p)).toEqual([`${lowAction}:started`, `${lowAction}:triggered`]);
+    input.addContext(high, 1, p);
+    // E is still down: the new mapping waits, the lower one has lost the key.
+    expect(fired(input, p)).toEqual([`${lowAction}:completed`]);
+    expect(fired(input, p)).toEqual([]);
+    input.release('E');
+    expect(fired(input, p)).toEqual([]);
+    input.press('E');
+    expect(fired(input, p)).toEqual([`${highAction}:started`, `${highAction}:triggered`]);
+  });
+
+  it('unchecked, the held key reaches the new context at once', () => {
+    const { p, low, high, highAction } = twoContexts();
+    const input = new EnhancedInput();
+    input.addContext(low, 0, p);
+    input.press('E');
+    fired(input, p);
+    input.addContext(high, 1, p, false);
+    expect(fired(input, p)).toContain(`${highAction}:started`);
+  });
+
+  it('removing a context makes the one below wait for the held key too', () => {
+    const { p, low, lowAction, high } = twoContexts();
+    const input = new EnhancedInput();
+    input.addContext(low, 0, p);
+    input.addContext(high, 1, p);
+    input.press('E');
+    fired(input, p);
+    input.removeContext(high, p);
+    expect(fired(input, p).filter((f) => f.startsWith(lowAction))).toEqual([]);
+    input.release('E');
+    fired(input, p);
+    input.press('E');
+    expect(fired(input, p)).toContain(`${lowAction}:started`);
+  });
+
+  it('a mapping already active is not affected: a held key keeps working', () => {
+    const { p, low, lowAction } = twoContexts();
+    const other = addInputAction(p, 'IA_F');
+    const onlyF = addMappingContext(p, 'IMC_F');
+    if (!other.ok || !onlyF.ok) throw new Error('assets');
+    addMapping(p, onlyF.value.id, other.value.id, 'F');
+    const input = new EnhancedInput();
+    input.addContext(low, 0, p);
+    input.press('E');
+    fired(input, p);
+    // A context that does not map E: E keeps its mapping, held, and keeps triggering.
+    input.addContext(onlyF.value.id, 2, p);
+    expect(fired(input, p)).toEqual([`${lowAction}:triggered`]);
+  });
+});
+
 describe('in the simulation', () => {
   /** Two lamps listen to the same action, the context is added at BeginPlay. */
   function twoListeners(consume: boolean): Project {

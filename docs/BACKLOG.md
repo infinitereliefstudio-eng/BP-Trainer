@@ -1,31 +1,33 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18, puis mis à jour après la V7.2 (lot 1 fait) et la V7.3 (pilote du lot 2) : la revue de Codex du 17 novembre (V7.1) est maintenant fondue dans les sections, les doublons sont fusionnés, et l'ordre des trois premiers lots a été choisi par Tristan. Chaque lot attend son feu vert.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 : le plan du parcours est livré, l'analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` est intégrée, et l'ordre des prochains chantiers est choisi. Rien ne se fait sans le feu vert de Tristan.
+
+Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) et les **lots du plan du parcours** (0 à 4, [PLAN_PARCOURS.md](PLAN_PARCOURS.md), tous faits). Ici, « lot » sans précision désigne ceux du backlog.
 
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
 
 ## Par où commencer
 
-Ordre retenu par Tristan le 18 novembre : fiabiliser d'abord, puis l'apprentissage, puis les entrées. Le lot 1 est fait (V7.2), le pilote du lot 2 aussi (V7.3, chaîne Cast To), et Enhanced Input (V7.4, première partie du lot 3). La suite du lot 2 dépendra de ce que donne le pilote ; le reste du lot 3 attend que Tristan approche des leçons du niveau Avancé. Les lots 4 à 8 restent des propositions, à trancher le moment venu.
+État au 19 novembre : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan). **La suite est dans « Prochains chantiers » juste en dessous** : lots 5, 7 et 6, puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
 | 1 | ~~Fiabilité~~ **fait en V7.2** (sauf H4) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
-| 2 | ~~Autonomie et transfert vers UE~~ **pilote fait en V7.3** | Guidé → transfert → autonomie différée, d'abord sur une notion pilote ; prérequis et « Montre-moi » ; passerelle vers l'éditeur d'Unreal | ★★★ | M à L |
-| 3 | **Entrées et interaction** (Enhanced Input fait en V7.4) | Enhanced Input, regard indépendant du déplacement, interaction plus complète ; Tick maîtrisé en complément | ★★★ | M |
-| 4 | Navigation et prise en main | Recherche et filtres dans les 87 étapes, gestes guidés | ★★★ | M |
-| 5 | Composition | Actor Components : santé, inventaire, interaction, énergie | ★★★ | L |
-| 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger | ★★★ | L |
-| 7 | Interface de jeu | Quelques widgets prédéfinis (texte, bouton, jauge), puis réévaluer un éditeur UMG complet | ★★★ | M, XL pour l'éditeur |
+| 2 | ~~Autonomie et transfert vers UE~~ **fait** : pilote en V7.3, puis plan du parcours (V7.10 à V7.18) | Guidé → transfert → autonomie différée ; prérequis et « Montre-moi ». La passerelle vers Unreal est passée dans « Prochains chantiers », plus tard | ★★★ | M à L |
+| 3 | **Entrées et interaction** (Enhanced Input fait) | Regard indépendant du déplacement, interaction plus complète, Tick maîtrisé ; le reste d'Enhanced Input (Axis2D, modificateurs, Tap…) | ★★★ | M |
+| 4 | Navigation et prise en main | Recherche et filtres dans les 115 étapes, gestes guidés | ★★★ | M |
+| 5 | Composition | Actor Components : santé, inventaire, interaction, énergie. **Prochain chantier n° 1** | ★★★ | L |
+| 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger. **Prochain chantier n° 3** | ★★★ | L |
+| 7 | Interface de jeu | Quelques widgets prédéfinis (texte, bouton, jauge), puis réévaluer un éditeur UMG complet. **Prochain chantier n° 2** | ★★★ | M, XL pour l'éditeur |
 | 8 | Motivation et diffusion | Objectif du jour, série avec gel, rappels, défi du jour | ★★ à ★★★ | S à L |
 
 L'objectif du jour et le gel de série sont deux petites passes (S) : ils peuvent se glisser entre deux lots sans attendre le lot 8.
 
 Questions ouvertes :
-- Lot 3 : « interaction plus complète » veut-il dire la version intermédiaire décrite plus bas (Enhanced Input, appui maintenu, surbrillance, invite), ou directement un composant réutilisable, qui demande les Actor Components (lot 5) ?
-- La suite narrative pour Station enterrée passe-t-elle avant une appli plus généraliste ?
+- Lot 3 : « interaction plus complète » veut-il dire la version intermédiaire décrite plus bas (appui maintenu, surbrillance, invite), ou directement un composant réutilisable ? Le composant viendra avec le prochain chantier n° 1 (Actor Components) ; la version intermédiaire peut attendre lui.
 - Quel objectif du jour par défaut : une leçon, ou cinq questions de révision ?
+- Tranchée le 19 novembre : la suite narrative avance avec les chantiers (X1 fait en V7.18, puis l'inventaire et le projet Expert final), sans attendre une appli plus généraliste.
 
 ## Prochains chantiers, dans l'ordre (choix du 19 novembre)
 
@@ -39,8 +41,8 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 4 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant, interface, changement de niveau, sauvegarde | ★★★ | L |
 
 Plus tard, selon le cas :
-- **Passerelle « Dans Unreal »** : exercices compagnons à refaire dans le vrai éditeur, avec une liste d'observations (construction d'un acteur, Enhanced Input et Player Controller, interaction entre deux Blueprints), et graphes de référence pour comparer le simulateur à UE5. Remonte avant le chantier 1 dès que Tristan peut ouvrir Unreal régulièrement.
-- Personnage 3D, caméra, Enhanced Input Axis2D : après les quatre chantiers.
+- **Passerelle « Dans Unreal »** : exercices compagnons à refaire dans le vrai éditeur, avec une liste d'observations (construction d'un acteur, Enhanced Input et Player Controller, interaction entre deux Blueprints), et graphes de référence pour comparer le simulateur à UE5 (voir « Une référence indépendante pour la fidélité »). Remonte avant le chantier 1 dès que Tristan peut ouvrir Unreal régulièrement.
+- Personnage 3D, caméra, Enhanced Input Axis2D (lot 3) : après les quatre chantiers.
 - Animation, IA, rendu : fiches de découverte et pratique dans UE, sans les simuler.
 - Piste peu coûteuse : afficher dans le Carnet les mesures d'autonomie (étapes réussies sans indice et sans solution), déjà enregistrées.
 
@@ -54,10 +56,10 @@ Décision de Tristan du 19 novembre, après la V7.18 : le plan du parcours (lots
 | Rappel de Player Controller | Écrit seulement dans la leçon Player Controller, puis dans l'Expert X1 | Trouver une étape du Confirmé ou de l'Avancé où Get Player Controller sert naturellement (contexte d'entrée d'un mode, par exemple) |
 | Avancé en cahier des charges | Fait : fiches de méthode après la réussite, premiers indices en questions, six objectifs réécrits. Pas fait : fiches « Ce qui est en place » réécrites, départ « niveau seul » des anciennes étapes | Réécrire les 24 étapes, ou seulement celles où le préconstruit retire l'essentiel du travail |
 | Construire soi-même dans les anciennes étapes | Variables dès l'Intermédiaire, composants dès le Confirmé : seulement dans les étapes ajoutées pendant le plan | Reprendre les anciennes étapes, en vérifiant ta progression déjà faite (révision et avis de leçon changée) |
-| Troisième projet Expert | Deux projets (X2, X1) | Un projet qui assemble la suite narrative avec une sauvegarde (et l'inventaire si les Actor Components arrivent) |
+| Troisième projet Expert | Deux projets (X2, X1) | Remplacé par le prochain chantier n° 4 (projet Expert final) |
 | « S'adapter à l'apprenant » | Pas fait (point 6 du Doc) | Une notion fragile (solution vue, révision ratée) propose un transfert de plus par « Continuer » |
 | Déclencheur Tap | Absent ; T2 utilise Hold + Canceled | L'ajouter à Enhanced Input, et voir si une étape en a besoin |
-| Menu pause | Fait sans widget, sur Espace (choix par défaut, question sans réponse) | À confirmer ; à revoir si des widgets arrivent |
+| Menu pause | Fait sans widget, sur Espace (choix par défaut, question sans réponse) | À confirmer ; à revoir avec le prochain chantier n° 2 (UMG) |
 
 ## Cadre : ce qu'il faut garder
 
@@ -72,7 +74,7 @@ Issus de la revue du 17 novembre (V7.1.0, commit `b0c2ddd`, 773 tests réussis d
 - toutes les leçons hors Prédis vérifient l'absence d'erreurs d'exécution (le soupçon contraire n'a pas été confirmé) ;
 - fonctionnement local, export et sauvegarde complète.
 
-**Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,17 Mo (360 Ko compressés) ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
+**Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,5 Mo (455 Ko compressés) en V7.18 ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
 
 ## Lot 1 — Fiabilité : fait en V7.2
 
@@ -89,24 +91,24 @@ D1 à D8, H1, H2, H3, H5 et le versionnement des règles et des leçons sont fai
 
 Choix du 18 novembre : Tristan en est vers l'étape 10 et ne pratique pas encore dans Unreal. Pilote sur Cast To, qu'il rencontre tout de suite ; passerelle vers UE reportée.
 
-À décider après le pilote (selon ce qu'en dit Tristan) :
+Le plan du parcours (V7.10 à V7.18) a repris une bonne part de ce qui suit ; ce qui reste est à décider :
 
 | Amélioration | Travail | Pertinence | Difficulté |
 |---|---|---|---|
-| Autres chaînes | Interfaces en deuxième chaîne (transfert naturel : remplacer un Cast par un message d'interface), puis Branch et variables, Timeline, Event Dispatchers… | ★★★ | M par chaîne (contenu) |
+| Autres chaînes | **En partie fait** : échelle à cinq marches pour toutes les notions (V7.10), T2 sur Enhanced Input. Restent des transferts et autonomies différés sur d'autres notions (Interfaces, Timeline, Event Dispatchers…) | ★★★ | M par chaîne (contenu) |
 | « Montre-moi » pour les autres échecs | Aujourd'hui tiré de l'exécution (erreur, fil arrêté, événement muet). Pour un comportement faux sans rien de tel, chaque vérification pourrait désigner les nœuds à montrer | ★★ | M et contenu |
 | Révision par notion | Les notions existent : regrouper les questions par notion, proposer la révision d'une notion pas revue depuis longtemps | ★★★ | M |
 | Révision variée | Deux ou trois questions par notion, sous des angles différents, dont de petits graphes à lire (demande un mini-éditeur en lecture seule) | ★★★ | M et contenu |
 | Reprise différée des erreurs | Une étape réussie avec la solution, ou ratée, revient plus tard sous une autre forme (la donnée existe : `passedWith`) | ★★★ | M |
-| Mini-projets autonomes | Un cahier des charges sans étapes, validé par le comportement seul, avec variantes de robustesse | ★★★ | M et contenu |
-| Passerelle vers Unreal | Pour chaque leçon : où trouver les nœuds dans l'éditeur, réglages, différences avec la simulation, défi à refaire dans UE. Quand Tristan pratiquera dans UE | ★★★ | M (contenu) |
-| Même problème, trois architectures | Référence directe, Event Dispatcher, Blueprint Interface : qui connaît qui, qui prévient qui | ★★ | M |
+| ~~Mini-projets autonomes~~ | **Fait** : synthèses S1 à S4, entraînements M1 et M2, projets Expert X1 et X2 | ★★★ | fait |
+| Passerelle vers Unreal | Passée dans « Prochains chantiers », plus tard (dès que Tristan peut ouvrir Unreal) | ★★★ | M (contenu) |
+| ~~Même problème, trois architectures~~ | **Fait** en V7.15 : « Choisis ton outil », puis imposé par la synthèse S3 | ★★ | fait |
 | Revoir le bilan de qualité | Dans `core/quality/review.ts`, le nombre de nœuds pèse sur le verdict et les étoiles. En faire un indicateur secondaire ; critères distincts : fonctionnement, robustesse, notion travaillée, lisibilité, coût d'exécution | ★★ | M |
 | Durée affinée | La durée est estimée d'après la taille de la solution ; l'affiner avec le temps réellement passé | ★ | S à M |
 
 ## Plan du parcours (validé le 18 novembre)
 
-Voir [PLAN_PARCOURS.md](PLAN_PARCOURS.md) : lot 0 (cadre) fait en V7.10 ; lots 1 à 4 à faire, un à la fois. Les anciens lots A, B et C (remise à jour, Enhanced Input partout, nouveaux exercices) y sont intégrés.
+Voir [PLAN_PARCOURS.md](PLAN_PARCOURS.md) : **terminé**, lots 0 à 4 faits de la V7.10 à la V7.18 (le détail est dans « Déjà fait »). Ce qui n'a été atteint qu'en partie est dans « Reste du plan du parcours », plus haut. Les anciens lots A, B et C (remise à jour, Enhanced Input partout, nouveaux exercices) y étaient intégrés.
 
 ## Interface à la manière d'UE (plan validé le 18 novembre)
 
@@ -124,9 +126,9 @@ Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en ti
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| ~~Enhanced Input~~ **fait en V7.4** | Input Actions (Bool), Mapping Contexts, Add / Remove Mapping Context, déclencheurs Down, Pressed, Released, Hold, cinq sorties, Consume Input, trois étapes. Reste : actions Axis2D et déplacement par Add Movement Input, modificateurs (Negate, Swizzle), déclencheurs Tap, Pulse, Chorded, déclencheurs sur l'asset Input Action, Enhanced Input dans d'autres leçons | ★★★ | M |
+| ~~Enhanced Input~~ **fait** (V7.4, V7.7, Trigger when Paused en V7.15, partout après la leçon Player Controller depuis le lot 1 du plan) | Reste : actions Axis2D et déplacement par Add Movement Input, modificateurs (Negate, Swizzle), déclencheurs Tap, Pulse, Chorded, déclencheurs sur l'asset Input Action | ★★★ | M |
 | Regard indépendant du déplacement | Viser avec un Line Trace oblige aujourd'hui à bouger : un second manche, ou tourner sur place | ★★★ | S à M |
-| Interaction plus complète (version intermédiaire) | Prolonge « Regarder et interagir » (Line Trace + BPI_Interactif) : action IA_Interagir, appui maintenu (déclencheur Hold), surbrillance de l'objet visé, invite « Appuie sur E ». Le composant réutilisable viendra avec les Actor Components (lot 5) | ★★★ | M |
+| Interaction plus complète (version intermédiaire) | Le schéma UE5 est en place (le joueur reçoit IA_Interagir et prévient par interface : « Interagir avec tout », R4, R3). Reste : surbrillance de l'objet visé, invite « Appuie sur E », appui maintenu sur un objet. Le composant réutilisable viendra avec les Actor Components (prochain chantier n° 1) | ★★★ | M |
 | ~~Leçons Enhanced Input~~ **faites en V7.4** | La lampe en Enhanced Input, D20 (Add Mapping Context oublié), Maintenir pour ouvrir (Hold) | ★★★ | fait |
 | Tick maîtrisé | Set Actor Tick Enabled, Tick Interval, Start with Tick Enabled, Event End Play (avec End Play Reason), Set Timer by Function Name | ★★ | S |
 
@@ -134,10 +136,10 @@ Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en ti
 
 | Leçon ou série | Contenu | Pertinence | Difficulté |
 |---|---|---|---|
-| Synthèse de la V3 | Un projet final : porte à Timeline, visée par Line Trace, fiche d'objet en structure, Construction Script | ★★★ | M |
-| Suite « jeu narratif » | Calquée sur Station enterrée. Fait : objet à examiner et dialogue en Data Table (V7), porte à code (V3), journal de faits et mode dialogue (X1, V7.18). Reste : inventaire en composant (demande les Actor Components), un projet Expert qui assemble le tout avec une sauvegarde | ★★★ | M à L |
+| ~~Synthèse de la V3~~ | **Remplacée** par les synthèses de niveau S1 à S4 (plan du parcours) | ★★★ | fait |
+| Suite « jeu narratif » | Calquée sur Station enterrée. Fait : objet à examiner et dialogue en Data Table (V7), porte à code (V3), journal de faits et mode dialogue (X1, V7.18). Reste : inventaire en composant et projet Expert final (prochains chantiers n° 1 et n° 4) | ★★★ | M à L |
 | Débogue en série | For Each qui retire des éléments pendant le parcours, Tick qui continue sur un acteur caché. Déjà couverts : timer jamais arrêté (D9), Delay dans une boucle (P2). Écarté : le Bind fait deux fois, sans effet dans UE | ★★★ | S chacun |
-| Architecture | « Le Blueprint qui fait tout » à découper ; la même logique dans trois Blueprints à sortir dans un parent, puis dans un composant | ★★★ | M |
+| Architecture | « Le Blueprint qui fait tout » à découper ; la même logique dans trois Blueprints à sortir dans un composant (le parent est fait : L'héritage, Expert X2) | ★★★ | M |
 | Lecture de graphe | Un graphe touffu, trois questions dessus (que vaut X après Y ?) | ★★ | M |
 | Performance | Remplacer un Tick par un timer ou un événement, avec un compteur de nœuds exécutés par seconde | ★★ | M |
 | Plus de Prédis | Map sans test de Return Value, Event Hit répété, Lerp sur Tick, Select, For Loop with Break | ★★ | S chacun |
@@ -158,12 +160,11 @@ Les leçons liées à une fonction (Enhanced Input, Save Game, niveaux) sont ran
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| Actor Components (lot 5) | Logique réutilisable ajoutée à plusieurs Blueprints (santé, inventaire, interaction, énergie) : la vraie réponse à la logique copiée, en complément de l'héritage. Nouveau type de classe, Get Owner, Get Component by Class. Exercice E14 du recueil | ★★★ | L |
-| Widgets UMG (lot 7) | D'abord texte, bouton et jauge prédéfinis, mis à jour par événement ; réévaluer ensuite un éditeur complet. Exercices E10, E27, E38 | ★★★ | M, XL pour l'éditeur |
+| Actor Components (lot 5, **prochain chantier n° 1**) | Logique réutilisable ajoutée à plusieurs Blueprints (santé, inventaire, interaction, énergie) : la vraie réponse à la logique copiée, en complément de l'héritage. Nouveau type de classe, Get Owner, Get Component by Class. Exercice E14 du recueil | ★★★ | L |
+| Widgets UMG (lot 7, **prochain chantier n° 2**) | D'abord texte, bouton et jauge prédéfinis, mis à jour par événement ; réévaluer ensuite un éditeur complet. Exercices E10, E27, E38 | ★★★ | M, XL pour l'éditeur |
 | Sons | Play Sound 2D avec quelques sons intégrés | ★★ | S à M |
 | Macros et Collapse | Macros de l'utilisateur, Collapse to Function, Collapse to Macro | ★★ | M à L |
 | Copier-coller entre graphes | Aujourd'hui seulement dans un même graphe | ★★ | M |
-| Find References | Où cette variable, cette fonction est-elle utilisée ? | ★★ | S à M |
 | Timeline complet | Points clés Auto, pistes Vector, Color et Event, Play Rate, Set Timeline Length | ★★ | M |
 | Sweep et racine au choix | Sweep sur Set Actor Location et Add Actor World Offset ; choisir un Static Mesh comme racine | ★★ | M |
 | Collision Presets | Block, Overlap, Ignore par composant et par canal | ★★ | M |
@@ -182,7 +183,7 @@ Notés pendant la V6 : un éditeur dans Details pour remplir un tableau de réf�
 
 ### Une référence indépendante pour la fidélité
 
-Les tests protègent contre les régressions, mais leçons et résultats reposent sur le même moteur : une règle fausse peut passer tous les tests. Construire une petite batterie (10 à 15 graphes) exécutés dans **une version précise d'Unreal** sur l'ordinateur de Tristan : graphe UE, résultat observé, version, équivalent BP Trainer. Cas : nœuds purs lus plusieurs fois, copies et références de tableaux et structures, fonctions et locales, Delay et timers, dispatchers, héritage, destruction, entrées et Consume Input. Documenter les simplifications du simulateur.
+Demande d'ouvrir Unreal : rangée avec la passerelle, dans « Prochains chantiers », plus tard. Les tests protègent contre les régressions, mais leçons et résultats reposent sur le même moteur : une règle fausse peut passer tous les tests. Construire une petite batterie (10 à 15 graphes) exécutés dans **une version précise d'Unreal** sur l'ordinateur de Tristan : graphe UE, résultat observé, version, équivalent BP Trainer. Cas : nœuds purs lus plusieurs fois, copies et références de tableaux et structures, fonctions et locales, Delay et timers, dispatchers, héritage, destruction, entrées et Consume Input. Documenter les simplifications du simulateur.
 
 L'évaluation des nœuds purs est décrite différemment selon les sources ([Richard Hinckley, 2020](https://forums.unrealengine.com/t/pure-node-evaluation/146473/6) ; [Dave Jones / Epic, 2025](https://forums.unrealengine.com/t/new-show-exec-pin-and-what-it-does-exactly/2533784/3)) : ne changer le moteur qu'après comparaison dans UE.
 
@@ -194,13 +195,15 @@ Compléter aussi les vérifications de leçons par quelques permutations d'acteu
 
 Les slots sont gardés avec le projet (`Project.saveSlots`) : ils survivent à Stop et partent avec l'export. Depuis la V7.2, ils sont aussi enregistrés pendant Play, sans attendre Stop. Restent :
 
+Depuis, la synthèse S4 (V7.17) fait sauver un Set de Name à chaque fusible et le relire au BeginPlay.
+
 | Exercice | Ce qu'il apprend |
 |---|---|
 | La porte ouverte qui le reste | On ne sauve pas une référence d'acteur, mais un identifiant et un état |
 | Refactor : un seul objet de sauvegarde | Trois Blueprints qui écrivent chacun leur slot, à regrouper |
 | Save Game : la suite | Versions Async des nœuds, Delete Game in Slot dans un exercice |
 
-### Étape 2 : plusieurs niveaux et GameInstance (lot 6, L)
+### Étape 2 : plusieurs niveaux et GameInstance (lot 6, L, prochain chantier n° 3)
 
 - Plusieurs niveaux par projet (`Project.level` devient une liste : changement de format et migration), un sélecteur dans l'onglet Niveau, Open Level (by Name).
 - **GameInstance** : une classe choisie dans les réglages du projet, obtenue par Get Game Instance, seule à garder ses variables d'un niveau à l'autre.
@@ -223,7 +226,7 @@ Non simulés, à expliquer dans le mémo : versions Async des nœuds de sauvegar
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| Recherche et filtres du parcours (lot 4) | Par notion, format, durée, déjà réussi, à reprendre : quatre niveaux ne suffisent plus pour 87 étapes | ★★★ | M |
+| Recherche et filtres du parcours (lot 4) | Par notion, format, durée, déjà réussi, à reprendre : cinq niveaux ne suffisent plus pour 115 étapes | ★★★ | M |
 | Prise en main des gestes (lot 4) | Deux minutes qui font faire chaque geste (appui long, tirer un fil, deux doigts) avant la leçon 1 | ★★ | M |
 | Plusieurs projets en Simulation libre | Créer, nommer, dupliquer, supprimer | ★★ | M |
 | Modèles pour la Simulation libre | Partir d'une porte, d'un inventaire, d'un système d'interaction | ★★ | S à M |
@@ -272,24 +275,24 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| Remettre `HANDOFF.md` au propre | Les agents le lisent en premier (CLAUDE.md) et il se contredit : téléphone seul, étape APK encore à faire, anciens éléments en attente. Séparer état actuel, décisions en vigueur et historique | ★★ | S |
+| Remettre `HANDOFF.md` au propre | **En partie fait** : une « Reprise rapide » en tête fait foi depuis le 18 novembre. Restent les sections historiques qui se contredisent (téléphone seul, étape APK à faire, éléments en attente) : séparer état actuel, décisions en vigueur et historique | ★★ | S |
 | Borner les journaux | `runtime/journal.ts` accumule les Print String ordinaires : un Print sur Tick fait grossir la mémoire. Borner l'affichage sans fausser les compteurs dont les vérifications ont besoin | ★★ | S à M |
 | Découper au fil des travaux | `interpreter.ts` (754 lignes), `simulation.ts` (637), `App.tsx` (495), `LessonSheet.tsx` (517) : découper selon leurs responsabilités quand on les modifie, pas pour la taille seule | ★★ | M par lot |
-| Intégration continue | Les actions GitHub ciblent Node 20, déprécié ; `ubuntu-latest` change d'image. Monter les versions avant que le déploiement casse | ★★ | S |
+| Intégration continue | Les actions GitHub ciblent Node 20, déprécié (avertissements à chaque déploiement de la V7.18) ; `ubuntu-latest` change d'image. Monter les versions avant que le déploiement casse | ★★ | S |
 | Version de test avant la production | L'APK suit le site dès la publication : une prévisualisation séparée permettrait d'essayer avant | ★★ | M |
-| Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan | ★★ | M |
+| Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan (`tools/e2e/smoke.py` a 72 captures en V7.18) | ★★ | M |
 | Rappel de sauvegarde | Proposer un export quand le dernier date de plus d'un mois | ★ | S |
-| Maintenance du lint | Configuration Biome dépréciée ; avertissement de `behaviors/math.ts` à examiner en gardant la sémantique de `FMath::Clamp` | ★ | S |
 | CI sur les pull requests | Le workflow ne réagit qu'aux push sur `main` ; peu utile tant que tout est publié directement sur `main` | ★ | S |
 | Test du joystick | Le smoke test ne déplace pas le joueur au doigt | ★ | S à M |
 | Performance des grands graphes | Jamais mesurée au-delà des leçons : essayer une centaine de nœuds | ★ | M |
-| Page de test claude.ai | L'APK suit le site : garder l'outil ou le retirer | ★ | S |
+| Page de test claude.ai | L'APK suit le site : garder l'outil ou le retirer (toujours republiée à chaque version) | ★ | S |
 | Publication sur le Play Store | Fiche, politique de confidentialité, test fermé | ★ | L (peu de code) |
 | Synchronisation entre appareils | Retrouver sa progression sur téléphone et ordinateur ; demande un compte ou un stockage externe | ★★ | L |
 | Version anglaise | Textes de l'appli et des leçons | ★ | L (contenu) |
 
 ## Déjà fait, noté ici auparavant
 
+- Backlog revu (19 novembre 2026) : prochains chantiers choisis après l'analyse de couverture, reste du plan du parcours noté à étudier, entrées faites retirées (Find References en V7.8, maintenance du lint en V7.8, mini-projets autonomes, trois architectures, synthèse de la V3).
 - V7.18 (19 novembre 2026), plan du parcours, lot 4b : niveau Expert, projets X2 L'atelier des machines (héritage, Parent: Tick, Delta Seconds, Sequence, Delay) et X1 La radio de la station (dialogue en Data Table, journal de faits, Mapping Context de dialogue par le Player Controller, porte à code). Le plan du parcours est terminé.
 - V7.17 (19 novembre 2026), plan du parcours, lot 4a : l'Avancé en cahiers des charges (fiches de méthode après la réussite, premiers indices en questions, objectifs sans recette), Le levier universel, entraînements M1 Le sas et M2 Le distributeur, synthèse S4 Les fusibles. Reste le lot 4b (Expert).
 - V7.16 (19 novembre 2026), plan du parcours, lot 3b : rappels dans sept étapes Confirmé, Prédis P14 « Qui parle en premier ? », synthèse S3 « Le poste de garde » ; le lot 3 est fini.

@@ -40,6 +40,8 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 3 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 4 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant, interface, changement de niveau, sauvegarde | ★★★ | L |
 
+Chantier n° 1 analysé le 19 novembre : [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (quatre versions, V7.19 à V7.22 ; questions à Tristan en fin de document). Rien n'est lancé.
+
 Plus tard, selon le cas :
 - **Passerelle « Dans Unreal »** : exercices compagnons à refaire dans le vrai éditeur, avec une liste d'observations (construction d'un acteur, Enhanced Input et Player Controller, interaction entre deux Blueprints), et graphes de référence pour comparer le simulateur à UE5 (voir « Une référence indépendante pour la fidélité »). Remonte avant le chantier 1 dès que Tristan peut ouvrir Unreal régulièrement.
 - Personnage 3D, caméra, Enhanced Input Axis2D (lot 3) : après les quatre chantiers.

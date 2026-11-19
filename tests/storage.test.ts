@@ -321,6 +321,16 @@ describe('D6 and D8 — writes are done when committed, and a restore is all or 
     expect((await readStored('project:sandbox'))?.text).toBe(text);
     expect((await readStored(`${RESCUE_PREFIX}project:sandbox:2026`))?.text).toBe('{broken');
   });
+
+  it('a restore goes through the write queue: a save asked for during it lands after it, and a read waits for it (V7.26)', async () => {
+    await writeStored('progress', '{"done":["avant"]}');
+    const restore = writeMany({ progress: '{"done":["restauré"]}' });
+    const read = readStored('progress');
+    const save = writeStored('progress', '{"done":["après"]}');
+    await Promise.all([restore, save]);
+    expect((await read)?.text).toBe('{"done":["restauré"]}');
+    expect((await readStored('progress'))?.text).toBe('{"done":["après"]}');
+  });
 });
 
 // ----------------------------------------------------------------- D7

@@ -567,6 +567,13 @@ select.field { padding-right: 4px; }
 .toolbar.bp-toolbar, .toolbar.level-toolbar { height: 40px; }
 .toolbar .tb { height: 30px; }
 .graph-tabs .tab { height: 30px; }
+/* Review of 19 November (I1): buttons keep their whole label (« Class Settings », not « Class Settinc »); the bar scrolls when it is too narrow. */
+.toolbar > * { flex-shrink: 0; }
+@media (max-width: 960px) {
+  .toolbar.bp-toolbar .tb, .toolbar.level-toolbar .tb { padding: 0 7px; gap: 4px; font-size: 13px; }
+  .toolbar .graph-tabs .tab { padding: 0 7px; font-size: 13px; }
+  .toolbar .tb-sep { margin: 0 2px; }
+}
 .editor-body { flex: 1; min-height: 0; display: flex; }
 .editor-body .workspace { flex: 1; }
 .edge-handle { flex: none; width: 24px; background: var(--panel); color: var(--muted); font-size: 11px; display: flex; align-items: center; justify-content: center; border-color: var(--line); border-style: solid; border-width: 0; }

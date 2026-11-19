@@ -286,10 +286,10 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| Remettre `HANDOFF.md` au propre | **En partie fait** : une « Reprise rapide » en tête fait foi depuis le 18 novembre. Restent les sections historiques qui se contredisent (téléphone seul, étape APK à faire, éléments en attente) : séparer état actuel, décisions en vigueur et historique | ★★ | S |
+| ~~Remettre `HANDOFF.md` au propre~~ | **Fait en V7.26** : sections anciennes mises à jour ; la « Reprise rapide » fait foi, la suite est l'historique des versions | ★★ | fait |
 | Borner les journaux | `runtime/journal.ts` accumule les Print String ordinaires : un Print sur Tick fait grossir la mémoire. Borner l'affichage sans fausser les compteurs dont les vérifications ont besoin | ★★ | S à M |
 | Découper au fil des travaux | `simulation.ts` (839 lignes, +200 avec les Actor Components), `interpreter.ts` (775), `App.tsx` (643), `LessonSheet.tsx` (573) : découper selon leurs responsabilités quand on les modifie, pas pour la taille seule | ★★ | M par lot |
-| Intégration continue | Les actions GitHub ciblent Node 20, déprécié (avertissements à chaque déploiement, encore en V7.22) ; `ubuntu-latest` change d'image. Monter les versions avant que le déploiement casse | ★★ | S |
+| Intégration continue | **Actions sur Node.js 24 en V7.26.** Reste : `ubuntu-latest` change d'image de temps en temps | ★ | S |
 | Version de test avant la production | L'APK suit le site dès la publication : une prévisualisation séparée permettrait d'essayer avant | ★★ | M |
 | Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan (`tools/e2e/smoke.py` a 82 captures en V7.22) | ★★ | M |
 | Rappel de sauvegarde | Proposer un export quand le dernier date de plus d'un mois | ★ | S |
@@ -303,6 +303,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.26 (19 novembre 2026), revue, lot 4 : barre d'outils lisible en paysage, restauration dans la file d'écriture, actions GitHub sur Node.js 24, HANDOFF.md remis au propre. La revue des V7.2 à V7.22 est terminée.
 - V7.25 (19 novembre 2026), revue, lot 3 : la première marche d'une notion (découverte, guidée) garde sa méthode et ouvre sa solution après 3 échecs, même en Avancé (R5, L'héritage) ; libellés Entraînement M1/M2 et Projet X1/X2 ; durées calculées sur le travail réel.
 - V7.24 (19 novembre 2026), revue, lot 2 : l'événement d'une Input Action n'a plus de Consume Input (comme dans UE, tous les acteurs qui l'écoutent la reçoivent) ; textes de R4 et du défi Player Controller corrigés ; pile des entrées dans `runtime/inputStack.ts`.
 - V7.23 (19 novembre 2026), revue des V7.2 à V7.22 ([REVUE_V7.md](REVUE_V7.md)), lot 1 : Ignore All Pressed Keys Until Release sur Add / Remove Mapping Context (cochée par défaut, comme dans UE) ; le correcteur rejoue chaque solution avec des appuis tenus 0,1 s ; X1 vérifie qu'aucune réplique n'est sautée.

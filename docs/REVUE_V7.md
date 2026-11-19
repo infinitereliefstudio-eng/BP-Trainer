@@ -29,6 +29,6 @@ Copie du Claude Doc « BP Trainer — Revue des V7.2 à V7.22 » : https://claud
 | 1 | F1, V1, V2 : changer de contexte comme dans UE | V7.23 | fait |
 | 2 | F2, C1 : actions reçues par tous | V7.24 | fait |
 | 3 | P1, P2, P3 (durées) : aide et repères | V7.25 | fait |
-| 4 | I1, C2, C3, actions GitHub : retouches | V7.26 | à faire |
+| 4 | I1, C2, C3, actions GitHub : retouches | V7.26 | fait |
 
 Sources : [ModifyContextOptions (Epic)](https://dev.epicgames.com/documentation/en-us/unreal-engine/python-api/class/ModifyContextOptions), [UK2Node_InputAction (Epic)](https://dev.epicgames.com/documentation/unreal-engine/API/Editor/BlueprintGraph/UK2Node_InputAction?lang=en-US), [forum Epic sur Consume Input et Enhanced Input](https://forums.unrealengine.com/t/consume-input-doesnt-work-the-input-still-propagates-everywhere/1213316).

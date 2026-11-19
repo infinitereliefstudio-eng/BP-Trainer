@@ -1,30 +1,25 @@
 # Reprise du projet
 
-Ce fichier suffit pour reprendre le travail sans l'historique des conversations. **Commencer par « Reprise rapide » ci-dessous** : c'est l'état réel au 2026-11-18. Les sections suivantes (« État », V2 à V7.x) sont l'historique, gardé pour les décisions qu'il explique ; quand elles contredisent la reprise rapide, c'est la reprise rapide qui fait foi.
+Ce fichier suffit pour reprendre le travail sans l'historique des conversations. **Commencer par « Reprise rapide » ci-dessous** : c'est l'état réel au 2026-11-19. Les sections suivantes (« État », V2 à V7.x) sont l'historique, gardé pour les décisions qu'il explique ; quand elles contredisent la reprise rapide, c'est la reprise rapide qui fait foi.
 
-À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
+À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_V7.md](REVUE_V7.md) (la dernière revue). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.22)
+## Reprise rapide (2026-11-19, après la V7.26)
 
 ### Où on en est
 
-- **Version en ligne : 7.25.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
-- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : lots 1 à 3 faits (V7.23 à V7.25) ; lot 4 à suivre (V7.26). Le renumérotage des codes d'exercices est laissé de côté (optionnel, à proposer).
-- **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
-  - lot 0 (le cadre) : fait, V7.10 ;
-  - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
-  - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
-  - lot 3 (Confirmé) : fait, V7.15 (3a, quatre nouvelles étapes) et V7.16 (3b, rappels, P14, synthèse S3, lancé par « tu peux passer a 3b ») ;
-  - lot 4 (Avancé et Expert) : fait, V7.17 (4a, l'Avancé) et V7.18 (4b, Expert, lancé par « tu peux enchainer »). **Le plan du parcours est terminé.**
-- **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite) et les deux projets Expert (X2, X1). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **La suite est à décider avec lui** (pistes dans « Ce qui reste à faire ») ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
+- **Version en ligne : 7.26.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : **tous faits** (V7.23 à V7.26). Laissés de côté : le renumérotage des codes d'exercices et l'ordre X2 puis X1 (optionnels, à proposer).
+- **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
+- **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **La suite est à décider avec lui** : le prochain chantier choisi le 19 novembre est l'UMG minimal (BACKLOG.md, « Prochains chantiers ») ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-124 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 37 (fin : A2 puis synthèse S4), Expert 2 (X2, X1). 154 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+124 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 37 (fin : A2 puis synthèse S4), Expert 2 (Projet X2, Projet X1). 154 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (`isNumbered` : les leçons `build` sans code, hors transfert/autonomie), les exercices et les étapes à code ont un libellé à eux (P, D, C, R, T, A, S ; M pour Entraînement, X pour Projet).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
-- **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
+- **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Une première marche (`discover`, `guided`) garde sa méthode visible et ouvre sa solution après 3 échecs, à tout niveau (V7.25). Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
 - **Échelle par notion** (`Lesson.chain` : discover, guided, modify, transfer, autonomy ; `LADDER`) ; l'autonomie est différée (`chain.after`).
 - **Rappels** (`Lesson.recalls`) : notions anciennes que la solution de référence réécrit vraiment (vérifié par `tests/spacing.test.ts`).
 - **Espacement** : cible 15 étapes ; `KNOWN_GAPS` dans `tests/spacing.test.ts` est un cliquet. Le test dit la valeur exacte à mettre quand un écart baisse. Le lot 3b a fait redescendre ce qui traversait le Confirmé ; les écarts commentés « lot 4 » finissent dans l'Avancé, ou sont des notions que le Confirmé n'écrit pas naturellement (maps, player-controller, sequence…). Depuis la V7.16, `writtenNotions` compte par Blueprint.
@@ -33,9 +28,9 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **terminé** : V7.19 (le moteur), V7.20 (cinq étapes de découverte après « L'héritage »), V7.21 (quatre étapes d'usage) et V7.22 (reprise : rappels, conseil « Chaîne copiée entre Blueprints », fiches ; voir « V7.22 » plus bas). La suite est à décider avec Tristan.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
 
-Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
+Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 
 1. **Après le plan** (à proposer, rien n'est lancé) : un troisième projet Expert qui assemble la suite narrative avec une sauvegarde (et l'inventaire, s'il faut ajouter les Actor Components) ; réécrire en cahier des charges les fiches « Ce qui est en place » des étapes Avancé existantes ; « S'adapter à l'apprenant » ; un rappel de Player Controller au Confirmé ou à l'Avancé.
 2. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
@@ -52,13 +47,14 @@ Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) 
 7. Si la leçon change le projet de départ d'une étape existante : `revision` + 1 (l'appli signale alors la leçon comme changée).
 8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~255 (nombre d'étapes attendu, 124 depuis la V7.21) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
 9. Les textes qui renvoient à une leçon la nomment par son **titre**, jamais par son numéro (les numéros bougent).
+10. Le correcteur rejoue chaque solution avec des appuis tenus 0,1 s (V7.23) : une étape à touche doit passer quand la touche reste enfoncée quelques images (Started plutôt que Triggered sans déclencheur).
 
 ### Livrer une version
 
 Commandes dans « Méthode de travail » plus bas. Récapitulatif :
 `npm run lint && npx tsc --noEmit && npm test && npm run build && npx vitest run --config tools/e2e/vitest.config.ts && python3 tools/e2e/smoke.py` (attendre `errors []`), puis version dans `package.json`, une section `V7.x` ici, une ligne dans BACKLOG.md (« Déjà fait »), README.md (nombre d'étapes et de questions), PLAN_PARCOURS.md (état du lot), ARCHITECTURE.md si nouveaux fichiers. Commit sur `main` avec les lignes d'attribution, `git -c push.negotiate=true push origin main`, `gh run watch` (déploiement Pages). Page de test : `python3 tools/make-test-page.py /home/claude/publish/index.html`, puis l'outil Artifact `publish_files` sur le slug `5781960b-ee1f-4517-a493-be206fea22a8` (lien https://claude.ai/artifact/BojAfVYPuqnJcK49BLzdfd) avec la version en cours en `base_version` (la lire avec `get_artifact`). Résumer à Tristan en français, sans jargon, avec quoi tester.
 
-Tristan teste surtout sur son téléphone (APK) ; depuis le 2026-11-11 il a aussi l'appli de bureau Claude sur Windows (Node, pas de Python). Les sections plus bas qui disent qu'il n'a qu'un téléphone datent d'avant.
+Tristan teste surtout sur son téléphone (Pixel 9 Pro, APK) ; depuis le 2026-11-11 il a aussi l'appli de bureau Claude sur Windows (Node, pas de Python). Il ne pratique pas encore les Blueprints dans Unreal, seulement dans l'appli.
 
 ## Le projet
 
@@ -71,12 +67,11 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 ## Avec qui, et comment
 
 - **Tristan** (studio Infinite Relief Studio), développeur indé UE5 sur son jeu « Station enterrée ». Il parle **français** : réponses, textes de l'appli et docs en français ; noms des nœuds, pins et panneaux **en anglais comme dans UE**.
-- Il n'a **qu'un téléphone**, pas d'ordinateur. Il teste sur la page claude.ai en paysage. Il ne lance aucune commande.
+- Il teste sur son téléphone (APK, en paysage) et, depuis le 2026-11-11, peut aussi utiliser l'appli de bureau Claude sur Windows. Il ne lance pas de commandes lui-même.
 - Il veut **une architecture maintenable et évolutive**, pas de gros fichiers : un fichier par responsabilité, des définitions déclaratives.
 - Il veut être sûr que la **logique est simulée de façon générale**, pas seulement les cas des leçons (retour du 7 novembre, après un Set Visibility sur le mesh qui semblait sans effet : c'était l'icône de la lumière dessinée par-dessus). Le runtime ne contient aucun cas particulier de leçon : garder ce principe.
-- **Une étape à la fois, avec une porte de validation** : on ne commence l'étape suivante qu'après son feu vert explicite sur son téléphone. Il a validé les étapes 1, 2 et 3.
-- Il ne veut pas avancer le packaging APK avant l'étape 4.
-- Les retours sur la qualité des solutions (au-delà de « ça marche ») sont notés dans BACKLOG.md ; il a demandé de **ne pas les implémenter maintenant**.
+- **Une étape à la fois, avec une porte de validation** : on ne commence l'étape suivante qu'après son feu vert explicite. Quand il lance plusieurs lots d'un coup (« dans l'ordre le plus logique »), on les livre l'un après l'autre, une version chacun.
+- Les idées de BACKLOG.md ne se font que sur sa demande.
 
 ## État (historique : étapes du plan V1, toutes livrées depuis)
 
@@ -85,19 +80,13 @@ BP Trainer est une appli Android (une PWA empaquetée en APK par PWABuilder) pou
 | 1 — Socle de l'éditeur | Canvas, nœuds, fils, gestes, palette, My Blueprint, Details, variables, sauvegarde, export | Validée |
 | 2 — Interpréteur et monde 2D | Compilation, interpréteur, niveau, Play (joystick, E/F/Espace, vitesse, frame par frame), Output Log, leçons 1 à 5 | Validée |
 | 3 — Communication et débogage | Références, Cast, dispatchers, interfaces, fonctions ; breakpoints, pas à pas, valeurs des pins, Execution Trace, fils animés ; leçons 6 à 11, Prédis P1–P3, Débogue D1–D2 | Validée le 2026-11-07 |
-| 4 — Synthèse et APK | Bibliothèque complète (172 définitions, 153 dans la palette), leçon 12, Outliner en direct pendant Play, hors ligne (manifest, service worker, icônes) | **Livrée le 2026-11-07, en attente de la validation de Tristan** ; APK à faire avec lui |
+| 4 — Synthèse et APK | Bibliothèque complète (172 définitions, 153 dans la palette), leçon 12, Outliner en direct pendant Play, hors ligne (manifest, service worker, icônes) | Livrée le 2026-11-07 ; APK en place le 2026-11-10 |
 
-### En attente côté Tristan
+### L'APK (en place depuis le 2026-11-10)
 
-- Valider l'étape 4 sur la page de test.
-- Fait le 2026-11-07 : BP-Trainer rendu public (option A), GitHub Pages activé (source GitHub Actions), appli en ligne à https://infinitereliefstudio-eng.github.io/BP-Trainer/ (manifest et service worker vérifiés). Dépôt racine `infinitereliefstudio-eng.github.io` créé et rattaché à la session, avec `.nojekyll`, `index.html` (redirection) et un README.
-- Fait le 2026-11-07 : paquet PWABuilder généré par Tristan (Package ID `com.infiniterelief.bptrainer`, clé « New », empreinte SHA-256 `CB:44:1E:…:4E:A2`, vérifiée identique dans l'APK). `assetlinks.json` publié dans le dépôt racine (copie dans `hosting/root-site/.well-known/`). Tristan garde le zip (clé et mots de passe) : ne jamais les mettre dans un dépôt.
-- Reste : Tristan installe l'APK et confirme plein écran sans barre d'adresse et hors ligne.
-
-### Après l'APK
-
-- Publier `assetlinks.json` dans `hosting/root-site/.well-known/` puis dans le dépôt racine ; vérifier que l'URL `/.well-known/assetlinks.json` répond.
-- Vérifier avec Tristan : APK installée, plein écran sans barre d'adresse, fonctionne hors ligne. C'est la livraison V1.
+- BP-Trainer est public, GitHub Pages publie l'appli (source GitHub Actions) à https://infinitereliefstudio-eng.github.io/BP-Trainer/. Le dépôt racine `infinitereliefstudio-eng.github.io` sert `.nojekyll`, `index.html` (redirection) et `/.well-known/assetlinks.json` (copie dans `hosting/root-site/`).
+- Paquet PWABuilder généré par Tristan : Package ID `com.infiniterelief.bptrainer`, empreinte SHA-256 `CB:44:1E:…:4E:A2`, identique dans l'APK et dans `assetlinks.json`. Tristan garde le zip (clé et mots de passe) : ne jamais les mettre dans un dépôt.
+- L'APK ouvre le site en plein écran et suit chaque publication sur `main` : un push est une mise en production. Détail dans [APK.md](APK.md).
 
 ### Revue de la V1 (2026-11-07)
 
@@ -731,6 +720,16 @@ Version 7.24.0.
 - Tests : `tests/helpPolicy.test.ts` (« lot 3 »). `smoke.py` : R5 montre « La réécriture » avant la réussite.
 
 Version 7.25.0.
+
+## V7.26 (2026-11-19) : revue, lot 4 (retouches)
+
+- **Barre d'outils** (`app.css`) : les boutons ne rétrécissent plus (`.toolbar > * { flex-shrink: 0 }`), libellés entiers (« Class Settings », pas « Class Settinc ») ; marges resserrées sous 960 px ; la barre défile si elle est trop étroite. À 800 × 370, tout tient (capture 02).
+- **Restauration** (`storage.ts`, `enqueueAll`) : `writeMany` passe par la file d'écriture de ses clés, inscrit dès l'appel ; une sauvegarde demandée pendant une restauration s'écrit après elle, une lecture l'attend.
+- **CI** (`.github/workflows/deploy.yml`) : actions sur Node.js 24 (checkout v5, setup-node v5, upload-artifact v6, download-artifact v7, configure-pages v6, upload-pages-artifact v5, deploy-pages v5).
+- **HANDOFF.md** : sections anciennes remises à jour (téléphone seul, APK à faire, validations d'étapes) ; la reprise rapide reflète la fin de la revue.
+- Tests : `tests/storage.test.ts` (« a restore goes through the write queue »).
+
+Version 7.26.0. La revue est terminée.
 
 ## Méthode de travail
 

@@ -47,14 +47,22 @@ function nextRev(): number {
 const queues = new Map<string, Promise<unknown>>();
 
 function enqueue<T>(key: string, job: () => Promise<T>): Promise<T> {
-  const run = (queues.get(key) ?? Promise.resolve()).then(job);
+  return enqueueAll([key], job);
+}
+
+/**
+ * One job for several keys: it waits for the writes of each, and the reads
+ * and writes of each that come after it wait for it.
+ */
+function enqueueAll<T>(keys: string[], job: () => Promise<T>): Promise<T> {
+  const run = Promise.all(keys.map((k) => queues.get(k) ?? Promise.resolve())).then(job);
   const tail = run.then(
     () => undefined,
     () => undefined,
   );
-  queues.set(key, tail);
+  for (const k of keys) queues.set(k, tail);
   tail.then(() => {
-    if (queues.get(key) === tail) queues.delete(key);
+    for (const k of keys) if (queues.get(k) === tail) queues.delete(k);
   });
   return run;
 }
@@ -170,11 +178,25 @@ export function writeStored(key: string, text: string): Promise<'idb' | 'local'>
 /**
  * Saves several entries at once: all of them or none (one IndexedDB
  * transaction; in localStorage, the entries already written are put back
- * if one is refused).
+ * if one is refused). It goes through the write queues of its keys like any
+ * write: an autosave asked for during a restore is written after it, never
+ * under it.
  */
-export async function writeMany(entries: Record<string, string>): Promise<void> {
-  await settled();
+export function writeMany(entries: Record<string, string>): Promise<void> {
   const list = Object.entries(entries);
+  // Every write already asked for, on any key, finishes first (as settled()); taken now, so that
+  // reads and writes asked for after this call come after it.
+  const earlier = [...queues.values()];
+  return enqueueAll(
+    list.map(([key]) => key),
+    async () => {
+      await Promise.all(earlier);
+      await writeAll(list);
+    },
+  );
+}
+
+async function writeAll(list: [string, string][]): Promise<void> {
   const rev = nextRev();
   if (hasIdb()) {
     try {

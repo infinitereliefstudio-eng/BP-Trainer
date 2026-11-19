@@ -8,7 +8,7 @@
  * no hint before a first try, and no node list in autonomy.
  */
 import type { Level } from './levels';
-import type { Lesson } from './types';
+import type { Lesson, LessonCard } from './types';
 
 export type HelpKind = 'hint' | 'nodes' | 'solution';
 
@@ -87,4 +87,20 @@ function open(gate: Gate, s: HelpState): { available: boolean; locked?: string }
 export function helpOffers(lesson: Lesson, state: HelpState): HelpOffer[] {
   const rule = ruleFor(lesson);
   return KINDS.filter((k) => !('absent' in rule[k])).map((kind) => ({ kind, index: INDEX[kind], ...open(rule[kind], state) }));
+}
+
+/**
+ * Cards that give the way to build the step, step by step (« Le plan »…).
+ * From Avancé the fiche is a brief: these open after success, to compare,
+ * like the solution (lot 4 of docs/PLAN_PARCOURS.md).
+ */
+export const PLAN_CARD_TITLES: ReadonlySet<string> = new Set(['Le plan', 'La réécriture', 'Les nœuds', 'Par où commencer']);
+
+const BRIEF_LEVELS: ReadonlySet<Level> = new Set(['avance', 'expert']);
+
+/** The cards shown now, and how many wait for the step to be passed. */
+export function cardsFor(lesson: Lesson, done: boolean): { shown: LessonCard[]; held: number } {
+  if (done || lesson.kind === 'predict' || !BRIEF_LEVELS.has(lesson.level)) return { shown: lesson.cards, held: 0 };
+  const shown = lesson.cards.filter((c) => !PLAN_CARD_TITLES.has(c.title));
+  return { shown, held: lesson.cards.length - shown.length };
 }

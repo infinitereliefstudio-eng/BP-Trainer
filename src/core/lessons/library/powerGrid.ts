@@ -195,7 +195,7 @@ export const lessonGrid: Lesson = {
     'F referme N4 puis E : tout se rallume.',
   ],
   hints: [
-    'Avance par étapes et lance Play à chaque fois, avec ☷ (Outliner) ouvert sur BP_Source : d’abord N1 dans Visites, puis ses voisines, puis le While Loop.',
+    'Dans quel ordre visiter les nœuds ? Qu’est-ce qui empêche le parcours de tourner en rond ?',
     'Nœuds : Clear (Set et Array), Branch, Add (Set et Array), While Loop, Length, Greater (Integer), Get (a copy), Set Courant, Remove Index, For Each Loop (deux), Get Voisins et Get Ferme sur une autre borne, Contains, NOT Boolean, AND Boolean, SetAlimente.',
     'Solution : Recalculer → Clear Visites → Clear AFaire → Branch (Depart.Ferme) → True : Add Depart à Visites et à AFaire → While (Length (AFaire) > 0) : Courant = AFaire[0] → Remove Index 0 → For Each (Courant.Voisins) : Branch (Ferme AND NOT Contains (Visites)) → Add à Visites → Add à AFaire. Completed (et False du premier Branch) → For Each (Tous) : SetAlimente (Contains (Visites)).',
   ],

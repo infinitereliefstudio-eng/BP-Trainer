@@ -153,13 +153,12 @@ export const lessonMirrors: Lesson = {
     },
   ],
   objectives: [
-    'Après les deux Set de Tirer : un For Loop with Break de 0 à 4.',
-    'À chaque tour : Line Trace de Depart à Depart + Direction × Portee. Rien touché : Break.',
-    'Sinon : Toucher (Message) vers Hit Actor. Reflechit faux : Break. Vrai : Direction = Get Reflection Vector (Direction, Normal), puis Depart = Location + Direction × 2.',
+    'Tirer envoie le rayon depuis l’émetteur ; il rebondit sur les miroirs, cinq segments au plus.',
+    'Chaque objet touché est prévenu ; un objet qui ne réfléchit pas arrête le rayon, le vide aussi.',
     'Touche Vérifier : le récepteur s’allume ; après F, il s’éteint.',
   ],
   hints: [
-    'Construis un seul segment d’abord (sans boucle) et regarde-le en Play avec Draw Debug Type : il doit aller de l’émetteur au premier miroir.',
+    'Un seul segment d’abord : va-t-il de l’émetteur au premier miroir ? Que faut-il savoir du point touché pour repartir ?',
     'Nœuds : For Loop with Break, Line Trace By Channel, Get Depart, Get Direction, Get Portee, Multiply (Vector * Float), Add (Vector), Branch, Toucher (Message), Branch, Get Reflection Vector, Set Direction, Set Depart.',
     'Solution : Set Direction → For Loop with Break (0 à 4) → Loop Body : Line Trace (Start = Depart, End = Depart + Direction × Portee) → Branch (Return Value) → False : Break. True : Toucher (Message, Target = Hit Actor) → Branch (Reflechit) → False : Break. True : Set Direction = Get Reflection Vector (Direction, Normal) → Set Depart = Location + Direction × 2.',
   ],

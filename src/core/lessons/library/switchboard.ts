@@ -134,7 +134,7 @@ export const lessonSwitchboard: Lesson = {
     'Touche Vérifier : E appelle 101, 102 et 999 ; F démonte la 103 ; Espace l’appelle.',
   ],
   hints: [
-    'Commence par Inscrire et le BeginPlay du téléphone, puis lance Play : ☷ (Outliner) montre le Registre du standard se remplir.',
+    'Que doit contenir le Registre, et qui l’y inscrit ? Pendant Play, ☷ (Outliner) montre s’il se remplit.',
     'Nœuds. Standard : Get Registre, Contains, Branch, Add, Return Node, Find, Sonner, Remove. Téléphone : Event BeginPlay, Get Standard, Inscrire, Get Chambre, Self, Branch, Append, Print String, Event Destroyed, Retirer.',
     'Solution. Inscrire : Branch (Contains) → True : Return (Accepte faux) ; False : Add → Return (Accepte vrai). Appeler : Branch (Boolean de Find) → True : Sonner sur Value → Return (Trouve vrai) ; False : Return (faux). Retirer : Remove. Téléphone : BeginPlay → Inscrire (Standard, Chambre, Self) → Branch (Accepte) → False : Print « Déjà inscrite : » + Chambre. Event Destroyed → Retirer (Standard, Chambre).',
   ],

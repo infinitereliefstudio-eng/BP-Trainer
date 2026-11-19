@@ -146,7 +146,7 @@ export const complete6: Lesson = {
     'Touche Vérifier : deux déplacements, deux annulations, deux rétablissements, puis une annulation suivie d’un nouveau déplacement.',
   ],
   hints: [
-    'Commence par le Trou 2 en t’inspirant de Refaire, nœud pour nœud : seuls changent le sens (Decrement, et avant la lecture) et la position appliquée (Avant).',
+    'Que fait Refaire, nœud par nœud ? Pour revenir en arrière, qu’est-ce qui change : le sens, et le moment où on lit la position ?',
     'Nœuds. Trou 2 : Get Position, Greater (Integer), Branch, Decrement Int, Get Historique, Get (a copy), Break S_Action, Is Valid, Set Actor Location. Trou 1 : While Loop, Length, Get Position, Greater (Integer), Remove Index, Last Index.',
     'Solution. IA_Annuler → Branch (Position > 0) → Decrement Int (Position) → Is Valid (Cible de Historique[Position]) → Set Actor Location (Cible, Avant). Enregistrer : entrée → While Loop (Length (Historique) > Position) → Loop Body : Remove Index (Historique, Last Index (Historique)) ; Completed → Add.',
   ],

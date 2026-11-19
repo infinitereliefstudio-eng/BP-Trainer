@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { whereItStopped } from '@core/explain/stops';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
-import { helpOffers, type HelpKind } from '@core/lessons/helpPolicy';
+import { cardsFor, helpOffers, type HelpKind } from '@core/lessons/helpPolicy';
 import { LEVELS } from '@core/lessons/levels';
 import type { LessonRun } from '@core/lessons/runner';
 import type { QualityParts, Verdict } from '@core/quality/review';
@@ -85,6 +85,7 @@ export function LessonSheet({
   const tap = useOwnTap();
   const [tab, setTab] = useState<Tab>(initialTab ?? 'learn');
   const offers = helpOffers(lesson, { tried, fails, done });
+  const cards = cardsFor(lesson, done);
   const shown = offers.filter((o) => o.index < hints);
   const nextOffer = offers.find((o) => o.index >= hints);
   const levelHelp = LEVELS.find((l) => l.id === lesson.level)?.help;
@@ -123,12 +124,17 @@ export function LessonSheet({
           {tab === 'learn' && (
             <>
               <p class="situation">{lesson.situation}</p>
-              {lesson.cards.map((c) => (
+              {cards.shown.map((c) => (
                 <article key={c.title} class="card">
                   <h4>{c.title}</h4>
                   <RichText text={c.body} />
                 </article>
               ))}
+              {cards.held > 0 && (
+                <p class="muted small held-cards">
+                  {cards.held === 1 ? 'Une fiche de méthode s’ouvrira' : `${cards.held} fiches de méthode s’ouvriront`} après la réussite, pour comparer avec ta façon de faire.
+                </p>
+              )}
               <Notions lesson={lesson} />
               <button class="btn primary" onClick={() => setTab('goals')}>
                 {lesson.kind === 'predict' ? 'Répondre' : 'Voir les objectifs'}

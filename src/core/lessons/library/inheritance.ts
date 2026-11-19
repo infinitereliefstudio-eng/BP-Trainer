@@ -92,12 +92,12 @@ export const lessonInheritance: Lesson = {
     },
   ],
   objectives: [
-    'Dans BP_Clignotante : un Event BeginPlay qui appelle d’abord Parent: BeginPlay.',
-    'Puis un timer en Looping toutes les 0,5 s qui bascule la Lumiere (Toggle Visibility).',
-    'La lampe de base, elle, reste allumée sans clignoter. Touche Vérifier.',
+    'BP_Clignotante fait tout ce que fait BP_Lampe : elle s’allume au lancement.',
+    'Puis elle clignote : sa Lumiere bascule toutes les 0,5 s.',
+    'La lampe de base reste allumée sans clignoter. Touche Vérifier.',
   ],
   hints: [
-    'Sans Parent: BeginPlay, la lampe clignotante ne s’allume plus : Allumer n’est plus appelé pour elle.',
+    'Quand l’enfant redéfinit BeginPlay, qu’advient-il du BeginPlay du parent ? Qui appelle Allumer maintenant ?',
     'Nœuds : Event BeginPlay, Parent: BeginPlay, Set Timer by Event (0,5, Looping), Custom Event Clignoter, Toggle Visibility (Target = Lumiere, héritée).',
     'Solution : BeginPlay → Parent: BeginPlay → Set Timer by Event (Clignoter, 0,5, Looping). Clignoter → Toggle Visibility (Lumiere).',
   ],

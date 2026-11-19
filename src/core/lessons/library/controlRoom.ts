@@ -110,7 +110,7 @@ export const lessonControlRoom: Lesson = {
     'Touche Vérifier : 3 appuis sur E près de la console.',
   ],
   hints: [
-    'La console ne connaît pas les lampes : elle annonce. Les lampes trouvent la console avec Get Actor Of Class.',
+    'La console doit-elle connaître les lampes ? Comment une lampe trouve-t-elle la console sans variable réglée dans le niveau ?',
     'Console : Event Interagir, Switch on E_Mode, 3 Set Mode, Call OnModeChange. Lampe : BeginPlay, Get Actor Of Class, Bind Event to OnModeChange, Custom Event, Switch on E_Mode, Set Visibility, Set Intensity.',
     'Solution : Console : Interagir → Switch (Mode) → Set Mode (suivant) → Call OnModeChange (Mode). Lampe : BeginPlay → Bind (Target = Get Actor Of Class BP_Console) ← Custom Event (NouveauMode) → Switch (NouveauMode) → Set Visibility / Set Intensity.',
   ],
@@ -230,7 +230,7 @@ export const refactor1: Lesson = {
   ],
   objectives: ['L’Ecran affiche toujours 3.', 'Get All Actors Of Class ne s’exécute qu’une fois.', 'Touche Vérifier.'],
   hints: [
-    'Déplace la recherche au BeginPlay ; garde le résultat dans une variable tableau.',
+    'Qu’est-ce qui coûte à chaque Tick ? Le résultat de cette recherche change-t-il pendant la partie ?',
     'Nœuds : Event BeginPlay, Get All Actors Of Class, Set Lampes (tableau de BP_Lampe), Get Lampes, Length, Set Text.',
     'Solution : BeginPlay → Get All Actors Of Class → Set Lampes. Tick (ou directement après le Set) → Set Text (Ecran, Length de Lampes).',
   ],

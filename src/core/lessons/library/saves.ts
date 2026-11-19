@@ -530,12 +530,12 @@ export const lessonCheckpoint: Lesson = {
     },
   ],
   objectives: [
-    'BP_Checkpoint, sur ActorBeginOverlap : Create Save Game Object (BP_Partie), Set Position = sa propre Get Actor Location, Save Game to Slot (« Checkpoint »).',
-    'Au BeginPlay : Load Game from Slot, Cast To BP_Partie, Set Actor Location du joueur (Get Player Pawn) à Position.',
+    'Toucher la dalle sauve l’endroit où elle se trouve (slot « Checkpoint »).',
+    'À la partie suivante, le joueur reprend sur la dalle.',
     'Touche Vérifier : la dalle, plus loin, puis Stop et Play.',
   ],
   hints: [
-    'Sauver et charger se font dans BP_Checkpoint. Pour déplacer le joueur, Get Player Pawn donne sa référence.',
+    'Où sauver et charger : dans le joueur, ou dans le checkpoint ? Comment obtenir la référence du joueur pour le déplacer ?',
     'Nœuds : Event ActorBeginOverlap, Create Save Game Object, Set Position, Get Actor Location, Save Game to Slot ; Event BeginPlay, Load Game from Slot, Cast To BP_Partie, Get Position, Get Player Pawn, Set Actor Location.',
     'Solution : Overlap → Create Save Game Object (BP_Partie) → Set Position (= Get Actor Location) → Save Game to Slot (« Checkpoint »). BeginPlay → Load Game from Slot (« Checkpoint ») → Cast To BP_Partie → Set Actor Location (Target = Get Player Pawn, New Location = Position).',
   ],

@@ -180,7 +180,7 @@ export const lessonTalk: Lesson = {
     'Touche Vérifier : un premier dialogue sans le ticket, puis un second avec.',
   ],
   hints: [
-    'Commence par Aller et teste avec Espace : la Bulle doit afficher « Bonsoir inspecteur. ». Ajoute IA_Choix1, puis IA_Choix2.',
+    'Que doit faire Aller pour que la Bulle affiche la première réplique ? Le vérifies-tu avec Espace avant d’écrire les choix ?',
     'Nœuds. Aller : Is None (Name), Branch, Terminer, Get Dialogue, Find, Branch, Append, Print String, Set Courante, Break S_Replique, Set Text (Bulle), Apprendre. Touches : Get Courante, Find, Break S_Replique, Aller, Is None, Get Faits, Contains, OR Boolean, Branch.',
     'Solution. Aller : Branch (Is None (Id)) → True : Terminer ; False : Branch (Boolean de Find (Dialogue, Id)) → False : Print « Réplique introuvable : » + Id → Terminer ; True : Set Courante = Id → Set Text (Bulle, Texte) → Apprendre (Donne). IA_Choix1 → Aller (ChoixE de Find (Dialogue, Courante)). IA_Choix2 → Branch (Is None (Exige) OR Contains (Faits, Exige)) → Aller (ChoixF).',
   ],

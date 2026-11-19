@@ -60,6 +60,9 @@ import { refactor4 } from './library/interactUe5';
 import { lessonPauseMenu } from './library/pauseMenu';
 import { synthesis3 } from './library/synthesis3';
 import { predictSpawnOrder } from './library/predicts3';
+import { lessonUniversalLever } from './library/universalLever';
+import { mixedDispenser, mixedSas } from './library/mixed';
+import { synthesis4 } from './library/synthesis4';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -166,7 +169,9 @@ export const LESSONS: Lesson[] = [
   lesson12,
   lessonInheritance,
   lessonControlRoom,
+  lessonUniversalLever,
   lessonLook,
+  mixedSas,
   debug6,
   refactor3,
   complete4,
@@ -175,11 +180,13 @@ export const LESSONS: Lesson[] = [
   debug15,
   debug14,
   complete5,
+  mixedDispenser,
   lessonTalk,
   lessonDialogueTable,
   lessonCheckpoint,
   complete6,
   lessonGrid,
+  synthesis4,
 ];
 
 let n = 0;

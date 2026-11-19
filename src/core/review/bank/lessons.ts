@@ -283,6 +283,30 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Le pupitre ne doit pas connaître ceux qui réagissent : il annonce (Call), chacun s’abonne (Bind) au BeginPlay. Ajouter un gyrophare ne change pas le pupitre.',
   ),
   q(
+    'l-levier-universel',
+    'Un même BP_Levier doit commander une porte ici, un pont là-bas. Comment lui donner ses cibles ?',
+    ['Un tableau d’Actor Instance Editable, réglé sur chaque levier posé', 'Une variable de type BP_Porte et une de type BP_Pont', 'Get All Actors Of Class au BeginPlay', 'Un Cast To par cible possible'],
+    'Ce qui change d’un levier posé à l’autre se règle dans les Details du niveau. Un tableau d’Actor et un message d’interface gardent le levier universel.',
+  ),
+  q(
+    'm1-sas',
+    'L’écran d’un sas doit afficher sa durée dans le niveau, avant même de lancer Play. Où l’écrire ?',
+    ['Dans le Construction Script', 'Au BeginPlay', 'Sur Event Tick', 'Dans un timer'],
+    'Le Construction Script s’exécute dans l’éditeur, à chaque placement ou réglage : c’est lui qui fait voir les réglages avant Play.',
+  ),
+  q(
+    'm2-distributeur',
+    'Un objet créé par Spawn Actor doit afficher son Nom à son BeginPlay. Comment le lui donner ?',
+    ['Expose on Spawn : une pin du Spawn Actor, remplie avant le BeginPlay', 'Un Set Nom juste après le Spawn Actor', 'Une variable globale lue au BeginPlay', 'Un Delay au BeginPlay de l’objet'],
+    'Spawn Actor lance le BeginPlay avant de rendre la main : un Set après arrive trop tard. Expose on Spawn donne la valeur à la naissance.',
+  ),
+  q(
+    's4-fusibles',
+    'Au lancement, un fusible doit savoir s’il a déjà été pris dans une partie précédente. Que doit-il faire ?',
+    ['Relire lui-même la sauvegarde à son BeginPlay', 'Lire la liste du joueur à son BeginPlay', 'Attendre que le joueur le touche', 'Rien : un acteur détruit le reste d’une partie à l’autre'],
+    'L’ordre des BeginPlay n’est pas garanti : le joueur n’a peut-être pas encore chargé. Chaque acteur qui dépend de la sauvegarde la relit lui-même.',
+  ),
+  q(
     'l-menu-pause',
     'IA_Pause met le jeu en pause avec Set Game Paused. Le second appui sur Espace ne fait plus rien. Pourquoi ?',
     ['Trigger when Paused n’est pas coché sur IA_Pause', 'Set Game Paused ne peut être appelé qu’une fois', 'Le Player Controller est détruit en pause', 'Il faut un Delay avant de reprendre'],

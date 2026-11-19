@@ -139,7 +139,7 @@ export const complete4: Lesson = {
     'Touche Vérifier : le joueur regarde le levier, le coffre, le mur, le coffre lointain, le vide, puis le coffre est détruit sous ses yeux.',
   ],
   hints: [
-    'Fais les trous dans l’ordre et lance Play après le premier, avec Draw Debug Type sur For One Frame : le rayon doit partir du joueur vers l’avant, long de 2 mètres.',
+    'Le rayon part-il bien du joueur, vers l’avant, sur 2 mètres ? Lance Play après chaque trou avec Draw Debug Type, et regarde-le.',
     'Nœuds : Get Actor Forward Vector, Get Portee, Multiply (Vector * Float), Add (Vector) ; Does Implement Interface, AND Boolean, Branch ; Get Display Name.',
     'Solution : End = Get Actor Location + Get Actor Forward Vector × Portee. Line Trace → Branch (Return Value AND Does Implement Interface (Hit Actor)) → True : Set Text (Viseur, Get Display Name (Hit Actor)) ; False : Set Text (Viseur, vide).',
   ],

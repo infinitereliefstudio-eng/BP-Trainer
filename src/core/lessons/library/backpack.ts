@@ -173,7 +173,7 @@ export const complete5: Lesson = {
     'Touche Vérifier : 3 gourdes, un outil, 10 gourdes, un outil.',
   ],
   hints: [
-    'La boucle s’insère entre le Set de Restant et le While Loop : Set Restant → For Each Loop ; Completed → While Loop.',
+    'Où s’insère la boucle : avant ou après le While Loop ? Que doit valoir Restant quand elle commence ?',
     'Nœuds : For Each Loop, Get Piles, Break S_Pile, Equal (Name), Less (Integer), AND Boolean, Branch, Subtract (Integer), Min (Integer), Set Place, Get (a ref), Set Members in S_Pile (Quantite cochée), Add (Integer), Set Restant.',
     'Solution : For Each (Piles) → Branch (Objet == Objet de la pile AND Quantite < MaxPile) → Set Place = Min (MaxPile − Quantite, Restant) → Set Members in S_Pile (Struct Ref = Get (a ref) (Piles, Array Index), Quantite = Quantite + Place) → Set Restant = Restant − Place. Completed → While Loop.',
   ],

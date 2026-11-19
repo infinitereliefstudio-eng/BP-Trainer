@@ -79,7 +79,7 @@ export const lessonPureFunctions: Lesson = {
     'Touche Vérifier : il faut voir 80, 15, 5, puis 100.',
   ],
   hints: [
-    'CalculerDegats ne touche pas à PV : elle rend un nombre. C’est le BeginPlay qui fait le Set. Soin n’est pas Montant : au second soin, PV est plafonné.',
+    'Qui doit modifier PV : la fonction, ou celui qui l’appelle ? Et que vaut PV au second soin ?',
     'Dans CalculerDegats : Branch (Critique) → deux Return Node (Base × 2, et Base). Dans Soigner : Set Avant (PV) → Set PV = Min (PV + Montant, 100) → Return Node (Soin = PV − Avant).',
     'Solution : BeginPlay → Set PV = PV − CalculerDegats(10, true) → Print PV (80) → Soigner(15) → Print Soin (15) → Soigner(15) → Print Soin (5) → Print PV (100).',
   ],
@@ -267,7 +267,7 @@ export const lessonCleanDestroy: Lesson = {
   ],
   objectives: ['Quand une caisse est détruite, elle est retirée de la liste Caisses du gardien.', 'Plus aucune erreur pendant la ronde.', 'Touche Vérifier.'],
   hints: [
-    'Le changement se fait dans BP_Caisse, pas dans le gardien.',
+    'Qui sait qu’une caisse disparaît : le gardien, ou la caisse elle-même ? Où dit-on aux autres « je m’en vais » ?',
     'Nœuds : Event Destroyed, Get Actor Of Class (BP_Gardien), Get Caisses (Target = le gardien), Remove Item, Self.',
     'Solution : BP_Caisse : Event Destroyed → Remove Item (Target Array = Caisses du gardien, Item = Self).',
   ],
@@ -386,7 +386,7 @@ export const complete2: Lesson = {
     'Touche Vérifier : le BeginPlay doit afficher 120.',
   ],
   hints: [
-    'Lance d’abord Play et touche Pourquoi ? sous l’erreur de l’Output Log.',
+    'Que dit l’Output Log ? Touche Pourquoi ? sous l’erreur : quel appel ne s’arrête jamais ?',
     'Nœuds à placer : <= (Integer), Branch, Return Node (appui long dans le vide du graphe de la fonction).',
     'Solution : Entrée → Branch (N <= 1) ; True → Return Node (Resultat = 1) ; False → Factorielle (N − 1) → Return Node (N × résultat).',
   ],

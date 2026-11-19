@@ -20,41 +20,41 @@ const SPACING_TARGET = 15;
  * Today's longest gaps above the target (steps), to bring down lot by lot.
  * Lot 3b (V7.16) brought down what crosses the Confirmé with recalls; the
  * gaps marked « lot 4 » run into the Avancé, or are notions no Confirmé
- * step can write naturally (maps, player-controller…).
+ * step can write naturally (maps, player-controller…). Lot 4a (V7.17)
+ * added Avancé steps; what still runs to the end of the path waits for the
+ * Expert projects (lot 4b).
  */
 const KNOWN_GAPS: Record<string, number> = {
   arrays: 23, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   components: 16,
-  construction: 41, // lot 3 added Confirmé steps inside this gap: lot 4
-  'data-tables': 42, // lot 3 added Confirmé steps inside this gap: lot 4
+  construction: 29, // lot 3 added Confirmé steps inside this gap: lot 4
+  'data-tables': 45, // runs to the end of the path: Expert projects (lot 4b)
   destroy: 38,
   dispatchers: 25,
-  'enhanced-input': 20,
   enum: 30,
   'flow-memory': 28,
   functions: 32, // lot 3 added Confirmé steps inside this gap: lot 4
-  inheritance: 16,
-  input: 20,
+  inheritance: 20, // runs to the end of the path: Expert projects (lot 4b)
   interfaces: 22,
-  latent: 30, // lot 3 added Confirmé steps inside this gap: lot 4
+  latent: 32, // runs to the end of the path: Expert projects (lot 4b)
   locals: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   maps: 49, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 24, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 21,
-  'player-controller': 72, // lot 3 added Confirmé steps inside this gap: lot 4
-  random: 43, // lot 3 added Confirmé steps inside this gap: lot 4
+  'player-controller': 76, // runs to the end of the path: Expert projects (lot 4b)
+  random: 40, // lot 3 added Confirmé steps inside this gap: lot 4
   rotation: 17,
-  'save-game': 25, // lot 3 added Confirmé steps inside this gap: lot 4
-  sequence: 44, // lot 3 added Confirmé steps inside this gap: lot 4
+  'save-game': 28, // runs to the end of the path: Expert projects (lot 4b)
+  sequence: 46, // runs to the end of the path: Expert projects (lot 4b)
   sets: 23, // lot 3 added Confirmé steps inside this gap: lot 4
-  spawn: 33, // lot 3 added Confirmé steps inside this gap: lot 4
-  structs: 40, // lot 3 added Confirmé steps inside this gap: lot 4
+  spawn: 30, // lot 3 added Confirmé steps inside this gap: lot 4
+  structs: 42, // runs to the end of the path: Expert projects (lot 4b)
   switch: 30,
-  tick: 30, // lot 3 added Confirmé steps inside this gap: lot 4
+  tick: 34, // runs to the end of the path: Expert projects (lot 4b)
   timeline: 41,
   timers: 27,
-  visibility: 16,
+  visibility: 18, // runs to the end of the path: Expert projects (lot 4b)
 };
 
 const practised = LESSONS.map(practisedBy);

@@ -526,4 +526,19 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Sans Trigger when Paused sur l’action qui enlève la pause, le jeu reste figé pour toujours : l’appui suivant n’arrive jamais. Les événements de touche (UE4) ne s’exécutent pas non plus en pause.',
     pattern: 'IA_Pause (Started) → Set Game Paused (NOT Is Game Paused)',
   },
+  {
+    title: 'Blueprint réutilisable',
+    names: ['Levier réutilisable', 'Tableau de références'],
+    what: 'Un Blueprint qu’on pose plusieurs fois et qui fait un travail différent à chaque endroit : ce qui change d’un acteur posé à l’autre (ses cibles, sa durée) est une variable Instance Editable, réglée dans les Details du niveau. Une liste de cibles est un tableau d’Actor.',
+    when: 'Un levier, un interrupteur, une plaque de pression, un sas : tout ce que le level designer pose en série. Le Blueprint ne connaît pas ses cibles par leur classe : il leur envoie un message d’interface.',
+    trap: 'Une variable de type BP_Porte dans le levier le lie aux portes : le jour où il doit commander un pont, il faut le modifier. Un tableau d’Actor et une interface le gardent universel.',
+    pattern: 'Event Interagir → For Each Loop (Cibles) → Activer (Message, Etat)',
+  },
+  {
+    title: 'Entraînement mélangé',
+    names: ['Entraînement mélangé'],
+    what: 'Une étape qui mélange des notions déjà vues sans dire lesquelles utiliser. Choisir l’outil fait partie de l’exercice : c’est ce qui arrive dans un vrai projet.',
+    when: 'Pour chaque règle du cahier des charges : à quel moment doit-elle s’exécuter (éditeur, événement, chaque seconde), que faut-il garder, et quel outil connu fait exactement ça ?',
+    trap: 'Prendre le dernier outil appris parce qu’il est frais en mémoire. Le bon outil est celui dont la question correspond à la règle.',
+  },
 ];

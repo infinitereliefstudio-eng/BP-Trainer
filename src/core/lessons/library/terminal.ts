@@ -106,7 +106,7 @@ export const lessonTerminal: Lesson = {
     'Le joueur envoie son NiveauBadge et affiche la réponse, seulement si elle n’est pas vide.',
   ],
   hints: [
-    'Une fois la sortie ajoutée, l’implémentation se trouve dans My Blueprint › Interfaces, pas dans l’Event Graph.',
+    'Une fonction d’interface qui rend une valeur : où se trouve son implémentation, dans l’Event Graph ou dans My Blueprint › Interfaces ?',
     'Nœuds : (terminal) Niveau ≥ 2 → Select String ou Branch, Return Node ; (porte) Set Relative Rotation puis Return Node « Porte ouverte » ; (joueur) Get NiveauBadge → Niveau, Branch (Reponse != vide) → Print String.',
     'Solution : terminal : Entry → Branch (Niveau ≥ 2) → Return « Accès autorisé » / Return « Accès refusé ». Porte : Entry → Set Relative Rotation (Z 90) → Return « Porte ouverte ». Joueur : Interagir (Message, Niveau = NiveauBadge) → Branch (Reponse != "") → Print Reponse.',
   ],

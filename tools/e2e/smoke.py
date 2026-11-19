@@ -252,8 +252,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 109:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 109")
+        if await page.locator('.lesson-item').count() != 113:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 113")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -502,7 +502,7 @@ async def main():
 
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La caisse qu’on pousse').tap()
+        await page.locator('.lesson-item', has_text='Détruire proprement').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
         await graph(page)
@@ -731,6 +731,22 @@ async def main():
             errs.append('Menu pause : le jeu reste en pause après le second Espace')
         await page.locator('.pb-btn.stop').tap()
         await page.wait_for_timeout(300)
+
+        # Lot 4a: an Avancé step is a brief, its step-by-step card waits for success
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Détruire proprement').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.lesson-tabs').count() == 0:
+            await page.locator('.tb.lesson').tap()
+            await page.wait_for_timeout(300)
+        await page.locator('.lesson-tabs button', has_text='Comprendre').tap()
+        await page.wait_for_timeout(200)
+        await shot('71_avance_brief')
+        if await page.locator('.lesson-body .held-cards').count() != 1:
+            errs.append('Avancé : la fiche « Le plan » devrait attendre la réussite')
+        if await page.locator('.lesson-body .card h4', has_text='Le plan').count():
+            errs.append('Avancé : la fiche « Le plan » est visible avant la réussite')
 
         print('errors', errs)
         await b.close()

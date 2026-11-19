@@ -173,7 +173,7 @@ export const debug6: Lesson = {
     'Derrière le mur, la tourelle doit afficher « Rien ».',
   ],
   hints: [
-    'Le rayon part de Get Actor Location : le centre de la tourelle, à l’intérieur de son propre Static Mesh.',
+    'D’où part le rayon ? Que touche-t-il en premier, avant même de sortir de la tourelle ?',
     'Regarde les entrées du Line Trace : l’une d’elles dit s’il faut ignorer l’acteur qui lance le rayon.',
     'Solution : coche Ignore Self sur Line Trace By Channel.',
   ],

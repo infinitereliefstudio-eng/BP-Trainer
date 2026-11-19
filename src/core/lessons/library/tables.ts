@@ -402,13 +402,12 @@ export const lessonDialogueTable: Lesson = {
     },
   ],
   objectives: [
-    'Dans BP_Radio, sur IA_Interagir : Get Data Table Row (DT_Dialogue), Row Name = Ligne.',
-    'Row Found : affiche « Personnage : Texte », puis range Suivante dans Ligne.',
-    'Row Not Found : affiche « Fin de la conversation ».',
+    'Chaque E sur la radio affiche la réplique suivante de DT_Dialogue : « Personnage : Texte ».',
+    'Après la dernière : « Fin de la conversation ».',
     'Touche Vérifier : quatre appuis sur E.',
   ],
   hints: [
-    'Ligne est le seul état du dialogue : la table dit le reste.',
+    'Quel est le seul état du dialogue ? Le reste est-il bien dans la table ?',
     'Nœuds : IA_Interagir, Get Ligne, Get Data Table Row (DT_Dialogue), Break S_Replique, Append (3 entrées), Print String, Set Ligne, un second Print String.',
     'Solution : IA_Interagir → Get Data Table Row (Ligne) ; Row Found → Print String (Append(Personnage, « : », Texte)) → Set Ligne = Suivante ; Row Not Found → Print String « Fin de la conversation ».',
   ],

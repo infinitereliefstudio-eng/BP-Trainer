@@ -64,6 +64,8 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'choose-tool', title: 'Choisir Cast, Dispatcher ou Interface', covers: 'qui connaît qui : l’outil de communication qui convient' },
   { id: 'find', title: 'Chercher dans le projet', covers: 'Find References, Find in all Blueprints : qui utilise quoi' },
   { id: 'pause', title: 'Pause du jeu', covers: 'Set Game Paused, Is Game Paused, Trigger when Paused' },
+  { id: 'reusable', title: 'Blueprint réutilisable', covers: 'un même Blueprint posé plusieurs fois, réglé acteur par acteur, sans connaître ses cibles' },
+  { id: 'mixed', title: 'Entraînement mélangé', covers: 'choisir soi-même l’outil, sans que la consigne le dise' },
 ];
 
 const BY_ID = new Map(NOTIONS.map((n) => [n.id, n]));

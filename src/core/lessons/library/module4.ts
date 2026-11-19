@@ -234,7 +234,7 @@ export const lesson12: Lesson = {
     'Lampes et porte suivent le générateur grâce au dispatcher.',
   ],
   hints: [
-    'Quatre Blueprints à remplir : BP_Fusible (compter), BP_Generateur (réparer et consommer), BP_Lampe et BP_Porte (écouter).',
+    'Pour chacun des quatre Blueprints : à quel événement réagit-il, que garde-t-il, et qui doit-il prévenir ?',
     'Nœuds : Cast To BP_Joueur, Increment Int, Destroy Actor ; Event Interagir, Get Player Pawn, >= (Integer), Branch, Set Timer by Event, Custom Event, Clamp (Float), <= (Float), Clear and Invalidate Timer by Handle, Call OnEtatChange ; Bind Event, Set Visibility, Select, Make Rotator, Set Relative Rotation.',
     'Solution : voir les cartes Comprendre, dans l’ordre : fusible → générateur (Interagir) → Consommer → lampes et porte.',
   ],

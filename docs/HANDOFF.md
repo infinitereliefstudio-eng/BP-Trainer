@@ -4,23 +4,23 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.16)
+## Reprise rapide (2026-11-19, après la V7.17)
 
 ### Où on en est
 
-- **Version en ligne : 7.16.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.17.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
   - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
   - lot 3 (Confirmé) : fait, V7.15 (3a, quatre nouvelles étapes) et V7.16 (3b, rappels, P14, synthèse S3, lancé par « tu peux passer a 3b ») ;
-  - **lot 4 (Avancé et Expert) : à faire, prochain**, seulement quand Tristan le demande.
-- **En attente de Tristan** : son retour sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, et un ou deux rappels (La rangée de lampes, L'ascenseur). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **Ne rien commencer du lot 4 sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
+  - lot 4 (Avancé et Expert) : **4a fait en V7.17** (l'Avancé, lancé par « tu peux passer au lot 4 ») ; **4b (Expert) à faire, prochain**, seulement quand Tristan le demande.
+- **En attente de Tristan** : son retour sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), et l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **Ne rien commencer du lot 4b sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-109 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 24, Expert 0 (le niveau existe, vide jusqu'au lot 4). 139 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+113 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 28 (fin : synthèse S4), Expert 0 (le niveau existe, vide jusqu'au lot 4b). 143 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -34,7 +34,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
-1. **Lot 4 — Avancé et Expert** : cahiers des charges en Avancé, « Le levier universel », projets Expert sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), entraînement mélangé, synthèse S4.
+1. **Lot 4b — Expert** : projets sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), héritage repris, et les notions qui ne reviennent plus en fin de parcours (player-controller, Tick, Sequence, Delay, structures, Data Tables). Détail dans PLAN_PARCOURS.md, « Lot 4b ».
 2. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
 
 ### Ajouter ou modifier une étape : la liste à cocher
@@ -609,6 +609,18 @@ Lancé par « tu peux passer a 3b ». Fin du lot 3 : 109 étapes. Tests : `tests
 - Révision : 2 questions (139). `smoke.py` attend 109 étapes.
 
 Version 7.16.0.
+
+## V7.17 (2026-11-19) : plan du parcours, lot 4a (l'Avancé)
+
+Lancé par « tu peux passer au lot 4 » ; fait en deux temps comme les lots 2 et 3 (4b = Expert). 113 étapes. Tests : `tests/lot4.test.ts`.
+
+- **Cahier des charges** : `cardsFor(lesson, done)` dans `helpPolicy.ts` garde jusqu'à la réussite, en Avancé et Expert, les fiches dont le titre est dans `PLAN_CARD_TITLES` ; `LessonSheet` dit combien attendent (`.held-cards`). Premier indice des 24 étapes Avancé réécrit en questions (le test l'exige : un « ? » dans `hints[0]` hors Prédis). Objectifs réécrits sans recette pour six étapes (texte seulement, pas de `revision`). Les étapes Complète et Refactor gardent leurs objectifs (leur format est de dire quoi modifier).
+- **Le levier universel** (`universalLever.ts`) : niveau avec BPI_Interactif, IMC_Joueur, cibles (porte, lampe, pont au Tablier caché) et deux BP_Plot (Construction Script qui écrit A et B) ; l'apprenant écrit le côté joueur (`playerTells`, exporté), crée BPI_Activable (entrée Etat), BP_Levier, et pose deux leviers. Vérifications : deux BP_Levier à moins de 80 cm des plots, comportement A / B / A, pas de Cast ni de variable typée cible dans BP_Levier.
+- **Entraînement mélangé** (`mixed.ts`) : M1 Le sas (aperçu éditeur « Sas : 3 s », porte qui se ferme en 0,5 s vérifiée à mi-course, 3 / 2 malgré un aller-retour, « Ouvert ») ; M2 Le distributeur (BP_Objet créé par l'apprenant, Expose on Spawn, compte par sorte dans une Map, « Vide »). Fiche commune « Un entraînement mélangé », fiche de glossaire.
+- **Synthèse S4 « Les fusibles »** (`synthesis4.ts`) : scénario avec `restart` ; un fusible qui lit la liste du joueur au lieu de la sauvegarde échoue dans un des deux ordres (testé).
+- Révision : 4 questions (143). `smoke.py` attend 113 étapes, capture 71 (fiche de méthode retenue).
+
+Version 7.17.0.
 
 ## Méthode de travail
 

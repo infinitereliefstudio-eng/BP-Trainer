@@ -162,7 +162,7 @@ export const debug14: Lesson = {
     'Chaque ingrédient manquant est annoncé, comme avant.',
   ],
   hints: [
-    'Le stock est modifié dans la boucle qui vérifie. Il faut que la vérification soit terminée pour tous les ingrédients avant le premier Add.',
+    'À quel moment le stock change-t-il ? La vérification est-elle finie pour tous les ingrédients avant le premier Add ?',
     'Nœuds : un second For Each Loop sur Keys (Recette), et le bloc qui retire du stock (deux Find, Subtract, Add) déplacé dedans.',
     'Solution : première boucle → Branch (assez ?) → False : Possible = faux, « Il manque : … » ; True : rien. Completed → Branch (Possible) → True : seconde boucle sur Keys (Recette) → Add (Stock, clé, stock − besoin) ; Completed → Increment Outils → « Outil fabriqué ». False : « Fabrication refusée ».',
   ],

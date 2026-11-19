@@ -24,6 +24,21 @@
   --fab: 40px;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
+
+  /* Shared colours (V7.32). Amber « app » = what BP Trainer adds and UE does not have; ok and err = success and failure. */
+  --app-text: #ffd76a;
+  --app-text-soft: #dccfa8;
+  --app-line: #8a6d14;
+  --app-line-dim: #6b5a14;
+  --app-bg: #221c0a;
+  --ok-line: #2f6b3a;
+  --ok-bg: #14261a;
+  --ok-text: #9be3ae;
+  --err-line: #8a2a2a;
+  --err-line-dim: #6b2a2a;
+  --err-bg: #2a1414;
+  --err-text: #ff8a8a;
+  --err-text-soft: #ffb3b3;
 }
 
 * { box-sizing: border-box; }
@@ -127,9 +142,9 @@ select.field { padding-right: 4px; }
 .check input, .d-field input[type='checkbox'] { width: 22px; height: 22px; accent-color: var(--accent); }
 .btn { height: 36px; padding: 0 12px; border-radius: var(--radius); background: var(--panel-2); border: 1px solid var(--line-2); white-space: nowrap; }
 .btn.primary { background: var(--accent); border-color: var(--accent); }
-.btn.danger { border-color: #6b2a2a; color: #ff8a8a; }
+.btn.danger { border-color: var(--err-line-dim); color: var(--err-text); }
 .details .btn { margin-top: 8px; }
-.chip.danger { border-color: #6b2a2a; color: #ff8a8a; }
+.chip.danger { border-color: var(--err-line-dim); color: var(--err-text); }
 .param-block { padding: 6px 0; border-bottom: 1px dashed var(--line); display: flex; flex-direction: column; gap: 4px; }
 .param-row { display: flex; align-items: center; gap: 8px; min-height: var(--tap); }
 .param-row .field, .param-row .mb-label { flex: 1; min-width: 0; }
@@ -139,15 +154,12 @@ select.field { padding-right: 4px; }
 
 /* ----------------------------------------------------------- bottom panel */
 .bottom-wrap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--panel); border-top: 1px solid var(--line); }
-.bottom-handle { width: 100%; height: var(--bottom-h); text-align: left; padding: 0 12px; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
-.bottom { height: min(190px, 45vh); display: flex; flex-direction: column; }
-.bottom-tabs { display: flex; gap: 4px; padding: 0 8px; border-bottom: 1px solid var(--line); }
-.bottom-tabs button { height: 34px; padding: 0 10px; color: var(--muted); border-bottom: 2px solid transparent; }
-.bottom-tabs button.active { color: var(--text); border-color: var(--accent); }
+.bottom-handle { flex: none; width: 40px; height: var(--bottom-h); color: var(--muted); font-size: 13px; display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--line); }
+.bottom { height: min(190px, 45vh); display: flex; flex-direction: column; border-top: 1px solid var(--line); }
 .bottom-body { flex: 1; overflow-y: auto; padding: 4px 0; }
 .msg { display: flex; gap: 8px; width: 100%; text-align: left; padding: 6px 12px; font-size: 13px; line-height: 1.35; }
 .msg.error { color: #ff9a9a; }
-.msg.warning { color: #ffd76a; }
+.msg.warning { color: var(--app-text); }
 .msg-icon { width: 16px; flex: none; font-weight: 700; }
 .msg-time { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
 .why { padding: 0 12px 6px 36px; }
@@ -172,8 +184,8 @@ select.field { padding-right: 4px; }
 /* Bottom right, left of the floating buttons, like UE's notifications (V7.31); at the top during Play (joystick and keys at the bottom). */
 .toasts { position: absolute; right: calc(max(8px, env(safe-area-inset-right)) + 60px); bottom: calc(var(--bottom-h) + 10px); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; z-index: 30; pointer-events: none; width: min(420px, 62%); }
 .toast { padding: 6px 10px; border-radius: 8px; background: rgba(30, 30, 30, 0.96); border: 1px solid var(--line-2); border-left-width: 3px; font-size: 12.5px; line-height: 1.35; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
-.toast.warning { border-color: #8a6d14; }
-.toast.error { border-color: #8a2a2a; }
+.toast.warning { border-color: var(--app-line); }
+.toast.error { border-color: var(--err-line); }
 
 /* --------------------------------------------------------------- overlays */
 .sheet-backdrop, .menu-backdrop { position: fixed; inset: 0; z-index: 50; }
@@ -191,18 +203,19 @@ select.field { padding-right: 4px; }
 .pi-title { font-weight: 600; }
 .pi-desc { color: var(--muted); font-size: 12px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.menu { position: absolute; background: #262626; border: 1px solid var(--line-2); border-radius: 8px; padding: 4px 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
+.menu { position: absolute; overflow-y: auto; overscroll-behavior: contain; background: #262626; border: 1px solid var(--line-2); border-radius: 8px; padding: 4px 0; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
 .menu-title { padding: 6px 12px; font-size: 12px; color: var(--muted); font-weight: 700; }
-.menu-item { width: 100%; height: 44px; padding: 0 12px; display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.menu-item { width: 100%; min-height: 42px; padding: 6px 12px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; text-align: left; }
+.menu-label { line-height: 1.25; }
 .menu-item:active { background: var(--accent-soft); }
-.menu-item.danger { color: #ff8a8a; }
-.menu-hint { color: var(--muted); font-size: 12px; }
+.menu-item.danger { color: var(--err-text); }
+.menu-hint { color: var(--muted); font-size: 12px; line-height: 1.25; }
 
 .dialog { width: min(420px, 92vw); background: var(--panel); border: 1px solid var(--line-2); border-radius: 10px; padding: 14px; max-height: 92vh; overflow-y: auto; }
 .dialog h2 { margin: 0 0 10px; font-size: 16px; }
 .dialog p { line-height: 1.45; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
-.error-text { color: #ff8a8a; font-size: 13px; margin: 6px 0 0; }
+.error-text { color: var(--err-text); font-size: 13px; margin: 6px 0 0; }
 .about-list { padding-left: 18px; line-height: 1.6; margin: 0; }
 
 /* -------------------------------------------------------- portrait hint */
@@ -218,8 +231,8 @@ select.field { padding-right: 4px; }
 .tabs { display: flex; gap: 2px; flex: none; }
 .tabs .tab { background: none; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 600; }
 .tabs .tab.active { color: var(--text); border-color: var(--accent); }
-.tb.stop { border-color: #8a2a2a; color: #ffb3b3; }
-.tb.lesson { border-color: #8a6d14; color: #ffd76a; font-weight: 600; }
+.tb.stop { border-color: var(--err-line); color: var(--err-text-soft); }
+.tb.lesson { border-color: var(--app-line); color: var(--app-text); font-weight: 600; }
 .fab.primary.wide { font-size: 15px; font-weight: 600; }
 .pill.ok { background: var(--ok); color: #0b2a12; }
 .boot { display: flex; height: 100%; align-items: center; justify-content: center; color: var(--muted); }
@@ -233,17 +246,17 @@ select.field { padding-right: 4px; }
 /* Play */
 .play-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
 .play-overlay > * { pointer-events: auto; }
-.play-bar {
-  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 6px;
-  padding: 4px; background: rgba(20, 20, 20, 0.9); border: 1px solid var(--line-2); border-radius: 10px;
-}
+/* In the level toolbar since V7.32, after Stop (UE's Play toolbar): the top of the level stays free. */
+.play-bar { display: flex; align-items: center; gap: 4px; flex: none; margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--line-2); }
 .pb-btn { white-space: nowrap; height: 34px; min-width: 38px; padding: 0 8px; border-radius: 7px; background: var(--panel-2); border: 1px solid var(--line-2); font-weight: 600; }
 .pb-btn.small { min-width: 34px; font-size: 13px; }
 .pb-btn.on { background: var(--accent-soft); border-color: var(--accent); }
-.pb-btn.stop { color: #ffb3b3; border-color: #6b2a2a; }
+.pb-btn.stop { color: var(--err-text-soft); border-color: var(--err-line-dim); }
 .pb-time { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
 .pb-err { height: 30px; padding: 0 10px; border-radius: 15px; background: var(--error); color: #fff; font-size: 12px; font-weight: 700; }
-.screen-msgs { position: absolute; top: 56px; left: max(12px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
+.toolbar .play-bar .pb-btn { height: var(--tb-btn); }
+.toolbar .play-bar .pb-err { height: var(--tb-btn); }
+.screen-msgs { position: absolute; top: 10px; left: max(12px, env(safe-area-inset-left)); display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
 .game-paused { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fff; font: 700 22px/1 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing: 4px; text-shadow: 0 1px 3px #000, 0 0 6px #000; pointer-events: none; }
 .screen-msg { color: #00a8ff; font-size: 15px; text-shadow: 0 1px 2px #000, 0 0 4px #000; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
 .joystick {
@@ -275,7 +288,7 @@ select.field { padding-right: 4px; }
   display: flex; gap: 12px; align-items: flex-start; text-align: left; padding: 12px; border-radius: 8px;
   background: var(--panel); border: 1px solid var(--line-2); min-width: 0;
 }
-.lesson-item.done { border-color: #2f6b3a; }
+.lesson-item.done { border-color: var(--ok-line); }
 .li-num { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--panel-2); font-weight: 700; font-variant-numeric: tabular-nums; }
 .lesson-item.done .li-num { background: var(--ok); color: #0b2a12; }
 .li-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -301,15 +314,15 @@ select.field { padding-right: 4px; }
 .result.ok .r-icon { color: var(--ok); }
 .result.ko .r-icon { color: var(--error); }
 .r-why { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
-.note { margin: 4px 0 0; padding: 8px 10px; border-radius: 6px; background: rgba(242, 192, 20, 0.12); border: 1px solid #6b5a14; font-size: 13px; line-height: 1.4; }
-.success { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 12px; border-radius: 8px; background: rgba(63, 191, 90, 0.12); border: 1px solid #2f6b3a; }
+.note { margin: 4px 0 0; padding: 8px 10px; border-radius: 6px; background: rgba(242, 192, 20, 0.12); border: 1px solid var(--app-line-dim); font-size: 13px; line-height: 1.4; }
+.success { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 12px; border-radius: 8px; background: rgba(63, 191, 90, 0.12); border: 1px solid var(--ok-line); }
 .success p { margin: 0; line-height: 1.45; }
 .hint-card p { margin: 0; }
 .reset-zone { margin-top: auto; padding-top: 16px; }
 
 .lesson-body > * { flex-shrink: 0; }
 .lesson-body > .btn { align-self: flex-start; }
-.app.playing .toasts { top: 60px; bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: stretch; width: min(560px, 90%); }
+.app.playing .toasts { top: 8px; bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: stretch; width: min(560px, 90%); }
 
 /* -------------------------------------------------------------- debugger */
 .debug-bar {
@@ -338,8 +351,8 @@ select.field { padding-right: 4px; }
 /* ------------------------------------------------------------- exercises */
 .options { display: flex; flex-direction: column; gap: 8px; }
 .option { text-align: left; padding: 10px 12px; border-radius: 8px; background: var(--panel-2); border: 1px solid var(--line-2); font-size: 14px; }
-.option.ko { border-color: #8a2b2b; background: #2a1414; }
-.option.ok, .option.answer { border-color: #2f6b3a; background: #14261a; }
+.option.ko { border-color: var(--err-line); background: var(--err-bg); }
+.option.ok, .option.answer { border-color: var(--ok-line); background: var(--ok-bg); }
 .lesson-item.exercise .li-num { background: transparent; border: 1px dashed var(--line-2); }
 .lesson-item.exercise .eyebrow { display: block; margin-bottom: 2px; }
 .row-buttons.flush { padding: 0; margin-top: 8px; }
@@ -379,7 +392,7 @@ select.field { padding-right: 4px; }
 .tl-tracks { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .tl-tracks .chip { flex: none; }
 .tl-tracks .chip.on { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
-.tl-tracks .chip.danger { color: #ff8a8a; }
+.tl-tracks .chip.danger { color: var(--err-text); }
 .tl-rename { width: 120px; flex: none; margin-left: auto; }
 .tl-plot { flex: 1; min-height: 110px; position: relative; overflow: hidden; }
 .tl-plot svg { display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -407,7 +420,7 @@ select.field { padding-right: 4px; }
 .notebook .search { height: 44px; width: 100%; max-width: 520px; }
 .note-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
 .note-item { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 10px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line-2); }
-.note-item.done { border-color: #2f6b3a; }
+.note-item.done { border-color: var(--ok-line); }
 .note-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .note-text { line-height: 1.45; font-size: 13.5px; }
 .note-tags { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -438,7 +451,7 @@ select.field { padding-right: 4px; }
 .advice-card h4, .alt-card h4 { color: var(--text); }
 
 /* Scratch workspace: another way to solve a lesson */
-.scratch-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 10px; background: #2a2208; border-bottom: 1px solid #6b5a14; font-size: 13px; }
+.scratch-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 10px; background: #2a2208; border-bottom: 1px solid var(--app-line-dim); font-size: 13px; }
 .scratch-bar span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scratch-bar .btn { flex: none; height: 32px; }
 
@@ -450,7 +463,7 @@ select.field { padding-right: 4px; }
 .home-tabs::-webkit-scrollbar { display: none; }
 .home-tabs button { white-space: nowrap; flex: none; display: inline-flex; align-items: center; gap: 6px; }
 .count-badge { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--orange); color: #111; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
-.review-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; padding: 12px 14px; border-radius: 8px; background: rgba(242, 165, 22, 0.1); border: 1px solid #8a6d14; line-height: 1.4; }
+.review-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; padding: 12px 14px; border-radius: 8px; background: rgba(242, 165, 22, 0.1); border: 1px solid var(--app-line); line-height: 1.4; }
 .review-go { flex: none; font-weight: 700; color: var(--orange); }
 .review-intro, .quiz { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; max-width: 680px; }
 .review-intro h2 { margin: 0; font-size: 18px; }
@@ -502,19 +515,19 @@ select.field { padding-right: 4px; }
 .version-line { margin-top: 14px; }
 
 /* Lesson: objectives visible while building */
-.goal-strip { flex: none; display: flex; align-items: center; gap: 8px; min-height: var(--goal-h); padding: 2px 8px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); background: #221c0a; border-bottom: 1px solid #6b5a14; font-size: 13px; }
-.goal-strip.passed { background: #12241a; border-color: #2f6b3a; }
+.goal-strip { flex: none; display: flex; align-items: center; gap: 8px; min-height: var(--goal-h); padding: 2px 8px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); background: var(--app-bg); border-bottom: 1px solid var(--app-line-dim); font-size: 13px; }
+.goal-strip.passed { background: #12241a; border-color: var(--ok-line); }
 .goal-step { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; text-align: left; min-height: calc(var(--goal-h) - 4px); }
 .goal-num { flex: none; font-weight: 700; color: var(--orange); font-variant-numeric: tabular-nums; }
 .goal-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goal-text code { background: #0e0e0e; border-radius: 4px; padding: 0 4px; }
-.goal-result { flex: 0 1 auto; min-width: 0; max-width: 42%; height: calc(var(--goal-h) - 6px); padding: 0 10px; border-radius: 15px; border: 1px solid #8a2b2b; background: #2a1414; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-.goal-strip.passed .goal-result { border-color: #2f6b3a; background: #14261a; color: #9be3ae; }
+.goal-result { flex: 0 1 auto; min-width: 0; max-width: 42%; height: calc(var(--goal-h) - 6px); padding: 0 10px; border-radius: 15px; border: 1px solid var(--err-line); background: var(--err-bg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.goal-strip.passed .goal-result { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok-text); }
 .goal-why { font-weight: 400; color: var(--muted); }
 .goal-strip .btn { flex: none; height: calc(var(--goal-h) - 6px); }
 .goal-hide { padding: 0 8px; color: var(--muted); }
 .goal-tab-anchor { position: relative; height: 0; flex: none; z-index: 5; }
-.goal-tab { position: absolute; z-index: 5; top: 0; left: 50%; transform: translateX(-50%); height: 22px; padding: 0 12px; border-radius: 0 0 8px 8px; background: #221c0a; border: 1px solid #6b5a14; border-top: 0; font-size: 12px; color: #ffd76a; }
+.goal-tab { position: absolute; z-index: 5; top: 0; left: 50%; transform: translateX(-50%); height: 22px; padding: 0 12px; border-radius: 0 0 8px 8px; background: var(--app-bg); border: 1px solid var(--app-line-dim); border-top: 0; font-size: 12px; color: var(--app-text); }
 .app { position: relative; }
 .palette-cat.recent { color: #8fb8f0; }
 .quiz-why p, .quiz .success p { margin: 0; line-height: 1.45; font-size: 14px; }
@@ -523,7 +536,7 @@ select.field { padding-right: 4px; }
 .verdict { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #1a1a1a; border: 1px solid var(--line-2); }
 .verdict .stars { font-size: 20px; letter-spacing: 2px; color: var(--orange); }
 .verdict .stars .off { color: #444; }
-.verdict.stars-3 { border-color: #2f6b3a; background: rgba(63, 191, 90, 0.1); }
+.verdict.stars-3 { border-color: var(--ok-line); background: rgba(63, 191, 90, 0.1); }
 .points { display: flex; flex-direction: column; gap: 4px; }
 .points .result { padding: 5px 10px; font-size: 13px; }
 .size-bars { display: flex; flex-direction: column; gap: 6px; }
@@ -553,8 +566,8 @@ select.field { padding-right: 4px; }
 .status-bar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 45; display: flex; flex-direction: column; gap: 6px; width: min(620px, 94vw); }
 .status-msg { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: rgba(30, 30, 30, 0.97); border: 1px solid var(--line-2); font-size: 13px; line-height: 1.35; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
 .status-text { flex: 1; }
-.status-msg.warning { border-color: #8a6d14; }
-.status-msg.error { border-color: #8a2a2a; }
+.status-msg.warning { border-color: var(--app-line); }
+.status-msg.error { border-color: var(--err-line); }
 .status-msg.info { border-color: #2f5f9a; }
 .status-msg .small-btn { padding: 4px 10px; min-height: 0; font-size: 12px; }
 .dialog-actions.wrap { flex-wrap: wrap; }
@@ -566,7 +579,7 @@ select.field { padding-right: 4px; }
 /* « Où ça coince » after a failed check (LessonSheet, core/explain/stops.ts) */
 .stops { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
 .stop { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--line-2); font-size: 13px; line-height: 1.35; }
-.stop.error { border-color: #8a2a2a; }
+.stop.error { border-color: var(--err-line); }
 .stop-text { flex: 1; }
 .stop .small-btn { padding: 4px 10px; min-height: 0; font-size: 12px; flex: none; }
 
@@ -577,7 +590,7 @@ select.field { padding-right: 4px; }
 
 /* ------------------------------------------------ editors laid out like UE (ui/editor/) */
 /* Amber marks what BP Trainer adds and UE does not have (lesson, home, app menu, Play speed). */
-.app-only, .tb.app-only, .pb-btn.app-only { border-color: #8a6d14; color: #ffd76a; }
+.app-only, .tb.app-only, .pb-btn.app-only { border-color: var(--app-line); color: var(--app-text); }
 .doc-bar {
   height: var(--doc-h); flex: none; display: flex; align-items: stretch; gap: 4px; background: #141517; border-bottom: 1px solid var(--line);
   padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(4px, env(safe-area-inset-right));
@@ -612,7 +625,10 @@ select.field { padding-right: 4px; }
 .edge-label.flip { transform: rotate(180deg); }
 .panel-title { padding: 10px 12px 6px; font-weight: 700; font-size: 15px; border-top: 1px solid var(--line); background: #1d1e21; }
 .bottom-bar { display: flex; align-items: stretch; }
-.bottom-bar .bottom-handle { flex: 1; width: auto; }
+.bottom-bar-tabs { flex: 1; min-width: 0; display: flex; overflow-x: auto; scrollbar-width: none; }
+.bottom-bar-tabs::-webkit-scrollbar { display: none; }
+.bottom-bar-tab { flex: none; height: var(--bottom-h); padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; white-space: nowrap; border-top: 2px solid transparent; }
+.bottom-bar-tab.active { color: var(--text); background: var(--panel-2); border-top-color: var(--accent); }
 .content-drawer-btn { flex: none; height: var(--bottom-h); padding: 0 12px; font-size: 13px; color: var(--text); border-right: 1px solid var(--line); white-space: nowrap; }
 
 /* -------------------------------------------- Content Drawer (ui/content/), from the bottom as in UE5 */
@@ -631,7 +647,7 @@ select.field { padding-right: 4px; }
 .cd-selection { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); min-height: 44px; }
 .cd-sel-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .add-menu .add-item { padding-left: 28px; }
-.palette-cat.app-only { color: #ffd76a; }
+.palette-cat.app-only { color: var(--app-text); }
 
 /* -------------------------------------- Details laid out like UE (panels/fields.tsx), V7.8 */
 .d-group { padding: 0 0 8px; }
@@ -642,14 +658,14 @@ select.field { padding-right: 4px; }
 .d-group > :not(h3) { margin-left: 12px; margin-right: 12px; }
 .d-group > .d-field:first-of-type { margin-top: 4px; }
 .d-field + .d-field { border-top: 1px solid #1a1a1a; }
-.app-tag { margin-left: auto; font-size: 10.5px; font-weight: 600; color: #ffd76a; border: 1px solid #8a6d14; border-radius: 4px; padding: 1px 5px; }
-.d-group.app-group .d-head, .d-group.app-help .d-head { background: #2a2414; color: #ffd76a; }
-.d-group.app-group, .d-group.app-help { border-left: 3px solid #8a6d14; }
-.app-help-body { font-size: 13px; line-height: 1.45; color: #dccfa8; padding-top: 6px; }
+.app-tag { margin-left: auto; font-size: 10.5px; font-weight: 600; color: var(--app-text); border: 1px solid var(--app-line); border-radius: 4px; padding: 1px 5px; }
+.d-group.app-group .d-head, .d-group.app-help .d-head { background: #2a2414; color: var(--app-text); }
+.d-group.app-group, .d-group.app-help { border-left: 3px solid var(--app-line); }
+.app-help-body { font-size: 13px; line-height: 1.45; color: var(--app-text-soft); padding-top: 6px; }
 .details .app-help-body p { margin: 0 0 8px; }
 .app-help-body .muted { color: #a99f82; }
-.help-title { font-weight: 700; color: #ffd76a; }
-.app-only-text { color: #dccfa8; }
+.help-title { font-weight: 700; color: var(--app-text); }
+.app-only-text { color: var(--app-text-soft); }
 .details-search { position: sticky; top: 0; z-index: 1; padding: 6px 8px; background: var(--panel); border-bottom: 1px solid var(--line); }
 .details-search .field { height: 32px; }
 .details.filtering .d-group:not(:has(.d-field)) { display: none; }
@@ -729,3 +745,20 @@ select.field { padding-right: 4px; }
 }
 /* A bottom panel open (Output Log, Debug…) takes the bottom: toasts go back to the top, where they do not cover the log. */
 .workspace.bottom-open .toasts { top: 8px; bottom: auto; }
+/* Home in compact landscape (V7.32): title and actions on one line, thinner tabs and banner, so two rows of
+   lesson cards show at once (the tagline steps aside). */
+@media (orientation: landscape) and (max-height: 480px) {
+  .home { padding-block: 10px 24px; }
+  .home-head { margin-bottom: 10px; gap: 10px; }
+  .home-head > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; row-gap: 4px; }
+  .home-head h1 { font-size: 21px; }
+  .home-head p { margin: 0; }
+  .home-head > div:first-child > p.muted { display: none; }
+  .home-head .home-chips { margin: 0; }
+  .btn.big { height: 38px; font-size: 14px; padding: 0 14px; }
+  .home-bar { margin-bottom: 10px; }
+  .home-tabs button { height: 32px; padding: 0 12px; }
+  .home-path { gap: 12px; }
+  .review-banner { padding: 7px 12px; }
+  .review-banner > span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

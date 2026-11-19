@@ -41,7 +41,7 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
-**Chantier annexe proposé le 19 novembre, avant l'UMG : retouches de l'interface** (pas une refonte). Plan en deux lots (V7.31 : place pour le graphe, boutons flottants, zoom lisible, toasts ; V7.32 : barre du bas en onglets, accueil en paysage, retouches, couleurs), détail dans [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). Attend le feu vert de Tristan.
+**Chantier annexe du 19 novembre, avant l'UMG : retouches de l'interface** (pas une refonte), **fait** en V7.31 (place pour le graphe, boutons flottants, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, retouches, couleurs). Détail dans [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). L'UMG minimal reste le prochain chantier.
 
 ### Chantier n° 2 (fait) : révisions de graphes espacées
 
@@ -276,7 +276,7 @@ Non simulés, à expliquer dans le mémo : versions Async des nœuds de sauvegar
 | Niveau : tourner un acteur au doigt | Aujourd'hui par Details | ★ | S à M |
 | Icônes des nœuds | Rapprocher encore le dessin de celui d'UE | ★ | S à M |
 | Accessibilité du graphe | Le Canvas n'expose ni nœuds ni fils aux lecteurs d'écran ; une liste de nœuds navigable servirait aussi à chercher et diagnostiquer | ★ | M |
-| Retouches | Menu ⋮ trop étroit (« Ordre des BeginPlay » sur trois lignes) ; le « 0 » de l'axe sous le premier point clé du Timeline ; Save d'un projet d'essai qui enregistre pour rien ; force des vibrations ; en révision, l'en-tête de l'accueil prend la moitié de l'écran en paysage | ★ | S |
+| Retouches | Save d'un projet d'essai qui enregistre pour rien ; force des vibrations. (Faits en V7.32 : menu ⋮, « 0 » du Timeline, en-tête de l'accueil en paysage) | ★ | S |
 
 ## Motivation : séries, rappels, défis
 
@@ -330,6 +330,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.32 (19 novembre 2026), chantier annexe « retouches de l'interface », lot B : barre du bas en onglets (Compiler Results, Output Log, Debug, Find Results, chacun ouvre son panneau), contrôles de Play dans la barre d'outils du niveau à côté de Stop (comme dans UE : le haut du niveau reste libre), accueil en paysage sur une ligne et bandeau de révision fin, menu ⋮ plus large (indices sous les libellés, défilement), « 0 » de l'axe du Timeline dégagé, couleurs partagées en variables CSS. Chantier annexe terminé.
 - V7.31 (19 novembre 2026), chantier annexe « retouches de l'interface », lot A : barres plus fines en paysage sur téléphone (le graphe passe d'environ 224 à 246 px de haut sur 370), boutons flottants en colonne au bord droit et + seul en bas, cadrage sur toute la hauteur avec un zoom plancher de 0,7 (au lieu de 0,6), messages en bas à droite (en haut pendant Play ou quand un panneau du bas est ouvert), onglet « Objectifs ▾ » replié bien placé sous la barre d'outils.
 - V7.30 (19 novembre 2026), chantier n° 2, étape D : dans les Débogue et les mini-exercices à réparer, une question « l'événement, la référence ou la condition ? » (ou « Je ne sais pas encore ») remplace le premier bouton d'indice ; l'indice s'ouvre ensuite, avec ce que montre la vérification (`core/explain/hypothesis.ts` : Accessed None ou Cast jamais réussi → référence, Branch jamais sorti d'un côté → condition, événement jamais déclenché → événement ; sinon, tester soi-même). Hypothèse gardée dans l'aide de l'étape et dans le journal. Le chantier n° 2 est terminé.
 - V7.29 (19 novembre 2026), chantier n° 2, étape C : mini-exercices à variantes (`core/drills/`), trois familles (Variables et Branch, Overlaps et événements, Cast To) de trois situations chacune, en trois formats (à compléter, à réparer, à reconstruire), tirés d'une graine reproductible ; pour 36 graines par famille, le départ échoue et la solution passe, et chaque erreur typique échoue avec une raison (`tests/drills.test.ts`). La file propose d'abord un mini-exercice de la famille, au format du calendrier (compléter à J+1, reconstruire, puis réparer).

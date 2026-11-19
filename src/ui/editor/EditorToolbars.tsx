@@ -4,6 +4,7 @@
  * the Viewport tab and its graph tabs (Construction Script, Event Graph, the function opened).
  * The level editor has Save, Place Actors and Play.
  */
+import type { ComponentChildren } from 'preact';
 import type { CompileStatus } from '@core/compiler/validate';
 import { familyOf } from '@core/model/project';
 import { ensureConstructionScript } from '@core/operations/constructionOps';
@@ -121,7 +122,7 @@ export function BlueprintToolbar(
   );
 }
 
-export function LevelToolbar(p: Common & { onPlaceActors: (sx: number, sy: number) => void }) {
+export function LevelToolbar(p: Common & { onPlaceActors: (sx: number, sy: number) => void; children?: ComponentChildren }) {
   return (
     <header class="toolbar level-toolbar">
       <SaveButton saveKey={p.saveKey} />
@@ -136,6 +137,7 @@ export function LevelToolbar(p: Common & { onPlaceActors: (sx: number, sy: numbe
         + Place Actors
       </button>
       <PlayButton {...p} />
+      {p.children}
     </header>
   );
 }

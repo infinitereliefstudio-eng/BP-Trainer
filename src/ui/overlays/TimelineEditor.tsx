@@ -11,7 +11,8 @@ import { useStore } from '../hooks';
 import { Check, NumberField, TextCommit } from '../panels/fields';
 import { useOwnTap } from '../widgets/useOwnTap';
 
-const PAD = { l: 44, r: 14, t: 14, b: 24 };
+/** Room around the plot; the value labels end clear of a selected key (radius 10) on the left edge (V7.32). */
+const PAD = { l: 52, r: 14, t: 14, b: 28 };
 /** Finger-sized: a key is grabbed within this many pixels. */
 const GRAB = 24;
 
@@ -219,7 +220,7 @@ export function TimelineEditor({ nodeId, onClose }: { nodeId: string; onClose: (
             {[0, 0.25, 0.5, 0.75, 1].map((f) => (
               <g key={f}>
                 <line x1={PAD.l + f * plotW} y1={PAD.t} x2={PAD.l + f * plotW} y2={PAD.t + plotH} class="tl-grid" />
-                <text x={PAD.l + f * plotW} y={size.h - 7} class="tl-label" text-anchor="middle">
+                <text x={PAD.l + f * plotW} y={size.h - 5} class="tl-label" text-anchor="middle">
                   {fmt(f * data.length)} s
                 </text>
               </g>
@@ -227,7 +228,7 @@ export function TimelineEditor({ nodeId, onClose }: { nodeId: string; onClose: (
             {[0, 0.5, 1].map((f) => (
               <g key={f}>
                 <line x1={PAD.l} y1={PAD.t + f * plotH} x2={PAD.l + plotW} y2={PAD.t + f * plotH} class="tl-grid" />
-                <text x={PAD.l - 6} y={PAD.t + f * plotH + 4} class="tl-label" text-anchor="end">
+                <text x={PAD.l - 14} y={PAD.t + f * plotH + 4} class="tl-label" text-anchor="end">
                   {fmt(hi - f * span)}
                 </text>
               </g>

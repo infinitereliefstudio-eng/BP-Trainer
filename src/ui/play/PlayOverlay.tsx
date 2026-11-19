@@ -1,6 +1,6 @@
 /**
- * Controls over the level during Play: time bar, joystick, action keys,
- * on-screen Print String messages and the runtime error counter.
+ * Play over the level: the controls of the toolbar (`PlayControls`), and over the level itself the joystick, the action
+ * keys, on-screen Print String messages and PAUSED.
  */
 import { useEffect, useReducer, useRef } from 'preact/hooks';
 import { haptic } from '@editor/haptics';
@@ -16,39 +16,48 @@ interface Props {
 
 const SPEEDS: Speed[] = [0.25, 1, 4];
 
-export function PlayOverlay({ session, onStop, onShowLog, onOutliner }: Props) {
+/**
+ * Pause, frame step, speeds, time, runtime errors and the live Outliner. Since V7.32 they sit in the level toolbar,
+ * next to Stop, as in UE's Play toolbar, so they no longer cover the top of the level.
+ */
+export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'onStop'>) {
+  const [, force] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => session.onUi(() => force(0)), [session]);
+  const sim = session.sim;
+  return (
+    <div class="play-bar">
+      <button class="pb-btn" onClick={() => session.togglePause()} aria-label={session.running ? 'Pause' : 'Reprendre'}>
+        {session.running ? '❚❚' : '▶'}
+      </button>
+      <button class="pb-btn" onClick={() => session.stepFrame()} aria-label="Avancer d’une frame">
+        ▸|
+      </button>
+      {SPEEDS.map((s) => (
+        <button key={s} class={`pb-btn small app-only${session.speed === s ? ' on' : ''}`} onClick={() => session.setSpeed(s)}>
+          ×{s === 0.25 ? '¼' : s}
+        </button>
+      ))}
+      <span class="pb-time">{sim.time.toFixed(2)} s</span>
+      {sim.runtimeErrors > 0 && (
+        <button class="pb-err" onClick={onShowLog}>
+          {sim.runtimeErrors} erreur{sim.runtimeErrors > 1 ? 's' : ''}
+        </button>
+      )}
+      <button class="pb-btn" onClick={onOutliner} aria-label="Outliner">
+        ☷
+      </button>
+    </div>
+  );
+}
+
+/** What Play draws over the level: PAUSED, Print String messages, joystick and keys. */
+export function PlayOverlay({ session }: Pick<Props, 'session'>) {
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.onUi(() => force(0)), [session]);
   const sim = session.sim;
 
   return (
     <div class="play-overlay">
-      <div class="play-bar">
-        <button class="pb-btn" onClick={() => session.togglePause()} aria-label={session.running ? 'Pause' : 'Reprendre'}>
-          {session.running ? '❚❚' : '▶'}
-        </button>
-        <button class="pb-btn" onClick={() => session.stepFrame()} aria-label="Avancer d’une frame">
-          ▸|
-        </button>
-        {SPEEDS.map((s) => (
-          <button key={s} class={`pb-btn small app-only${session.speed === s ? ' on' : ''}`} onClick={() => session.setSpeed(s)}>
-            ×{s === 0.25 ? '¼' : s}
-          </button>
-        ))}
-        <span class="pb-time">{sim.time.toFixed(2)} s</span>
-        {sim.runtimeErrors > 0 && (
-          <button class="pb-err" onClick={onShowLog}>
-            {sim.runtimeErrors} erreur{sim.runtimeErrors > 1 ? 's' : ''}
-          </button>
-        )}
-        <button class="pb-btn" onClick={onOutliner} aria-label="Outliner">
-          ☷
-        </button>
-        <button class="pb-btn stop" onClick={onStop} aria-label="Arrêter">
-          ■ Stop
-        </button>
-      </div>
-
       {sim.gamePaused && (
         <div class="game-paused" title="Set Game Paused : le temps de jeu est arrêté">
           PAUSED

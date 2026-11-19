@@ -4,16 +4,16 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_V7.md](REVUE_V7.md) (la dernière revue). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.30)
+## Reprise rapide (2026-11-19, après la V7.32)
 
 ### Où on en est
 
-- **Version en ligne : 7.30.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.32.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : **tous faits** (V7.23 à V7.26). Laissés de côté : le renumérotage des codes d'exercices et l'ordre X2 puis X1 (optionnels, à proposer).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
 - **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
-- **En cours : chantier annexe « retouches de l'interface »**, lancé par Tristan (« Fait les deux, fait 0.7 ») : **lot A fait en V7.31**, lot B (V7.32) ensuite. Avant : **proposé le 19 novembre au soir** ([PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md), copie du Claude Doc https://claude.ai/artifact/WRanWML2cVLLUVDQUMChJx), à faire avant l'UMG si Tristan le lance. Deux questions en attente : les deux lots ou le A seul, zoom plancher 0,75 ou 0,7.
+- **Chantier annexe « retouches de l'interface » terminé** (V7.31 et V7.32), lancé par Tristan (« Fait les deux, fait 0.7 ») après avoir été **proposé le 19 novembre au soir** ([PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md), copie du Claude Doc https://claude.ai/artifact/WRanWML2cVLLUVDQUMChJx). Réponses : les deux lots, zoom plancher 0,7. À lui faire essayer sur téléphone : la place du graphe et la lisibilité à l'ouverture, la colonne de boutons, la barre du bas en onglets, les contrôles de Play dans la barre d'outils.
 
 ### Le parcours aujourd'hui
 
@@ -800,6 +800,19 @@ Chantier annexe proposé le 19 novembre au soir ([PLAN_RETOUCHES_UI.md](PLAN_RET
 - **Smoke** : après `02_lamp_graph`, vérifie que le graphe garde au moins 240 px de haut en paysage et que la colonne et le + ne se chevauchent pas. Écart constaté sans lien avec ce chantier : D15 (« Les meubles sur une grille tournée ») ouvre un Event Graph vide, comme en V7.30.
 
 Version 7.31.0.
+
+## V7.32 (2026-11-19) : retouches de l'interface, lot B (cohérence et retouches)
+
+Suite directe de la V7.31 (Tristan a lancé les deux lots). Le chantier annexe est terminé.
+
+- **Barre du bas** (`ui/editor/BottomBar.tsx`) : Content Drawer, puis les onglets Compiler Results, Output Log, Debug, Find Results (rôle tab) ; toucher un onglet ouvre son panneau, le retoucher le ferme ; ▴/▾ au bout ouvre Compiler Results ou ferme. Le badge « erreurs » est sur Compiler Results. `BottomPanel` reçoit `tab` et n'a plus sa rangée d'onglets (34 px de plus pour le panneau ouvert).
+- **Contrôles de Play** : `PlayControls` (pause, image suivante, vitesses en ambre, temps, erreurs, ☷ Outliner) est rendu dans `LevelToolbar` après Stop, comme la barre Play d'UE ; le « ■ Stop » en double de l'ancienne barre flottante a disparu. Les Print String et les messages remontent en haut de l'écran (10 px au lieu de 56). Smoke : Stop par `.tb`.
+- **Accueil en paysage** (même media query) : titre et chips à gauche, Continuer et Simulation libre à droite sur une ligne (la phrase d'accroche est masquée), onglets 32 px, bandeau de révision sur une ligne (texte coupé).
+- **Menu** (`overlays/ContextMenu.tsx`) : 280 px de large au lieu de 230, indice sous le libellé, hauteur estimée par item, défilement s'il dépasse l'écran.
+- **Timeline** : marges du tracé élargies (`PAD` 52 / 28), libellés de valeurs à 14 px du bord : le « 0 » n'est plus sous un point clé.
+- **Couleurs** : variables `--app-*` (ambre propre à l'appli), `--ok-*`, `--err-*` dans `:root` ; 51 couleurs en dur remplacées, sans changement visible (#8a2b2b fondu dans #8a2a2a).
+
+Version 7.32.0.
 
 ## Méthode de travail
 

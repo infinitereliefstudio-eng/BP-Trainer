@@ -233,8 +233,7 @@ async def main():
         await page.wait_for_timeout(300)
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
-        await page.locator('.bottom-handle').tap()
-        await page.locator('.bottom-tabs button', has_text='Output Log').tap()
+        await page.locator('.bottom-bar-tab', has_text='Output Log').tap()
         await page.wait_for_timeout(200)
         if not await page.locator('.why-btn').count():
             errs.append('Output Log : aucun « Pourquoi ? » sur les erreurs')
@@ -800,7 +799,7 @@ async def main():
         await page.wait_for_timeout(400)
         if await page.locator('.game-paused').count() != 0:
             errs.append('Menu pause : le jeu reste en pause après le second Espace')
-        await page.locator('.pb-btn.stop').tap()
+        await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 
         # Lot 4a: an Avancé step is a brief, its step-by-step card waits for success

@@ -1,5 +1,5 @@
-/** Bottom panel: Compiler Results, Output Log, Debug and Find Results, like UE's tabs. */
-import { useEffect, useReducer, useState } from 'preact/hooks';
+/** Bottom panel: Compiler Results, Output Log, Debug and Find Results. Its tabs are in the bottom bar (`ui/editor/BottomBar.tsx`, V7.32). */
+import { useEffect, useReducer } from 'preact/hooks';
 import { explainCompile } from '@core/explain/compile';
 import type { SimLogEntry } from '@core/runtime/simulation';
 import type { PlaySession } from '@editor/world/playSession';
@@ -15,7 +15,7 @@ interface Props {
   /** The running session, or the log of the last one. */
   session?: PlaySession;
   simLog?: SimLogEntry[];
-  initialTab?: BottomTab;
+  tab: BottomTab;
   /** Find References: the search to run when Find Results opens. */
   findQuery?: string;
   /** A Find result touched: the node is shown with the panel closed, the phone screen being too small for both. */
@@ -24,28 +24,13 @@ interface Props {
 
 const ICON = { error: '✕', warning: '!', info: 'i' } as const;
 
-export function BottomPanel({ onFocusNode, session, simLog, initialTab = 'compiler', findQuery, onFindJump }: Props) {
+export function BottomPanel({ onFocusNode, session, simLog, tab, findQuery, onFindJump }: Props) {
   const store = useStore();
-  const [tab, setTab] = useState<BottomTab>(initialTab);
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session?.onUi(() => force(0)), [session]);
   const playLog = session?.sim.log ?? simLog;
   return (
     <div class="bottom">
-      <div class="bottom-tabs">
-        <button class={tab === 'compiler' ? 'active' : ''} onClick={() => setTab('compiler')}>
-          Compiler Results
-        </button>
-        <button class={tab === 'log' ? 'active' : ''} onClick={() => setTab('log')}>
-          Output Log
-        </button>
-        <button class={tab === 'debug' ? 'active' : ''} onClick={() => setTab('debug')}>
-          Debug
-        </button>
-        <button class={tab === 'find' ? 'active' : ''} onClick={() => setTab('find')}>
-          Find Results
-        </button>
-      </div>
       <div class="bottom-body">
         {tab === 'find' ? (
           <FindResults onFocusNode={onFindJump ?? onFocusNode} initialQuery={findQuery} />

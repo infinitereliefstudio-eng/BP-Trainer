@@ -43,9 +43,10 @@ import { MyBlueprint } from './panels/MyBlueprint';
 import { DebugBar } from './play/DebugBar';
 import { LiveOutliner } from './play/LiveOutliner';
 import { LevelOutliner } from './panels/LevelOutliner';
-import { PlayOverlay } from './play/PlayOverlay';
+import { PlayControls, PlayOverlay } from './play/PlayOverlay';
 import { playOrder } from './playSettings';
 import { DocumentTabs } from './editor/DocumentTabs';
+import { BottomBar } from './editor/BottomBar';
 import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolbars';
 import { SelectionIcon } from './widgets/icons';
 import { Toasts } from './widgets/Toasts';
@@ -372,7 +373,9 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           onPlay={play}
           onStop={stop}
           onPlaceActors={(sx, sy) => setOverlay({ kind: 'menu', sx, sy, title: 'Place Actors', items: placeMenu(store, { x: 0, y: 0 }) })}
-        />
+        >
+          {playing && session && <PlayControls session={session} onShowLog={() => setBottom('log')} onOutliner={() => setOutliner((v) => !v)} />}
+        </LevelToolbar>
       )}
       {solution && (
         <div class="scratch-bar">
@@ -453,7 +456,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         )}
 
         {playing && session && view === 'level' && (
-          <PlayOverlay session={session} onStop={stop} onShowLog={() => setBottom('log')} onOutliner={() => setOutliner((v) => !v)} />
+          <PlayOverlay session={session} />
         )}
         {playing && session && view === 'level' && (
           <aside class={`drawer right outliner-drawer${outliner ? ' open' : ''}`} aria-hidden={!outliner}>
@@ -590,19 +593,17 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         </aside>
 
         <div class={`bottom-wrap${bottom ? ' open' : ''}${playing ? ' playing' : ''}`}>
-          <div class="bottom-bar">
-          <button class="content-drawer-btn" disabled={playing} onClick={() => setOverlay({ kind: 'content' })}>
-            ▤ Content Drawer
-          </button>
-          <button class="bottom-handle" onClick={() => setBottom((v) => (v ? false : 'compiler'))}>
-            {bottom ? '▾' : '▴'} Compiler Results · Output Log · Debug · Find
-            {store.compileStatus === 'error' && <span class="pill error">erreurs</span>}
-          </button>
-          </div>
+          <BottomBar
+            open={bottom}
+            onOpen={setBottom}
+            onContentDrawer={() => setOverlay({ kind: 'content' })}
+            contentDisabled={playing}
+            compileErrors={store.compileStatus === 'error'}
+          />
           {bottom && (
             <BottomPanel
               key={`${bottom}:${find.n}`}
-              initialTab={bottom}
+              tab={bottom}
               findQuery={find.query}
               onFindJump={(g, n, c) => {
                 setBottom(false);

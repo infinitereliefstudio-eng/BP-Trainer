@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG), puis le soir du 19 novembre après la V7.30 (chantier n° 2 terminé, ce qu'il laisse noté, liste « Déjà fait » remise dans l'ordre). Rien ne se fait sans le feu vert de Tristan.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG), puis le soir du 19 novembre après la V7.30 (chantier n° 2 terminé, ce qu'il laisse noté, liste « Déjà fait » remise dans l'ordre), et enfin après la V7.32 (chantier annexe « retouches de l'interface » terminé, ce qu'il laisse noté, ergonomie et technique remises à jour). Rien ne se fait sans le feu vert de Tristan.
 
 Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) et les **lots du plan du parcours** (0 à 4, [PLAN_PARCOURS.md](PLAN_PARCOURS.md), tous faits). Ici, « lot » sans précision désigne ceux du backlog.
 
@@ -9,7 +9,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 
 ## Par où commencer
 
-État au 19 novembre, après la V7.30 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22) ; le chantier n° 2, révisions de graphes espacées, est fait (V7.27 à V7.30). **La suite est dans « Prochains chantiers » juste en dessous** : l'UMG minimal (lot 7), puis les niveaux (lot 6), puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
+État au 19 novembre, après la V7.32 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22) ; le chantier n° 2, révisions de graphes espacées, est fait (V7.27 à V7.30) ; le chantier annexe « retouches de l'interface » est fait (V7.31, V7.32). **La suite est dans « Prochains chantiers » juste en dessous** : l'UMG minimal (lot 7), puis les niveaux (lot 6), puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
@@ -31,7 +31,7 @@ Questions ouvertes :
 
 ## Prochains chantiers, dans l'ordre (choix du 19 novembre)
 
-Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.30.
+Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.32.
 
 | # | Chantier | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
@@ -41,7 +41,18 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
-**Chantier annexe du 19 novembre, avant l'UMG : retouches de l'interface** (pas une refonte), **fait** en V7.31 (place pour le graphe, boutons flottants, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, retouches, couleurs). Détail dans [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). L'UMG minimal reste le prochain chantier.
+### Chantier annexe (fait) : retouches de l'interface
+
+Demandé par Tristan le 19 novembre au soir, avant l'UMG : améliorer l'interface et l'aspect général sans refonte. [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). **Terminé le même soir** : V7.31 (place pour le graphe, boutons flottants en colonne, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, menu, Timeline, couleurs). Tristan ne les a pas encore essayées sur son téléphone. L'UMG minimal reste le prochain chantier. Laissé de côté ou remarqué en chemin :
+
+| Point | Où on en est | Pertinence | Difficulté |
+|---|---|---|---|
+| Lisibilité du graphe | Zoom plancher 0,7 : noms des pins à environ 8,5 px à l'ouverture. Si c'est encore petit sur le Pixel, deux voies : un réglage de taille (voir « Taille du texte réglable »), ou une police plus grande dans les nœuds, qui élargit les nœuds et oblige à revoir la place des graphes de départ des leçons | ★★ | S (réglage) à M (police) |
+| Accueil en paysage | Environ une rangée et demie de cartes visible à 370 px de haut (l'objectif était deux) : les titres de niveau et la ligne « Aide ouverte… » pourraient se resserrer aussi | ★ | S |
+| Icône Sélection | Le bouton « Sélection » est devenu une icône (cadre pointillé) : à voir si elle se comprend sans son nom | ★ | S |
+| Barre d'outils du niveau pendant Play | Save, Place Actors, Stop et les contrôles de Play tiennent en paysage ; en portrait la barre défile. À revoir avec la lecture en portrait | ★ | S |
+| Libellés qui se chevauchent dans le niveau | Des acteurs posés près les uns des autres ont des noms qui se mêlent (« BP_LampeBP_Lampe2BP_Lampe3 » dans « Le générateur prévient ») : écarter les acteurs dans les niveaux concernés, ou n'afficher le nom qu'à la sélection quand ils se touchent | ★★ | S à M |
+| Nœuds cachés sous d'autres | Dans la solution de référence de « Le générateur prévient », un Get bEnMarche est dessiné sous l'événement IA_Interagir. À vérifier sur les solutions de référence et les graphes de départ : un test pourrait signaler deux nœuds qui se recouvrent | ★★ | S à M |
 
 ### Chantier n° 2 (fait) : révisions de graphes espacées
 
@@ -114,7 +125,7 @@ Issus de la revue du 17 novembre (V7.1.0, commit `b0c2ddd`, 773 tests réussis d
 - toutes les leçons hors Prédis vérifient l'absence d'erreurs d'exécution (le soupçon contraire n'a pas été confirmé) ;
 - fonctionnement local, export et sauvegarde complète.
 
-**Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,7 Mo (495 Ko compressés) en V7.30 ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
+**Pas de changement de framework** : Preact, TypeScript et Canvas conviennent. Le build fait environ 1,7 Mo (500 Ko compressés) en V7.32 ; garder le fichier unique tant qu'une mesure sur téléphone ne montre pas un démarrage lent.
 
 ## Lot 1 — Fiabilité : fait en V7.2
 
@@ -159,6 +170,8 @@ Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en ti
 | 3 | Enhanced Input, point 1 : Player Controller, Get Player Controller / Get Controller, Cast To PlayerController, Enhanced Input Local Player Subsystem, Add Mapping Context avec Target ; leçons mises à jour | **Fait en V7.7** (une étape de plus : « Les contrôles au Player Controller ») |
 | 4 | Details à la manière d'UE (sections d'UE d'abord, aide de l'appli dans un bloc ambre repliable) ; palette « All Actions for this Blueprint » avec Context Sensitive et catégories repliables ; Find (Find Results) | **Fait en V7.8** (plus : Search Details, Find References) |
 | 5 | Viewport du Blueprint (composants seuls) ; Outliner permanent dans l'éditeur de niveau (tiroir Outliner / Details) | **Fait en V7.9** |
+
+Les retouches des V7.31 et V7.32 gardent ces principes : barres plus fines en paysage, barre du bas en onglets et contrôles de Play dans la barre d'outils (comme dans UE), ambre en variables CSS (`--app-*`).
 
 ## Lot 3 — Entrées et interaction
 
@@ -269,15 +282,15 @@ Non simulés, à expliquer dans le mémo : versions Async des nœuds de sauvegar
 | Plusieurs projets en Simulation libre | Créer, nommer, dupliquer, supprimer | ★★ | M |
 | Modèles pour la Simulation libre | Partir d'une porte, d'un inventaire, d'un système d'interaction | ★★ | S à M |
 | Rangement automatique | Straighten Connections, alignement d'une sélection | ★★ | M |
-| Lecture en portrait | Adapter fiches et révisions ; le manifeste impose le paysage dans l'APK : distinguer adaptation web et orientation effective sur Android | ★★ | M |
+| Lecture en portrait | Adapter fiches et révisions ; le manifeste impose le paysage dans l'APK : distinguer adaptation web et orientation effective sur Android. Les barres compactes de la V7.31 ne s'appliquent qu'en paysage | ★★ | M |
 | Bouton Retour d'Android | Vérifier son comportement dans chaque écran de l'APK | ★★ | S |
-| Taille du texte réglable | Les valeurs sur les pins sont petites | ★ | S à M |
+| Taille du texte réglable | Les valeurs sur les pins sont petites. Depuis la V7.31, le cadrage ne descend plus sous le zoom 0,7 (au lieu de 0,6) : à reprendre si ce n'est pas assez | ★ | S à M |
 | Palette : favoris | Épingler ses nœuds préférés (les récents existent) | ★ | S |
 | Niveau : tourner un acteur au doigt | Aujourd'hui par Details | ★ | S à M |
 | Icônes des nœuds | Rapprocher encore le dessin de celui d'UE | ★ | S à M |
 | Accessibilité du graphe | Le Canvas n'expose ni nœuds ni fils aux lecteurs d'écran ; une liste de nœuds navigable servirait aussi à chercher et diagnostiquer | ★ | M |
 | Blueprint ouvert au départ d'une étape | Remarqué le 19 novembre (smoke, V7.30 comme V7.32) : « Débogue D15 — Les meubles sur une grille tournée » s'ouvre sur l'Event Graph vide de BP_Sol, alors que le graphe à réparer est dans BP_Poseur. Les étapes n'indiquent pas quel Blueprint montrer d'abord : vérifier les autres étapes à plusieurs Blueprints, et au besoin donner à chaque étape son Blueprint de départ | ★★ | S |
-| Retouches | Save d'un projet d'essai qui enregistre pour rien ; force des vibrations. (Faits en V7.32 : menu ⋮, « 0 » du Timeline, en-tête de l'accueil en paysage) | ★ | S |
+| Retouches | Save d'un projet d'essai qui enregistre pour rien ; force des vibrations. (Faits en V7.32 : menu ⋮, « 0 » du Timeline, en-tête de l'accueil en paysage, contrôles de Play qui recouvraient le niveau) | ★ | S |
 
 ## Motivation : séries, rappels, défis
 
@@ -316,10 +329,10 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 |---|---|---|---|
 | ~~Remettre `HANDOFF.md` au propre~~ | **Fait en V7.26** : sections anciennes mises à jour ; la « Reprise rapide » fait foi, la suite est l'historique des versions | ★★ | fait |
 | Borner les journaux | `runtime/journal.ts` accumule les Print String ordinaires : un Print sur Tick fait grossir la mémoire. Borner l'affichage sans fausser les compteurs dont les vérifications ont besoin | ★★ | S à M |
-| Découper au fil des travaux | `simulation.ts` (820 lignes), `interpreter.ts` (772), `App.tsx` (684 en V7.30, +40 avec les reprises et l'hypothèse), `LessonSheet.tsx` (586) : découper selon leurs responsabilités quand on les modifie, pas pour la taille seule | ★★ | M par lot |
+| Découper au fil des travaux | `simulation.ts` (820 lignes), `interpreter.ts` (772), `App.tsx` (698 en V7.32 ; la barre du bas et les contrôles de Play en sont sortis, les boutons flottants pourraient suivre), `LessonSheet.tsx` (586) : découper selon leurs responsabilités quand on les modifie, pas pour la taille seule | ★★ | M par lot |
 | Intégration continue | **Actions sur Node.js 24 en V7.26.** Reste : `ubuntu-latest` change d'image de temps en temps | ★ | S |
 | Version de test avant la production | L'APK suit le site dès la publication : une prévisualisation séparée permettrait d'essayer avant | ★★ | M |
-| Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan (`tools/e2e/smoke.py` a 97 captures en V7.30) | ★★ | M |
+| Smoke test sans Python | Le réécrire avec Playwright pour Node, lançable sur la machine de Tristan (`tools/e2e/smoke.py` a 97 captures et, depuis la V7.31, une vérification de la place du graphe en paysage) | ★★ | M |
 | Rappel de sauvegarde | Proposer un export quand le dernier date de plus d'un mois | ★ | S |
 | CI sur les pull requests | Le workflow ne réagit qu'aux push sur `main` ; peu utile tant que tout est publié directement sur `main` | ★ | S |
 | Test du joystick | Le smoke test ne déplace pas le joueur au doigt | ★ | S à M |

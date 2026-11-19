@@ -4,15 +4,15 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_V7.md](REVUE_V7.md) (la dernière revue). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.29)
+## Reprise rapide (2026-11-19, après la V7.30)
 
 ### Où on en est
 
-- **Version en ligne : 7.29.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.30.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : **tous faits** (V7.23 à V7.26). Laissés de côté : le renumérotage des codes d'exercices et l'ordre X2 puis X1 (optionnels, à proposer).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **Chantier en cours : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »). L'étape D (hypothèse avant l'indice dans les Débogue) attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois). Ensuite l'UMG minimal.
+- **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
 
 ### Le parcours aujourd'hui
 
@@ -28,7 +28,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (en cours : A, B et C faits, D à lancer), puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (fait, V7.27 à V7.30), puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
 
 Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 
@@ -774,6 +774,18 @@ Lancée par Tristan le 19 novembre (« tu peux lancer c »).
 - **Tests** : `tests/drills.test.ts` (286 : pour 36 graines par famille, projet de départ valide et qui échoue, solution qui passe ; pour chaque situation, six tirages et chacune de leurs erreurs typiques échoue avec une raison ; textes, glossaire, formats, situations qui changent). `tests/rework.test.ts` (+6 : cartes par famille, mini-exercice réussi, raté, id qui le reconstruit). Smoke : mini-exercice ouvert depuis la file, cadres jaunes dans le graphe (capture `52d_drill_graph`).
 
 À étendre plus tard (BACKLOG, après un pilote réussi) : Dispatchers, interfaces, composants ; exercices à réordonner. Version 7.29.0. Suite : étape D (hypothèse avant l'indice), sur feu vert.
+
+## V7.30 (2026-11-19) : révisions de graphes espacées, étape D (hypothèse avant l'indice)
+
+Tristan a demandé « l'étape c » une seconde fois ; la question lui a été posée, il a choisi l'étape D. Le chantier n° 2 est terminé.
+
+- **Cœur** (`core/explain/hypothesis.ts`) : trois causes (`HYPOTHESES` : l'événement, la référence, la condition ou une valeur) et « Je ne sais pas encore ». `asksHypothesis` : les étapes `kind: 'debug'`, donc les Débogue et les mini-exercices à réparer. `diagnose(run)` part de la course seule : Accessed None → référence ; puis `whereItStopped` (qui donne maintenant `Stop.after`, la définition du nœud qui s'est exécuté sans continuer) : événement jamais déclenché → événement, Cast jamais réussi → référence, Branch jamais sorti d'un côté → condition ; sinon rien (une valeur, l'ordre des nœuds). Sur les 23 Débogue du parcours, 13 sont diagnostiqués. `hypothesisFeedback` : « Bien vu, c'est … » / « Ça désigne plutôt … » / « La vérification ne tranche pas : teste ton hypothèse (Print String, breakpoint) ».
+- **Interface** : dans l'onglet Aide de la fiche, tant que le premier indice est ouvert mais pas montré et qu'aucune hypothèse n'est donnée, la question (`ui/lesson/HypothesisAsk.tsx`) remplace le bouton « Afficher un indice ». Au choix, `App` diagnostique (la dernière vérification si elle a échoué, sinon une vérification lancée pour cela), garde l'hypothèse et ouvre le premier indice ; une carte « Ton hypothèse » reste au-dessus des indices. Aux niveaux où l'indice s'ouvre après un essai (Confirmé et au-delà, mini-exercices), la question vient après le premier Vérifier.
+- **Progression** : `LessonHelp.hypothesis = { choice, found?, evidence? }` (vérifié par `checkProgress`, effacé par Recommencer avec le reste de l'aide) ; l'essai du journal garde la première hypothèse (`Attempt.hypothesis = { choice, found? }`), affichée dans Carnet › Journal des essais.
+- **Mini-exercices Cast** : l'erreur « Object non relié » (refusée dès la compilation, sans diagnostic) devient « Object du Cast est Self » pour le bonus et le terminal : le Cast ne réussit jamais, ce que la vérification montre.
+- **Tests** : `tests/hypothesis.test.ts` (9 : quelles étapes demandent, diagnostics sur D1, D4, D20 et un mini-exercice Cast, réponses, progression). Smoke : D1, Vérifier, question, réponse « la référence » confirmée, premier indice ouvert (captures `16b_hypothesis_ask`, `16c_hypothesis_answer`).
+
+Version 7.30.0. Suite : le chantier n° 3 (UMG minimal), sur feu vert.
 
 ## Méthode de travail
 

@@ -232,6 +232,27 @@ async def main():
             await page.locator('.why-btn').first.tap()
             await page.wait_for_timeout(200)
         await shot('16_log_why')
+        # V7.30: in a Débogue, a hypothesis before the first hint (D1 is in Confirmé: hints after a first Vérifier)
+        await page.locator('.tb.lesson').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.lesson-tabs button', has_text='Objectifs').tap()
+        await page.locator('.lesson-body .btn.big', has_text='Vérifier').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-tabs button', has_text='Aide').tap()
+        await page.wait_for_timeout(200)
+        if await page.locator('.hypothesis-options .option').count() != 4:
+            errs.append('Débogue : pas de question « où est le problème ? » avant le premier indice')
+        else:
+            await shot('16b_hypothesis_ask')
+            await page.locator('.hypothesis-options .option', has_text='La référence').tap()
+            await page.wait_for_timeout(500)
+            if await page.locator('.card.hypothesis', has_text='Bien vu').count() != 1:
+                errs.append('Débogue : la réponse à l’hypothèse « la référence » ne confirme pas l’Accessed None de D1')
+            if await page.locator('.hint-card h4', has_text='Indice').count() != 1:
+                errs.append('Débogue : le premier indice ne s’ouvre pas après l’hypothèse')
+            await shot('16c_hypothesis_answer')
+        await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(200)
 
         # Step C of V2: the home by level, and a "Complète" exercise with its gaps
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')

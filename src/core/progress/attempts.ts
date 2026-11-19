@@ -71,6 +71,8 @@ export interface Attempt {
   missed?: Record<string, number>;
   /** Ended without success: started over, or the step changed. */
   closed?: boolean;
+  /** In a Débogue: the hypothesis given before the first hint, and where the check pointed (`found`). */
+  hypothesis?: { choice: string; found?: string };
 }
 
 export const ATTEMPT_LOG_VERSION = 1;
@@ -90,6 +92,7 @@ export const MAX_ATTEMPTS = 1500;
 export interface HelpAtCheck {
   level: HelpLevel;
   hints: number;
+  hypothesis?: { choice: string; found?: string };
 }
 
 /** True when this app can read and extend the log. */
@@ -155,6 +158,7 @@ export function logCheck(
     errors,
     failed,
     ...(Object.keys(missed).length ? { missed } : {}),
+    ...(help.hypothesis && !before.hypothesis ? { hypothesis: { choice: help.hypothesis.choice, ...(help.hypothesis.found ? { found: help.hypothesis.found } : {}) } } : {}),
   };
   if (i >= 0) attempts[i] = after;
   else attempts.push(after);
@@ -201,7 +205,8 @@ export function isAttempt(v: unknown): v is Attempt {
     counts(v.errors) &&
     Object.keys(v.errors as Obj).every((k) => ERROR_KINDS.includes(k as ErrorKind)) &&
     counts(v.failed) &&
-    (v.missed === undefined || counts(v.missed))
+    (v.missed === undefined || counts(v.missed)) &&
+    (v.hypothesis === undefined || (isObj(v.hypothesis) && typeof v.hypothesis.choice === 'string' && (v.hypothesis.found === undefined || typeof v.hypothesis.found === 'string')))
   );
 }
 

@@ -5,7 +5,10 @@
 import { useMemo, useState } from 'preact/hooks';
 import { whereItStopped } from '@core/explain/stops';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
+import { asksHypothesis, type HypothesisChoice } from '@core/explain/hypothesis';
 import { cardsFor, helpOffers, type HelpKind } from '@core/lessons/helpPolicy';
+import type { HypothesisNote } from '@core/progress/progress';
+import { HypothesisAsk, HypothesisCard } from './HypothesisAsk';
 import { LEVELS } from '@core/lessons/levels';
 import type { LessonRun } from '@core/lessons/runner';
 import type { QualityParts, Verdict } from '@core/quality/review';
@@ -42,6 +45,10 @@ interface Props {
   onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
   /** Open another way to solve the lesson, in a scratch workspace. */
   onOpenAlternative: (index: number) => void;
+  /** In a Débogue: the hypothesis given before the first hint, if any. */
+  hypothesis?: HypothesisNote;
+  /** The learner chose a hypothesis: the editor diagnoses the project, then the first hint opens. */
+  onHypothesis?: (choice: HypothesisChoice) => void;
 }
 
 const HELP_TITLE: Record<HelpKind, string> = { hint: 'Indice', nodes: 'Les nœuds à utiliser', solution: 'La solution' };
@@ -81,6 +88,8 @@ export function LessonSheet({
   openOverlay,
   onFocusNode,
   onOpenAlternative,
+  hypothesis,
+  onHypothesis,
 }: Props) {
   const tap = useOwnTap();
   const [tab, setTab] = useState<Tab>(initialTab ?? 'learn');
@@ -200,6 +209,7 @@ export function LessonSheet({
           {tab === 'help' && (
             <>
               {levelHelp && lesson.kind !== 'predict' && <p class="muted small help-rule">{levelHelp}</p>}
+              {hypothesis && <HypothesisCard note={hypothesis} />}
               {shown.map((o) => (
                 <article key={o.kind} class="card hint-card">
                   <h4>{HELP_TITLE[o.kind]}</h4>
@@ -216,11 +226,14 @@ export function LessonSheet({
                   {HELP_SUBJECT[nextOffer.kind]} s’ouvre {nextOffer.locked}. Le résultat de Vérifier dit ce qui manque, et « Montre-moi » où ça coince.
                 </p>
               )}
-              {nextOffer?.available && (
-                <button class="btn" onClick={() => onHint(nextOffer.index + 1)}>
-                  {HELP_BUTTON[nextOffer.kind]}
-                </button>
-              )}
+              {nextOffer?.available &&
+                (nextOffer.kind === 'hint' && asksHypothesis(lesson) && !hypothesis && onHypothesis ? (
+                  <HypothesisAsk onChoose={onHypothesis} />
+                ) : (
+                  <button class="btn" onClick={() => onHint(nextOffer.index + 1)}>
+                    {HELP_BUTTON[nextOffer.kind]}
+                  </button>
+                ))}
               {!nextOffer && offers.length === 0 && <p class="note">Pas d’aide à ce niveau : le cahier des charges et Vérifier suffisent.</p>}
               <div class="reset-zone">
                 <button

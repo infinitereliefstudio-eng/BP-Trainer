@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { compileClass } from '@core/compiler/validate';
 import { LESSONS } from '@core/lessons';
+import { diagnose } from '@core/explain/hypothesis';
 import { checkOutcome } from '@core/lessons/outcome';
 import type { CheckOutcome } from '@core/progress/attempts';
 import { runLesson, runRobustness } from '@core/lessons/runner';
@@ -641,6 +642,14 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           tried={!!help?.tried}
           fails={help?.fails ?? 0}
           onHint={(n) => onHelp?.((h) => ({ ...h, hints: Math.max(h.hints, n) }))}
+          hypothesis={help?.hypothesis}
+          onHypothesis={(choice) => {
+            // Where the project points now: the last check if it failed, otherwise a check run for this.
+            store.commit();
+            const run = check && !check.run.passed ? check.run : runLesson(lesson, structuredClone(store.project));
+            const found = diagnose(run);
+            onHelp?.((h) => ({ ...h, hints: Math.max(h.hints, 1), hypothesis: { choice, ...(found ? { found: found.hypothesis, evidence: found.evidence } : {}) } }));
+          }}
           check={check}
           onVerify={verify}
           initialTab={overlay.tab}

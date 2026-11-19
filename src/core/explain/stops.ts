@@ -22,6 +22,8 @@ export interface Stop {
   nodeId: string;
   /** What was found, for the learner. */
   text: string;
+  /** Where the white wire stopped: the node that ran and did not lead on (its definition). */
+  after?: string;
 }
 
 const MAX = 3;
@@ -74,7 +76,7 @@ export function whereItStopped(project: Project, sim: Simulation): Stop[] {
         }
         if (sim.record.takenCount(graph.id, from.id, link.from.pin) > 0) continue;
         if (sim.record.runsOf(graph.id, to.id)?.count) continue;
-        add({ kind: 'stopped', classId: cls.id, graphId: graph.id, nodeId: to.id, text: stoppedText(from.def, link.from.pin, nodeTitle(from, ctx), nodeTitle(to, ctx)) });
+        add({ kind: 'stopped', classId: cls.id, graphId: graph.id, nodeId: to.id, text: stoppedText(from.def, link.from.pin, nodeTitle(from, ctx), nodeTitle(to, ctx)), after: from.def });
       }
     }
   }

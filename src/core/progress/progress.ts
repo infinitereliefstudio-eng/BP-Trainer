@@ -25,6 +25,18 @@ export interface LessonHelp {
   tried?: boolean;
   solution?: boolean;
   fails?: number;
+  /** In a Débogue: where the learner thought the problem was, before the first hint, and where the check pointed. */
+  hypothesis?: HypothesisNote;
+}
+
+/** A hypothesis given before the first hint (explain/hypothesis.ts), as kept. */
+export interface HypothesisNote {
+  /** 'event' | 'reference' | 'condition' | 'unsure'. */
+  choice: string;
+  /** Where the check pointed, when it did. */
+  found?: string;
+  /** What the check showed, in one sentence. */
+  evidence?: string;
 }
 
 export { type HelpLevel, HELP_LEVELS } from './helpLevel';
@@ -95,7 +107,14 @@ export function withPassed(p: Progress, lessonId: string, now = Date.now()): Pro
 export function withHelp(p: Progress, lessonId: string, change: (h: LessonHelp) => LessonHelp): Progress {
   const before = p.help?.[lessonId] ?? { hints: 0 };
   const after = change(before);
-  if (after.hints === before.hints && !!after.tried === !!before.tried && !!after.solution === !!before.solution && (after.fails ?? 0) === (before.fails ?? 0)) return p;
+  if (
+    after.hints === before.hints &&
+    !!after.tried === !!before.tried &&
+    !!after.solution === !!before.solution &&
+    (after.fails ?? 0) === (before.fails ?? 0) &&
+    after.hypothesis === before.hypothesis
+  )
+    return p;
   return { ...p, help: { ...p.help, [lessonId]: after } };
 }
 
@@ -117,7 +136,7 @@ export function withHelpReset(p: Progress, lessonId: string, practice = false): 
  */
 export function withCheck(p: Progress, step: { lesson: string; rev: number; practice?: boolean }, outcome: CheckOutcome, now = Date.now()): Progress {
   const h = p.help?.[step.practice ? practiceHelpKey(step.lesson) : step.lesson];
-  const log = logCheck(p.log, { ...step, wasDone: p.done.includes(step.lesson) }, outcome, { level: helpLevel(h), hints: h?.hints ?? 0 }, now);
+  const log = logCheck(p.log, { ...step, wasDone: p.done.includes(step.lesson) }, outcome, { level: helpLevel(h), hints: h?.hints ?? 0, hypothesis: h?.hypothesis }, now);
   return log === p.log ? p : withToday({ ...p, log }, now);
 }
 
@@ -160,10 +179,18 @@ const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFin
 const strings = (v: unknown) => Array.isArray(v) && v.every((x) => typeof x === 'string');
 const numbers = (v: unknown) => isObj(v) && Object.values(v).every(isNum);
 const reviewState = (v: unknown) => isObj(v) && Object.values(v).every((c) => isObj(c) && isNum(c.box) && isNum(c.due));
+const optStr = (v: unknown) => v === undefined || typeof v === 'string';
+const hypothesisNote = (v: unknown) => v === undefined || (isObj(v) && typeof v.choice === 'string' && optStr(v.found) && optStr(v.evidence));
 const lessonHelp = (v: unknown) =>
   isObj(v) &&
   Object.values(v).every(
-    (h) => isObj(h) && isNum(h.hints) && (h.tried === undefined || typeof h.tried === 'boolean') && (h.solution === undefined || typeof h.solution === 'boolean') && (h.fails === undefined || isNum(h.fails)),
+    (h) =>
+      isObj(h) &&
+      isNum(h.hints) &&
+      (h.tried === undefined || typeof h.tried === 'boolean') &&
+      (h.solution === undefined || typeof h.solution === 'boolean') &&
+      (h.fails === undefined || isNum(h.fails)) &&
+      hypothesisNote(h.hypothesis),
   );
 const helpLevels = (v: unknown) => isObj(v) && Object.values(v).every((l) => HELP_LEVELS.includes(l as HelpLevel));
 const reworkChoices = (v: unknown) =>

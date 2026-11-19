@@ -4,6 +4,7 @@
  * the spaced Blueprint reviews will be planned from it.
  */
 import { useState } from 'preact/hooks';
+import { type HypothesisChoice, hypothesisLabel } from '@core/explain/hypothesis';
 import { getLesson } from '@core/lessons';
 import { lessonLabel } from '@core/lessons/types';
 import { type Attempt, type AttemptLog as Log, type ErrorKind, readableLog } from '@core/progress/attempts';
@@ -47,6 +48,12 @@ function Row({ a }: { a: Attempt }) {
         <span class={`attempt-status ${st.cls}`}>{st.text}</span> · {a.checks} vérification{a.checks > 1 ? 's' : ''} · {HELP[a.help]}
         {lesson && (lesson.revision ?? 1) !== a.rev ? ' · leçon modifiée depuis' : ''}
       </span>
+      {a.hypothesis && (
+        <span class="small muted">
+          Hypothèse : {hypothesisLabel(a.hypothesis.choice as HypothesisChoice).toLowerCase()}
+          {a.hypothesis.found ? (a.hypothesis.found === a.hypothesis.choice ? ' (vue juste)' : ` (la vérification désignait ${hypothesisLabel(a.hypothesis.found as HypothesisChoice).toLowerCase()})`) : ''}
+        </span>
+      )}
       {(errors.length > 0 || failed.length > 0) && (
         <span class="note-tags">
           {errors.map(([k, n]) => (

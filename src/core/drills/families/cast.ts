@@ -134,10 +134,12 @@ const bonus: Situation<BonusP> = {
   ],
   mistakes: [
     {
-      id: 'object-unlinked',
-      what: 'Object du Cast n’est pas relié à Other Actor',
+      id: 'object-self',
+      what: 'Object du Cast est Self (l’objet lui-même) au lieu de Other Actor',
       apply(p, r) {
         cut(p, 'BP_Bonus', r.cast, 'object');
+        const b = edit(p, 'BP_Bonus');
+        b.link(b.node('actor.self', {}, {}, [200, 300]), 'self', r.cast, 'object');
       },
     },
     {
@@ -280,10 +282,12 @@ const badge: Situation<BadgeP> = {
       },
     },
     {
-      id: 'object-unlinked',
-      what: 'Object du Cast n’est pas relié à Other Actor',
+      id: 'object-self',
+      what: 'Object du Cast est Self (l’objet lui-même) au lieu de Other Actor',
       apply(p, r) {
         cut(p, 'BP_Terminal', r.cast, 'object');
+        const b = edit(p, 'BP_Terminal');
+        b.link(b.node('actor.self', {}, {}, [200, 300]), 'self', r.cast, 'object');
       },
     },
   ],

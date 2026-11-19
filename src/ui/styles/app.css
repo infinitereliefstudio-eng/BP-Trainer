@@ -697,3 +697,8 @@ select.field { padding-right: 4px; }
 
 /* Révision › À retravailler en Blueprint (V7.28) */
 .rework-item .row-buttons .btn { height: 38px; }
+
+/* Débogue : l'hypothèse avant l'indice (V7.30) */
+.hypothesis { border-color: #2d5a8a; }
+.hypothesis-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+.hypothesis-options .option { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; height: auto; padding: 8px 12px; text-align: left; white-space: normal; }

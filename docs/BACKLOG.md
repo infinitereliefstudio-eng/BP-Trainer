@@ -27,6 +27,21 @@ Questions ouvertes :
 - La suite narrative pour Station enterrée passe-t-elle avant une appli plus généraliste ?
 - Quel objectif du jour par défaut : une leçon, ou cinq questions de révision ?
 
+## Reste du plan du parcours : à étudier, à faire selon l'étude
+
+Décision de Tristan du 19 novembre, après la V7.18 : le plan du parcours (lots 0 à 4) est livré ; ce qui n'a été atteint qu'en partie est noté ici, à étudier avant de décider s'il faut le faire. Rien n'est lancé.
+
+| Point | Où on en est | À étudier |
+|---|---|---|
+| Espacement des notions | 30 notions dépassent encore la cible de 15 étapes (`KNOWN_GAPS` dans `tests/spacing.test.ts`) : player-controller 77, maps 49, sequence 46, data-tables 45, structs 42, timeline 41… | Des rappels où ils sont naturels ; accepter une cible plus large pour certaines notions ; ou revoir l'ordre des blocs |
+| Rappel de Player Controller | Écrit seulement dans la leçon Player Controller, puis dans l'Expert X1 | Trouver une étape du Confirmé ou de l'Avancé où Get Player Controller sert naturellement (contexte d'entrée d'un mode, par exemple) |
+| Avancé en cahier des charges | Fait : fiches de méthode après la réussite, premiers indices en questions, six objectifs réécrits. Pas fait : fiches « Ce qui est en place » réécrites, départ « niveau seul » des anciennes étapes | Réécrire les 24 étapes, ou seulement celles où le préconstruit retire l'essentiel du travail |
+| Construire soi-même dans les anciennes étapes | Variables dès l'Intermédiaire, composants dès le Confirmé : seulement dans les étapes ajoutées pendant le plan | Reprendre les anciennes étapes, en vérifiant ta progression déjà faite (révision et avis de leçon changée) |
+| Troisième projet Expert | Deux projets (X2, X1) | Un projet qui assemble la suite narrative avec une sauvegarde (et l'inventaire si les Actor Components arrivent) |
+| « S'adapter à l'apprenant » | Pas fait (point 6 du Doc) | Une notion fragile (solution vue, révision ratée) propose un transfert de plus par « Continuer » |
+| Déclencheur Tap | Absent ; T2 utilise Hold + Canceled | L'ajouter à Enhanced Input, et voir si une étape en a besoin |
+| Menu pause | Fait sans widget, sur Espace (choix par défaut, question sans réponse) | À confirmer ; à revoir si des widgets arrivent |
+
 ## Cadre : ce qu'il faut garder
 
 Issus de la revue du 17 novembre (V7.1.0, commit `b0c2ddd`, 773 tests réussis dans 24 fichiers ; ni les 87 étapes ni l'APK n'ont été essayées une à une). À respecter dans tous les lots :

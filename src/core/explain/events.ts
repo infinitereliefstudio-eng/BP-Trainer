@@ -28,6 +28,16 @@ export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], 
       else say(`La touche a été pressée, mais aucun ${cls.name} n’existait encore à ce moment-là.`);
       return;
     }
+    case 'input.action': {
+      const action = cx.project.inputActions?.find((a) => a.id === node.config.action);
+      if (action && cx.record.pausedActions.has(action.id)) {
+        say(
+          `${action.name} s’est déclenchée pendant que le jeu était en pause (Set Game Paused) : en pause, une Input Action n’arrive dans les graphes que si Trigger when Paused est coché dans ses Details (Content Drawer › ${action.name}).`,
+        );
+        return;
+      }
+      break;
+    }
     case 'event.actorBeginOverlap':
     case 'event.actorEndOverlap': {
       const boxes = cls.components.filter((c) => c.kind === 'BoxCollision' && collisionQueries(c.props.collision));

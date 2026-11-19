@@ -252,8 +252,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 103:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 103")
+        if await page.locator('.lesson-item').count() != 107:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 107")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -704,6 +704,34 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Confirmé').scroll_into_view_if_needed()
         await shot('68_home_help_rule')
+        # Lot 3a: the pause menu. Trigger when Paused in the Input Action's Details, PAUSED in Play, and back.
+        await page.evaluate(PUT, ['project:lesson:l-menu-pause', (HERE / 'out' / 'l-menu-pause.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Le menu pause').tap()
+        await page.wait_for_timeout(500)
+        await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'inputAction', id: s.project.inputActions.find(a => a.name === 'IA_Pause').id }); }""")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await shot('69_trigger_when_paused')
+        if await page.locator('.drawer.right', has_text='Trigger when Paused').count() != 1:
+            errs.append('Input Action : Trigger when Paused absent des Details')
+        await page.locator('.drawer.right .drawer-head .btn').tap()
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(700)
+        await page.locator('.keys .key', has_text='Espace').tap()
+        await page.wait_for_timeout(900)
+        await shot('70_game_paused')
+        if await page.locator('.game-paused').count() != 1:
+            errs.append('Menu pause : PAUSED ne s’affiche pas après Espace')
+        await page.locator('.keys .key', has_text='Espace').tap()
+        await page.wait_for_timeout(400)
+        if await page.locator('.game-paused').count() != 0:
+            errs.append('Menu pause : le jeu reste en pause après le second Espace')
+        await page.locator('.pb-btn.stop').tap()
+        await page.wait_for_timeout(300)
+
         print('errors', errs)
         await b.close()
         return errs

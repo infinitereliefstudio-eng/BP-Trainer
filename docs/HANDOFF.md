@@ -4,29 +4,29 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-18, après la V7.14)
+## Reprise rapide (2026-11-19, après la V7.15)
 
 ### Où on en est
 
-- **Version en ligne : 7.14.0**, commit `17cd9bd` sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.15.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
   - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
-  - **lot 3 (Confirmé) : à faire, prochain**, seulement quand Tristan le demande ;
+  - lot 3 (Confirmé) : **3a fait en V7.15** (quatre nouvelles étapes, lancé par « ok on peut passer au lot 3 » le 2026-11-19) ; **3b à faire, prochain** (rappels, synthèse S3), seulement quand Tristan le demande ;
   - lot 4 (Avancé et Expert) : à faire ensuite.
-- **En attente de Tristan** : sa validation de la V7.14 sur son téléphone (il a lancé 2b par « tu peux passer à la suite » sans retour sur 2a ; aucune version depuis V7.8 n'a de retour explicite). Points à lui faire tester : « La porte sur son gond » (Scene, Attach Parent, Viewport), le Transfert T2 (déclencheur Hold dans IMC_Joueur), les synthèses S1 et S2 sans aide, « Construis ta lampe ».
-- **Ne rien commencer du lot 3 sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
+- **En attente de Tristan** : son retour sur la V7.15 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause » (créer IA_Pause, Trigger when Paused). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **Ne rien commencer du lot 3b sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-103 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 32, Avancé 24, Expert 0 (le niveau existe, vide jusqu'au lot 4). 133 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+107 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 36, Avancé 24, Expert 0 (le niveau existe, vide jusqu'au lot 4). 137 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
 - **Échelle par notion** (`Lesson.chain` : discover, guided, modify, transfer, autonomy ; `LADDER`) ; l'autonomie est différée (`chain.after`).
 - **Rappels** (`Lesson.recalls`) : notions anciennes que la solution de référence réécrit vraiment (vérifié par `tests/spacing.test.ts`).
-- **Espacement** : cible 15 étapes ; `KNOWN_GAPS` dans `tests/spacing.test.ts` est un cliquet. Le test dit la valeur exacte à mettre quand un écart baisse. En V7.14, six écarts ont dû **monter** (commentés `V7.14` dans le fichier : timers 44, enum 50, switch 50, maps 43, player-controller 66, timeline 60) : à faire redescendre au lot 3 par des rappels dans les étapes Confirmé (index 47 à 78 environ).
+- **Espacement** : cible 15 étapes ; `KNOWN_GAPS` dans `tests/spacing.test.ts` est un cliquet. Le test dit la valeur exacte à mettre quand un écart baisse. En V7.14, six écarts ont dû **monter** (commentés `V7.14`), et en V7.15 vingt-quatre de plus de 1 à 4 (commentés `V7.15` : les quatre étapes du 3a tombent dans les trous qui traversent le Confirmé) ; cast, enhanced-input, input, interfaces et loops ont baissé. À faire redescendre au lot 3b par des rappels dans les étapes Confirmé (index 47 à 82 environ).
 - **Synthèse** (`kind: 'synthesis'`, `library/synthesis.ts`) : cahier des charges en fin de niveau, conseillé (Home.tsx le propose avant le niveau suivant), jamais bloquant ; elle n'enseigne rien (`teaches: []`) et peut durer 45 min.
 - **Projets UE5 après « Les contrôles au Player Controller »** (`l-ei-controleur`) : plus aucun événement de touche. Une leçon écrite avec la touche E passe par `UE5_INPUT` dans `index.ts` (`asEnhancedInput`, `core/lessons/ue5Input.ts`) ; une leçon native appelle `ensurePlayerInput(p, ['E'], { E: 'IA_…' })` dans son setup (exemple : `library/chest.ts`). `tests/ue5Input.test.ts` le vérifie.
 
@@ -34,7 +34,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
-1. **Lot 3 — Confirmé** : aide réduite (déjà en place par la règle), « Choisis ton outil » (Cast, Dispatcher ou Interface), « Le menu pause », « Qui a éteint la lumière ? » (Find), « Interagir comme dans UE5 » (le joueur reçoit l'action et prévient l'objet visé, au lieu de l'Auto Receive Input des objets), composants et fonctions créés par l'apprenant, rappels (faire redescendre les six écarts montés en V7.14), synthèse S3. Probablement en deux temps, comme le lot 2.
+1. **Lot 3b — Confirmé** : rappels dans les étapes Confirmé (faire redescendre les écarts montés en V7.14 et V7.15), composants et fonctions créés par l'apprenant, Prédis « Ordre et cycle de vie », synthèse S3 qui impose le choix de l'outil (Cast, Dispatcher ou Interface).
 2. **Lot 4 — Avancé et Expert** : cahiers des charges en Avancé, « Le levier universel », projets Expert sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), entraînement mélangé, synthèse S4.
 3. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
 
@@ -54,7 +54,7 @@ Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) 
 ### Livrer une version
 
 Commandes dans « Méthode de travail » plus bas. Récapitulatif :
-`npm run lint && npx tsc --noEmit && npm test && npm run build && npx vitest run --config tools/e2e/vitest.config.ts && python3 tools/e2e/smoke.py` (attendre `errors []`), puis version dans `package.json`, une section `V7.x` ici, une ligne dans BACKLOG.md (« Déjà fait »), README.md (nombre d'étapes et de questions), PLAN_PARCOURS.md (état du lot), ARCHITECTURE.md si nouveaux fichiers. Commit sur `main` avec les lignes d'attribution, `git -c push.negotiate=true push origin main`, `gh run watch` (déploiement Pages). Page de test : `python3 tools/make-test-page.py /home/claude/publish/index.html`, puis l'outil Artifact `publish_files` sur le slug `5781960b-ee1f-4517-a493-be206fea22a8` (lien https://claude.ai/artifact/BojAfVYPuqnJcK49BLzdfd) avec la version en cours en `base_version` (la lire avec `get_artifact` ; dernière connue : `1795017603-1b0e`). Résumer à Tristan en français, sans jargon, avec quoi tester.
+`npm run lint && npx tsc --noEmit && npm test && npm run build && npx vitest run --config tools/e2e/vitest.config.ts && python3 tools/e2e/smoke.py` (attendre `errors []`), puis version dans `package.json`, une section `V7.x` ici, une ligne dans BACKLOG.md (« Déjà fait »), README.md (nombre d'étapes et de questions), PLAN_PARCOURS.md (état du lot), ARCHITECTURE.md si nouveaux fichiers. Commit sur `main` avec les lignes d'attribution, `git -c push.negotiate=true push origin main`, `gh run watch` (déploiement Pages). Page de test : `python3 tools/make-test-page.py /home/claude/publish/index.html`, puis l'outil Artifact `publish_files` sur le slug `5781960b-ee1f-4517-a493-be206fea22a8` (lien https://claude.ai/artifact/BojAfVYPuqnJcK49BLzdfd) avec la version en cours en `base_version` (la lire avec `get_artifact`). Résumer à Tristan en français, sans jargon, avec quoi tester.
 
 Tristan teste surtout sur son téléphone (APK) ; depuis le 2026-11-11 il a aussi l'appli de bureau Claude sur Windows (Node, pas de Python). Les sections plus bas qui disent qu'il n'a qu'un téléphone datent d'avant.
 
@@ -583,6 +583,21 @@ Fin du lot 2. Sept étapes de plus (103 au total), toutes dans l'Intermédiaire 
 Écart au plan : « Appuyer ou fouiller » utilise Hold et Canceled sur une seule action, faute de déclencheur Tap dans l'appli (c'est aussi un schéma courant dans UE). D1 (Accessed None) reste en Confirmé : il suppose les références d'objet, enseignées là ; P13 joue le rôle de l'« erreur en face » juste avant le Cast.
 
 Version 7.14.0.
+
+## V7.15 (2026-11-19) : plan du parcours, lot 3a (Confirmé, nouvelles étapes)
+
+Tristan a lancé le lot 3 (« ok on peut passer au lot 3 ») sans répondre à la question du menu pause : choix par défaut, dit à Tristan (pas de widget, Espace). Fait en deux temps comme le lot 2 ; ici les quatre étapes, 107 au total. Tests : `tests/gamePaused.test.ts`, `tests/lot3.test.ts`.
+
+- **Pause du jeu** (runtime) : nœuds **Set Game Paused** (`game.setGamePaused`, Return Value) et **Is Game Paused** (`game.isGamePaused`) dans `nodes/library/controller.ts`, comportements dans `behaviors/controller.ts`, `WorldApi.gamePaused` / `setGamePaused`. `Simulation.gamePaused` (distinct de `paused`, le débogueur) : en pause, une frame ne fait que les Input Actions et le ménage ; ni déplacement, ni overlaps, ni Tick, ni latents, ni Timelines, ni timers, et le temps de jeu ne bouge pas. Les événements de touche ne s'exécutent pas (Execute when Paused décoché, défaut d'UE). Une Input Action n'arrive que si **Trigger when Paused** (`InputAction.triggerWhenPaused`, case dans ses Details, section Action, `setTriggerWhenPaused` dans `inputOps.ts`) ; sinon elle est notée dans `RunRecord.pausedActions` et « Pourquoi ce nœud ne s'est pas exécuté ? » le dit. Play affiche **PAUSED** au centre. Notes Piège et Dans UE. Champ optionnel : pas de changement de format.
+- **Choisis ton outil** (`library/chooseTool.ts`, après D2) : trois coins, un outil chacun (borne : Cast To BP_Joueur et Set Sante ; alarme : Event Dispatcher, vérification bloquante « l'alarme ne connaît aucun gyrophare » : pas de variable objet, pas de Get All Actors, pas de nœud qui vise BP_Gyrophare ; disjoncteur : liste `Appareils` déjà réglée, trois classes, interface, vérification bloquante sans Cast). Notion de catalogue `choose-tool`, fiche de glossaire « Cast, Dispatcher ou Interface ».
+- **Débogue D21 « Qui a éteint la lumière ? »** (`library/whoTurnedOff.ts`, après D12) : huit Blueprints ; BP_Lampe a les Custom Events Eteindre et Allumer, appelés par BP_Interrupteur (légitime, à la sortie), BP_Detecteur (Allumer) et BP_Ventilation (reste d'un test, 2 s après le lancement). Find References sur Event Eteindre + All Blueprints donne les deux appelants (testé). Une variable `Lumiere` dans BP_Generateur montre la différence avec une recherche par mot. Notion `find`, fiche « Find References ».
+- **Refactor R4 « Interagir comme dans UE5 »** (`library/interactUe5.ts`, après P8) : le départ est le réflexe UE4 gardé au lot 1 (Auto Receive Input, `bProche` par overlaps, IA_Interagir → Branch) dans la lampe, la porte et le générateur ; le coffre ne réagit pas. Bloquant : plus aucun objet n'écoute une entrée ; notions : message d'interface, Auto Receive Input retiré, plus de `bProche`. R3 (Avancé) reprend ensuite avec le Line Trace.
+- **Le menu pause** (`library/pauseMenu.ts`, après D11) : BP_Minuteur (timer d'une seconde, « Tic ») ; l'apprenant crée IA_Pause, la met sur Espace dans IMC_Joueur, coche Trigger when Paused, et dans BP_PlayerController bascule la pause (NOT Is Game Paused) avec un message « pause » / « reprise ». Sans Trigger when Paused, la vérification dit pourquoi le jeu reste figé. Notion `pause` (pas dans `SPACED_NOTIONS` : les nœuds `game.*` ne sont pas lus comme une notion).
+- Rappels déclarés : Choisis ton outil (overlap, loops, other-bp), R4 (loops), menu pause (enhanced-input, branch).
+- **Espacement** : cast 29 → 27, enhanced-input et input 48 → 27, interfaces 35 → 28, loops 22 → 21. Vingt-quatre écarts montent de 1 à 4 (commentés `V7.15`) : les quatre étapes tombent dans les trous qui traversent le Confirmé. C'est le travail du 3b.
+- Révision : 4 questions (137). `smoke.py` attend 107 étapes, captures 69 (Trigger when Paused) et 70 (PAUSED), vérifie qu'Espace met en pause et relance.
+
+Version 7.15.0.
 
 ## Méthode de travail
 

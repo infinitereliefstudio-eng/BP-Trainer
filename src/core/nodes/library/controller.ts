@@ -4,7 +4,7 @@
  * actors and the pawn, and owns the Enhanced Input Local Player Subsystem.
  */
 import { T } from '../../types/pins';
-import { dataIn, dataOut, type NodeDefinition } from '../definition';
+import { dataIn, dataOut, execIn, execOut, type NodeDefinition } from '../definition';
 
 export const controllerNodes: NodeDefinition[] = [
   {
@@ -30,5 +30,24 @@ export const controllerNodes: NodeDefinition[] = [
       dataIn('target', 'Target', T.object('Pawn'), ctx.cls.parent === 'Pawn' ? { defaultsToSelf: true } : { required: true }),
       dataOut('result', 'Return Value', T.object('Controller')),
     ],
+  },
+  {
+    id: 'game.setGamePaused',
+    title: 'Set Game Paused',
+    category: 'Game',
+    kind: 'function',
+    description:
+      'Met le jeu en pause (Paused coché) ou le relance. En pause, le temps de jeu s’arrête : plus de Tick, les Delay, timers et Timelines attendent, le joueur ne bouge plus. Les entrées n’arrivent plus, sauf les Input Actions dont **Trigger when Paused** est coché : sans elles, on ne peut plus sortir de la pause.',
+    keywords: ['pause', 'paused', 'set game paused', 'menu', 'pauser', 'reprendre'],
+    pins: [execIn(), execOut(), dataIn('paused', 'Paused', T.bool, { default: false }), dataOut('result', 'Return Value', T.bool)],
+  },
+  {
+    id: 'game.isGamePaused',
+    title: 'Is Game Paused',
+    category: 'Game',
+    kind: 'pure',
+    description: 'Vrai si le jeu est en pause (Set Game Paused). Pratique pour basculer : Set Game Paused avec NOT Is Game Paused.',
+    keywords: ['pause', 'paused', 'is game paused', 'en pause'],
+    pins: [dataOut('result', 'Return Value', T.bool)],
   },
 ];

@@ -87,6 +87,12 @@ export class Simulation implements InterpreterHost {
   slotsChanged = false;
   /** Enhanced Input: active Mapping Contexts and the state of each action. */
   readonly enhancedInput = new EnhancedInput();
+  /**
+   * Set Game Paused: game time stops (no Tick, latent actions, timers or
+   * movement), input only reaches the actions marked Trigger when Paused.
+   * Not the debugger's pause (`paused`), which stops everything.
+   */
+  gamePaused = false;
   private readonly onSlotsChanged?: () => void;
 
   private readonly journal = new Journal();
@@ -248,6 +254,18 @@ export class Simulation implements InterpreterHost {
     if (!this.started) this.start();
     if (this.paused) return;
     this.deltaSeconds = dt;
+    if (this.gamePaused) {
+      // UE's paused world: only input is processed, game time stands still.
+      this.phases.push(
+        () => this.fireActions(dt),
+        () => {
+          this.frame++;
+          this.removeDestroyed();
+        },
+      );
+      this.runPhases();
+      return;
+    }
     this.phases.push(
       // The player's input first, as UE's PlayerController ticks before the pawn moves.
       () => this.fireActions(dt),
@@ -382,6 +400,11 @@ export class Simulation implements InterpreterHost {
    */
   private fireActions(dt: number): void {
     for (const f of this.enhancedInput.process(this.project, dt)) {
+      // While paused, only the actions marked Trigger when Paused reach the graphs (UE's bTriggerWhenPaused).
+      if (this.gamePaused && !this.project.inputActions?.find((a) => a.id === f.action)?.triggerWhenPaused) {
+        this.record.pausedActions.add(f.action);
+        continue;
+      }
       const outputs = { value: f.value, elapsed: f.elapsed, triggeredSeconds: f.triggeredSeconds };
       for (const a of this.inputStack()) {
         if (this.interp.fireAction(a, f.action, f.event, outputs)) break;
@@ -401,6 +424,8 @@ export class Simulation implements InterpreterHost {
     if (!this.started) this.start();
     if (this.paused) return;
     this.record.keys.add(key);
+    // Key events do not execute while the game is paused (their Execute when Paused is off, UE's default).
+    if (this.gamePaused) return;
     for (const a of this.inputStack()) {
       if (this.interp.fireKey(a, key, pin)) break;
     }
@@ -456,6 +481,10 @@ export class Simulation implements InterpreterHost {
   }
 
   // ------------------------------------------------------------ WorldApi
+
+  setGamePaused(paused: boolean): void {
+    this.gamePaused = paused;
+  }
 
   random(): number {
     // Mulberry32: deterministic, so lesson checks are reproducible.

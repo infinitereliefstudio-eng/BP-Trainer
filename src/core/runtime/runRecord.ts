@@ -51,6 +51,8 @@ export class RunRecord {
   /** Classes that had at least one actor during the session. */
   readonly classes = new Set<string>();
   readonly keys = new Set<string>();
+  /** Input Actions that triggered while the game was paused and did not reach the graphs (no Trigger when Paused). */
+  readonly pausedActions = new Set<string>();
   /** Actor ids clicked, and destroyed. */
   readonly clicked = new Set<string>();
   readonly destroyed = new Set<string>();

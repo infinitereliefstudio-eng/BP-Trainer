@@ -61,6 +61,15 @@ export function renameInputAction(p: Project, id: string, name: string): OpResul
   return { ok: true, value: undefined };
 }
 
+/** UE's Trigger when Paused: the action keeps firing while the game is paused. */
+export function setTriggerWhenPaused(p: Project, id: string, on: boolean): OpResult {
+  const a = findInputAction(p, id);
+  if (!a) return { ok: false, reason: 'Input Action introuvable.' };
+  if (on) a.triggerWhenPaused = true;
+  else delete a.triggerWhenPaused;
+  return { ok: true, value: undefined };
+}
+
 /** UE refuses to delete an asset still referenced; so do we. */
 export function removeInputAction(p: Project, id: string): OpResult {
   const a = findInputAction(p, id);

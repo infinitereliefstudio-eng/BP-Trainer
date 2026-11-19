@@ -54,6 +54,10 @@ import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from '
 import { debug19 } from './library/inputs';
 import { autonomyTrap, transferBadge } from './library/chainCast';
 import { debugMappingContext, lessonInputController, lessonInputHold, lessonInputLamp } from './library/enhancedInput';
+import { lessonChooseTool } from './library/chooseTool';
+import { debug21 } from './library/whoTurnedOff';
+import { refactor4 } from './library/interactUe5';
+import { lessonPauseMenu } from './library/pauseMenu';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -116,14 +120,17 @@ export const LESSONS: Lesson[] = [
   lesson10,
   lesson11,
   debug2,
+  lessonChooseTool,
   lessonWhoChanges,
   debug12,
+  debug21,
   lessonObjective,
   lessonLocals,
   predict4,
   lessonRecord,
   debug5,
   predict8,
+  refactor4,
   lessonCatalog,
   debug16,
   lessonCards,
@@ -136,6 +143,7 @@ export const LESSONS: Lesson[] = [
   lessonWaves,
   debug9,
   debug11,
+  lessonPauseMenu,
   lessonFence,
   debug3,
   lessonLift,

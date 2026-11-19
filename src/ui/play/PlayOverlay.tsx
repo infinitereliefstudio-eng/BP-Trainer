@@ -49,6 +49,11 @@ export function PlayOverlay({ session, onStop, onShowLog, onOutliner }: Props) {
         </button>
       </div>
 
+      {sim.gamePaused && (
+        <div class="game-paused" title="Set Game Paused : le temps de jeu est arrêté">
+          PAUSED
+        </div>
+      )}
       <div class="screen-msgs" aria-live="polite">
         {sim.screen.map((m) => (
           <div key={m.id} class="screen-msg">

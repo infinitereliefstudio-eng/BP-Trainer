@@ -16,6 +16,7 @@ import {
   renameInputAction,
   renameMappingContext,
   setMapping,
+  setTriggerWhenPaused,
 } from '@core/operations/inputOps';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
@@ -53,6 +54,14 @@ export function InputActionDetails({ id }: { id: string }) {
           <span class="muted">Digital (bool)</span>
         </Field>
       </Group>
+      <Group title="Action">
+        <Field label="Trigger when Paused">
+          <Check
+            checked={!!a.triggerWhenPaused}
+            onChange={(on) => store.applyProject('Trigger when Paused', (p) => setTriggerWhenPaused(p, id, on))}
+          />
+        </Field>
+      </Group>
       <Group title="Utilisation" app>
         <p class="muted small">
           {used.nodes} événement(s) dans les Blueprints · {used.mappings} ligne(s) de Mapping Context.
@@ -72,6 +81,9 @@ export function InputActionDetails({ id }: { id: string }) {
         <p>
           Une Input Action dit ce que le joueur peut faire (interagir, sauter), sans dire avec quelle touche : c’est le rôle d’un Input Mapping Context.
           Dans un Blueprint, l’événement {a.name} (palette › Input › Enhanced Action Events) se déclenche quand une touche associée est utilisée.
+        </p>
+        <p>
+          Trigger when Paused : coché, l’action arrive encore quand le jeu est en pause (Set Game Paused). C’est indispensable pour l’action qui sort de la pause.
         </p>
       </AppHelp>
     </>

@@ -253,6 +253,30 @@ export const LESSON_QUIZ: QuizQuestion[] = [
   ),
   // -------------------------------------------------------------- Confirmé
   q(
+    'l-choisis-outil',
+    'Un disjoncteur a la liste des appareils à couper : une lampe, un ventilateur, un écran, trois Blueprints différents. Quel outil prendre ?',
+    ['Une Blueprint Interface : il connaît ses cibles, pas leur classe', 'Un Cast To par classe', 'Un Event Dispatcher dans le disjoncteur', 'Get All Actors Of Class pour chaque classe'],
+    'Il a déjà ses cibles (la liste) : pas besoin qu’elles s’abonnent. Mais elles sont de classes différentes et réagissent chacune à leur façon : un message d’interface, sans Cast.',
+  ),
+  q(
+    'd21-qui-eteint',
+    'Une lampe s’éteint toute seule, dans un projet de huit Blueprints. Par quoi commencer ?',
+    ['Find References sur ce qui l’éteint, puis All Blueprints', 'Ouvrir chaque Blueprint un par un', 'Ajouter un Event Tick qui la rallume', 'Recréer BP_Lampe'],
+    'Find References liste tous les nœuds qui utilisent cet événement ou cette variable, dans tout le projet avec All Blueprints : la liste des suspects en une fois.',
+  ),
+  q(
+    'r4-interagir-ue5',
+    'Dans un projet UE5, qui reçoit IA_Interagir quand le joueur veut actionner une porte ?',
+    ['Le joueur, qui prévient la porte par un message d’interface', 'La porte, avec Auto Receive Input', 'Chaque objet du niveau, qui vérifie si le joueur est près', 'Le Level Blueprint'],
+    'Les entrées arrivent au joueur (pion ou Player Controller). Il sait ce qui est à portée et l’envoie à l’objet ; les objets n’écoutent aucune touche.',
+  ),
+  q(
+    'l-menu-pause',
+    'IA_Pause met le jeu en pause avec Set Game Paused. Le second appui sur Espace ne fait plus rien. Pourquoi ?',
+    ['Trigger when Paused n’est pas coché sur IA_Pause', 'Set Game Paused ne peut être appelé qu’une fois', 'Le Player Controller est détruit en pause', 'Il faut un Delay avant de reprendre'],
+    'En pause, une Input Action n’arrive dans les graphes que si Trigger when Paused est coché dans ses Details : sans lui, rien ne peut enlever la pause.',
+  ),
+  q(
     'l09-generateur',
     'Une variable de type BP_Lampe (Object Reference) n’a jamais été réglée. Que contient-elle ?',
     ['None : elle ne désigne aucun acteur', 'La première lampe du niveau', 'Une lampe créée automatiquement', 'Le Blueprint lui-même'],

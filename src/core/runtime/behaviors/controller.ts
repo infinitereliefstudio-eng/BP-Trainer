@@ -1,4 +1,4 @@
-/** The player's controller: Get Player Controller, Get Controller. */
+/** The player's controller (Get Player Controller, Get Controller) and the game's pause. */
 import type { Behavior } from './types';
 
 export const controllerBehaviors: Record<string, Behavior> = {
@@ -13,4 +13,12 @@ export const controllerBehaviors: Record<string, Behavior> = {
       return { result: pawn?.isPlayer ? { ref: 'actor', id: cx.world.playerController().id } : null };
     },
   },
+  'game.setGamePaused': {
+    exec: (cx) => {
+      cx.world.setGamePaused(cx.bool('paused'));
+      cx.out('result', true);
+      return ['then'];
+    },
+  },
+  'game.isGamePaused': { pure: (cx) => ({ result: cx.world.gamePaused }) },
 };

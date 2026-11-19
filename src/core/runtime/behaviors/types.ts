@@ -74,6 +74,9 @@ export interface WorldApi {
   playerController(): ActorRT;
   /** The player's Enhanced Input Local Player Subsystem (an object, not an actor). */
   inputSubsystem(): ActorRT;
+  /** Set Game Paused: game time stops, input only reaches the actions marked Trigger when Paused. */
+  readonly gamePaused: boolean;
+  setGamePaused(paused: boolean): void;
 }
 
 export interface ValueCx {

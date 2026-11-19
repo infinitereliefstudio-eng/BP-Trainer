@@ -264,6 +264,14 @@ export const GLOSSARY: GlossaryEntry[] = [
     pattern: 'Hit Actor → Interagir (Message)',
   },
   {
+    title: 'Cast, Dispatcher ou Interface',
+    names: ['Choisir Cast, Dispatcher ou Interface'],
+    what: 'Trois façons de faire passer un message d’un Blueprint à un autre, qui ne lient pas les acteurs de la même façon. Cast : l’émetteur connaît la classe de l’autre. Dispatcher : ce sont les abonnés qui connaissent l’émetteur. Interface : personne ne connaît la classe de personne.',
+    when: 'Cast quand on a un acteur (Other Actor, une référence), d’une classe connue, et qu’on a besoin de ses variables. Dispatcher quand on annonce un changement sans savoir qui écoute. Interface quand on connaît ses cibles mais pas leur classe, et que chacune réagit à sa façon.',
+    trap: 'Ils « marchent » tous, d’où l’idée fausse qu’ils font la même chose. Le prix se voit plus tard : un Cast de plus pour chaque nouvelle classe, un émetteur à modifier pour chaque nouvel abonné.',
+    pattern: 'Qui connaît qui ? → combien de classes ? → lire ses variables, ou lui dire d’agir ?',
+  },
+  {
     title: 'Interface avec entrée et sortie',
     names: ['Interface avec entrée et sortie', 'Implémentation en fonction', 'Valeur par défaut d’un message'],
     what: 'Une fonction d’interface peut recevoir des valeurs et en rendre. Dès qu’elle a une sortie, chaque Blueprint l’implémente comme une fonction (avec un Return Node), plus comme un événement.',
@@ -501,5 +509,21 @@ export const GLOSSARY: GlossaryEntry[] = [
     when: 'Pour tout calcul « du point de vue » d’un acteur : ses cases, ce qui est devant lui, un décalage sur sa droite. On passe en local, on calcule, on revient au monde.',
     trap: 'Un calcul fait en coordonnées monde marche tant que l’acteur est à l’origine et sans rotation, donc dans le niveau de test, et casse ailleurs.',
     pattern: 'Inverse Transform Location (T) → calcul en local → Transform Location (T)',
+  },
+  {
+    title: 'Find References',
+    names: ['Find References', 'Find in all Blueprints', 'Find Results', 'Custom Event d’un autre Blueprint'],
+    what: 'Find References (appui long sur un nœud, ou dans les Details d’une variable) liste tous les nœuds qui utilisent cette variable, cet événement ou cette fonction. Le bouton All Blueprints étend la recherche à tout le projet ; Find, dans la barre d’outils, cherche un mot.',
+    when: 'Dès qu’une chose change « toute seule » : avant d’ouvrir les Blueprints un par un, demande qui y touche. Un Custom Event d’un autre Blueprint, appelé à travers une référence, se retrouve ainsi depuis l’événement lui-même.',
+    trap: 'Une recherche par mot trouve tout ce qui porte ce nom, même ce qui n’a rien à voir (une variable Lumiere dans un autre Blueprint). Find References, lui, suit l’objet précis.',
+    pattern: 'Event Eteindre › Find References › All Blueprints → toucher un résultat',
+  },
+  {
+    title: 'Pause du jeu',
+    names: ['Trigger when Paused'],
+    what: 'Set Game Paused arrête le temps de jeu : plus de Tick, les Delay, timers et Timelines attendent, le joueur ne bouge plus. En pause, une Input Action n’arrive dans les graphes que si Trigger when Paused est coché dans ses Details.',
+    when: 'Pour un menu pause, une cinématique figée, un écran d’inventaire. On la gère dans le Player Controller : elle concerne le joueur, pas un objet du niveau.',
+    trap: 'Sans Trigger when Paused sur l’action qui enlève la pause, le jeu reste figé pour toujours : l’appui suivant n’arrive jamais. Les événements de touche (UE4) ne s’exécutent pas non plus en pause.',
+    pattern: 'IA_Pause (Started) → Set Game Paused (NOT Is Game Paused)',
   },
 ];

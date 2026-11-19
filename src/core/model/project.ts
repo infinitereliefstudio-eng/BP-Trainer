@@ -305,6 +305,8 @@ export interface InputAction {
   id: string;
   name: string;
   valueType: 'Bool';
+  /** UE's Trigger when Paused: the action still fires while the game is paused (Set Game Paused). */
+  triggerWhenPaused?: boolean;
 }
 
 /** A line of a Mapping Context: this key drives this action, with these triggers. */

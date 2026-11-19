@@ -16,41 +16,45 @@ import { practisedBy, SPACED_NOTIONS, spacing } from '../src/core/notions/practi
 
 const SPACING_TARGET = 15;
 
-/** Today's longest gaps above the target (steps), to bring down lot by lot. */
+/**
+ * Today's longest gaps above the target (steps), to bring down lot by lot.
+ * « V7.15: +N »: the four Confirmé steps of lot 3a fall inside the gap;
+ * lot 3b (recalls in the Confirmé steps) brings these back down.
+ */
 const KNOWN_GAPS: Record<string, number> = {
-  arrays: 20,
-  cast: 29,
-  components: 21,
-  construction: 38,
-  'data-tables': 39,
-  destroy: 40,
-  dispatchers: 33,
-  'enhanced-input': 48,
-  enum: 50, // V7.14: +2, T2 and S2 inserted in the gap (Intermédiaire → Avancé), to bring down in lot 3
-  'flow-memory': 48,
-  functions: 27,
+  arrays: 21, // V7.15: +1
+  cast: 27,
+  components: 22, // V7.15: +1
+  construction: 39, // V7.15: +1
+  'data-tables': 40, // V7.15: +1
+  destroy: 44, // V7.15: +4
+  dispatchers: 36, // V7.15: +3
+  'enhanced-input': 27,
+  enum: 54, // V7.15: +4
+  'flow-memory': 52, // V7.15: +4
+  functions: 30, // V7.15: +3
   inheritance: 16,
-  input: 48,
-  interfaces: 35,
-  latent: 27,
-  locals: 24,
-  loops: 22,
-  maps: 43, // V7.14: +2, same cause
-  'other-bp': 21,
-  overlap: 26,
-  'player-controller': 66, // V7.14: +2, same cause
-  random: 40,
-  rotation: 36,
+  input: 27,
+  interfaces: 28,
+  latent: 28, // V7.15: +1
+  locals: 26, // V7.15: +2
+  loops: 21,
+  maps: 47, // V7.15: +4
+  'other-bp': 23, // V7.15: +2
+  overlap: 27, // V7.15: +1
+  'player-controller': 70, // V7.15: +4
+  random: 41, // V7.15: +1
+  rotation: 40, // V7.15: +4
   'save-game': 24,
-  sequence: 40,
-  sets: 20,
+  sequence: 42, // V7.15: +2
+  sets: 21, // V7.15: +1
   spawn: 31,
-  structs: 37,
-  switch: 50, // V7.14: +2, same cause
+  structs: 38, // V7.15: +1
+  switch: 54, // V7.15: +4
   tick: 29,
-  timeline: 60, // V7.14: +1, S2 after it
-  timers: 44, // V7.14: taught 44 steps earlier (Le gyrophare, Intermédiaire); next written in « Les vagues »: lot 3
-  visibility: 21,
+  timeline: 64, // V7.15: +4
+  timers: 47, // V7.15: +3
+  visibility: 22, // V7.15: +1
 };
 
 const practised = LESSONS.map(practisedBy);

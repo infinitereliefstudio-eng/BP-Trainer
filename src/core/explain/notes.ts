@@ -8,6 +8,7 @@ import { findVariable, type NodeInstance } from '../model/project';
 import type { NodeContext } from '../nodes/definition';
 
 const TRAPS: Record<string, string> = {
+  'game.setGamePaused': 'En pause, les Input Actions n’arrivent plus, sauf celles dont Trigger when Paused est coché : l’action qui enlève la pause doit l’avoir, sinon le jeu reste figé.',
   'time.delay': 'Un nouvel appel pendant l’attente est ignoré : l’attente ne repart pas de zéro. Pour qu’elle reparte, c’est Retriggerable Delay.',
   'time.retriggerableDelay': 'Chaque appel recommence l’attente depuis zéro : appelé sans arrêt, il ne sort jamais par Completed.',
   'flow.doOnce': 'Ne laisse passer que le premier passage, puis reste fermé jusqu’à ce qu’on entre par Reset.',
@@ -58,6 +59,7 @@ const TRAPS: Record<string, string> = {
 const COPY_TRAP = 'Copie toute la valeur : deux variables qui contiennent le même tableau ou la même structure ne partagent rien, modifier l’une ne change pas l’autre.';
 
 const IN_UE: Record<string, string> = {
+  'game.setGamePaused': 'Dans UE, un acteur peut continuer à tourner en pause (Tick Even when Paused), et un événement de touche a une case Execute when Paused. Ici, seules les Input Actions peuvent passer la pause. Le menu lui-même serait un Widget Blueprint.',
   'dataTable.getRow': 'Dans UE, la Data Table se choisit sur une pin du nœud, et ses lignes se remplissent dans un éditeur de tableau ou en important un fichier CSV ou JSON. Ici, la table se choisit dans Details.',
   'save.toSlot': 'Dans UE, le slot est un fichier .sav dans le dossier Saved du projet. Ici, il est gardé avec le projet, et le Content Drawer montre son contenu (UE ne le fait pas).',
   'save.fromSlot': 'Dans UE, Async Load Game from Slot fait la même chose sans bloquer le jeu, pour les grosses sauvegardes. Le principe est le même.',

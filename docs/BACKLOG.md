@@ -41,6 +41,8 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
+**Chantier annexe proposé le 19 novembre, avant l'UMG : retouches de l'interface** (pas une refonte). Plan en deux lots (V7.31 : place pour le graphe, boutons flottants, zoom lisible, toasts ; V7.32 : barre du bas en onglets, accueil en paysage, retouches, couleurs), détail dans [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). Attend le feu vert de Tristan.
+
 ### Chantier n° 2 (fait) : révisions de graphes espacées
 
 Tiré de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, étudiée le 19 novembre ; Tristan a validé l'intégration et l'ordre. Le constat : les questions de révision reviennent dans le temps (`core/review/schedule.ts`), les graphes jamais. Reconnaître ce que fait un nœud une semaine plus tard n'est pas savoir le recâbler. **Terminé le 19 novembre**, une étape par version ; Tristan n'a encore essayé aucune des quatre.

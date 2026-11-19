@@ -839,8 +839,9 @@ async def main():
         await page.locator('.lesson-item', has_text='La santé est partout').tap()
         await page.wait_for_timeout(500)
         await shot('77_refactor_health')
-        if await page.locator('.lesson-body .card h4', has_text='La réécriture').count():
-            errs.append('R5 : la fiche « La réécriture » est visible avant la réussite')
+        # V7.25: R5 is the guided rung of Actor Components, its method stays in view (helpPolicy, first rung).
+        if not await page.locator('.lesson-body .card h4', has_text='La réécriture').count():
+            errs.append('R5 : la fiche « La réécriture » manque alors que c’est l’étape guidée des composants')
         await close_sheet()
         await page.evaluate(OPEN, 'BP_Drone')
         await graph(page)

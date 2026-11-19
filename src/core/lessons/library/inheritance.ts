@@ -50,6 +50,8 @@ export const lessonInheritance: Lesson = {
   id: 'l-heritage',
   module: 'Héritage',
   level: 'avance',
+  // The first meeting with inheritance: its method stays in view (helpPolicy, first rung).
+  chain: { notion: 'inheritance', step: 'guided' },
   number: 0,
   title: 'L’héritage',
   situation:

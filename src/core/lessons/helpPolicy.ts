@@ -5,7 +5,10 @@
  * to use, the solution. A level can leave one out (no node list from
  * Confirmé) or open it only after trying (Vérifier), after failing, or after
  * succeeding. Transfer and autonomy steps of a chain are stricter still:
- * no hint before a first try, and no node list in autonomy.
+ * no hint before a first try, and no node list in autonomy. The first rungs
+ * of a chain (discover, guided) are gentler: where a notion is met for the
+ * first time, its method stays in view and its solution opens after three
+ * failed checks, whatever the level (review of 19 November 2026, P1).
  */
 import type { Level } from './levels';
 import type { Lesson, LessonCard } from './types';
@@ -67,7 +70,21 @@ export function ruleFor(lesson: Lesson): HelpRule {
     for (const k of KINDS) if ('open' in rule[k]) rule[k] = { afterTry: true };
   }
   if (alone) rule.nodes = { absent: true };
+  if (isFirstRung(lesson)) {
+    for (const k of KINDS) {
+      const g = rule[k];
+      if ('afterSuccess' in g && g.orFails === undefined) rule[k] = { afterSuccess: true, orFails: FIRST_RUNG_FAILS };
+    }
+  }
   return rule;
+}
+
+/** Failed checks after which the solution of a first rung opens. */
+export const FIRST_RUNG_FAILS = 3;
+
+/** Discover and guided rungs: where a notion is met for the first time. */
+export function isFirstRung(lesson: Lesson): boolean {
+  return lesson.chain?.step === 'discover' || lesson.chain?.step === 'guided';
 }
 
 function open(gate: Gate, s: HelpState): { available: boolean; locked?: string } {
@@ -92,7 +109,8 @@ export function helpOffers(lesson: Lesson, state: HelpState): HelpOffer[] {
 /**
  * Cards that give the way to build the step, step by step (« Le plan »…).
  * From Avancé the fiche is a brief: these open after success, to compare,
- * like the solution (lot 4 of docs/PLAN_PARCOURS.md). « Pour aller plus
+ * like the solution (lot 4 of docs/PLAN_PARCOURS.md), except on a first
+ * rung, where the notion is new. « Pour aller plus
  * loin » (V7.22) opens then too: another way to build what was just built.
  */
 export const PLAN_CARD_TITLES: ReadonlySet<string> = new Set(['Le plan', 'La réécriture', 'Les nœuds', 'Par où commencer', 'Pour aller plus loin']);
@@ -101,7 +119,7 @@ const BRIEF_LEVELS: ReadonlySet<Level> = new Set(['avance', 'expert']);
 
 /** The cards shown now, and how many wait for the step to be passed. */
 export function cardsFor(lesson: Lesson, done: boolean): { shown: LessonCard[]; held: number } {
-  if (done || lesson.kind === 'predict' || !BRIEF_LEVELS.has(lesson.level)) return { shown: lesson.cards, held: 0 };
+  if (done || lesson.kind === 'predict' || !BRIEF_LEVELS.has(lesson.level) || isFirstRung(lesson)) return { shown: lesson.cards, held: 0 };
   const shown = lesson.cards.filter((c) => !PLAN_CARD_TITLES.has(c.title));
   return { shown, held: lesson.cards.length - shown.length };
 }

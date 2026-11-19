@@ -48,6 +48,7 @@ const screen = (cx: CheckContext) => String(cx.component('BP_Sas', 'Ecran')?.pro
 
 export const mixedSas: Lesson = {
   id: 'm1-sas',
+  code: 'M1',
   module: MODULE,
   level: 'avance',
   number: 0,
@@ -250,6 +251,7 @@ const dispensed = (cx: CheckContext) => cx.sim.actors.filter((a) => a.className 
 
 export const mixedDispenser: Lesson = {
   id: 'm2-distributeur',
+  code: 'M2',
   module: MODULE,
   level: 'avance',
   number: 0,

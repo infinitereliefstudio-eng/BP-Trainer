@@ -97,6 +97,7 @@ const doorOpen = (cx: CheckContext) => {
 
 export const expertRadio: Lesson = {
   id: 'x1-radio',
+  code: 'X1',
   module: 'Projet Expert',
   level: 'expert',
   number: 0,

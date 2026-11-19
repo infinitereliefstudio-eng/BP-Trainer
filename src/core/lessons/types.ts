@@ -206,7 +206,13 @@ export interface LessonChain {
 /** Transfer and autonomy exercises have a code (T1, A1) and no lesson number; so has a synthesis (S1). */
 export const isChainExercise = (l: Lesson) => l.chain?.step === 'transfer' || l.chain?.step === 'autonomy';
 
-/** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1". */
+/**
+ * A build step with a code of its own is not a numbered lesson: the mixed
+ * trainings of Avancé (M1, M2) and the projects of Expert (X1, X2).
+ */
+export const isNumbered = (l: Lesson) => (!l.kind || l.kind === 'build') && !isChainExercise(l) && !l.code;
+
+/** "Leçon 4", "Prédis P1", "Débogue D1", "Complète C1", "Refactor R1", "Entraînement M1", "Projet X1". */
 export function lessonLabel(l: Lesson): string {
   if (l.kind === 'predict') return `Prédis ${l.code ?? ''}`.trim();
   if (l.kind === 'debug') return `Débogue ${l.code ?? ''}`.trim();
@@ -215,5 +221,7 @@ export function lessonLabel(l: Lesson): string {
   if (l.kind === 'synthesis') return `Synthèse ${l.code ?? ''}`.trim();
   if (l.chain?.step === 'transfer') return `Transfert ${l.code ?? ''}`.trim();
   if (l.chain?.step === 'autonomy') return `Autonomie ${l.code ?? ''}`.trim();
+  if (l.code?.startsWith('M')) return `Entraînement ${l.code}`;
+  if (l.code?.startsWith('X')) return `Projet ${l.code}`;
   return `Leçon ${l.number}`;
 }

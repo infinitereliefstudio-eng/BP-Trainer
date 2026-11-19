@@ -303,6 +303,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.25 (19 novembre 2026), revue, lot 3 : la première marche d'une notion (découverte, guidée) garde sa méthode et ouvre sa solution après 3 échecs, même en Avancé (R5, L'héritage) ; libellés Entraînement M1/M2 et Projet X1/X2 ; durées calculées sur le travail réel.
 - V7.24 (19 novembre 2026), revue, lot 2 : l'événement d'une Input Action n'a plus de Consume Input (comme dans UE, tous les acteurs qui l'écoutent la reçoivent) ; textes de R4 et du défi Player Controller corrigés ; pile des entrées dans `runtime/inputStack.ts`.
 - V7.23 (19 novembre 2026), revue des V7.2 à V7.22 ([REVUE_V7.md](REVUE_V7.md)), lot 1 : Ignore All Pressed Keys Until Release sur Add / Remove Mapping Context (cochée par défaut, comme dans UE) ; le correcteur rejoue chaque solution avec des appuis tenus 0,1 s ; X1 vérifie qu'aucune réplique n'est sautée.
 - V7.22 (19 novembre 2026), chantier Actor Components, étape 4 : rappels (La salle de contrôle, M2 avec un Line Trace), conseil « Chaîne copiée entre Blueprints » (parent ou composant), fiches sur L'héritage, X2 et S4, glossaire et mémo « Interface ou composant ». Chantier terminé.

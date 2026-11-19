@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { LESSONS } from '../src/core/lessons';
 import { estimatedMinutes } from '../src/core/lessons/duration';
 import { helpOffers } from '../src/core/lessons/helpPolicy';
-import { lessonLabel, type Lesson } from '../src/core/lessons/types';
+import { isNumbered, lessonLabel, type Lesson } from '../src/core/lessons/types';
 import { checkProgress, helpLevel, withHelp, emptyProgress } from '../src/core/progress/progress';
 
 const first = (pred: (l: Lesson) => boolean) => LESSONS.find(pred)!;
@@ -77,5 +77,35 @@ describe('synthesis and Expert steps', () => {
     expect(before.map((o) => o.kind)).not.toContain('nodes');
     expect(before.every((o) => !o.available)).toBe(true);
     expect(helpOffers(s1, { tried: true, fails: 1, done: false }).every((o) => o.available)).toBe(true);
+  });
+});
+
+describe('review of 19 November 2026, lot 3 (V7.25)', () => {
+  it('a first rung (discover, guided) keeps its method in view and opens its solution after three failed checks, in Avancé too', async () => {
+    const { cardsFor, PLAN_CARD_TITLES } = await import('../src/core/lessons/helpPolicy');
+    for (const id of ['r5-sante-partout', 'l-heritage']) {
+      const l = LESSONS.find((x) => x.id === id)!;
+      expect(l.level).toBe('avance');
+      expect(cardsFor(l, false).held, id).toBe(0);
+      expect(l.cards.some((c) => PLAN_CARD_TITLES.has(c.title)), id).toBe(true);
+      expect(offers(l, true, 2)).toEqual(['hint:open', 'solution:locked']);
+      expect(offers(l, true, 3)).toEqual(['hint:open', 'solution:open']);
+    }
+    // Any other Avancé step keeps the brief: the method after success.
+    const other = LESSONS.find((x) => x.level === 'avance' && !x.chain && cardsFor(x, false).held > 0)!;
+    expect(other).toBeDefined();
+    expect(offers(other, true, 10)).toEqual(['hint:open', 'solution:locked']);
+  });
+
+  it('trainings and Expert projects are named by their code, not numbered as lessons', () => {
+    const label = (id: string) => lessonLabel(LESSONS.find((x) => x.id === id)!);
+    expect(['m1-sas', 'm2-distributeur', 'x2-atelier', 'x1-radio'].map(label)).toEqual(['Entraînement M1', 'Entraînement M2', 'Projet X2', 'Projet X1']);
+    const numbers = LESSONS.filter(isNumbered).map((l) => l.number);
+    expect(numbers).toEqual(numbers.map((_, i) => i + 1));
+  });
+
+  it('a refactor that rewrites as much as it adds is not taken for a five-minute step', () => {
+    expect(estimatedMinutes(LESSONS.find((x) => x.id === 'r5-sante-partout')!)).toBeGreaterThanOrEqual(20);
+    for (const l of LESSONS.filter((x) => x.kind === 'debug')) expect(estimatedMinutes(l)).toBeLessThanOrEqual(20);
   });
 });

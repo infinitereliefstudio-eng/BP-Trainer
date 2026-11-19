@@ -8,8 +8,8 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Où on en est
 
-- **Version en ligne : 7.24.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
-- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : lots 1 et 2 faits (V7.23, V7.24) ; lots 3 et 4 à suivre (V7.25, V7.26). Le renumérotage des codes d'exercices est laissé de côté (optionnel, à proposer).
+- **Version en ligne : 7.25.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : lots 1 à 3 faits (V7.23 à V7.25) ; lot 4 à suivre (V7.26). Le renumérotage des codes d'exercices est laissé de côté (optionnel, à proposer).
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
@@ -721,6 +721,16 @@ Version 7.23.0.
 - Tests : `tests/enhancedInput.test.ts`, `tests/playerController.test.ts` (le pion entend aussi l'action).
 
 Version 7.24.0.
+
+## V7.25 (2026-11-19) : revue, lot 3 (aide et repères)
+
+- **Première marche d'une notion** (`helpPolicy.ts`, `isFirstRung`) : une étape `discover` ou `guided` d'une chaîne garde ses fiches de méthode visibles et ouvre sa solution après 3 vérifications ratées, quel que soit le niveau. Concerne en Avancé R5 « La santé est partout » et « L'héritage », qui reçoit `chain: { notion: 'inheritance', step: 'guided' }` (pas d'autre marche pour cette notion). Texte d'aide de l'Avancé (`levels.ts`) à jour. Les autres étapes de l'Avancé gardent leur cahier des charges.
+- **Libellés** (`types.ts`, `isNumbered`) : une étape `build` avec un code n'est plus une leçon numérotée. **Entraînement M1** « Le sas », **Entraînement M2** « Le distributeur », **Projet X2** « L'atelier des machines », **Projet X1** « La radio de la station » (codes = début de l'id ; l'ordre X2 puis X1 est gardé pour ne pas désaccorder ids et docs). Les leçons qui suivaient M1 perdent un numéro (Leçon 57 → 56…) ; les textes nomment les leçons par leur titre. Bandeaux sur l'accueil.
+- **Durées** (`duration.ts`) : comptées sur le travail réel, sur une copie du projet de départ (nœuds ajoutés, nœuds retirés à 0,3, assets créés : Blueprint 3, interface, enum, structure, table 2, variable, dispatcher, fonction, composant, action, contexte 1) ; Débogue entre 10 et 20 min. R5 : 5 → 30 min ; « Les contrôles au Player Controller » : 5 → 20 min ; 29 étapes changent, total 2 095 → 2 370 min.
+- Renumérotage des codes (P, D…) dans l'ordre du parcours : laissé de côté (optionnel).
+- Tests : `tests/helpPolicy.test.ts` (« lot 3 »). `smoke.py` : R5 montre « La réécriture » avant la réussite.
+
+Version 7.25.0.
 
 ## Méthode de travail
 

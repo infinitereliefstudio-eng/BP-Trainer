@@ -76,7 +76,7 @@ import { lessonComponentInventory } from './library/componentInventory';
 import { autonomyEnergy } from './library/stationEnergy';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
-import { isChainExercise, type Lesson } from './types';
+import { isNumbered, type Lesson } from './types';
 import { asEnhancedInput } from './ue5Input';
 import type { KeyName } from '../model/project';
 
@@ -215,7 +215,7 @@ export const LESSONS: Lesson[] = [
 
 let n = 0;
 for (const l of LESSONS) {
-  if ((!l.kind || l.kind === 'build') && !isChainExercise(l)) l.number = ++n;
+  if (isNumbered(l)) l.number = ++n;
   // What to try once the lesson works, and other ways to solve it (library/quality.ts).
   const q = QUALITY[l.id];
   if (q?.robustness) l.robustness = [...(l.robustness ?? []), ...q.robustness];

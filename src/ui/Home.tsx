@@ -40,6 +40,8 @@ const KIND_LABEL: Record<Exclude<LessonKind, 'build'>, string> = {
 function eyebrowOf(l: Lesson): string | undefined {
   if (l.chain?.step === 'transfer') return 'Transfert : sans plan';
   if (l.chain?.step === 'autonomy') return 'En autonomie : cahier des charges';
+  if (l.code?.startsWith('M')) return 'Entraînement : à toi de choisir les outils';
+  if (l.code?.startsWith('X')) return 'Projet Expert : plusieurs séances';
   return l.kind && l.kind !== 'build' ? KIND_LABEL[l.kind] : undefined;
 }
 

@@ -28,7 +28,7 @@ export const LEVELS: { id: Level; title: string; summary: string; help: string }
     id: 'avance',
     title: 'Avancé',
     summary: 'Héritage, visée par Line Trace, collisions, et des projets qui combinent tout.',
-    help: 'Aide verrouillée : l’indice après un premier essai, pas de liste de nœuds, la solution seulement après la réussite, pour comparer.',
+    help: 'Aide verrouillée : l’indice après un premier essai, pas de liste de nœuds, la solution seulement après la réussite, pour comparer. Une étape guidée (une notion qu’on rencontre pour la première fois) garde sa méthode visible et ouvre sa solution après trois vérifications ratées.',
   },
   {
     id: 'expert',

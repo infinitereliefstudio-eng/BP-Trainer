@@ -45,6 +45,7 @@ const placed = (cx: CheckContext, name: string, at: [number, number]) =>
 
 export const expertWorkshop: Lesson = {
   id: 'x2-atelier',
+  code: 'X2',
   module: 'Projet Expert',
   level: 'expert',
   number: 0,

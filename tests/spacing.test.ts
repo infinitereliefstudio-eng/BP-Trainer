@@ -25,40 +25,40 @@ const SPACING_TARGET = 15;
  * left are for the next plan.
  */
 const KNOWN_GAPS: Record<string, number> = {
-  // V7.20 inserted the five Actor Components steps after « L’héritage »: the gaps that cross them grew by five.
-  // actor-components runs to the end of the path until V7.21 (its usage steps); input, enhanced-input and
-  // loops went one step over the target: recalls to place in V7.22 (the « reprise » of the chantier).
-  'actor-components': 22,
+  // V7.20 inserted the five Actor Components steps after « L’héritage », V7.21 its four usage steps further on
+  // (after « Regarder et interagir », D6, C5 and « Le réseau »): the gaps that cross them grew. input,
+  // enhanced-input, loops and trace are one step over the target: recalls to place in V7.22 (the « reprise »).
   'enhanced-input': 16,
   input: 16,
   loops: 16,
-  arrays: 23, // lot 3 added Confirmé steps inside this gap: lot 4
+  trace: 16, // runs to the end of the path since A2
+  arrays: 24, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   components: 16,
-  construction: 34, // lot 3 added Confirmé steps inside this gap: lot 4
-  'data-tables': 50, // runs to the end of the path
+  construction: 35, // lot 3 added Confirmé steps inside this gap: lot 4
+  'data-tables': 53, // runs to the end of the path
   destroy: 38,
   dispatchers: 25,
   enum: 31,
   'flow-memory': 28,
   functions: 32, // lot 3 added Confirmé steps inside this gap: lot 4
-  inheritance: 20, // runs to the end of the path
+  inheritance: 24, // runs to the end of the path
   interfaces: 22,
-  latent: 37, // runs to the end of the path
+  latent: 39, // runs to the end of the path
   locals: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   maps: 49, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 24, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 21,
-  'player-controller': 82, // written again only in Expert X1 (dialogue context): a natural recall in the Confirmé or Avancé is still to find
-  random: 45, // lot 3 added Confirmé steps inside this gap: lot 4
+  'player-controller': 86, // written again only in Expert X1 (dialogue context): a natural recall in the Confirmé or Avancé is still to find
+  random: 48, // lot 3 added Confirmé steps inside this gap: lot 4
   rotation: 17,
-  'save-game': 33, // runs to the end of the path
-  sequence: 51, // runs to the end of the path
-  sets: 23, // lot 3 added Confirmé steps inside this gap: lot 4
-  spawn: 35, // lot 3 added Confirmé steps inside this gap: lot 4
-  structs: 47, // runs to the end of the path
+  'save-game': 36, // runs to the end of the path
+  sequence: 53, // runs to the end of the path
+  sets: 25, // lot 3 added Confirmé steps inside this gap: lot 4
+  spawn: 38, // lot 3 added Confirmé steps inside this gap: lot 4
+  structs: 49, // runs to the end of the path
   switch: 30,
-  tick: 39, // runs to the end of the path
+  tick: 41, // runs to the end of the path
   timeline: 41,
   timers: 27,
   visibility: 18, // runs to the end of the path

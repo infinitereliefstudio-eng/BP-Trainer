@@ -525,10 +525,22 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Start et End sont deux positions dans le monde : avec la direction seule, le rayon partirait vers l’origine du niveau.',
   ),
   q(
+    'l-interaction-composant',
+    'Le joueur appuie sur E près d’une lampe et d’une caisse. Seule la lampe porte BP_Interaction. Que doit faire le joueur pour chaque acteur proche ?',
+    ['Get Component by Class (BP_Interaction), Is Valid, puis Interagir', 'Un Cast To BP_Lampe, puis un Cast To BP_Caisse', 'Appeler Interagir sur l’acteur lui-même', 'Lire la variable Action de l’acteur'],
+    'On demande à chaque acteur s’il a le composant. La caisse n’en a pas : Is Valid l’écarte, sans erreur.',
+  ),
+  q(
     'd6-tourelle-aveugle',
     'Un Line Trace part du centre de l’acteur avec Ignore Self décoché. Que touche-t-il ?',
     ['L’acteur lui-même, à la distance 0', 'Le premier mur', 'Rien du tout', 'Le joueur, toujours'],
     'Un rayon s’arrête au premier objet qui le bloque, y compris celui qui le lance.',
+  ),
+  q(
+    'd23-batterie',
+    'Dans un Actor Component, un Get Distance To a sa Target vide. Que se passe-t-il ?',
+    ['Le Blueprint ne compile pas : self est le composant, qui n’est pas un acteur ; il faut Get Owner', 'Il mesure la distance de l’acteur qui porte le composant', 'Il renvoie toujours 0', 'Il mesure la distance du joueur'],
+    'Un Actor Component n’a ni position ni forme. Un nœud d’acteur y a besoin d’une Target : Get Owner, l’acteur qui le porte.',
   ),
   q(
     'r3-bouton',
@@ -662,6 +674,12 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Deux éléments reliés l’un à l’autre se rajouteraient sans fin. Chaque élément entre une seule fois dans la liste : la boucle finit, même si le réseau boucle.',
   ),
   q(
+    'a2-energie',
+    'Deux lampes du même Blueprint portent le même Actor Component d’énergie. Comment leur donner des réserves différentes ?',
+    ['Variable Instance Editable du composant, réglée dans les Details de chaque lampe posée', 'Deux Blueprints de lampe différents', 'Deux Actor Components différents', 'Une variable globale par lampe'],
+    'Chaque acteur posé a sa copie du composant ; une variable Instance Editable du composant se règle acteur par acteur, dans les Details du niveau.',
+  ),
+  q(
     'l-interrogatoire',
     'Un dialogue de 50 répliques est rangé dans une Map de structures. Combien de nœuds faut-il ajouter au graphe pour une 51e réplique ?',
     ['Aucun : on ajoute une ligne aux données', 'Un Branch', 'Une sortie de Switch et un Print String', 'Une fonction'],
@@ -672,6 +690,12 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Dans un For Each Loop sur un tableau de structures, tu fais Set Members sur Array Element. Le tableau change-t-il ?',
     ['Non : Array Element est une copie ; il faut Get (a ref)', 'Oui, l’élément est modifié sur place', 'Oui, mais seulement après Completed', 'Non, et le Blueprint ne compile pas'],
     'Array Element et Get (a copy) donnent des copies. Get (a ref), avec l’Array Index de la boucle, donne l’élément lui-même.',
+  ),
+  q(
+    'l-sac-coffre',
+    'Le coffre doit donner son contenu à tout ce qui a un inventaire (le joueur, un drone…). Comment ajoute-t-il un objet à l’inventaire trouvé ?',
+    ['En appelant la fonction Ajouter de ce BP_Inventaire', 'En faisant un Cast To BP_Joueur', 'En écrivant directement dans son tableau Objets avec Set', 'En détruisant le coffre'],
+    'On passe par les fonctions de l’inventaire : le jour où il aura une capacité, seul BP_Inventaire change.',
   ),
   q(
     'd14-atelier',

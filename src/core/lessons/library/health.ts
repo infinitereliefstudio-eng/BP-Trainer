@@ -46,17 +46,23 @@ export function writeHealth(b: ClassBuilder, p: Project, max = 100): Health {
   return { b, vie, mort, hit };
 }
 
-/** The Vie of an actor's BP_Sante while the scenario plays (the player is « Joueur »), or undefined. */
-export function lifeOf(cx: CheckContext, label: string): number | undefined {
+/** A variable of the component of class `compClass` on an actor while the scenario plays (the player is « Joueur »), or undefined. */
+export function componentVar(cx: CheckContext, label: string, compClass: string, name: string): unknown {
   const sim = cx.sim;
   const a = label === 'Joueur' ? sim.player : sim.actors.find((x) => x.label === label);
   if (!a) return undefined;
   for (const o of sim.componentsOf(a)) {
     const cls = sim.classOf(o);
-    const v = cls?.variables.find((x) => x.name === 'Vie');
-    if (cls && v && cls.name === 'BP_Sante') return Number(o.vars[v.id]);
+    const v = cls?.variables.find((x) => x.name === name);
+    if (cls && v && cls.name === compClass) return o.vars[v.id];
   }
   return undefined;
+}
+
+/** The Vie of an actor's BP_Sante while the scenario plays (the player is « Joueur »), or undefined. */
+export function lifeOf(cx: CheckContext, label: string): number | undefined {
+  const v = componentVar(cx, label, 'BP_Sante', 'Vie');
+  return v === undefined ? undefined : Number(v);
 }
 
 /** Does this class carry a component made from the Blueprint named `name`? */

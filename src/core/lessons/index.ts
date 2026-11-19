@@ -70,6 +70,10 @@ import { refactor5 } from './library/healthEverywhere';
 import { debug22 } from './library/scanner';
 import { transferTrap } from './library/trapAll';
 import { lessonBadgeLock } from './library/badgeLock';
+import { debug23 } from './library/battery';
+import { lessonComponentInteraction } from './library/componentInteraction';
+import { lessonComponentInventory } from './library/componentInventory';
+import { autonomyEnergy } from './library/stationEnergy';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -184,8 +188,10 @@ export const LESSONS: Lesson[] = [
   lessonControlRoom,
   lessonUniversalLever,
   lessonLook,
+  lessonComponentInteraction,
   mixedSas,
   debug6,
+  debug23,
   refactor3,
   complete4,
   lessonMirrors,
@@ -193,12 +199,14 @@ export const LESSONS: Lesson[] = [
   debug15,
   debug14,
   complete5,
+  lessonComponentInventory,
   mixedDispenser,
   lessonTalk,
   lessonDialogueTable,
   lessonCheckpoint,
   complete6,
   lessonGrid,
+  autonomyEnergy,
   synthesis4,
   // Expert
   expertWorkshop,
@@ -245,6 +253,7 @@ const UE5_INPUT: Record<string, Partial<Record<KeyName, string>>> = {
   'l12-station': {},
   'l-salle-controle': {},
   'l-regarder': {},
+  'l-interaction-composant': {},
   'r3-bouton': {},
   'c4-viseur': { F: 'IA_Detruire' },
   'l-miroirs': { F: 'IA_Pivoter' },

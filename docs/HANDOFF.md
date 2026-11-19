@@ -4,23 +4,23 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.20)
+## Reprise rapide (2026-11-19, après la V7.21)
 
 ### Où on en est
 
-- **Version en ligne : 7.20.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.21.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
   - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
   - lot 3 (Confirmé) : fait, V7.15 (3a, quatre nouvelles étapes) et V7.16 (3b, rappels, P14, synthèse S3, lancé par « tu peux passer a 3b ») ;
   - lot 4 (Avancé et Expert) : fait, V7.17 (4a, l'Avancé) et V7.18 (4b, Expert, lancé par « tu peux enchainer »). **Le plan du parcours est terminé.**
-- **En attente de Tristan** : son retour sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite) et les deux projets Expert (X2, X1). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.21), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite) et les deux projets Expert (X2, X1). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
 - **La suite est à décider avec lui** (pistes dans « Ce qui reste à faire ») ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-120 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 33 (fin : synthèse S4), Expert 2 (X2, X1). 150 questions de révision sur les leçons. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+124 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 37 (fin : A2 puis synthèse S4), Expert 2 (X2, X1). 154 questions de révision sur les leçons. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -32,7 +32,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **V7.19 faite** (le moteur) et **V7.20 faite** (cinq étapes de découverte après « L'héritage », voir « V7.20 » plus bas). Suite : V7.21 (usages : le sac et le coffre, interagir par composant, la batterie, l'autonomie différée), V7.22 (reprise de l'existant et rappels : input, enhanced-input, loops, actor-components), chacune après le feu vert de Tristan.
+**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **V7.19 faite** (le moteur), **V7.20 faite** (cinq étapes de découverte après « L'héritage ») et **V7.21 faite** (quatre étapes d'usage, voir « V7.21 » plus bas). Reste : V7.22 (reprise de l'existant et rappels : input, enhanced-input, loops, trace), après le feu vert de Tristan.
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
@@ -49,7 +49,7 @@ Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) 
 5. Une question de révision (`core/review/bank/lessons.ts`, bonne réponse en premier).
 6. `recalls` si la solution réécrit une notion ancienne ; relancer `tests/spacing.test.ts` et suivre ses messages.
 7. Si la leçon change le projet de départ d'une étape existante : `revision` + 1 (l'appli signale alors la leçon comme changée).
-8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~255 (nombre d'étapes attendu, 120 depuis la V7.20) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
+8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~255 (nombre d'étapes attendu, 124 depuis la V7.21) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
 9. Les textes qui renvoient à une leçon la nomment par son **titre**, jamais par son numéro (les numéros bougent).
 
 ### Livrer une version
@@ -668,6 +668,23 @@ Lancé par « tu peux lancer la suite ». Cinq étapes en Avancé, juste après 
 - `smoke.py` attend 120 étapes, captures 76 à 78.
 
 Version 7.20.0.
+
+## V7.21 (2026-11-19) : chantier Actor Components, étape 3 (usages)
+
+Lancé par « ok tu peux passer à la suite ». Quatre étapes en Avancé, chacune après l'étape sur laquelle elle s'appuie (124 étapes, 154 questions de révision sur les leçons). Tests : `tests/actorComponentLessons.test.ts` (mauvaises solutions typiques, place dans le parcours), et les tests génériques de chaque étape.
+
+| Étape | Fichier | Place | Ce qu'elle fait travailler |
+|---|---|---|---|
+| Leçon « Interagir par composant » | `componentInteraction.ts` | après « Regarder et interagir » | BP_Interaction (Action Instance Editable, Interagir, OnInteragir) créé par l'apprenant et posé sur lampe, porte, coffre ; E (IA_Interagir, via `UE5_INPUT`) → Get Overlapping Actors → For Each → Get Component by Class → Is Valid → Interagir ; chaque acteur réagit par « On OnInteragir ». Pas de Cast. Cas « Et si… » : un terminal reçoit le composant. Fiche « Interface ou composant ? » |
+| Débogue D23 « La batterie qui ne sait pas où elle est » | `battery.ts` | après D6 | Le graphe de BP_Drone déplacé dans BP_Batterie ne compile plus : Get Distance To sans Target (self est le composant). Correction : Get Owner. Cas « Et si… » : chargeur déplacé |
+| Leçon « Le sac et le coffre » | `componentInventory.ts` | après C5 | BP_Inventaire donné (Objets, Ajouter, Vider) ; l'apprenant écrit Retirer (Remove Item), l'ajoute au joueur, fait donner le coffre (For Each sur son propre Inventaire, Ajouter sur l'inventaire trouvé, Vider) et prendre le fusible par le boîtier. Cas « Et si… » : trois objets dans le coffre |
+| Autonomie A2 « L'énergie de la station » | `stationEnergy.ts` | après « Le réseau en boucle », avant S4 ; 2 jours après T3 | Cahier des charges seul : une réserve qui se vide (Tick dans le composant), réglée par lampe posée (3 et 1), porte à 2, prévenir une fois, jamais sous 0. Échelle `actor-components` : autonomy |
+
+- `health.ts` : `componentVar` (une variable du composant d'un acteur pendant le scénario), `lifeOf` passe par lui.
+- Espacement : `actor-components` revient désormais au moins toutes les 8 étapes (retiré de `KNOWN_GAPS`) ; l'insertion a allongé de 1 à 4 les écarts qui la traversent (`KNOWN_GAPS` mis à jour) ; `trace` passe à 16 (jusqu'à la fin du parcours) et rejoint `input`, `enhanced-input` et `loops` (16) pour la V7.22. Rappels déclarés : interaction (input, enhanced-input, loops), sac (arrays, loops, functions), A2 (tick, dispatchers).
+- `smoke.py` attend 124 étapes, captures 79 à 81 (fiche de l'interaction, erreur de compilation de la batterie, Objets de l'inventaire du coffre dans les Details).
+
+Version 7.21.0.
 
 ## Méthode de travail
 

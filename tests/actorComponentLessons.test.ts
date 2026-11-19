@@ -1,4 +1,4 @@
-/** V7.20: the Actor Components steps refuse the usual wrong solutions, with a reason that says where to look. */
+/** V7.20 and V7.21: the Actor Components steps refuse the usual wrong solutions, with a reason that says where to look. */
 import { describe, expect, it } from 'vitest';
 import { getLesson, LESSONS } from '../src/core/lessons';
 import { edit } from '../src/core/lessons/builder';
@@ -10,6 +10,13 @@ import { removeNodes } from '../src/core/operations/graphOps';
 import { setParentClass } from '../src/core/operations/projectOps';
 
 const lesson = (id: string) => getLesson(id)!;
+const nodes = (p: Project, cls: string, def: string) => Object.values(edit(p, cls).graph.nodes).filter((n) => n.def === def);
+/** Wire `from` straight to `to` in a class's event graph (a step taken out of the chain). */
+const wire = (p: Project, cls: string, from: [string, string], to: [string, string]) => {
+  const g = edit(p, cls).graph;
+  for (const [k, l] of Object.entries(g.links)) if (l.to.node === to[0] && l.to.pin === to[1]) delete g.links[k];
+  g.links[`w${Object.keys(g.links).length}`] = { id: 'w', from: { node: from[0], pin: from[1] }, to: { node: to[0], pin: to[1] } };
+};
 const solved = (l: Lesson, tweak?: (p: Project) => void) => {
   const p = l.setup();
   l.solve(p);
@@ -27,7 +34,17 @@ describe('the Actor Components steps in the path', () => {
     const ids = LESSONS.map((l) => l.id);
     const at = ids.indexOf('l-heritage');
     expect(ids.slice(at + 1, at + 6)).toEqual(['p15-qui-commence', 'r5-sante-partout', 'd22-scanner', 't3-piege', 'l-verrou-badge']);
-    expect(LESSONS.filter((l) => l.chain?.notion === 'actor-components').map((l) => l.chain!.step)).toEqual(['discover', 'guided', 'transfer']);
+    expect(LESSONS.filter((l) => l.chain?.notion === 'actor-components').map((l) => l.chain!.step)).toEqual(['discover', 'guided', 'transfer', 'autonomy']);
+  });
+
+  it('their usage steps (V7.21) follow the steps they build on', () => {
+    const ids = LESSONS.map((l) => l.id);
+    const next = (id: string) => ids[ids.indexOf(id) + 1];
+    expect(next('l-regarder')).toBe('l-interaction-composant');
+    expect(next('d6-tourelle-aveugle')).toBe('d23-batterie');
+    expect(next('c5-sac')).toBe('l-sac-coffre');
+    expect(next('l-reseau')).toBe('a2-energie');
+    expect(lesson('a2-energie').chain?.after).toEqual({ lesson: 't3-piege', days: 2 });
   });
 });
 
@@ -141,5 +158,125 @@ describe('Le verrou à badge', () => {
       removeNodes(g, Object.values(g.nodes).filter((n) => n.def === 'debug.printString').map((n) => n.id));
     });
     expect(runRobustness(l, mute).map((r) => r.ok)).toEqual([false]);
+  });
+});
+
+describe('Interagir par composant', () => {
+  const l = lesson('l-interaction-composant');
+
+  it('a player that calls Interagir without Is Valid works on the lamp but logs Accessed None at the crate', () => {
+    const p = solved(l, (p) => {
+      const valid = nodes(p, 'BP_Joueur', 'flow.isValid')[0];
+      const loop = nodes(p, 'BP_Joueur', 'flow.forEachLoop')[0];
+      const call = nodes(p, 'BP_Joueur', 'call.function')[0];
+      removeNodes(edit(p, 'BP_Joueur').graph, [valid.id]);
+      wire(p, 'BP_Joueur', [loop.id, 'body'], [call.id, 'exec']);
+    });
+    expect(failures(l, p).join(' ')).toMatch(/Accessed None/);
+  });
+
+  it('a player that casts to the lamp is refused', () => {
+    const p = solved(l, (p) => {
+      const b = edit(p, 'BP_Joueur');
+      const cast = b.node('cast.to', { class: p.classes.find((c) => c.name === 'BP_Lampe')!.id }, {}, [400, 800]);
+      b.link(nodes(p, 'BP_Joueur', 'flow.forEachLoop')[0].id, 'element', cast, 'object');
+    });
+    expect(failures(l, p).join(' ')).toMatch(/BP_Joueur fait un Cast/);
+  });
+
+  it('the same Action for all (values left at the default) is caught', () => {
+    const p = solved(l, (p) => {
+      for (const c of p.classes) for (const k of c.components) if (k.kind === 'ActorComponent') k.values = {};
+    });
+    expect(failures(l, p).join(' ')).toMatch(/Basculer la lampe/);
+  });
+
+  it('a terminal given a BP_Interaction works with the reference, not with a fixed text in Interagir', () => {
+    expect(runRobustness(l, solved(l)).map((r) => r.ok)).toEqual([true]);
+    const fixed = solved(l, (p) => {
+      const comp = p.classes.find((c) => c.name === 'BP_Interaction')!;
+      const g = comp.graphs.find((x) => x.name === 'Interagir')!;
+      const print = Object.values(g.nodes).find((n) => n.def === 'debug.printString')!;
+      for (const [k, link] of Object.entries(g.links)) if (link.to.node === print.id && link.to.pin === 'text') delete g.links[k];
+      print.defaults.text = 'Interagir';
+    });
+    expect(runRobustness(l, fixed).map((r) => r.ok)).toEqual([false]);
+  });
+});
+
+describe('D23 La batterie qui ne sait pas où elle est', () => {
+  const l = lesson('d23-batterie');
+
+  it('the starting battery does not compile, and the message points to Get Owner', () => {
+    const errors = runLesson(l, l.setup()).compileErrors.map((m) => m.text);
+    expect(errors.join(' ')).toMatch(/Self n’est pas un Actor.*Get Owner/);
+  });
+
+  it('measuring from the charger itself compiles but nothing ever drains', () => {
+    const p = solved(l, (p) => {
+      const dist = nodes(p, 'BP_Batterie', 'actor.distanceTo')[0];
+      const find = nodes(p, 'BP_Batterie', 'actor.getOfClass')[0];
+      const owner = nodes(p, 'BP_Batterie', 'component.getOwner')[0];
+      removeNodes(edit(p, 'BP_Batterie').graph, [owner.id]);
+      wire(p, 'BP_Batterie', [find.id, 'result'], [dist.id, 'target']);
+    });
+    expect(failures(l, p).map((f) => f.split(':')[0])).toEqual(['robot']);
+  });
+});
+
+describe('Le sac et le coffre', () => {
+  const l = lesson('l-sac-coffre');
+
+  it('a chest that gives without emptying itself gives twice', () => {
+    const p = solved(l, (p) => {
+      const clear = p.classes.find((c) => c.name === 'BP_Inventaire')!.graphs.find((g) => g.name === 'Vider')!.id;
+      const call = nodes(p, 'BP_Coffre', 'call.function').find((n) => n.config.graph === clear)!;
+      removeNodes(edit(p, 'BP_Coffre').graph, [call.id]);
+    });
+    expect(failures(l, p).map((f) => f.split(':')[0])).toContain('again');
+  });
+
+  it('Retirer left empty: the fuse is never taken', () => {
+    const p = solved(l, (p) => {
+      const g = p.classes.find((c) => c.name === 'BP_Inventaire')!.graphs.find((x) => x.name === 'Retirer')!;
+      removeNodes(g, Object.values(g.nodes).filter((n) => n.def === 'array.removeItem').map((n) => n.id));
+    });
+    expect(failures(l, p).map((f) => f.split(':')[0])).toContain('fixed');
+  });
+
+  it('the robustness case gives all three objects and takes the fuse only', () => {
+    expect(runRobustness(l, solved(l)).map((r) => r.ok)).toEqual([true]);
+  });
+});
+
+describe('A2 L’énergie de la station', () => {
+  const l = lesson('a2-energie');
+
+  it('an energy that tells its actor every frame is caught: one message per device', () => {
+    const p = solved(l, (p) => {
+      const g = p.classes.find((c) => c.name === 'BP_Energie')!.graphs[0];
+      const done = Object.values(g.nodes).filter((n) => n.def === 'flow.branch')[0];
+      for (const [k, link] of Object.entries(g.links)) if (link.to.node === done.id && link.to.pin === 'condition') delete g.links[k];
+      done.defaults.condition = false;
+      const max = Object.values(g.nodes).find((n) => n.def === 'math.maxFloat')!;
+      max.defaults.b = -1000;
+    });
+    const f = failures(l, p).map((x) => x.split(':')[0]);
+    expect(f).toContain('once');
+    expect(f).toContain('floor');
+  });
+
+  it('the same charge on both lamps (no per-lamp value) is caught', () => {
+    const p = solved(l, (p) => {
+      for (const a of p.level.actors) delete a.componentOverrides;
+    });
+    expect(failures(l, p).map((f) => f.split(':')[0])).toContain('lamp-b');
+  });
+
+  it('a lamp that drains its own reserve on Event Tick is refused', () => {
+    const p = solved(l, (p) => {
+      edit(p, 'BP_Lampe').node('event.tick', {}, {}, [64, 600]);
+    });
+    expect(failures(l, p).join(' ')).toMatch(/BP_Lampe a un Event Tick/);
   });
 });

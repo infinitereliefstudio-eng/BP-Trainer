@@ -1,6 +1,6 @@
 # Chantier Actor Components — analyse (19 novembre 2026)
 
-Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). **Analyse seulement : rien n'est lancé**, la V7.19 attend le feu vert de Tristan et ses réponses aux questions de la fin (sans réponse : les recommandations).
+Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). **Analyse seulement : rien n'est lancé.** Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document) ; la V7.19 attend son feu vert explicite.
 
 ## En bref
 
@@ -39,10 +39,10 @@ Place recommandée : Avancé, juste après « L'héritage » (fonctions, dispatc
 
 Aucune étape ne change de règle ni de solution. Fiches ou « autres façons de faire » possibles : L'héritage, X2, L'inventaire et C5 (reprise en composant dans une nouvelle étape), Le levier universel / Regarder et interagir / R4 (alternative Interaction en composant), S4 (à étudier), rappels dans l'Avancé, conseil de qualité, mémo et glossaire. Vocabulaire : dire « Actor Component » ou « composant de logique », « composant » désignant déjà Static Mesh, Point Light, Box Collision.
 
-## Questions à Tristan (recommandation en premier)
+## Décisions (19 novembre) : les recommandations, validées par Tristan
 
-1. Place : Avancé après L'héritage / Confirmé après Choisis ton outil.
-2. Valeurs du composant par acteur posé dès la V7.19 / par classe seulement d'abord.
-3. Bind Event to On Actor Begin Overlap dès la V7.19 / plus tard.
-4. Add Component by Class, Destroy Component : plus tard / dès ce chantier.
-5. Anciennes étapes : gardées avec fiches et alternatives / certaines réécrites en composants.
+1. Place : Avancé, juste après L'héritage.
+2. Valeurs du composant réglables par acteur posé dès la V7.19.
+3. Bind Event to On Actor Begin Overlap dès la V7.19.
+4. Add Component by Class, Destroy Component : plus tard, hors chantier.
+5. Anciennes étapes gardées telles quelles, avec fiches et « autres façons de faire ».

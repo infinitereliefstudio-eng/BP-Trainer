@@ -32,7 +32,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-**Chantier n° 1, Actor Components : analysé le 19 novembre** dans [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX). Attendre le feu vert de Tristan pour la V7.19 (le moteur) et ses réponses aux cinq questions ; sans réponse, suivre les recommandations.
+**Chantier n° 1, Actor Components : analysé le 19 novembre** dans [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md) (copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX). Tristan a validé les cinq recommandations le 19 novembre ; attendre son feu vert explicite pour lancer la V7.19 (le moteur).
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 

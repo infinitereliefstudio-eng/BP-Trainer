@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 : le chantier n° 1, Actor Components, est terminé. Rien ne se fait sans le feu vert de Tristan.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG). Rien ne se fait sans le feu vert de Tristan.
 
 Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) et les **lots du plan du parcours** (0 à 4, [PLAN_PARCOURS.md](PLAN_PARCOURS.md), tous faits). Ici, « lot » sans précision désigne ceux du backlog.
 
@@ -9,7 +9,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 
 ## Par où commencer
 
-État au 19 novembre, après la V7.22 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22). **La suite est dans « Prochains chantiers » juste en dessous** : lots 7 et 6, puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
+État au 19 novembre, après la V7.22 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22). **La suite est dans « Prochains chantiers » juste en dessous** : les révisions de graphes espacées, puis les lots 7 et 6, puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
@@ -18,8 +18,8 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | 3 | **Entrées et interaction** (Enhanced Input fait) | Regard indépendant du déplacement, interaction plus complète, Tick maîtrisé ; le reste d'Enhanced Input (Axis2D, modificateurs, Tap…) | ★★★ | M |
 | 4 | Navigation et prise en main | Recherche et filtres dans les 124 étapes, gestes guidés | ★★★ | M |
 | 5 | ~~Composition~~ **fait en V7.19 à V7.22** | Actor Components : santé, inventaire, interaction, énergie (chantier n° 1) | ★★★ | L |
-| 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger. **Chantier n° 3** | ★★★ | L |
-| 7 | Interface de jeu | Quelques widgets prédéfinis (texte, bouton, jauge), puis réévaluer un éditeur UMG complet. **Prochain chantier (n° 2)** | ★★★ | M, XL pour l'éditeur |
+| 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger. **Chantier n° 4** | ★★★ | L |
+| 7 | Interface de jeu | Quelques widgets prédéfinis (texte, bouton, jauge), puis réévaluer un éditeur UMG complet. **Chantier n° 3** | ★★★ | M, XL pour l'éditeur |
 | 8 | Motivation et diffusion | Objectif du jour, série avec gel, rappels, défi du jour | ★★ à ★★★ | S à L |
 
 L'objectif du jour et le gel de série sont deux petites passes (S) : ils peuvent se glisser entre deux lots sans attendre le lot 8.
@@ -31,16 +31,36 @@ Questions ouvertes :
 
 ## Prochains chantiers, dans l'ordre (choix du 19 novembre)
 
-Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.22.
+Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.26.
 
 | # | Chantier | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
 | 1 | ~~Actor Components~~ **fait** (V7.19 à V7.22) | Blueprints de composant créés par l'apprenant, ajoutés à plusieurs acteurs ; Get Owner, Get Component by Class, BeginPlay et Tick du composant ; neuf étapes (santé, interaction réutilisable, inventaire, énergie) et le conseil « Chaîne copiée entre Blueprints » | ★★★ | L |
-| 2 | **UMG minimal** (lot 7) — **le prochain** | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
-| 3 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
-| 4 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
+| 2 | **Révisions de graphes espacées** — **le prochain** | Journal des tentatives, file « À retravailler en Blueprint » programmée en jours, trois familles de mini-exercices à variantes, hypothèse avant l'indice dans les Débogue. Détail juste en dessous | ★★★ | L |
+| 3 | **UMG minimal** (lot 7) | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
+| 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
+| 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
-Chantier n° 1 : [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md). **Terminé le 19 novembre** : V7.19 (le moteur), V7.20 (cinq étapes de découverte), V7.21 (quatre étapes d'usage), V7.22 (reprise de l'existant). Tristan n'a pas encore essayé ces quatre versions. Laissé de côté, à reprendre si une étape en a besoin :
+### Chantier n° 2 : révisions de graphes espacées
+
+Tiré de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, étudiée le 19 novembre ; Tristan a validé l'intégration et l'ordre. Le constat : les questions de révision reviennent dans le temps (`core/review/schedule.ts`), les graphes jamais. Reconnaître ce que fait un nœud une semaine plus tard n'est pas savoir le recâbler. Tristan en est vers l'étape 10 : la file doit lui servir tout de suite, d'où des familles pilotes prises dans les notions qu'il pratique, pas dans les Dispatchers ou les composants.
+
+| Étape | Contenu | Difficulté |
+|---|---|---|
+| A — Journal des tentatives | Par essai : date, étape, révision du contenu, réussi ou non, nombre de vérifications, aide utilisée, catégories d'erreur que le correcteur connaît déjà (compilation, Accessed None, événement jamais déclenché, nœud jamais atteint, vérification ratée par id). Local, dans la progression, versionné, exporté avec la sauvegarde complète. Ni gestes, ni graphes complets | M |
+| B — File « À retravailler en Blueprint » | Échéance en jours par notion et par famille ; point de départ à essayer : J+1, J+3, J+7, puis J+14 à J+21. Rapprochée après un échec ou une solution vue, espacée après une réussite seule. Distincte de la file des questions mais affichée avec elle ; jamais bloquante, reportable | M |
+| C — Trois familles de mini-exercices à variantes | 2 à 5 min : compléter deux ou trois nœuds, réparer, reconstruire une chaîne courte. Chaque famille est un modèle avec une graine reproductible ; pour chaque graine testée en CI, la solution de référence passe et des erreurs typiques échouent. Les variantes changent aussi le raisonnement (référence absente, deuxième instance, mauvais ordre), pas seulement les nombres. Familles pilotes : variables et Branch, overlap et événements, Cast | L |
+| D — Hypothèse avant l'indice | Dans les Débogue : une question à choix (« l'événement, la référence ou la condition ? ») avant le premier indice | S |
+
+Mesure : la réussite différée par notion (réussie seule, plusieurs jours après), affichée dans le Carnet.
+
+Ce chantier reprend et remplace : « Révision par notion », « Révision variée » et « Reprise différée des erreurs » (lot 2), « S'adapter à l'apprenant » (reste du plan du parcours), « Maîtrise par notion » et « Défi du jour » (motivation : la séance du jour devient la file), et la piste « mesures d'autonomie dans le Carnet ».
+
+Écarté de l'analyse : le plan d'évaluation statistique (un seul apprenant), les profils à six états et le knowledge tracing (des règles simples suffisent), la génération par IA. Plus tard, après un pilote réussi : recommandation expliquée (« pourquoi cet exercice maintenant ? »), composition de deux ou trois concepts, exercices à réordonner (nœuds fournis à brancher, type Parsons), étendre les familles à Dispatchers, interfaces et composants.
+
+### Chantier n° 1 (fait)
+
+[PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md). **Terminé le 19 novembre** : V7.19 (le moteur), V7.20 (cinq étapes de découverte), V7.21 (quatre étapes d'usage), V7.22 (reprise de l'existant). Tristan n'a pas encore essayé ces quatre versions. Laissé de côté, à reprendre si une étape en a besoin :
 
 | Point | Où on en est | Pertinence | Difficulté |
 |---|---|---|---|
@@ -51,11 +71,11 @@ Chantier n° 1 : [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md). **Terminé le 19 nove
 | À vérifier dans Unreal | Ordre du Tick entre un acteur et ses composants ; événements Enhanced Input dans un Actor Component (refusés ici, comme les touches) | ★★ | S (essai dans UE) |
 | Autres façons de faire | « Le levier universel » et R4 pourraient proposer la version composant en alternative (« Interagir par composant » la fait déjà juste après « Regarder et interagir ») | ★ | S à M |
 
-Plus tard, selon le cas :
+### Plus tard, selon le cas
+
 - **Passerelle « Dans Unreal »** : exercices compagnons à refaire dans le vrai éditeur, avec une liste d'observations (construction d'un acteur, Enhanced Input et Player Controller, interaction entre deux Blueprints), et graphes de référence pour comparer le simulateur à UE5 (voir « Une référence indépendante pour la fidélité »). Remonte avant le prochain chantier dès que Tristan peut ouvrir Unreal régulièrement.
-- Personnage 3D, caméra, Enhanced Input Axis2D (lot 3) : après les quatre chantiers.
+- Personnage 3D, caméra, Enhanced Input Axis2D (lot 3) : après les chantiers ci-dessus.
 - Animation, IA, rendu : fiches de découverte et pratique dans UE, sans les simuler.
-- Piste peu coûteuse : afficher dans le Carnet les mesures d'autonomie (étapes réussies sans indice et sans solution), déjà enregistrées.
 
 ## Reste du plan du parcours : à étudier, à faire selon l'étude
 
@@ -67,10 +87,10 @@ Décision de Tristan du 19 novembre, après la V7.18 : le plan du parcours (lots
 | Rappel de Player Controller | Écrit seulement dans la leçon Player Controller, puis dans l'Expert X1 | Trouver une étape du Confirmé ou de l'Avancé où Get Player Controller sert naturellement (contexte d'entrée d'un mode, par exemple) |
 | Avancé en cahier des charges | Fait : fiches de méthode après la réussite, premiers indices en questions, six objectifs réécrits. Pas fait : fiches « Ce qui est en place » réécrites, départ « niveau seul » des anciennes étapes | Réécrire les 24 étapes, ou seulement celles où le préconstruit retire l'essentiel du travail |
 | Construire soi-même dans les anciennes étapes | Variables dès l'Intermédiaire, composants dès le Confirmé : seulement dans les étapes ajoutées pendant le plan | Reprendre les anciennes étapes, en vérifiant ta progression déjà faite (révision et avis de leçon changée) |
-| Troisième projet Expert | Deux projets (X2, X1) | Remplacé par le prochain chantier n° 4 (projet Expert final) |
-| « S'adapter à l'apprenant » | Pas fait (point 6 du Doc) | Une notion fragile (solution vue, révision ratée) propose un transfert de plus par « Continuer » |
+| Troisième projet Expert | Deux projets (X2, X1) | Remplacé par le chantier n° 5 (projet Expert final) |
+| ~~« S'adapter à l'apprenant »~~ | Repris par le chantier n° 2 (révisions de graphes espacées) | — |
 | Déclencheur Tap | Absent ; T2 utilise Hold + Canceled | L'ajouter à Enhanced Input, et voir si une étape en a besoin |
-| Menu pause | Fait sans widget, sur Espace (choix par défaut, question sans réponse) | À confirmer ; à revoir avec le prochain chantier n° 2 (UMG) |
+| Menu pause | Fait sans widget, sur Espace (choix par défaut, question sans réponse) | À confirmer ; à revoir avec le chantier n° 3 (UMG) |
 
 ## Cadre : ce qu'il faut garder
 
@@ -108,9 +128,7 @@ Le plan du parcours (V7.10 à V7.18) a repris une bonne part de ce qui suit ; ce
 |---|---|---|---|
 | Autres chaînes | **En partie fait** : échelle à cinq marches pour toutes les notions (V7.10), T2 sur Enhanced Input. Restent des transferts et autonomies différés sur d'autres notions (Interfaces, Timeline, Event Dispatchers…) | ★★★ | M par chaîne (contenu) |
 | « Montre-moi » pour les autres échecs | Aujourd'hui tiré de l'exécution (erreur, fil arrêté, événement muet). Pour un comportement faux sans rien de tel, chaque vérification pourrait désigner les nœuds à montrer | ★★ | M et contenu |
-| Révision par notion | Les notions existent : regrouper les questions par notion, proposer la révision d'une notion pas revue depuis longtemps | ★★★ | M |
-| Révision variée | Deux ou trois questions par notion, sous des angles différents, dont de petits graphes à lire (demande un mini-éditeur en lecture seule) | ★★★ | M et contenu |
-| Reprise différée des erreurs | Une étape réussie avec la solution, ou ratée, revient plus tard sous une autre forme (la donnée existe : `passedWith`) | ★★★ | M |
+| ~~Révision par notion, révision variée, reprise différée des erreurs~~ | Repris par le chantier n° 2 (révisions de graphes espacées) | ★★★ | — |
 | ~~Mini-projets autonomes~~ | **Fait** : synthèses S1 à S4, entraînements M1 et M2, projets Expert X1 et X2 | ★★★ | fait |
 | Passerelle vers Unreal | Passée dans « Prochains chantiers », plus tard (dès que Tristan peut ouvrir Unreal) | ★★★ | M (contenu) |
 | ~~Même problème, trois architectures~~ | **Fait** en V7.15 : « Choisis ton outil », puis imposé par la synthèse S3 | ★★ | fait |
@@ -148,7 +166,7 @@ Principe : mêmes noms, même place relative que l'éditeur d'UE, panneaux en ti
 | Leçon ou série | Contenu | Pertinence | Difficulté |
 |---|---|---|---|
 | ~~Synthèse de la V3~~ | **Remplacée** par les synthèses de niveau S1 à S4 (plan du parcours) | ★★★ | fait |
-| Suite « jeu narratif » | Calquée sur Station enterrée. Fait : objet à examiner et dialogue en Data Table (V7), porte à code (V3), journal de faits et mode dialogue (X1, V7.18). Inventaire en composant fait (« Le sac et le coffre », V7.21). Reste le projet Expert final (chantier n° 4) | ★★★ | M à L |
+| Suite « jeu narratif » | Calquée sur Station enterrée. Fait : objet à examiner et dialogue en Data Table (V7), porte à code (V3), journal de faits et mode dialogue (X1, V7.18). Inventaire en composant fait (« Le sac et le coffre », V7.21). Reste le projet Expert final (chantier n° 5) | ★★★ | M à L |
 | Débogue en série | For Each qui retire des éléments pendant le parcours, Tick qui continue sur un acteur caché. Déjà couverts : timer jamais arrêté (D9), Delay dans une boucle (P2). Écarté : le Bind fait deux fois, sans effet dans UE | ★★★ | S chacun |
 | Architecture | « Le Blueprint qui fait tout » à découper. Fait : la même logique sortie dans un parent (L'héritage, Expert X2) ou dans un composant (R5 « La santé est partout », V7.20) | ★★★ | M |
 | Lecture de graphe | Un graphe touffu, trois questions dessus (que vaut X après Y ?) | ★★ | M |
@@ -172,7 +190,7 @@ Les leçons liées à une fonction (Enhanced Input, Save Game, niveaux) sont ran
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
 | ~~Actor Components~~ (lot 5) | **Fait en V7.19 à V7.22** (exercice E14 du recueil couvert). La suite laissée de côté est sous « Prochains chantiers » | ★★★ | fait |
-| Widgets UMG (lot 7, **prochain chantier**, n° 2) | D'abord texte, bouton et jauge prédéfinis, mis à jour par événement ; réévaluer ensuite un éditeur complet. Exercices E10, E27, E38 | ★★★ | M, XL pour l'éditeur |
+| Widgets UMG (lot 7, chantier n° 3) | D'abord texte, bouton et jauge prédéfinis, mis à jour par événement ; réévaluer ensuite un éditeur complet. Exercices E10, E27, E38 | ★★★ | M, XL pour l'éditeur |
 | Sons | Play Sound 2D avec quelques sons intégrés | ★★ | S à M |
 | Macros et Collapse | Macros de l'utilisateur, Collapse to Function, Collapse to Macro | ★★ | M à L |
 | Copier-coller entre graphes | Aujourd'hui seulement dans un même graphe | ★★ | M |
@@ -214,7 +232,7 @@ Depuis, la synthèse S4 (V7.17) fait sauver un Set de Name à chaque fusible et 
 | Refactor : un seul objet de sauvegarde | Trois Blueprints qui écrivent chacun leur slot, à regrouper |
 | Save Game : la suite | Versions Async des nœuds, Delete Game in Slot dans un exercice |
 
-### Étape 2 : plusieurs niveaux et GameInstance (lot 6, L, prochain chantier n° 3)
+### Étape 2 : plusieurs niveaux et GameInstance (lot 6, L, chantier n° 4)
 
 - Plusieurs niveaux par projet (`Project.level` devient une liste : changement de format et migration), un sélecteur dans l'onglet Niveau, Open Level (by Name).
 - **GameInstance** : une classe choisie dans les réglages du projet, obtenue par Get Game Instance, seule à garder ses variables d'un niveau à l'autre.
@@ -259,10 +277,10 @@ La base existe depuis la V4 : l'accueil compte les jours d'affilée (`Progress.d
 |---|---|---|---|
 | Objectif du jour | La série ne compte que si un objectif choisi est atteint (une leçon, ou cinq questions de révision). Réglable : léger, normal, soutenu | ★★★ | S |
 | Gel de série | Un joker gagné tous les sept jours (deux au plus) qui sauve la série un jour sans pratique | ★★★ | S |
-| Défi du jour | Un petit exercice tiré chaque jour (Prédis, Débogue, graphe à compléter), le même pour la journée (graine = la date) | ★★★ | M |
+| ~~Défi du jour~~ | Repris par le chantier n° 2 : la séance du jour est la file « À retravailler en Blueprint » | ★★★ | — |
 | Rappel dans l'appli | À l'ouverture, un bandeau dit ce que la série risque et ce qui est dû | ★★ | S |
 | Rappel du jour (notification) | « Ta série de 6 jours tient encore : 4 questions à revoir. » Voir ci-dessous | ★★★ | M à L |
-| Maîtrise par notion | Une jauge par notion qui monte avec les réussites et redescend sans révision | ★★ | M |
+| ~~Maîtrise par notion~~ | Repris par le chantier n° 2 (réussite différée par notion dans le Carnet) | ★★ | — |
 | Modificateurs de défi | Rejouer une leçon sans Tick, sans Cast, en moins de N nœuds, à 30 images par seconde, BeginPlay inversés | ★★ | M |
 | Succès | Badges liés à de vrais acquis (« premier Accessed None réparé »), pas au temps passé | ★★ | S à M |
 | Examen de fin de niveau | Cinq exercices tirés au hasard, sans indices | ★★ | M |

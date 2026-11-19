@@ -12,7 +12,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 - **En cours : corrections de la revue du 19 novembre** ([REVUE_V7.md](REVUE_V7.md), copie du Claude Doc https://claude.ai/artifact/4168bocdMoe9oJvuaNt7eJ). Tristan a lancé les quatre lots « dans l'ordre le plus logique » : **tous faits** (V7.23 à V7.26). Laissés de côté : le renumérotage des codes d'exercices et l'ordre X2 puis X1 (optionnels, à proposer).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **La suite est à décider avec lui** : le prochain chantier choisi le 19 novembre est l'UMG minimal (BACKLOG.md, « Prochains chantiers ») ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
+- **La suite est à décider avec lui** : le prochain chantier est **les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), puis l'UMG minimal ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
@@ -28,7 +28,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées, puis UMG minimal, puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
 
 Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 

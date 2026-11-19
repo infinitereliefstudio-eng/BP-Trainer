@@ -25,13 +25,8 @@ const SPACING_TARGET = 15;
  * left are for the next plan.
  */
 const KNOWN_GAPS: Record<string, number> = {
-  // V7.20 inserted the five Actor Components steps after « L’héritage », V7.21 its four usage steps further on
-  // (after « Regarder et interagir », D6, C5 and « Le réseau »): the gaps that cross them grew. input,
-  // enhanced-input, loops and trace are one step over the target: recalls to place in V7.22 (the « reprise »).
-  'enhanced-input': 16,
-  input: 16,
-  loops: 16,
-  trace: 16, // runs to the end of the path since A2
+  // V7.20 and V7.21 inserted the nine Actor Components steps in the Avancé: the gaps that cross them grew. V7.22
+  // brought input, enhanced-input and loops back (« La salle de contrôle ») and trace (M2), all at 15 or less.
   arrays: 24, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   components: 16,

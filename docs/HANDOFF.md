@@ -4,23 +4,23 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.21)
+## Reprise rapide (2026-11-19, après la V7.22)
 
 ### Où on en est
 
-- **Version en ligne : 7.21.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.22.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
   - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
   - lot 3 (Confirmé) : fait, V7.15 (3a, quatre nouvelles étapes) et V7.16 (3b, rappels, P14, synthèse S3, lancé par « tu peux passer a 3b ») ;
   - lot 4 (Avancé et Expert) : fait, V7.17 (4a, l'Avancé) et V7.18 (4b, Expert, lancé par « tu peux enchainer »). **Le plan du parcours est terminé.**
-- **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.21), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite) et les deux projets Expert (X2, X1). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, M1, M2, S4 ; fiches de méthode cachées jusqu'à la réussite) et les deux projets Expert (X2, X1). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
 - **La suite est à décider avec lui** (pistes dans « Ce qui reste à faire ») ; ne rien commencer sans son feu vert explicite (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-124 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 37 (fin : A2 puis synthèse S4), Expert 2 (X2, X1). 154 questions de révision sur les leçons. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+124 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 37 (fin : A2 puis synthèse S4), Expert 2 (X2, X1). 154 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -32,7 +32,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **V7.19 faite** (le moteur), **V7.20 faite** (cinq étapes de découverte après « L'héritage ») et **V7.21 faite** (quatre étapes d'usage, voir « V7.21 » plus bas). Reste : V7.22 (reprise de l'existant et rappels : input, enhanced-input, loops, trace), après le feu vert de Tristan.
+**Chantier n° 1, Actor Components** ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX, cinq recommandations validées) : **terminé** : V7.19 (le moteur), V7.20 (cinq étapes de découverte après « L'héritage »), V7.21 (quatre étapes d'usage) et V7.22 (reprise : rappels, conseil « Chaîne copiée entre Blueprints », fiches ; voir « V7.22 » plus bas). La suite est à décider avec Tristan.
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
@@ -685,6 +685,19 @@ Lancé par « ok tu peux passer à la suite ». Quatre étapes en Avancé, chacu
 - `smoke.py` attend 124 étapes, captures 79 à 81 (fiche de l'interaction, erreur de compilation de la batterie, Objets de l'inventaire du coffre dans les Details).
 
 Version 7.21.0.
+
+## V7.22 (2026-11-19) : chantier Actor Components, étape 4 (reprise de l'existant)
+
+Lancé par « tu peux lancer la suite ». Le chantier est terminé.
+
+- **Rappels dans l'Avancé** (plus aucun écart à 16) : « La salle de contrôle » (`controlRoom.ts`, `revision: 2`) donne un BP_Joueur au graphe vide ; l'apprenant y réécrit IA_Interagir → Get Overlapping Actors → For Each → Interagir (rappels input, enhanced-input, loops, interfaces ; nouvelle fiche « Le joueur »). M2 « Le distributeur » (`mixed.ts`, `revision: 2`) : BP_Joueur vide, et une **BP_Poubelle** à portée, derrière le joueur, qui répond « Poubelle » ; E doit agir sur ce que le joueur regarde : Line Trace (rappels trace, input, enhanced-input ; check `aim`). `input`, `enhanced-input`, `loops` et `trace` sortent de `KNOWN_GAPS` (toutes à 15 au plus ; input et loops sont pile à 15 entre S3 et la salle de contrôle : une étape insérée là les ferait repasser au-dessus).
+- **Conseil « Chaîne copiée entre Blueprints »** (`core/quality/copiedAcross.ts`, appelé par `adviceFor` à partir de l'Avancé) : la même suite de 3 nœuds dans plusieurs Blueprints (comparés par titre, Get/Set avec le nom de la variable, valeurs hors textes). Même famille : l'écrire dans le parent commun ; sinon : un Actor Component (ce qu'ils ont) ou un parent (ce qu'ils sont). Aucune solution connue d'étape ne le déclenche ; il apparaît sur le projet de départ de R5 (capture 82).
+- **Fiches** : « L'héritage » a une fiche « Est un, ou a un ? » (annonce des étapes suivantes) ; X2 et S4 ont une fiche **« Pour aller plus loin »** (le carburant en composant ; les fusibles dans BP_Inventaire), gardée jusqu'à la réussite comme les fiches de méthode (`PLAN_CARD_TITLES` dans `helpPolicy.ts` ; texte de l'avis dans `LessonSheet.tsx` élargi).
+- **Étude de S4** : la synthèse ne change pas (elle porte sur la sauvegarde et l'ordre des BeginPlay ; les composants ont déjà leur autonomie A2 juste avant). La version composant est proposée en fiche « Pour aller plus loin ».
+- **Glossaire, mémo, révision** : entrée « Interface ou composant » (notion de « Interagir par composant ») ; paragraphe « Interface ou composant ? » dans la fiche de mémo Actor Components ; une troisième question de mémo.
+- Tests : `tests/quality.test.ts` (le conseil, famille ou non, niveau), `tests/actorComponentLessons.test.ts` (« V7.22 recalls »). `smoke.py` : capture 82.
+
+Version 7.22.0.
 
 ## Méthode de travail
 

@@ -12,6 +12,8 @@ import { liftArrives } from '../src/core/lessons/library/timing';
 import { adviceFor } from '../src/core/quality/advice';
 import { newAdvice } from '../src/core/quality/lessonAdvice';
 import { parseProject, serializeProject } from '../src/core/serialization/serialize';
+import { setParentClass } from '../src/core/operations/projectOps';
+import { T } from '../src/core/types/pins';
 
 /**
  * Cases the lesson's own reference solution does not hold: the feedback then
@@ -186,6 +188,33 @@ describe('construction advice', () => {
         chain(b, key, 'released', 'Autre');
       }),
     ).toEqual([]);
+  });
+
+  it('the same chain in two Blueprints: a parent for one family, an Actor Component otherwise (from the Avancé)', () => {
+    const across = (family: boolean, level?: 'confirme' | 'avance') => {
+      const pb = new ProjectBuilder('t');
+      const base = pb.blueprint('BP_Base');
+      const kids = ['BP_A', 'BP_B'].map((n) => pb.blueprint(n));
+      if (family) for (const k of kids) setParentClass(pb.project, k.cls.id, base.cls.id);
+      for (const b of kids) {
+        const vie = b.variable('Vie', T.int, 3);
+        const ev = b.node('event.actorBeginOverlap');
+        const set = b.node('var.set', { variable: vie }, { value: 0 });
+        const br = b.node('flow.branch');
+        const say = b.node('debug.printString', {}, { text: b.cls.name });
+        b.link(ev, 'then', set, 'exec').link(set, 'then', br, 'exec').link(br, 'true', say, 'exec');
+      }
+      return adviceFor(pb.project, level).filter((a) => a.rule === 'copied-across');
+    };
+    expect(across(false).map((a) => a.className)).toEqual(['BP_B']);
+    expect(across(false)[0].text).toMatch(/Actor Component/);
+    expect(across(true)[0].text).toMatch(/même famille \(BP_Base\)/);
+    expect(across(false, 'confirme')).toEqual([]);
+  });
+
+  it('R5: the health copied in three actors is pointed out (from its starting project)', () => {
+    const l = getLesson('r5-sante-partout')!;
+    expect(adviceFor(l.setup(), 'avance').filter((a) => a.rule === 'copied-across').map((a) => a.className)).toEqual(['BP_Drone', 'BP_Tourelle']);
   });
 
   it('no reference solution of a Débutant lesson gets advice at its level', () => {

@@ -7,6 +7,7 @@ import type { Level } from '../lessons/levels';
 import type { NodeInstance, Project } from '../model/project';
 import { contextFor, getDefinition, nodeTitle } from '../nodes/registry';
 import { reach, type Rule, view } from './graphView';
+import { copiedAcross } from './copiedAcross';
 import { HYGIENE_RULES } from './hygiene';
 
 export interface Advice {
@@ -125,5 +126,7 @@ export function adviceFor(project: Project, level?: Level, classNames?: string[]
       }
     }
   }
+  // Across Blueprints: parent or Actor Component, from the Avancé (where both are taught).
+  if (rank >= LEVEL_RANK.avance) out.push(...copiedAcross(project, classNames));
   return out;
 }

@@ -132,7 +132,7 @@ export function LessonSheet({
               ))}
               {cards.held > 0 && (
                 <p class="muted small held-cards">
-                  {cards.held === 1 ? 'Une fiche de méthode s’ouvrira' : `${cards.held} fiches de méthode s’ouvriront`} après la réussite, pour comparer avec ta façon de faire.
+                  {cards.held === 1 ? 'Une fiche s’ouvrira' : `${cards.held} fiches s’ouvriront`} après la réussite : la méthode, pour comparer avec ta façon de faire, ou une piste pour aller plus loin.
                 </p>
               )}
               <Notions lesson={lesson} />

@@ -1,4 +1,4 @@
-/** V7.20 and V7.21: the Actor Components steps refuse the usual wrong solutions, with a reason that says where to look. */
+/** V7.20 to V7.22: the Actor Components steps (and the V7.22 recalls) refuse the usual wrong solutions, with a reason that says where to look. */
 import { describe, expect, it } from 'vitest';
 import { getLesson, LESSONS } from '../src/core/lessons';
 import { edit } from '../src/core/lessons/builder';
@@ -8,6 +8,7 @@ import type { Project } from '../src/core/model/project';
 import { removeComponent } from '../src/core/operations/classOps';
 import { removeNodes } from '../src/core/operations/graphOps';
 import { setParentClass } from '../src/core/operations/projectOps';
+import { playerTells } from '../src/core/lessons/library/universalLever';
 
 const lesson = (id: string) => getLesson(id)!;
 const nodes = (p: Project, cls: string, def: string) => Object.values(edit(p, cls).graph.nodes).filter((n) => n.def === def);
@@ -278,5 +279,27 @@ describe('A2 L’énergie de la station', () => {
       edit(p, 'BP_Lampe').node('event.tick', {}, {}, [64, 600]);
     });
     expect(failures(l, p).join(' ')).toMatch(/BP_Lampe a un Event Tick/);
+  });
+});
+
+describe('V7.22 recalls', () => {
+  it('« La salle de contrôle »: the player now writes the E → overlap → message chain; without it nothing changes', () => {
+    const l = lesson('l-salle-controle');
+    const p = solved(l, (p) => {
+      const g = edit(p, 'BP_Joueur').graph;
+      removeNodes(g, Object.keys(g.nodes));
+    });
+    expect(failures(l, p).map((f) => f.split(':')[0])).toContain('eco-mode');
+  });
+
+  it('M2: a player that tells everything in reach also reaches the bin behind him', () => {
+    const l = lesson('m2-distributeur');
+    const p = solved(l, (p) => {
+      const player = edit(p, 'BP_Joueur');
+      removeNodes(player.graph, Object.keys(player.graph.nodes));
+      const iface = p.interfaces.find((i) => i.name === 'BPI_Interactif')!;
+      playerTells(player, p.inputActions!.find((a) => a.name === 'IA_Interagir')!.id, iface.id, iface.functions[0].id);
+    });
+    expect(failures(l, p).join(' ')).toMatch(/La poubelle a dit/);
   });
 });

@@ -75,6 +75,12 @@ export const synthesis4: Lesson = {
         'Une synthèse reprend l’Avancé et ce qui le précède, sans liste de nœuds. Pense à l’ordre des BeginPlay : au lancement, qui a déjà relu la sauvegarde, et qui ne peut pas compter dessus ?\n\n' +
         'Le test prend deux fusibles, passe à la porte, relance la partie, prend le troisième, puis revient à la porte. Conseillée, pas obligatoire : rien n’est bloqué si tu passes à l’Expert sans elle.',
     },
+    {
+      title: 'Pour aller plus loin',
+      body:
+        'Ici, les fusibles du joueur sont une variable de BP_Joueur, et les fusibles et la porte font un **Cast To BP_Joueur** pour l’atteindre. Avec le **BP_Inventaire** de « Le sac et le coffre », ce serait un Actor Component : le fusible demanderait « as-tu un inventaire ? » (Get Component by Class), la porte compterait ce qu’il contient, et un drone porteur pourrait ramasser les fusibles sans rien changer.\n\n' +
+        'La sauvegarde, elle, ne change pas de place : celui qui charge relit ce qu’il faut au BeginPlay, et remplit l’inventaire au lieu de la variable.',
+    },
   ],
   objectives: [
     'Un fusible touché disparaît, le joueur l’a, et c’est sauvé aussitôt (slot « Station »).',

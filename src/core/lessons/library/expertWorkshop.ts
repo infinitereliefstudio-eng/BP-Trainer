@@ -74,6 +74,12 @@ export const expertWorkshop: Lesson = {
         'À **30 images par seconde** : E à la pompe ; 0,2 s plus tard le Voyant est allumé mais pas encore « Pompe en marche » ; 0,5 s plus tard il l’est. E au ventilateur : 0,5 s plus tard son Hélice a tourné. Le test attend que les deux tombent en panne sèche (la pompe pas avant 1,8 s de marche), puis E à la pompe : « Pompe : réservoir vide ».',
     },
     EXPERT_RULES,
+    {
+      title: 'Pour aller plus loin',
+      body:
+        'La pompe et le ventilateur **sont** des machines : le parent BP_Machine est le bon choix. Le **carburant**, lui, est quelque chose qu’elles **ont**. Le jour où un groupe électrogène ou un véhicule, qui ne sont pas des machines de l’atelier, consomment aussi, sors-le dans un **Actor Component** (une réserve qui s’use sur son Tick et prévient à 0, comme dans « L’énergie de la station ») : BP_Machine le porte, les autres aussi.\n\n' +
+        'Les deux se combinent : le parent pour ce qu’ils sont, des composants pour ce qu’ils ont.',
+    },
   ],
   objectives: [
     'BP_Pompe et BP_Ventilo héritent de BP_Machine, qui seul réagit à E.',

@@ -92,9 +92,10 @@ export function helpOffers(lesson: Lesson, state: HelpState): HelpOffer[] {
 /**
  * Cards that give the way to build the step, step by step (« Le plan »…).
  * From Avancé the fiche is a brief: these open after success, to compare,
- * like the solution (lot 4 of docs/PLAN_PARCOURS.md).
+ * like the solution (lot 4 of docs/PLAN_PARCOURS.md). « Pour aller plus
+ * loin » (V7.22) opens then too: another way to build what was just built.
  */
-export const PLAN_CARD_TITLES: ReadonlySet<string> = new Set(['Le plan', 'La réécriture', 'Les nœuds', 'Par où commencer']);
+export const PLAN_CARD_TITLES: ReadonlySet<string> = new Set(['Le plan', 'La réécriture', 'Les nœuds', 'Par où commencer', 'Pour aller plus loin']);
 
 const BRIEF_LEVELS: ReadonlySet<Level> = new Set(['avance', 'expert']);
 

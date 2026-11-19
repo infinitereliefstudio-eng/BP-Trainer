@@ -1,6 +1,6 @@
 # Chantier Actor Components — analyse (19 novembre 2026)
 
-Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document). **V7.19, V7.20 et V7.21 faites le 19 novembre** (détail dans HANDOFF.md) ; V7.22 attend son feu vert. En V7.20, D22 est « Le scanner et le chariot » (Get Component by Class sans Is Valid) et « Parent ou composant ? » est devenu « Le verrou à badge ». En V7.21, la batterie oublie la Target de Get Distance To (même erreur que Get Actor Location) et le sac et le coffre donnent l'inventaire déjà écrit, sauf Retirer.
+Copie du Claude Doc https://claude.ai/artifact/XDjSV8p3shFJUTwkwDfzmX (« BP Trainer — Chantier Actor Components »). Le 19 novembre, Tristan a validé les cinq recommandations (section « Décisions » en fin de document). **Chantier terminé le 19 novembre : V7.19, V7.20, V7.21 et V7.22** (détail dans HANDOFF.md). En V7.20, D22 est « Le scanner et le chariot » (Get Component by Class sans Is Valid) et « Parent ou composant ? » est devenu « Le verrou à badge ». En V7.21, la batterie oublie la Target de Get Distance To (même erreur que Get Actor Location) et le sac et le coffre donnent l'inventaire déjà écrit, sauf Retirer. En V7.22, les rappels sont passés par « La salle de contrôle » et M2 ; S4 garde son cahier des charges (fiche « Pour aller plus loin »).
 
 ## En bref
 

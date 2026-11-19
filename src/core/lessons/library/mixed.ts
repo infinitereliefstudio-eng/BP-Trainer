@@ -17,7 +17,6 @@ import type { CheckContext, Lesson, LessonCard } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
 import { editable, goTo, tap, varId } from './kit';
 import { playerBlueprint } from './props';
-import { playerTells } from './universalLever';
 
 const MODULE = 'Entraînement mélangé';
 
@@ -204,23 +203,47 @@ export const mixedSas: Lesson = {
 
 const STOCK = ['Pile', 'Fusible', 'Pile', 'Cle', 'Pile'];
 const DISPENSER: [number, number] = [0, -200];
+const BIN_AT: [number, number] = [0, 40];
+const BIN = 'Poubelle';
+const REACH = 300;
 
 function dispenserProject(): Project {
   const pb = new ProjectBuilder('Le distributeur');
-  const { b: player } = playerBlueprint(pb);
+  playerBlueprint(pb);
   const p = pb.project;
   const r = addInterface(p, 'BPI_Interactif');
   if (!r.ok) throw new Error(r.reason);
   addInterfaceFunction(p, r.value.id, 'Interagir');
-  const action = ensurePlayerInput(p, ['E'], { E: 'IA_Interagir' }).get('E')!;
-  playerTells(player, action, r.value.id, r.value.functions[0].id);
+  // V7.22: the player's graph is the learner's (a Line Trace, recalled); E acts on what the player looks at.
+  ensurePlayerInput(p, ['E'], { E: 'IA_Interagir' });
   const box = pb.blueprint('BP_Distributeur');
   box.component('StaticMesh', 'Caisson', { sizeX: 120, sizeY: 80, color: '#475569' });
   box.component('BoxCollision', 'Zone', { sizeX: 260, sizeY: 260 });
   box.variable('Stock', T.array(T.name), [...STOCK]);
+  // Right behind the player, within reach: it must not hear an E aimed at the dispenser.
+  const bin = pb.blueprint('BP_Poubelle');
+  bin.component('StaticMesh', 'Bac', { shape: 'cylinder', sizeX: 50, sizeY: 50, color: '#3f6212', blocks: false });
+  bin.component('BoxCollision', 'Zone', { sizeX: 220, sizeY: 220 });
+  implementInterface(bin.cls, r.value.id);
+  bin.link(bin.node('event.interface', { interface: r.value.id, fn: r.value.functions[0].id }, {}, [64, 96]), 'then', bin.node('debug.printString', {}, { text: BIN }, [400, 96]), 'exec');
   pb.place(box, ...DISPENSER);
-  pb.playerStart(0, -60);
+  pb.place(bin, ...BIN_AT);
+  pb.playerStart(0, -60, 270);
   return p;
+}
+
+/** IA_Interagir (Started) → Line Trace, 300 cm ahead of the player → Interagir (Message) to the Hit Actor. */
+function aimAndInteract(b: ClassBuilder, action: string, iface: string, fn: string): void {
+  const ev = b.node('input.action', { action }, {}, [64, 96]);
+  const loc = b.node('actor.getLocation', {}, {}, [64, 330]);
+  const fwd = b.node('actor.getForward', {}, {}, [64, 470]);
+  const mul = b.node('math.multiplyVectorFloat', {}, { b: REACH }, [330, 470]);
+  const add = b.node('math.addVector', {}, {}, [540, 400]);
+  const trace = b.node('trace.lineByChannel', {}, {}, [760, 96]);
+  const msg = b.node('iface.message', { interface: iface, fn }, {}, [1180, 96]);
+  b.link(ev, 'started', trace, 'exec').link(loc, 'result', trace, 'start').link(fwd, 'result', mul, 'a');
+  b.link(loc, 'result', add, 'a').link(mul, 'result', add, 'b').link(add, 'result', trace, 'end');
+  b.link(trace, 'then', msg, 'exec').link(trace, 'hitActor', msg, 'target');
 }
 
 const dispensed = (cx: CheckContext) => cx.sim.actors.filter((a) => a.className === 'BP_Objet' && !a.destroyed);
@@ -231,17 +254,19 @@ export const mixedDispenser: Lesson = {
   level: 'avance',
   number: 0,
   title: 'Le distributeur',
-  recalls: ['random', 'arrays', 'spawn', 'maps'],
+  revision: 2,
+  recalls: ['random', 'arrays', 'spawn', 'maps', 'trace', 'input', 'enhanced-input'],
   situation:
-    'Le distributeur garde cinq objets en stock. À chaque E, il en tire un au hasard, le fait apparaître devant lui et le retire du stock ; il tient le compte de ce qu’il a donné, par sorte. Vide, il le dit.',
+    'Le distributeur garde cinq objets en stock. À chaque E sur le distributeur (celui que le joueur regarde, pas la poubelle derrière lui), il en tire un au hasard, le fait apparaître devant lui et le retire du stock ; il tient le compte de ce qu’il a donné, par sorte. Vide, il le dit.',
   notions: ['Entraînement mélangé'],
   remember:
-    'Une liste qu’on vide (tableau, Remove Index), un tirage (Random Integer in Range jusqu’au Last Index), un acteur qui naît avec ses données (Spawn Actor, Expose on Spawn), un compte par sorte (Map) : quatre outils, quatre questions différentes.',
+    'Un rayon pour désigner ce qu’on regarde (Line Trace), une liste qu’on vide (tableau, Remove Index), un tirage (Random Integer in Range jusqu’au Last Index), un acteur qui naît avec ses données (Spawn Actor, Expose on Spawn), un compte par sorte (Map) : cinq outils, cinq questions différentes.',
   cards: [
     {
       title: 'Cahier des charges',
       body:
-        'Déjà là : **BP_Joueur** envoie **Interagir** (BPI_Interactif) à ce qui est à portée quand on appuie sur E. **BP_Distributeur** a un **Stock** (tableau de Name) : Pile, Fusible, Pile, Cle, Pile.\n\n' +
+        'Déjà là : **BPI_Interactif** (Interagir), **IA_Interagir** (E) ; **BP_Joueur** a un graphe vide. **BP_Distributeur** a un **Stock** (tableau de Name) : Pile, Fusible, Pile, Cle, Pile. Juste derrière le joueur, à portée de main, **BP_Poubelle** répond « Poubelle » à Interagir.\n\n' +
+        '0. E agit sur **ce que le joueur regarde**, à 3 m au plus : le distributeur. La poubelle ne reçoit rien.\n' +
         '1. Crée **BP_Objet** : une petite forme, et un **Nom** (Name) qu’il reçoit **à sa naissance** et affiche à son BeginPlay.\n' +
         '2. E près du distributeur : il tire **au hasard** un objet du Stock, le fait **apparaître** devant lui (un BP_Objet avec ce Nom), et le **retire** du Stock.\n' +
         '3. Il compte ce qu’il a donné **par sorte**, et l’affiche : par exemple `Pile x2`.\n' +
@@ -250,14 +275,15 @@ export const mixedDispenser: Lesson = {
     MIXED,
   ],
   objectives: [
+    'E agit sur ce que le joueur regarde : la poubelle, derrière lui, ne dit jamais « Poubelle ».',
     'Cinq E : cinq BP_Objet apparaissent, chacun affiche son Nom à sa naissance ; le stock se vide.',
     'Chaque fois, le distributeur affiche combien il a donné de cette sorte (« Pile x2 »…).',
     'Au sixième E : « Vide », et rien de plus.',
   ],
   hints: [
-    'Quatre questions : comment tirer une position au hasard dans une liste qui raccourcit ? Comment un acteur reçoit-il une valeur avant son BeginPlay ? Où ranger un nombre par sorte d’objet ?',
-    'Is Empty, Random Integer in Range, Last Index, Get (a copy), Remove Index, Spawn Actor (Expose on Spawn), Map : Find, Add, Append, Print String.',
-    'Solution : BP_Objet : variable Nom (Name, Instance Editable, Expose on Spawn) ; BeginPlay → Print String (Nom). BP_Distributeur implémente BPI_Interactif ; variable Donnes (Map Name → Integer). Event Interagir → Branch (Is Empty (Stock)) : True → Print « Vide » ; False → Set Index = Random Integer in Range (0, Last Index) → Set Tire = Get (Stock, Index) → Remove Index → Spawn Actor BP_Objet (Nom = Tire, devant le distributeur) → Set Compte = Find (Donnes, Tire) + 1 → Add (Donnes, Tire, Compte) → Print (Tire + « x » + Compte).',
+    'Cinq questions : comment désigner ce que le joueur regarde, et pas tout ce qui est à portée ? Comment tirer une position au hasard dans une liste qui raccourcit ? Comment un acteur reçoit-il une valeur avant son BeginPlay ? Où ranger un nombre par sorte d’objet ?',
+    'Line Trace By Channel, Get Actor Location, Get Actor Forward Vector, Interagir (Message) ; Is Empty, Random Integer in Range, Last Index, Get (a copy), Remove Index, Spawn Actor (Expose on Spawn), Map : Find, Add, Append, Print String.',
+    'Solution : BP_Joueur : IA_Interagir (Started) → Line Trace By Channel (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300) → Interagir (Message), Target = Out Hit Hit Actor. BP_Objet : variable Nom (Name, Instance Editable, Expose on Spawn) ; BeginPlay → Print String (Nom). BP_Distributeur implémente BPI_Interactif ; variable Donnes (Map Name → Integer). Event Interagir → Branch (Is Empty (Stock)) : True → Print « Vide » ; False → Set Index = Random Integer in Range (0, Last Index) → Set Tire = Get (Stock, Index) → Remove Index → Spawn Actor BP_Objet (Nom = Tire, devant le distributeur) → Set Compte = Find (Donnes, Tire) + 1 → Add (Donnes, Tire, Compte) → Print (Tire + « x » + Compte).',
   ],
   challenge: 'Remets le stock à son contenu de départ quand il est vide, et fais que chaque objet apparaisse à côté du précédent plutôt qu’au même endroit.',
   setup: dispenserProject,
@@ -278,6 +304,14 @@ export const mixedDispenser: Lesson = {
     { wait: 0.1 },
   ],
   checks: [
+    {
+      id: 'aim',
+      label: 'E n’agit que sur ce que le joueur regarde : la poubelle ne reçoit rien',
+      test: (cx) =>
+        countPrints(cx, BIN) === 0
+          ? true
+          : `La poubelle a dit « ${BIN} » ${countPrints(cx, BIN)} fois : elle est à portée, mais le joueur regarde le distributeur. Lance un rayon devant lui (Line Trace By Channel) et n’envoie Interagir qu’à ce qu’il touche.`,
+    },
     {
       id: 'five',
       label: 'Cinq E : cinq objets, le stock est vide',
@@ -328,8 +362,9 @@ export const mixedDispenser: Lesson = {
     obj.link(obj.node('event.beginPlay', {}, {}, [64, 96]), 'then', obj.node('debug.printString', {}, {}, [360, 96]), 'exec');
     obj.link(obj.node('var.get', { variable: nom }, {}, [160, 300]), 'value', Object.values(obj.graph.nodes).find((n) => n.def === 'debug.printString')!.id, 'text');
 
-    const b = edit(p, 'BP_Distributeur');
     const iface = p.interfaces.find((i) => i.name === 'BPI_Interactif')!;
+    aimAndInteract(edit(p, 'BP_Joueur'), p.inputActions!.find((a) => a.name === 'IA_Interagir')!.id, iface.id, iface.functions[0].id);
+    const b = edit(p, 'BP_Distributeur');
     implementInterface(b.cls, iface.id);
     const stock = varId(b, 'Stock');
     const index = b.variable('Index', T.int, 0);

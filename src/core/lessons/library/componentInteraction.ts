@@ -78,7 +78,7 @@ export const lessonComponentInteraction: Lesson = {
   situation:
     'Une lampe, une porte, un coffre et une caisse. E doit agir sur ce qui est à portée et sait réagir, chacun à sa façon ; la caisse, elle, ne fait rien. Cette fois, ni interface à implémenter, ni Cast : ce qui sait réagir porte un composant.',
   recalls: ['input', 'enhanced-input', 'loops'],
-  notions: ['Actor Component', 'Get Component by Class', 'Is Valid', 'On … (Composant)', 'Instance Editable'],
+  notions: ['Actor Component', 'Interface ou composant', 'Get Component by Class', 'Is Valid', 'On … (Composant)', 'Instance Editable'],
   remember:
     'Le joueur ne demande pas « qu’es-tu ? » mais « as-tu un BP_Interaction ? » : Get Component by Class sur chaque acteur proche, puis Is Valid. Le composant fait la part commune (afficher son Action) et prévient son acteur, qui fait sa part à lui.',
   cards: [

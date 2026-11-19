@@ -113,7 +113,7 @@ export const MEMO: MemoCard[] = [
       '- **Prévenir l’acteur** : un Event Dispatcher du composant (OnMort). Dans l’acteur, le **+** vert des Details du composant ajoute « On OnMort (Sante) », déjà abonné.\n' +
       '- **Le trouver sans connaître l’acteur** : **Get Component by Class** (BP_Sante) sur Other Actor, puis **Is Valid** : None s’il n’en a pas. Aucun Cast vers chaque sorte d’ennemi.\n\n' +
       '**Parent ou composant ?** Un parent dit « est un » (une pompe **est une** machine) ; un composant dit « a un » (une caisse, une tourelle et le joueur **ont une** santé). Un acteur n’a qu’un parent, mais autant de composants qu’il veut.\n\n' +
-      'Un **message d’interface** envoyé à l’acteur ne va pas à ses composants : envoie-le au composant (Get Component by Class), ou fais répondre l’acteur.\n\n' +
+      '**Interface ou composant ?** Une interface quand chaque acteur fait tout à sa façon ; un composant quand une part est commune à tous (afficher l’action, refuser si c’est verrouillé) : elle s’écrit une fois, l’acteur ajoute la sienne par « On … (Composant) ». Un **message d’interface** envoyé à l’acteur ne va pas à ses composants : envoie-le au composant (Get Component by Class), ou fais répondre l’acteur.\n\n' +
       'Pas simulés ici : les Scene Components faits en Blueprint (avec une position), Add Component by Class et Destroy Component en cours de partie, Activate / Deactivate.',
   },
 

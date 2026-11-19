@@ -64,6 +64,14 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Mettre un comportement dans un parent pour le partager : tous les enfants le reçoivent, même ceux qui n’en veulent pas, et un acteur d’une autre famille ne peut pas l’avoir.',
   },
   {
+    title: 'Interface ou composant',
+    names: ['Interface ou composant', 'Chaîne copiée entre Blueprints'],
+    what: 'Deux façons d’agir sur des acteurs sans connaître leur classe. Une Blueprint Interface est un message que chacun implémente entièrement à sa façon ; un Actor Component porte une logique écrite une fois, et l’acteur n’ajoute que sa part (par « On … (Composant) »).',
+    when: 'Interface quand chaque acteur fait tout à sa façon (le levier, la porte et la radio n’ont rien en commun) ; composant quand il y a une part commune à tous (afficher l’action, refuser si c’est verrouillé, jouer un son). Le conseil « Chaîne copiée entre Blueprints » repère cette part commune recopiée.',
+    trap: 'Un message d’interface envoyé à l’acteur ne va pas à ses composants : on les trouve avec Get Component by Class.',
+    pattern: 'Get Overlapping Actors → For Each → Get Component by Class → Is Valid → Interagir',
+  },
+  {
     title: 'Les événements d’un composant',
     names: ['BeginPlay d’un composant', 'On … (Composant)', 'On Actor Begin Overlap'],
     what: 'Un Actor Component a son BeginPlay, son Tick et son End Play. Son BeginPlay passe avant l’Event BeginPlay de l’acteur qui le porte. Il n’a pas de forme : pour un overlap, il s’abonne à On Actor Begin Overlap de son Owner (Bind Event, Target = Get Owner).',

@@ -52,6 +52,13 @@ export const MEMO_QUIZ: QuizQuestion[] = [
     2,
   ),
   q(
+    'm-actor-components',
+    'Une lampe, une porte et un coffre réagissent à E chacun à sa façon, mais tous doivent d’abord afficher leur action et refuser s’ils sont verrouillés. Que choisir ?',
+    ['Un Actor Component pour la part commune, chaque acteur ajoutant sa réaction', 'Une interface que chacun implémente en recopiant la part commune', 'Un Cast vers chaque classe dans le joueur', 'Un Tick qui surveille la touche dans chaque acteur'],
+    'La part commune s’écrit une fois dans le composant ; l’acteur n’ajoute que sa réaction, par « On … (Composant) ». Une interface convient quand chacun fait tout à sa façon.',
+    3,
+  ),
+  q(
     'm-framework',
     'Quelle classe garde ses variables quand on change de niveau avec Open Level ?',
     ['GameInstance', 'GameMode', 'PlayerController', 'Le Pawn du joueur'],

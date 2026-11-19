@@ -88,7 +88,13 @@ export const lessonInheritance: Lesson = {
       title: 'Le piège',
       body:
         'Oublier Parent: BeginPlay. La lampe clignote… à partir d’une lumière éteinte, et sans sa Puissance : Allumer n’a jamais été appelé pour elle.\n\n' +
-        'Dans UE, l’héritage sert à partager une base commune (un ennemi de base, des variantes rapides ou lourdes ; un objet ramassable, puis une clé, une pile). Préfère-le quand l’enfant « est un » parent ; quand il « a » seulement un comportement en plus, un **Actor Component** est souvent plus souple.',
+        'Dans UE, l’héritage sert à partager une base commune (un ennemi de base, des variantes rapides ou lourdes ; un objet ramassable, puis une clé, une pile).',
+    },
+    {
+      title: 'Est un, ou a un ?',
+      body:
+        'L’héritage répond à « qu’est-ce que c’est ? » : une lampe clignotante **est une** lampe. Un Blueprint n’a qu’**un** parent : il ne peut pas être à la fois une lampe et une porte.\n\n' +
+        'Quand des Blueprints sans rapport partagent un **comportement** (une caisse, un drone et une tourelle qui ont tous une santé), ce n’est pas ce qu’ils sont, c’est ce qu’ils **ont** : un **Actor Component**, écrit une fois et posé sur chacun. C’est l’objet des étapes qui suivent.',
     },
   ],
   objectives: [

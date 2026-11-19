@@ -890,6 +890,24 @@ async def main():
             await page.wait_for_timeout(200)
         await shot('81_chest_inventory_details')
 
+        # V7.22: the advice « Chaîne copiée entre Blueprints » on R5's starting project (the health copied three times).
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La santé est partout').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='La santé est partout').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('button[aria-label^="Plus d"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Conseils de construction').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.advice-card', has_text='Chaîne copiée entre Blueprints').count() == 0:
+            errs.append('Conseils : « Chaîne copiée entre Blueprints » manque sur la santé copiée de R5')
+        else:
+            await page.locator('.advice-card', has_text='Chaîne copiée entre Blueprints').first.scroll_into_view_if_needed()
+        await page.wait_for_timeout(200)
+        await shot('82_advice_copied_across')
+
         print('errors', errs)
         await b.close()
         return errs

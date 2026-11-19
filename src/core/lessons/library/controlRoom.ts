@@ -27,8 +27,8 @@ function controlRoomProject() {
   const modes = addEnum(pb.project, 'E_Mode');
   if (!modes.ok) throw new Error(modes.reason);
   modes.value.entries = [...MODES];
-  const { b: player } = playerBlueprint(pb);
-  playerInteracts(player, iface.value.id, iface.value.functions[0].id);
+  // V7.22: the player's graph is the learner's again (a recall of the input, the loop and the interface message).
+  playerBlueprint(pb);
   const console = pb.blueprint('BP_Console');
   console.component('StaticMesh', 'Pupitre', { sizeX: 120, sizeY: 60, color: '#334155' });
   console.component('BoxCollision', 'Zone', { sizeX: 320, sizeY: 260 });
@@ -65,6 +65,8 @@ export const lessonControlRoom: Lesson = {
   level: 'avance',
   number: 0,
   title: 'La salle de contrôle',
+  revision: 2,
+  recalls: ['input', 'enhanced-input', 'loops', 'interfaces'],
   situation:
     'Près de la console, E fait passer le mode de Arret à Eco, puis Plein, puis Arret. À chaque changement, la console prévient ; les trois lampes s’éteignent (Arret), éclairent à 1500 (Eco) ou à 5000 (Plein).',
   notions: ['Blueprint Interface', 'Enum et Switch on Enum', 'Event Dispatcher avec paramètre', 'Get Actor Of Class'],
@@ -74,7 +76,7 @@ export const lessonControlRoom: Lesson = {
       title: 'Ce qui est en place',
       body:
         'Cette leçon réunit trois outils déjà vus. Sont prêts :\n\n' +
-        '- **BPI_Interactif** (Interagir), et **BP_Joueur** qui envoie Interagir (Message) sur IA_Interagir (la touche E) à ce qu’il touche ;\n- l’Enum **E_Mode** : Arret, Eco, Plein ;\n- **BP_Console** : un pupitre, une Zone, un écran, une variable **Mode** (E_Mode, Arret) et un Event Dispatcher **OnModeChange** avec un paramètre **NouveauMode** (E_Mode) ;\n- trois **BP_Lampe**, éteintes, sans logique.\n\n' +
+        '- **BPI_Interactif** (Interagir) ; **BP_Joueur** a un graphe vide : à toi de lui faire envoyer Interagir (Message) à tout ce qu’il touche sur **IA_Interagir** (Started), comme dans « Interagir avec tout » ;\n- l’Enum **E_Mode** : Arret, Eco, Plein ;\n- **BP_Console** : un pupitre, une Zone, un écran, une variable **Mode** (E_Mode, Arret) et un Event Dispatcher **OnModeChange** avec un paramètre **NouveauMode** (E_Mode) ;\n- trois **BP_Lampe**, éteintes, sans logique.\n\n' +
         'E près de la console fait tourner le mode : Arret → Eco → Plein → Arret. Les lampes suivent : éteintes, 1500, 5000.',
     },
     {
@@ -82,6 +84,10 @@ export const lessonControlRoom: Lesson = {
       body:
         '- **L’interface** pour **agir** : le joueur ne sait pas qu’il parle à une console. Il envoie Interagir, la console décide.\n- **L’Enum** pour l’**état** : trois noms clairs plutôt qu’un nombre, et un Switch qui a une sortie par état.\n- **L’Event Dispatcher** pour **prévenir** : la console n’a pas à connaître les lampes. Elle annonce, celles qui écoutent réagissent.\n\n' +
         'Personne ne lit l’état d’un autre à chaque image : chacun réagit au bon moment.',
+    },
+    {
+      title: 'Le joueur',
+      body: '**IA_Interagir** (Started) → **Get Overlapping Actors** → **For Each Loop** → **Interagir (Message)**, Target = Array Element. Le joueur ne sait rien de la console : il envoie, elle décide.',
     },
     {
       title: 'La console',
@@ -105,14 +111,15 @@ export const lessonControlRoom: Lesson = {
     },
   ],
   objectives: [
+    'Sur IA_Interagir, BP_Joueur envoie Interagir à tout ce qu’il touche.',
     'BP_Console implémente BPI_Interactif ; sur Interagir, le Mode passe au suivant (Arret → Eco → Plein → Arret) puis Call OnModeChange.',
     'Chaque BP_Lampe s’abonne à OnModeChange au BeginPlay et règle sa Lumiere selon le mode : éteinte, 1500, 5000.',
     'Touche Vérifier : 3 appuis sur E près de la console.',
   ],
   hints: [
     'La console doit-elle connaître les lampes ? Comment une lampe trouve-t-elle la console sans variable réglée dans le niveau ?',
-    'Console : Event Interagir, Switch on E_Mode, 3 Set Mode, Call OnModeChange. Lampe : BeginPlay, Get Actor Of Class, Bind Event to OnModeChange, Custom Event, Switch on E_Mode, Set Visibility, Set Intensity.',
-    'Solution : Console : Interagir → Switch (Mode) → Set Mode (suivant) → Call OnModeChange (Mode). Lampe : BeginPlay → Bind (Target = Get Actor Of Class BP_Console) ← Custom Event (NouveauMode) → Switch (NouveauMode) → Set Visibility / Set Intensity.',
+    'Joueur : IA_Interagir, Get Overlapping Actors, For Each Loop, Interagir (Message). Console : Event Interagir, Switch on E_Mode, 3 Set Mode, Call OnModeChange. Lampe : BeginPlay, Get Actor Of Class, Bind Event to OnModeChange, Custom Event, Switch on E_Mode, Set Visibility, Set Intensity.',
+    'Solution : Joueur : IA_Interagir (Started) → Get Overlapping Actors → For Each Loop → Interagir (Message), Target = Array Element. Console : Interagir → Switch (Mode) → Set Mode (suivant) → Call OnModeChange (Mode). Lampe : BeginPlay → Bind (Target = Get Actor Of Class BP_Console) ← Custom Event (NouveauMode) → Switch (NouveauMode) → Set Visibility / Set Intensity.',
   ],
   challenge: 'Affiche le mode sur l’Ecran de la console avec Set Text, à chaque changement.',
   setup: controlRoomProject,
@@ -130,6 +137,7 @@ export const lessonControlRoom: Lesson = {
   solve(p) {
     const con = edit(p, 'BP_Console');
     const iface = p.interfaces[0];
+    playerInteracts(edit(p, 'BP_Joueur'), iface.id, iface.functions[0].id);
     implementInterface(con.cls, iface.id);
     const mode = con.cls.variables[0].id;
     const d = con.cls.dispatchers[0];

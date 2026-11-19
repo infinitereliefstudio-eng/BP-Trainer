@@ -15,6 +15,7 @@ import { createActor } from '@core/runtime/actorFactory';
 import { componentTransform, type ActorRT } from '@core/runtime/world';
 import type { EditorStore } from '@core/store/editorStore';
 import { Camera } from '../camera';
+import { BOTTOM_BAR, FAB_RAIL } from '../framing';
 import { GestureController, type GestureHost } from '../gestures';
 import type { Hit } from '../hit';
 import { haptic } from '../haptics';
@@ -84,7 +85,7 @@ export const ViewportCanvas = forwardRef<ViewportHandle, Props>(function Viewpor
       x1 = Math.max(x1, t.x + ext);
       y1 = Math.max(y1, t.y + ext);
     }
-    cam.fit({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, w, h - 60, 32);
+    cam.fit({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, w - FAB_RAIL, h - BOTTOM_BAR, 32);
     cam.zoom = Math.min(cam.zoom, 1.2);
     cam.x = (x0 + x1) / 2 - w / 2 / cam.zoom;
     cam.y = (y0 + y1) / 2 - (h - 60) / 2 / cam.zoom;

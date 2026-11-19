@@ -15,6 +15,13 @@
   --error: #ff4d4d;
   --tap: 40px;
   --radius: 6px;
+  /* Bar heights (V7.31): smaller on a phone in landscape, see the media query « Compact landscape » at the end. */
+  --doc-h: 36px;
+  --tb-h: 40px;
+  --tb-btn: 30px;
+  --goal-h: 36px;
+  --bottom-h: 34px;
+  --fab: 40px;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   color-scheme: dark;
 }
@@ -58,16 +65,22 @@ button:disabled { opacity: 0.4; cursor: default; }
 .graph-canvas { position: absolute; inset: 0; }
 .graph-canvas canvas { display: block; touch-action: none; }
 
+/* Floating buttons (V7.31): a rail of small buttons along the right edge, and « + » alone at the bottom, so the
+   bottom of the graph stays free and the framing only keeps a column clear on the right (FAB_RAIL in GraphCanvas). */
 .fabs {
-  position: absolute; right: max(10px, env(safe-area-inset-right)); bottom: 46px; display: flex; gap: 8px; z-index: 5;
+  position: absolute; z-index: 5; top: 8px; right: max(8px, env(safe-area-inset-right)); bottom: calc(var(--bottom-h) + 8px);
+  display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; pointer-events: none;
 }
+.fabs > * { pointer-events: auto; }
+.fab-rail { display: flex; flex-direction: column; gap: 6px; }
 .fab {
-  width: 44px; height: 44px; border-radius: 10px; background: rgba(38, 38, 38, 0.92); border: 1px solid var(--line-2);
-  font-size: 20px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  width: var(--fab); height: var(--fab); border-radius: 9px; background: rgba(30, 30, 30, 0.82); border: 1px solid var(--line-2); color: var(--text);
+  font-size: 18px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
 }
-.fab.wide { width: auto; padding: 0 12px; font-size: 14px; }
-.fab.on { background: var(--accent-soft); border-color: var(--accent); }
-.fab.primary { background: var(--accent); border-color: var(--accent); font-size: 26px; }
+.fab:disabled { opacity: 0.35; }
+.fab.on { background: var(--accent-soft); border-color: var(--accent); color: #cfe2ff; }
+.fab.primary { width: 48px; height: 48px; border-radius: 12px; background: var(--accent); border-color: var(--accent); color: #fff; font-size: 26px; }
+.icon { display: block; }
 
 /* ---------------------------------------------------------------- drawers */
 .drawer {
@@ -126,7 +139,7 @@ select.field { padding-right: 4px; }
 
 /* ----------------------------------------------------------- bottom panel */
 .bottom-wrap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--panel); border-top: 1px solid var(--line); }
-.bottom-handle { width: 100%; height: 34px; text-align: left; padding: 0 12px; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.bottom-handle { width: 100%; height: var(--bottom-h); text-align: left; padding: 0 12px; color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; }
 .bottom { height: min(190px, 45vh); display: flex; flex-direction: column; }
 .bottom-tabs { display: flex; gap: 4px; padding: 0 8px; border-bottom: 1px solid var(--line); }
 .bottom-tabs button { height: 34px; padding: 0 10px; color: var(--muted); border-bottom: 2px solid transparent; }
@@ -156,8 +169,9 @@ select.field { padding-right: 4px; }
 .pill.error { background: var(--error); color: #fff; }
 
 /* ---------------------------------------------------------------- toasts */
-.toasts { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 30; pointer-events: none; width: min(560px, 90%); }
-.toast { padding: 8px 12px; border-radius: 8px; background: rgba(30, 30, 30, 0.96); border: 1px solid var(--line-2); font-size: 13px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
+/* Bottom right, left of the floating buttons, like UE's notifications (V7.31); at the top during Play (joystick and keys at the bottom). */
+.toasts { position: absolute; right: calc(max(8px, env(safe-area-inset-right)) + 60px); bottom: calc(var(--bottom-h) + 10px); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; z-index: 30; pointer-events: none; width: min(420px, 62%); }
+.toast { padding: 6px 10px; border-radius: 8px; background: rgba(30, 30, 30, 0.96); border: 1px solid var(--line-2); border-left-width: 3px; font-size: 12.5px; line-height: 1.35; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
 .toast.warning { border-color: #8a6d14; }
 .toast.error { border-color: #8a2a2a; }
 
@@ -295,7 +309,7 @@ select.field { padding-right: 4px; }
 
 .lesson-body > * { flex-shrink: 0; }
 .lesson-body > .btn { align-self: flex-start; }
-.app.playing .toasts { top: 60px; }
+.app.playing .toasts { top: 60px; bottom: auto; right: auto; left: 50%; transform: translateX(-50%); align-items: stretch; width: min(560px, 90%); }
 
 /* -------------------------------------------------------------- debugger */
 .debug-bar {
@@ -488,18 +502,19 @@ select.field { padding-right: 4px; }
 .version-line { margin-top: 14px; }
 
 /* Lesson: objectives visible while building */
-.goal-strip { flex: none; display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 2px 8px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); background: #221c0a; border-bottom: 1px solid #6b5a14; font-size: 13px; }
+.goal-strip { flex: none; display: flex; align-items: center; gap: 8px; min-height: var(--goal-h); padding: 2px 8px; padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right)); background: #221c0a; border-bottom: 1px solid #6b5a14; font-size: 13px; }
 .goal-strip.passed { background: #12241a; border-color: #2f6b3a; }
-.goal-step { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; text-align: left; min-height: 32px; }
+.goal-step { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; text-align: left; min-height: calc(var(--goal-h) - 4px); }
 .goal-num { flex: none; font-weight: 700; color: var(--orange); font-variant-numeric: tabular-nums; }
 .goal-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goal-text code { background: #0e0e0e; border-radius: 4px; padding: 0 4px; }
-.goal-result { flex: 0 1 auto; min-width: 0; max-width: 42%; height: 30px; padding: 0 10px; border-radius: 15px; border: 1px solid #8a2b2b; background: #2a1414; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.goal-result { flex: 0 1 auto; min-width: 0; max-width: 42%; height: calc(var(--goal-h) - 6px); padding: 0 10px; border-radius: 15px; border: 1px solid #8a2b2b; background: #2a1414; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .goal-strip.passed .goal-result { border-color: #2f6b3a; background: #14261a; color: #9be3ae; }
 .goal-why { font-weight: 400; color: var(--muted); }
-.goal-strip .btn { flex: none; height: 30px; }
+.goal-strip .btn { flex: none; height: calc(var(--goal-h) - 6px); }
 .goal-hide { padding: 0 8px; color: var(--muted); }
-.goal-tab { position: absolute; z-index: 5; top: 46px; left: 50%; transform: translateX(-50%); height: 22px; padding: 0 12px; border-radius: 0 0 8px 8px; background: #221c0a; border: 1px solid #6b5a14; border-top: 0; font-size: 12px; color: #ffd76a; }
+.goal-tab-anchor { position: relative; height: 0; flex: none; z-index: 5; }
+.goal-tab { position: absolute; z-index: 5; top: 0; left: 50%; transform: translateX(-50%); height: 22px; padding: 0 12px; border-radius: 0 0 8px 8px; background: #221c0a; border: 1px solid #6b5a14; border-top: 0; font-size: 12px; color: #ffd76a; }
 .app { position: relative; }
 .palette-cat.recent { color: #8fb8f0; }
 .quiz-why p, .quiz .success p { margin: 0; line-height: 1.45; font-size: 14px; }
@@ -564,10 +579,10 @@ select.field { padding-right: 4px; }
 /* Amber marks what BP Trainer adds and UE does not have (lesson, home, app menu, Play speed). */
 .app-only, .tb.app-only, .pb-btn.app-only { border-color: #8a6d14; color: #ffd76a; }
 .doc-bar {
-  height: 36px; flex: none; display: flex; align-items: stretch; gap: 4px; background: #141517; border-bottom: 1px solid var(--line);
+  height: var(--doc-h); flex: none; display: flex; align-items: stretch; gap: 4px; background: #141517; border-bottom: 1px solid var(--line);
   padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(4px, env(safe-area-inset-right));
 }
-.doc-bar .tb { height: 30px; align-self: center; }
+.doc-bar .tb { height: calc(var(--doc-h) - 6px); align-self: center; }
 .doc-home { width: 36px; font-size: 18px; flex: none; }
 .doc-tabs { flex: 1; min-width: 0; display: flex; overflow-x: auto; scrollbar-width: none; }
 .doc-tabs::-webkit-scrollbar { display: none; }
@@ -578,9 +593,9 @@ select.field { padding-right: 4px; }
 .doc-close { width: 28px; height: 100%; color: var(--muted); font-size: 16px; }
 .doc-icon { font-size: 11px; color: #85b7eb; }
 .doc-tab.level .doc-icon { color: #97c459; }
-.toolbar.bp-toolbar, .toolbar.level-toolbar { height: 40px; }
-.toolbar .tb { height: 30px; }
-.graph-tabs .tab { height: 30px; }
+.toolbar.bp-toolbar, .toolbar.level-toolbar { height: var(--tb-h); }
+.toolbar .tb { height: var(--tb-btn); }
+.graph-tabs .tab { height: var(--tb-btn); }
 /* Review of 19 November (I1): buttons keep their whole label (« Class Settings », not « Class Settinc »); the bar scrolls when it is too narrow. */
 .toolbar > * { flex-shrink: 0; }
 @media (max-width: 960px) {
@@ -598,7 +613,7 @@ select.field { padding-right: 4px; }
 .panel-title { padding: 10px 12px 6px; font-weight: 700; font-size: 15px; border-top: 1px solid var(--line); background: #1d1e21; }
 .bottom-bar { display: flex; align-items: stretch; }
 .bottom-bar .bottom-handle { flex: 1; width: auto; }
-.content-drawer-btn { flex: none; height: 34px; padding: 0 12px; font-size: 13px; color: var(--text); border-right: 1px solid var(--line); white-space: nowrap; }
+.content-drawer-btn { flex: none; height: var(--bottom-h); padding: 0 12px; font-size: 13px; color: var(--text); border-right: 1px solid var(--line); white-space: nowrap; }
 
 /* -------------------------------------------- Content Drawer (ui/content/), from the bottom as in UE5 */
 .sheet-backdrop.from-bottom { align-items: flex-end; }
@@ -702,3 +717,15 @@ select.field { padding-right: 4px; }
 .hypothesis { border-color: #2d5a8a; }
 .hypothesis-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
 .hypothesis-options .option { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; height: auto; padding: 8px 12px; text-align: left; white-space: normal; }
+
+/* ------------------------------------------- Compact landscape (V7.31): a phone held sideways, about 370 to 430 px high.
+   Every bar gets thinner so the graph keeps about two thirds of the height; nothing changes on a larger screen. */
+@media (orientation: landscape) and (max-height: 480px) {
+  :root { --doc-h: 32px; --tb-h: 34px; --tb-btn: 28px; --goal-h: 30px; --bottom-h: 28px; --fab: 36px; }
+  .doc-home { width: 32px; }
+  .goal-strip { padding-top: 0; padding-bottom: 0; }
+  .edge-handle { width: 22px; }
+  .fab.primary { width: 44px; height: 44px; }
+}
+/* A bottom panel open (Output Log, Debug…) takes the bottom: toasts go back to the top, where they do not cover the log. */
+.workspace.bottom-open .toasts { top: 8px; bottom: auto; }

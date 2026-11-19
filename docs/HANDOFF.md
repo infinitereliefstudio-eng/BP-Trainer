@@ -13,7 +13,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **En attente de Tristan** : son retour sur le chantier Actor Components (V7.19 à V7.22, terminé), sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, un ou deux rappels (La rangée de lampes, L'ascenseur), l'Avancé (Le levier universel, Entraînement M1 et M2, S4 ; fiches de méthode cachées jusqu'à la réussite, sauf R5 et L'héritage depuis la V7.25) et les deux projets Expert (Projet X2, Projet X1 : la radio au doigt depuis la V7.23). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
 - **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
-- **Proposé le 19 novembre au soir, pas lancé : chantier annexe « retouches de l'interface »** ([PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md), copie du Claude Doc https://claude.ai/artifact/WRanWML2cVLLUVDQUMChJx), à faire avant l'UMG si Tristan le lance. Deux questions en attente : les deux lots ou le A seul, zoom plancher 0,75 ou 0,7.
+- **En cours : chantier annexe « retouches de l'interface »**, lancé par Tristan (« Fait les deux, fait 0.7 ») : **lot A fait en V7.31**, lot B (V7.32) ensuite. Avant : **proposé le 19 novembre au soir** ([PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md), copie du Claude Doc https://claude.ai/artifact/WRanWML2cVLLUVDQUMChJx), à faire avant l'UMG si Tristan le lance. Deux questions en attente : les deux lots ou le A seul, zoom plancher 0,75 ou 0,7.
 
 ### Le parcours aujourd'hui
 
@@ -787,6 +787,19 @@ Tristan a demandé « l'étape c » une seconde fois ; la question lui a été p
 - **Tests** : `tests/hypothesis.test.ts` (9 : quelles étapes demandent, diagnostics sur D1, D4, D20 et un mini-exercice Cast, réponses, progression). Smoke : D1, Vérifier, question, réponse « la référence » confirmée, premier indice ouvert (captures `16b_hypothesis_ask`, `16c_hypothesis_answer`).
 
 Version 7.30.0. Suite : le chantier n° 3 (UMG minimal), sur feu vert.
+
+## V7.31 (2026-11-19) : retouches de l'interface, lot A (place et lisibilité)
+
+Chantier annexe proposé le 19 novembre au soir ([PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md)) ; Tristan a répondu « Fait les deux, fait 0.7 » : les deux lots, un par version, zoom plancher 0,7. Pas de refonte : noms et places de l'interface à la manière d'UE inchangés.
+
+- **Barres** : leurs hauteurs sont des variables CSS (`--doc-h` 36, `--tb-h` 40, `--goal-h` 36, `--bottom-h` 34, `--fab` 40). Media query « Compact landscape » (`orientation: landscape` et `max-height: 480px`, donc un téléphone en paysage) : 32, 34, 30, 28, 36. À 800 × 370, le graphe passe d'environ 224 à 246 px de haut.
+- **Boutons flottants** (`App.tsx`, `.fabs`) : une colonne `.fab-rail` en haut à droite (↶ ↷, Sélection en icône SVG `ui/widgets/icons.tsx` avec aria-label, aria-pressed et title, ⌖) et le + seul en bas à droite, au-dessus de la barre du bas. Le niveau et le Viewport ont la même colonne.
+- **Cadrage** (`editor/framing.ts`) : il ne réserve plus 80 px en bas (`FAB_BAND`) mais 52 px à droite (`FAB_RAIL`) et la barre du bas (`BOTTOM_BAR`), marge 32 au lieu de 56 ; plancher `READABLE_ZOOM` 0,6 → 0,7 (choix de Tristan). Les noms des pins passent d'environ 7 à 8,5 px à l'ouverture. Le niveau et le Viewport cadrent pareil.
+- **Messages** (toasts) : en bas à droite, à gauche de la colonne, plus petits ; en haut pendant Play (joystick et touches en bas) et quand un panneau du bas est ouvert (`.workspace.bottom-open`).
+- **Objectifs repliés** : l'onglet « Objectifs ▾ » était placé à 46 px du haut de l'appli, trop haut depuis les deux barres de la V7.5 ; il est maintenant ancré sous la barre d'outils (`.goal-tab-anchor`).
+- **Smoke** : après `02_lamp_graph`, vérifie que le graphe garde au moins 240 px de haut en paysage et que la colonne et le + ne se chevauchent pas. Écart constaté sans lien avec ce chantier : D15 (« Les meubles sur une grille tournée ») ouvre un Event Graph vide, comme en V7.30.
+
+Version 7.31.0.
 
 ## Méthode de travail
 

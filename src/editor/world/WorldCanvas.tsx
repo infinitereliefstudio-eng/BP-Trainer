@@ -15,6 +15,7 @@ import { GestureController, type GestureHost } from '../gestures';
 import type { Hit } from '../hit';
 import type { PlaySession } from './playSession';
 import { actorRadius, renderWorld } from './worldRender';
+import { BOTTOM_BAR, FAB_RAIL } from '../framing';
 
 export interface WorldRequests {
   openActorMenu(actorId: string, sx: number, sy: number): void;
@@ -79,7 +80,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       x1 = Math.max(x1, a.x + r);
       y1 = Math.max(y1, a.y + r);
     }
-    cam.fit({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, w, h - 60, 32);
+    cam.fit({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, w - FAB_RAIL, h - BOTTOM_BAR, 32);
     cam.zoom = Math.min(cam.zoom, 0.8);
     const cx = (x0 + x1) / 2,
       cy = (y0 + y1) / 2;

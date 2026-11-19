@@ -53,6 +53,16 @@ async def main():
         await graph(page)
         await page.wait_for_timeout(300)
         await shot('02_lamp_graph')
+        # V7.31: in landscape the graph keeps about two thirds of the height, and the floating buttons stay apart.
+        room = await page.evaluate("""() => {
+            const r = (q) => document.querySelector(q).getBoundingClientRect();
+            const ws = r('.workspace'), bar = r('.bottom-bar'), rail = r('.fab-rail'), plus = r('.fab.primary');
+            return { graph: bar.top - ws.top, rail: rail.bottom, plus: plus.top, plusBottom: plus.bottom, bar: bar.top };
+        }""")
+        if room['graph'] < 240:
+            errs.append(f'Graphe : {room["graph"]:.0f} px de haut en paysage, 240 attendus au moins')
+        if room['rail'] > room['plus'] or room['plusBottom'] > room['bar']:
+            errs.append(f'Boutons flottants : la colonne ou le + se chevauchent ({room})')
         await page.evaluate(OPEN, 'BP_Generateur')
         await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
         await page.wait_for_timeout(300)

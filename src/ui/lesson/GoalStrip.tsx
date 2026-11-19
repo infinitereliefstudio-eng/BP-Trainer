@@ -45,9 +45,11 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
 
   if (!open) {
     return (
-      <button class="goal-tab" onClick={toggle} aria-label="Afficher les objectifs">
-        Objectifs ▾
-      </button>
+      <div class="goal-tab-anchor">
+        <button class="goal-tab" onClick={toggle} aria-label="Afficher les objectifs">
+          Objectifs ▾
+        </button>
+      </div>
     );
   }
 

@@ -1,6 +1,6 @@
 # Chantier annexe : retouches de l'interface (proposé le 2026-11-19)
 
-Copie du Claude Doc « BP Trainer — Chantier annexe : retouches de l'interface », https://claude.ai/artifact/WRanWML2cVLLUVDQUMChJx. **Proposé, pas lancé** : attend le feu vert de Tristan. Demande : un petit chantier d'amélioration de l'interface et de l'aspect général, pas une refonte, avant l'UMG minimal.
+Copie du Claude Doc « BP Trainer — Chantier annexe : retouches de l'interface », https://claude.ai/artifact/WRanWML2cVLLUVDQUMChJx. **Lancé le 19 novembre** (« Fait les deux, fait 0.7 ») : les deux lots, zoom plancher 0,7. Lot A fait en V7.31. Demande : un petit chantier d'amélioration de l'interface et de l'aspect général, pas une refonte, avant l'UMG minimal.
 
 ## Constat (97 captures du smoke test, 800 × 370, et taille d'un Pixel 9 Pro, environ 952 × 412)
 

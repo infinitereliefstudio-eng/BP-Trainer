@@ -20,6 +20,7 @@ import { hitTest, nodesInRect, type Hit } from './hit';
 import { graphBounds, layoutGraph, type NodeGeom } from './layout';
 import { renderScene, type DebugOverlay, type WireDrag } from './render/renderer';
 import type { PlaySession } from './world/playSession';
+import { BOTTOM_BAR, FAB_RAIL, READABLE_ZOOM } from './framing';
 
 export interface WireSource {
   ref: PinRef;
@@ -61,10 +62,8 @@ interface Props {
   session?: PlaySession;
 }
 
-/** Height kept clear at the bottom for the floating buttons and the log handle. */
-const FAB_BAND = 80;
-/** Framing never zooms out below this, so node text stays readable on a phone. */
-const READABLE_ZOOM = 0.6;
+/** Margin around the framed graph: small, the graph of a phone in landscape is about 250 px high. */
+const FIT_MARGIN = 32;
 
 const textCache = new Map<string, number>();
 let measureCtx: CanvasRenderingContext2D | null = null;
@@ -114,7 +113,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
       l.cameras.set(store.graphId, cam);
       const b = graphBounds(geoms());
       const { w, h } = l.size;
-      if (b && w > 0) cam.fit(b, w, h - FAB_BAND, 56, READABLE_ZOOM);
+      if (b && w > 0) cam.fit(b, w - FAB_RAIL, h - BOTTOM_BAR, FIT_MARGIN, READABLE_ZOOM);
       else {
         cam.x = -40;
         cam.y = -40;
@@ -225,7 +224,7 @@ export const GraphCanvas = forwardRef<GraphCanvasHandle, Props>(function GraphCa
     fitView() {
       const b = graphBounds(geoms());
       const { w, h } = live.current.size;
-      if (b) camera().fit(b, w, h - FAB_BAND, 56, READABLE_ZOOM);
+      if (b) camera().fit(b, w - FAB_RAIL, h - BOTTOM_BAR, FIT_MARGIN, READABLE_ZOOM);
       invalidate();
     },
     viewCenter() {

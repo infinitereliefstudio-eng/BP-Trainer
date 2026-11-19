@@ -47,6 +47,7 @@ import { PlayOverlay } from './play/PlayOverlay';
 import { playOrder } from './playSettings';
 import { DocumentTabs } from './editor/DocumentTabs';
 import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolbars';
+import { SelectionIcon } from './widgets/icons';
 import { Toasts } from './widgets/Toasts';
 import { type LessonHelp, resetLesson, type Workspace, type WorkspaceRef } from './workspace';
 
@@ -442,7 +443,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       )}
       <div class="editor-body">
       <EdgeHandle side="left" label={familyOf(store.cls.parent) === 'actor' ? 'Components · My Blueprint' : 'My Blueprint'} aria="Ouvrir My Blueprint" hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
-      <main class="workspace">
+      <main class={`workspace${bottom ? ' bottom-open' : ''}`}>
         {view === 'graph' && viewport && !playing ? (
           <ViewportCanvas ref={viewportCanvas} store={store} requests={viewportRequests} />
         ) : view === 'graph' ? (
@@ -492,31 +493,41 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         {!playing && view === 'graph' && viewport && (
           <div class="fabs">
-            <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler">
-              ↶
-            </button>
-            <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir">
-              ↷
-            </button>
-            <button class="fab" onClick={() => viewportCanvas.current?.fitView()} aria-label="Recentrer la vue">
-              ⌖
-            </button>
+            <div class="fab-rail">
+              <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
+                ↶
+              </button>
+              <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
+                ↷
+              </button>
+              <button class="fab" onClick={() => viewportCanvas.current?.fitView()} aria-label="Recentrer la vue" title="Recentrer la vue">
+                ⌖
+              </button>
+            </div>
           </div>
         )}
         {!playing && view === 'graph' && !viewport && (
           <div class="fabs">
-            <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler">
-              ↶
-            </button>
-            <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir">
-              ↷
-            </button>
-            <button class={`fab wide${selectionMode ? ' on' : ''}`} onClick={() => setSelectionMode((v) => !v)}>
-              Sélection
-            </button>
-            <button class="fab" onClick={() => canvas.current?.fitView()} aria-label="Recentrer la vue">
-              ⌖
-            </button>
+            <div class="fab-rail">
+              <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
+                ↶
+              </button>
+              <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
+                ↷
+              </button>
+              <button
+                class={`fab${selectionMode ? ' on' : ''}`}
+                onClick={() => setSelectionMode((v) => !v)}
+                aria-label="Sélection"
+                aria-pressed={selectionMode}
+                title="Sélection : glisser pour encadrer des nœuds"
+              >
+                <SelectionIcon />
+              </button>
+              <button class="fab" onClick={() => canvas.current?.fitView()} aria-label="Recentrer la vue" title="Recentrer la vue">
+                ⌖
+              </button>
+            </div>
             <button
               class="fab primary"
               aria-label="Ajouter un nœud"
@@ -532,12 +543,14 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         {!playing && view === 'level' && (
           <div class="fabs">
-            <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler">
-              ↶
-            </button>
-            <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir">
-              ↷
-            </button>
+            <div class="fab-rail">
+              <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
+                ↶
+              </button>
+              <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
+                ↷
+              </button>
+            </div>
           </div>
         )}
 

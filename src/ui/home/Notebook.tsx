@@ -6,9 +6,11 @@ import { useState } from 'preact/hooks';
 import { LESSONS } from '@core/lessons';
 import { LEVELS } from '@core/lessons/levels';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
+import type { AttemptLog as Log } from '@core/progress/attempts';
+import { AttemptLog } from './AttemptLog';
 import { plain } from './text';
 
-export function Notebook({ done, onOpen }: { done: Set<string>; onOpen: (l: Lesson) => void }) {
+export function Notebook({ done, onOpen, log, onClearLog }: { done: Set<string>; onOpen: (l: Lesson) => void; log?: Log; onClearLog: () => void }) {
   const [query, setQuery] = useState('');
   const q = plain(query.trim());
   const match = (l: Lesson) => !q || plain(`${l.title} ${l.notions.join(' ')} ${done.has(l.id) ? l.remember : ''}`).includes(q);
@@ -22,6 +24,7 @@ export function Notebook({ done, onOpen }: { done: Set<string>; onOpen: (l: Less
         value={query}
         onInput={(e) => setQuery((e.target as HTMLInputElement).value)}
       />
+      {!q && <AttemptLog log={log} onClear={onClearLog} />}
       {done.size === 0 && !q && <p class="muted">Ton carnet se remplit à chaque étape réussie : la phrase à retenir de la leçon s’y ajoute.</p>}
       {found.length === 0 && <p class="muted">Aucune leçon ne parle de « {query} ».</p>}
       {LEVELS.map((lv) => {

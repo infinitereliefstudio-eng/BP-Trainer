@@ -8,6 +8,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { compileClass } from '@core/compiler/validate';
 import { LESSONS } from '@core/lessons';
+import { checkOutcome } from '@core/lessons/outcome';
+import type { CheckOutcome } from '@core/progress/attempts';
 import { runLesson, runRobustness } from '@core/lessons/runner';
 import { newAdvice } from '@core/quality/lessonAdvice';
 import { avoidHits, sizeReport, verdict } from '@core/quality/review';
@@ -63,6 +65,8 @@ interface Props {
   onHelp?: (change: (h: LessonHelp) => LessonHelp) => void;
   /** The lesson was started over: so is its help. */
   onHelpReset?: () => void;
+  /** Vérifier was pressed: what it found, for the attempt log. */
+  onChecked?: (outcome: CheckOutcome) => void;
 }
 
 export function App(props: Props) {
@@ -73,7 +77,7 @@ export function App(props: Props) {
   );
 }
 
-function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset }: Props) {
+function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset, onChecked }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
   const [view, setView] = useState<'graph' | 'level'>(lesson && !alternative && !solution ? 'level' : 'graph');
@@ -155,6 +159,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
       quality = { ...parts, verdict: verdict(run, parts) };
     }
     setCheck({ run, quality });
+    onChecked?.(checkOutcome(run));
     onHelp?.((h) => ({ ...h, tried: true, fails: run.passed ? h.fails : (h.fails ?? 0) + 1 }));
     if (run.sim) setLastRun(run.sim);
     haptic(run.passed ? 'success' : 'fail');

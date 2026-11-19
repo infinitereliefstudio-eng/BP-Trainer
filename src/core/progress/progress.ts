@@ -8,6 +8,8 @@
  * the rest.
  */
 import { answered, dayKey, type ReviewState } from '../review/schedule';
+import { type AttemptLog, type CheckOutcome, checkLog, closeAttempt, logCheck, sanitizeLog } from './attempts';
+import { HELP_LEVELS, HELP_RANK, type HelpLevel } from './helpLevel';
 
 /** What "Reprendre" reopens: free play or a lesson. */
 export type ResumeRef = { kind: 'sandbox' } | { kind: 'lesson'; lessonId: string };
@@ -25,10 +27,7 @@ export interface LessonHelp {
   fails?: number;
 }
 
-/** How a lesson was passed, from the least help to the most. Never a penalty: a fact to come back to. */
-export type HelpLevel = 'alone' | 'hints' | 'solution';
-const HELP_RANK: Record<HelpLevel, number> = { alone: 0, hints: 1, solution: 2 };
-export const HELP_LEVELS = Object.keys(HELP_RANK) as HelpLevel[];
+export { type HelpLevel, HELP_LEVELS } from './helpLevel';
 
 export function helpLevel(h: LessonHelp | undefined): HelpLevel {
   if (!h) return 'alone';
@@ -51,6 +50,8 @@ export interface Progress {
   help?: Record<string, LessonHelp>;
   /** The least help each passed lesson was passed with. */
   passedWith?: Record<string, HelpLevel>;
+  /** One line per attempt at a step (core/progress/attempts.ts). */
+  log?: AttemptLog;
 }
 
 export const emptyProgress = (): Progress => ({ done: [] });
@@ -85,12 +86,32 @@ export function withHelp(p: Progress, lessonId: string, change: (h: LessonHelp) 
   return { ...p, help: { ...p.help, [lessonId]: after } };
 }
 
-/** Starting a lesson over starts its help count over too. */
+/** Starting a lesson over starts its help count over too, and ends its attempt. */
 export function withHelpReset(p: Progress, lessonId: string): Progress {
-  if (!p.help?.[lessonId]) return p;
-  const help = { ...p.help };
+  const log = closeAttempt(p.log, lessonId);
+  const next = log === p.log ? p : { ...p, log };
+  if (!next.help?.[lessonId]) return next;
+  const help = { ...next.help };
   delete help[lessonId];
-  return { ...p, help };
+  return { ...next, help };
+}
+
+/**
+ * The progress once Vérifier was pressed on a step: the attempt log gets the
+ * outcome, with the help used so far. Call it before the help changes for
+ * this Vérifier and before the step is marked passed.
+ */
+export function withCheck(p: Progress, step: { lesson: string; rev: number }, outcome: CheckOutcome, now = Date.now()): Progress {
+  const h = p.help?.[step.lesson];
+  const log = logCheck(p.log, { ...step, wasDone: p.done.includes(step.lesson) }, outcome, { level: helpLevel(h), hints: h?.hints ?? 0 }, now);
+  return log === p.log ? p : withToday({ ...p, log }, now);
+}
+
+/** The progress with the attempt log emptied (the learner asked for it). */
+export function withoutLog(p: Progress): Progress {
+  if (!p.log) return p;
+  const { log: _, ...rest } = p;
+  return rest;
 }
 
 /** The progress after answering a review question. */
@@ -138,6 +159,7 @@ export function checkProgress(value: unknown): string[] {
   const problems: string[] = [];
   if (!strings(value.done)) problems.push('« done » n’est pas une liste de leçons');
   for (const [key, ok] of FIELDS) if (value[key] !== undefined && !ok(value[key])) problems.push(`« ${key} » est mal formé`);
+  if (value.log !== undefined) problems.push(...checkLog(value.log));
   return problems;
 }
 
@@ -150,6 +172,11 @@ export function sanitizeProgress(value: unknown): { progress: Progress; complete
     if (value[key] === undefined) continue;
     if (ok(value[key])) (progress as unknown as Obj)[key] = value[key];
     else complete = false;
+  }
+  if (value.log !== undefined) {
+    const { log, complete: whole } = sanitizeLog(value.log);
+    if (log) progress.log = log;
+    complete &&= whole;
   }
   return { progress, complete };
 }

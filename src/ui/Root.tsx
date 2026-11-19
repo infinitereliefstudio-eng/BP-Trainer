@@ -20,6 +20,7 @@ import {
   startOver,
   type LessonHelp,
   withHelp,
+  withCheck,
   withHelpReset,
   withPassed,
   type WorkspaceRef,
@@ -180,6 +181,10 @@ export function Root() {
         }}
         onHelpReset={() => {
           if (lessonId) changeProgress((p) => withHelpReset(p, lessonId));
+        }}
+        onChecked={(outcome) => {
+          const l = lessonId ? getLesson(lessonId) : undefined;
+          if (l) changeProgress((p) => withCheck(p, { lesson: l.id, rev: l.revision ?? 1 }, outcome));
         }}
         onOpen={open}
       />

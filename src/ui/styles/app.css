@@ -397,6 +397,17 @@ select.field { padding-right: 4px; }
 .note-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .note-text { line-height: 1.45; font-size: 13.5px; }
 .note-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.attempt-log { max-width: 980px; display: flex; flex-direction: column; gap: 8px; }
+.attempt-log summary { cursor: pointer; font-weight: 700; min-height: 40px; display: flex; align-items: center; gap: 8px; list-style: none; }
+.attempt-log summary::-webkit-details-marker { display: none; }
+.attempt-log summary::before { content: '▸'; color: var(--muted); width: 12px; }
+.attempt-log[open] summary::before { content: '▾'; }
+.attempt-log ul { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.attempt-log p { margin: 0 0 6px; line-height: 1.5; max-width: 80ch; }
+.attempt { display: flex; flex-direction: column; gap: 4px; padding: 8px 12px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line-2); }
+.attempt-status.ok { color: var(--ok); font-weight: 600; }
+.attempt-status.ko { color: var(--warn); font-weight: 600; }
+.tag.warn { background: rgba(242, 165, 22, 0.14); color: var(--orange); }
 .tag { font-size: 11px; padding: 2px 7px; border-radius: 9px; background: var(--panel-2); color: var(--muted); }
 
 /* Lesson sheet: notion, robustness, advice, alternatives */

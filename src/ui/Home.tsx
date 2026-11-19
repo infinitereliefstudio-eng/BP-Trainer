@@ -18,7 +18,7 @@ import { Memo } from './home/Memo';
 import { NodeIndex } from './home/NodeIndex';
 import { Notebook } from './home/Notebook';
 import { Review } from './home/Review';
-import { withRead, type Progress, type WorkspaceRef } from './workspace';
+import { withoutLog, withRead, type Progress, type WorkspaceRef } from './workspace';
 
 interface Props {
   progress: Progress;
@@ -208,7 +208,7 @@ export function Home({ progress, onOpen, onProgress, onReload }: Props) {
           }}
         />
       )}
-      {tab === 'notebook' && <Notebook done={done} onOpen={open} />}
+      {tab === 'notebook' && <Notebook done={done} onOpen={open} log={progress.log} onClearLog={() => onProgress(withoutLog)} />}
       {tab === 'nodes' && <NodeIndex onOpenLesson={openLesson} />}
       {tab === 'memo' && (
         <Memo key={memoId ?? 'list'} read={progress.read ?? []} initial={memoId} onRead={(id) => onProgress((p) => withRead(p, id))} onOpenLesson={openLesson} />

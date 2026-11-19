@@ -18,9 +18,11 @@ import { readStored, writeStored } from '@storage/storage';
 export {
   type LessonHelp,
   withAnswer,
+  withCheck,
   withHelp,
   withHelpReset,
   withPassed,
+  withoutLog,
   withRead,
   withToday,
   type Progress,

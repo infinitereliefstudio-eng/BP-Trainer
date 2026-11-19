@@ -10,7 +10,7 @@ tools/e2e/out/shots and prints page errors (expected: "errors []").
 Needs Python Playwright and Chrome (CHROME env var, default /usr/bin/google-chrome).
 The app exposes its store as window.bpStore when the URL contains "?e2e".
 """
-import asyncio, os, pathlib, re, sys
+import asyncio, json, os, pathlib, re, sys
 from playwright.async_api import async_playwright
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -527,13 +527,30 @@ async def main():
         await page.wait_for_timeout(300)
         await page.evaluate("() => window.bpStore.undo()")
 
-        await page.evaluate(PUT, ['progress', '{"done":["l01-bonjour","l02-lampe","l03-interrupteur","l-porte-glisse"]}'])
+        # The progress is set by hand, keeping the attempt log written by the Vérifier above (V7.27)
+        stored = await page.evaluate("""() => new Promise((res) => { const r = indexedDB.open('bp-trainer', 1); r.onsuccess = () => { const q = r.result.transaction('kv').objectStore('kv').get('progress'); q.onsuccess = () => { const v = q.result; res(v && typeof v === 'object' ? v.text : v); }; }; })""")
+        log = json.loads(stored or '{}').get('log')
+        if not log or not log.get('attempts'):
+            errs.append('Journal des essais : rien d’enregistré après les Vérifier')
+        await page.evaluate(PUT, ['progress', json.dumps({'done': ['l01-bonjour', 'l02-lampe', 'l03-interrupteur', 'l-porte-glisse'], **({'log': log} if log else {})})])
         await page.goto(home)
         await page.wait_for_timeout(500)
         await shot('51_home_progress')
         if await page.locator('.lesson-item.next').count() != 1:
             errs.append('Accueil : la prochaine étape n’est pas mise en avant')
         await page.locator('.home-tabs button', has_text='Carnet').tap()
+        await page.wait_for_timeout(200)
+        # V7.27: the attempt log, filled by the Vérifier pressed above
+        if await page.locator('.attempt-log').count() != 1:
+            errs.append('Carnet : pas de journal des essais après des vérifications')
+        else:
+            await page.locator('.attempt-log summary').tap()
+            await page.wait_for_timeout(200)
+            if await page.locator('.attempt .attempt-status.ok').count() < 1:
+                errs.append('Carnet : le journal des essais ne montre pas l’étape réussie')
+            await page.locator('.attempt').first.scroll_into_view_if_needed()
+            await shot('51b_attempt_log')
+            await page.locator('.attempt-log summary').tap()
         await page.locator('.notebook .search').fill('timeline')
         await page.wait_for_timeout(300)
         await shot('52_notebook_search')

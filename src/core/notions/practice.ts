@@ -58,7 +58,11 @@ export function notionsOfNode(def: string): string[] {
   return NODE_NOTIONS.filter(([r]) => r.test(def)).map(([, n]) => n);
 }
 
-/** How many nodes of each definition, and how many nodes in Construction Scripts. */
+/**
+ * How many nodes of each definition in each Blueprint (« class|def »), and how
+ * many nodes in Construction Scripts. Counted per Blueprint: moving a chain
+ * to another Blueprint (a refactor) is writing it there.
+ */
 function census(p: Project): { defs: Map<string, number>; construction: number; parentCalls: number } {
   const defs = new Map<string, number>();
   let construction = 0,
@@ -66,7 +70,8 @@ function census(p: Project): { defs: Map<string, number>; construction: number; 
   for (const c of p.classes) {
     for (const g of c.graphs) {
       for (const n of Object.values(g.nodes)) {
-        defs.set(n.def, (defs.get(n.def) ?? 0) + 1);
+        const key = `${c.name}|${n.def}`;
+        defs.set(key, (defs.get(key) ?? 0) + 1);
         if (g.kind === 'construction' && n.def !== 'cs.entry') construction++;
         if (n.def === 'call.parentEvent' || (n.def === 'call.function' && n.config.parent === true)) parentCalls++;
       }
@@ -80,8 +85,9 @@ export function writtenNotions(start: Project, solved: Project): Set<string> {
   const a = census(start),
     b = census(solved);
   const out = new Set<string>();
-  for (const [def, n] of b.defs) {
-    if (n <= (a.defs.get(def) ?? 0)) continue;
+  for (const [key, n] of b.defs) {
+    if (n <= (a.defs.get(key) ?? 0)) continue;
+    const def = key.slice(key.indexOf('|') + 1);
     // A plain function call is « functions »; a call to the parent's version is « inheritance ».
     for (const notion of notionsOfNode(def)) if (notion !== 'inheritance') out.add(notion);
   }

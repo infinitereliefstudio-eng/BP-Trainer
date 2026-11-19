@@ -3,9 +3,10 @@
  * Expose on Spawn) and a lift moved on Tick with Delta Seconds, tested at
  * 30 frames per second.
  */
-import { updateVariable } from '../../operations/classOps';
+import { addDispatcher, updateVariable } from '../../operations/classOps';
 import { T } from '../../types/pins';
-import { edit, ProjectBuilder } from '../builder';
+import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
+import { editable, override, ref as ref_, say } from './kit';
 import { countPrints, noRuntimeErrors, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 
@@ -38,6 +39,8 @@ export const lessonWaves: Lesson = {
   title: 'Les vagues',
   situation: 'Le spawner crée un ennemi par seconde, trois vagues en tout. L’ennemi de la vague N a N × 10 de vie, et l’affiche à son BeginPlay. Puis le spawner s’arrête.',
   notions: ['Set Timer by Event', 'Spawn Actor', 'Expose on Spawn', 'Clear and Invalidate Timer by Handle'],
+  recalls: ['switch'],
+  revision: 2,
   remember: 'Le BeginPlay d’un acteur créé par Spawn Actor a déjà tourné quand Return Value sort : ce qu’il doit savoir dès le départ se donne par Expose on Spawn, pas par un Set après.',
   cards: [
     {
@@ -73,17 +76,22 @@ export const lessonWaves: Lesson = {
         'Expose on Spawn est la façon propre de donner des paramètres de naissance : vie, équipe, couleur, cible. Pour un projectile ou un ennemi, c’est l’équivalent d’un constructeur avec arguments.\n\n' +
         'Sans arrêt, le timer continuerait de créer des ennemis indéfiniment : un timer en Looping doit toujours avoir un moment où on l’arrête.',
     },
+    {
+      title: 'Rappel : un message par vague',
+      body: 'Avant chaque ennemi, le spawner annonce la vague : `Éclaireur` pour la 1, `Soldat` pour la 2, `Boss` pour la 3. Un chemin par valeur d’un entier : tu connais le nœud.',
+    },
   ],
   objectives: [
     'Dans BP_Ennemi, coche Expose on Spawn sur Vie.',
     'Dans BP_Spawner : au BeginPlay, un timer en Looping toutes les 1 s.',
     'À chaque appel : Vague + 1, puis Spawn Actor BP_Ennemi avec Vie = Vague × 10 (à une position différente à chaque vague si tu veux).',
+    'Rappel : annonce chaque vague (Éclaireur, Soldat, Boss).',
     'Après la 3e vague, arrête le timer. Touche Vérifier.',
   ],
   hints: [
     'Trois choses : le timer, le Custom Event qu’il appelle, et l’arrêt quand Vague atteint 3.',
-    'Nœuds : Set Timer by Event (Looping), Custom Event NouvelleVague, Increment Int (Vague), Spawn Actor (Class = BP_Ennemi), × (Integer), Branch, >= (Integer), Clear and Invalidate Timer by Handle, une variable Timer Handle.',
-    'Solution : BeginPlay → Set Timer by Event (NouvelleVague, 1, Looping) → Set Minuteur (Return Value). NouvelleVague → Increment Vague → Spawn Actor (Vie = Vague × 10) → Branch (Vague >= 3) → True : Clear and Invalidate Timer by Handle (Minuteur).',
+    'Nœuds : Set Timer by Event (Looping), Custom Event NouvelleVague, Increment Int (Vague), Switch on Int, Print String, Spawn Actor (Class = BP_Ennemi), × (Integer), Branch, >= (Integer), Clear and Invalidate Timer by Handle, une variable Timer Handle.',
+    'Solution : BeginPlay → Set Timer by Event (NouvelleVague, 1, Looping) → Set Minuteur (Return Value). NouvelleVague → Increment Vague → Switch on Int (1 : « Éclaireur », 2 : « Soldat », 3 : « Boss », chacun → Spawn Actor) → Spawn Actor (Vie = Vague × 10) → Branch (Vague >= 3) → True : Clear and Invalidate Timer by Handle (Minuteur).',
   ],
   challenge: 'Fais apparaître chaque ennemi 150 cm plus loin que le précédent : Make Vector avec X = Vague × 150.',
   setup: wavesProject,
@@ -118,6 +126,14 @@ export const lessonWaves: Lesson = {
         return `Messages : ${cx.prints().join(', ') || 'aucun'}. Il fallait Vie : 10, Vie : 20, Vie : 30.`;
       },
     },
+    {
+      id: 'names',
+      label: 'Rappel : chaque vague est annoncée (Éclaireur, Soldat, Boss)',
+      test: (cx) => {
+        const names = cx.prints().filter((t) => ['Éclaireur', 'Soldat', 'Boss'].includes(t.trim()));
+        return names.join(',') === 'Éclaireur,Soldat,Boss' ? true : `Annonces : ${names.join(', ') || 'aucune'}. Il fallait Éclaireur, Soldat, puis Boss, une fois chacune.`;
+      },
+    },
     notion(usesNode('timer', 'BP_Spawner', ['time.setTimerByEvent'], 'Le spawner utilise Set Timer by Event', 'Répète la création avec Set Timer by Event.')),
     noRuntimeErrors(),
   ],
@@ -141,7 +157,13 @@ export const lessonWaves: Lesson = {
     const br = s.node('flow.branch', {}, {}, [1040, 420]);
     const stop = s.node('time.clearTimer', {}, {}, [1340, 420]);
     s.link(ev, 'then', inc, 'exec').link(s.node('var.get', { variable: vague }, {}, [200, 640]), 'value', inc, 'value');
-    s.link(inc, 'then', spawn, 'exec').link(inc, 'result', mul, 'a').link(mul, 'result', spawn, `expose:${vie}`);
+    const sw = s.node('flow.switchInt', { start: 1, cases: 3 }, {}, [520, 260]);
+    s.link(inc, 'then', sw, 'exec').link(inc, 'result', sw, 'selection');
+    for (const [i, name] of ['Éclaireur', 'Soldat', 'Boss'].entries()) {
+      const tell = s.node('debug.printString', {}, { text: name }, [520 + i * 60, -40 - i * 140]);
+      s.link(sw, `case${i + 1}`, tell, 'exec').link(tell, 'then', spawn, 'exec');
+    }
+    s.link(inc, 'result', mul, 'a').link(mul, 'result', spawn, `expose:${vie}`);
     s.link(spawn, 'then', br, 'exec').link(inc, 'result', ge, 'a').link(ge, 'result', br, 'condition');
     s.link(br, 'true', stop, 'exec').link(s.node('var.get', { variable: handle }, {}, [1200, 640]), 'value', stop, 'handle');
   },
@@ -154,9 +176,30 @@ function liftProject() {
   const b = pb.blueprint('BP_Ascenseur');
   b.component('StaticMesh', 'Plateforme', { sizeX: 140, sizeY: 140, color: '#0ea5e9', blocks: false });
   b.variable('Vitesse', T.float, 200);
-  pb.place(b, 0, 0);
+  // The recall of lot 3b: the dispatcher is declared, the dock is already subscribed; the lift has to announce.
+  const d = addDispatcher(b.cls, 'OnArrivee');
+  const liftId = pb.place(b, 0, 0);
+  const dock = pb.blueprint('BP_Quai');
+  dock.component('StaticMesh', 'Quai', { sizeX: 160, sizeY: 200, color: '#374151', blocks: false });
+  dock.component('PointLight', 'Voyant', { visible: false, radius: 160, color: '#22c55e' });
+  const ref = editable(dock, 'Ascenseur', T.object('BP_Ascenseur'));
+  const begin = dock.node('event.beginPlay', {}, {}, [64, 96]);
+  const bind = dock.node('dispatcher.bind', { owner: b.cls.id, dispatcher: d.id }, {}, [400, 96]);
+  const ev = dock.node('event.custom', { name: 'Arrivee', signature: d.id, signatureOwner: b.cls.id }, {}, [64, 420]);
+  const on = dock.node('component.setVisibility', {}, { visible: true }, [400, 420]);
+  dock.link(begin, 'then', bind, 'exec').link(dock.node('var.get', { variable: ref }, {}, [200, 300]), 'value', bind, 'target').link(ev, 'delegate', bind, 'event');
+  dock.link(ev, 'then', on, 'exec').target('Voyant', on).link(on, 'then', say(dock, [740, 420], 'Quai atteint'), 'exec');
+  override(pb, pb.place(dock, 760, 0), ref, ref_(liftId));
   pb.playerStart(-300, 250);
   return pb.project;
+}
+
+/** The recall: once X reaches 600 (the Branch's False), DoOnce → Call OnArrivee. */
+export function liftArrives(b: ClassBuilder, branch: string): void {
+  const d = b.cls.dispatchers.find((x) => x.name === 'OnArrivee')!;
+  const once = b.node('flow.doOnce', {}, {}, [1000, 300]);
+  const call = b.node('dispatcher.call', { owner: b.cls.id, dispatcher: d.id }, {}, [1300, 300]);
+  b.link(branch, 'false', once, 'exec').link(once, 'completed', call, 'exec');
 }
 
 const liftX = (cx: CheckContext) => Math.round(cx.actor('BP_Ascenseur')?.x ?? 0);
@@ -169,6 +212,8 @@ export const lessonLift: Lesson = {
   title: 'L’ascenseur',
   situation: 'La plateforme avance à 200 cm/s et s’arrête à X = 600. Le test tourne à 30 images par seconde, comme sur un appareil lent.',
   notions: ['Event Tick', 'Delta Seconds', 'Add Actor World Offset', 'Vitesse en cm/s'],
+  recalls: ['dispatchers', 'flow-memory'],
+  revision: 2,
   remember: 'Sur Tick, une vitesse se multiplie par Delta Seconds : le mouvement dépend alors du temps écoulé, plus du nombre d’images par seconde.',
   cards: [
     {
@@ -176,6 +221,11 @@ export const lessonLift: Lesson = {
       body:
         '**BP_Ascenseur** : une plateforme bleue et une variable **Vitesse** (Float, 200). Graphe vide.\n\n' +
         'Elle doit avancer vers la droite à **200 cm/s** et s’arrêter à X = 600. Le test tourne à **30 images par seconde**, comme sur un appareil lent : un mouvement qui dépend du nombre d’images échouera.',
+    },
+    {
+      title: 'Rappel : prévenir le quai',
+      body:
+        'BP_Ascenseur a un Event Dispatcher **OnArrivee**, déjà déclaré. **BP_Quai** s’y est abonné : quand on l’appelle, son Voyant s’allume et il affiche « Quai atteint ». Il ne reste qu’à **l’appeler, une seule fois**, quand la plateforme est arrivée. Attention : le Tick continue après l’arrivée.',
     },
     {
       title: 'À chaque image',
@@ -204,12 +254,13 @@ export const lessonLift: Lesson = {
   objectives: [
     'Sur Event Tick, avance la plateforme de Vitesse × Delta Seconds en X.',
     'Arrête-la à X = 600.',
+    'Rappel : à l’arrivée, appelle OnArrivee une seule fois (le quai s’allume).',
     'Touche Vérifier (le test tourne à 30 images par seconde).',
   ],
   hints: [
     'Le calcul : Vitesse × Delta Seconds, dans le X d’un Make Vector, branché sur Delta Location.',
-    'Nœuds : Event Tick, Get Actor Location, Break Vector, < (Float), Branch, Get Vitesse, × (Float), Make Vector, Add Actor World Offset.',
-    'Solution : Tick → Branch (X de Get Actor Location < 600) → True : Add Actor World Offset (Make Vector (Vitesse × Delta Seconds, 0, 0)).',
+    'Nœuds : Event Tick, Get Actor Location, Break Vector, < (Float), Branch, Get Vitesse, × (Float), Make Vector, Add Actor World Offset ; DoOnce, Call OnArrivee.',
+    'Solution : Tick → Branch (X de Get Actor Location < 600) → True : Add Actor World Offset (Make Vector (Vitesse × Delta Seconds, 0, 0)) ; False : DoOnce → Call OnArrivee.',
   ],
   challenge: 'Refais-le sans Tick : Set Timer by Event en Looping toutes les 0,05 s, et Vitesse × 0,05.',
   setup: liftProject,
@@ -236,6 +287,21 @@ export const lessonLift: Lesson = {
         return x > 620 ? `Elle a continué jusqu’à ${x} : arrête-la quand X atteint 600.` : `Elle s’est arrêtée à ${x} au lieu de 600.`;
       },
     },
+    {
+      id: 'dock',
+      label: 'Rappel : à l’arrivée, le quai est prévenu une seule fois',
+      test: (cx) => {
+        const n = countPrints(cx, 'Quai atteint');
+        if (!n) return 'Le quai n’a pas été prévenu : à l’arrivée, appelle OnArrivee (Call).';
+        return n === 1 ? true : `Le quai a été prévenu ${n} fois : le Tick continue après l’arrivée, l’appel ne doit passer qu’une fois.`;
+      },
+    },
+    {
+      id: 'dock-early',
+      label: 'Le quai n’est pas prévenu avant l’arrivée',
+      at: 'mi',
+      test: (cx) => (countPrints(cx, 'Quai atteint') ? 'Le quai a été prévenu alors que la plateforme était encore en route.' : true),
+    },
     notion(usesNode('tick', 'BP_Ascenseur', ['event.tick'], 'Le mouvement se fait sur Event Tick', 'Déplace la plateforme sur Event Tick.')),
     noRuntimeErrors(),
   ],
@@ -253,5 +319,6 @@ export const lessonLift: Lesson = {
     b.link(tick, 'then', br, 'exec').link(loc, 'result', split, 'in').link(split, 'x', less, 'a').link(less, 'result', br, 'condition');
     b.link(br, 'true', move, 'exec').link(b.node('var.get', { variable: speed }, {}, [600, 520]), 'value', mul, 'a').link(tick, 'delta', mul, 'b');
     b.link(mul, 'result', vec, 'x').link(vec, 'result', move, 'delta');
+    liftArrives(b, br);
   },
 };

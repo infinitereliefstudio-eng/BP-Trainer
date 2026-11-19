@@ -109,7 +109,8 @@ export const lessonChooseTool: Lesson = {
   title: 'Choisis ton outil',
   situation:
     'Trois coins du niveau, un même besoin : prévenir un autre acteur. La borne soigne le joueur, l’alarme allume les gyrophares, le disjoncteur coupe les appareils. Cast, Event Dispatcher ou Interface : à toi de choisir, coin par coin.',
-  recalls: ['overlap', 'loops', 'other-bp'],
+  recalls: ['overlap', 'loops', 'other-bp', 'timers'],
+  revision: 2,
   notions: ['Choisir Cast, Dispatcher ou Interface', 'Cast To', 'Event Dispatcher', 'Blueprint Interface'],
   remember:
     'Cast : j’ai un acteur, je connais sa classe, j’ai besoin de ce qu’il a. Dispatcher : j’annonce, sans savoir qui écoute. Interface : je connais mes cibles, mais pas leur classe, et chacune réagit à sa façon.',
@@ -119,7 +120,7 @@ export const lessonChooseTool: Lesson = {
       body:
         'Tous les graphes sont vides. Le niveau a trois coins, chacun avec une dalle et sa **Zone**.\n\n' +
         '**A. La borne de soin** (BP_Borne, en vert) : quand le joueur entre dans sa Zone, sa variable **Sante** (dans BP_Joueur, 40 au départ) passe à **100**.\n\n' +
-        '**B. L’alarme** (BP_Alarme, en rouge) : quand le joueur entre dans sa Zone, les trois **BP_Gyrophare** allument leur Lumiere. L’alarme ne doit **rien savoir** des gyrophares : on en ajoutera d’autres sans la toucher.\n\n' +
+        '**B. L’alarme** (BP_Alarme, en rouge) : quand le joueur entre dans sa Zone, les trois **BP_Gyrophare** allument leur Lumiere, puis la font **clignoter** toutes les 0,5 s (rappel : un timer). L’alarme ne doit **rien savoir** des gyrophares : on en ajoutera d’autres sans la toucher.\n\n' +
         '**C. Le disjoncteur** (BP_Disjoncteur, en jaune) : quand le joueur entre dans sa Zone, il coupe les appareils de sa liste **Appareils** (déjà remplie dans ses Details) : la **BP_Lampe** s’éteint, le **BP_Ventilateur** passe **bTourne** à false, le **BP_Ecran** affiche `HORS LIGNE`. Trois classes différentes : le disjoncteur ne doit pas avoir à les reconnaître une par une (pas de Cast).',
     },
     {
@@ -140,19 +141,29 @@ export const lessonChooseTool: Lesson = {
   ],
   objectives: [
     'A : la borne met la Sante du joueur à 100.',
-    'B : l’alarme allume les trois gyrophares sans rien savoir d’eux.',
+    'B : l’alarme allume les trois gyrophares, qui clignotent, sans rien savoir d’eux.',
     'C : le disjoncteur coupe la lampe, le ventilateur et l’écran, sans Cast.',
   ],
   hints: [
     'A : la borne reçoit un Other Actor et a besoin d’une variable de BP_Joueur. B : les gyrophares s’abonnent à l’alarme au BeginPlay. C : le disjoncteur a ses cibles (Appareils), mais pas leur classe.',
-    'A : ActorBeginOverlap, Cast To BP_Joueur, Set Sante. B : Event Dispatcher (Call / Bind Event), Custom Event, Set Visibility, une référence vers l’alarme dans chaque gyrophare. C : Blueprint Interface, For Each Loop, message d’interface, Set Visibility, Set bTourne, Set Text.',
+    'A : ActorBeginOverlap, Cast To BP_Joueur, Set Sante. B : Event Dispatcher (Call / Bind Event), Custom Event, Set Visibility, Set Timer by Event, Toggle Visibility, une référence vers l’alarme dans chaque gyrophare. C : Blueprint Interface, For Each Loop, message d’interface, Set Visibility, Set bTourne, Set Text.',
     'Solution. A : BP_Borne : ActorBeginOverlap → Cast To BP_Joueur (Object = Other Actor) → Set Sante = 100 (Target = As BP Joueur).\n' +
-      'B : BP_Alarme : Event Dispatcher OnAlarme ; ActorBeginOverlap → Call OnAlarme. BP_Gyrophare : variable Alarme (BP_Alarme, Instance Editable, réglée sur les trois) ; BeginPlay → Bind Event to OnAlarme (Target = Alarme) ← Custom Event → Set Visibility (Lumiere, cochée).\n' +
+      'B : BP_Alarme : Event Dispatcher OnAlarme ; ActorBeginOverlap → Call OnAlarme. BP_Gyrophare : variable Alarme (BP_Alarme, Instance Editable, réglée sur les trois) ; BeginPlay → Bind Event to OnAlarme (Target = Alarme) ← Custom Event → Set Visibility (Lumiere, cochée) → Set Timer by Event (0,5 s, Looping, Event = Custom Event Clignote) ; Clignote → Toggle Visibility (Lumiere).\n' +
       'C : BPI_Coupure avec la fonction Couper, implémentée par BP_Lampe, BP_Ventilateur et BP_Ecran. BP_Disjoncteur : ActorBeginOverlap → For Each Loop (Appareils) → Couper (Message), Target = Array Element. Event Couper : Set Visibility (Lumiere, décochée), Set bTourne = false, Set Text « HORS LIGNE ».',
   ],
   challenge: 'Pose un quatrième gyrophare et un deuxième écran : ni l’alarme ni le disjoncteur ne doivent changer, seulement les Details des acteurs posés.',
   setup: toolsProject,
-  scenario: [{ wait: 0.2 }, { checkpoint: 'debut' }, ...goTo(...BORNE, 0.3), { checkpoint: 'borne' }, ...goTo(...ALARME, 0.3), { checkpoint: 'alarme' }, ...goTo(...DISJONCTEUR, 0.3)],
+  scenario: [
+    { wait: 0.2 },
+    { checkpoint: 'debut' },
+    ...goTo(...BORNE, 0.3),
+    { checkpoint: 'borne' },
+    ...goTo(...ALARME, 0.3),
+    { checkpoint: 'alarme' },
+    { wait: 0.5 },
+    { checkpoint: 'clignote' },
+    ...goTo(...DISJONCTEUR, 0.3),
+  ],
   checks: [
     {
       id: 'heal',
@@ -177,6 +188,15 @@ export const lessonChooseTool: Lesson = {
         const off = beacons.filter((l) => !lit(cx).includes(l));
         return off.length ? `Encore éteint(s) après l’alarme : ${off.join(', ')}.` : true;
       },
+    },
+    {
+      id: 'beacons-blink',
+      label: 'B : les gyrophares clignotent',
+      at: 'clignote',
+      test: (cx) =>
+        lit(cx).length
+          ? `Une demi-seconde plus tard, encore allumé(s) : ${lit(cx).join(', ')}. Les gyrophares doivent basculer toutes les 0,5 s (un timer en Looping).`
+          : true,
     },
     {
       id: 'alarm-blind',
@@ -227,7 +247,11 @@ export const lessonChooseTool: Lesson = {
     const ev = beacon.node('event.custom', { name: 'SurAlarme', signature: d.id, signatureOwner: alarm.cls.id }, {}, [64, 480]);
     const on = beacon.node('component.setVisibility', {}, { visible: true }, [440, 480]);
     beacon.link(begin, 'then', bind, 'exec').link(get, 'value', bind, 'target').link(ev, 'delegate', bind, 'event');
-    beacon.link(ev, 'then', on, 'exec').target('Lumiere', on);
+    const timer = beacon.node('time.setTimerByEvent', {}, { time: 0.5, looping: true }, [760, 480]);
+    const blink = beacon.node('event.custom', { name: 'Clignote' }, {}, [64, 800]);
+    const toggle = beacon.node('component.toggleVisibility', {}, {}, [440, 800]);
+    beacon.link(ev, 'then', on, 'exec').target('Lumiere', on).link(on, 'then', timer, 'exec').link(blink, 'delegate', timer, 'event');
+    beacon.link(blink, 'then', toggle, 'exec').target('Lumiere', toggle);
 
     // C. An interface: the breaker knows its targets, not their classes.
     const r = addInterface(p, 'BPI_Coupure');

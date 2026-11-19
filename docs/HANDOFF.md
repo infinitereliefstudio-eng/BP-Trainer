@@ -4,29 +4,29 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (le plan en cours, lots 3 et 4 détaillés), [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande). Les anciens plans ([PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-19, après la V7.15)
+## Reprise rapide (2026-11-19, après la V7.16)
 
 ### Où on en est
 
-- **Version en ligne : 7.15.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.16.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Plan en cours : « Plan du parcours »** ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK, validé par Tristan le 2026-11-18). Cinq lots, un à la fois, avec son feu vert entre chaque :
   - lot 0 (le cadre) : fait, V7.10 ;
   - lot 1 (réflexes UE5, Enhanced Input partout après la leçon Player Controller) : fait, V7.11 et V7.12 ;
   - lot 2 (Débutant et Intermédiaire) : fait, V7.13 (2a, Débutant) et V7.14 (2b, Intermédiaire) ;
-  - lot 3 (Confirmé) : **3a fait en V7.15** (quatre nouvelles étapes, lancé par « ok on peut passer au lot 3 » le 2026-11-19) ; **3b à faire, prochain** (rappels, synthèse S3), seulement quand Tristan le demande ;
-  - lot 4 (Avancé et Expert) : à faire ensuite.
-- **En attente de Tristan** : son retour sur la V7.15 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause » (créer IA_Pause, Trigger when Paused). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
-- **Ne rien commencer du lot 3b sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
+  - lot 3 (Confirmé) : fait, V7.15 (3a, quatre nouvelles étapes) et V7.16 (3b, rappels, P14, synthèse S3, lancé par « tu peux passer a 3b ») ;
+  - **lot 4 (Avancé et Expert) : à faire, prochain**, seulement quand Tristan le demande.
+- **En attente de Tristan** : son retour sur les V7.15 et V7.16 (et toujours sur V7.8 à V7.14, aucun retour explicite). Points à lui faire tester : « Choisis ton outil », D21, R4, « Le menu pause », la synthèse S3, et un ou deux rappels (La rangée de lampes, L'ascenseur). Question posée sans réponse : le menu pause sans widget, sur Espace (choix pris par défaut, à confirmer).
+- **Ne rien commencer du lot 4 sans son feu vert explicite** (règle du CLAUDE.md : une étape à la fois).
 
 ### Le parcours aujourd'hui
 
-107 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 36, Avancé 24, Expert 0 (le niveau existe, vide jusqu'au lot 4). 137 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
+109 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 32 (fin : A1 puis synthèse S2), Confirmé 38 (fin : synthèse S3), Avancé 24, Expert 0 (le niveau existe, vide jusqu'au lot 4). 139 questions de révision. L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (seules les leçons `build` hors transfert/autonomie en ont), les exercices ont un code (P, D, C, R, T, A, S).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
 - **Échelle par notion** (`Lesson.chain` : discover, guided, modify, transfer, autonomy ; `LADDER`) ; l'autonomie est différée (`chain.after`).
 - **Rappels** (`Lesson.recalls`) : notions anciennes que la solution de référence réécrit vraiment (vérifié par `tests/spacing.test.ts`).
-- **Espacement** : cible 15 étapes ; `KNOWN_GAPS` dans `tests/spacing.test.ts` est un cliquet. Le test dit la valeur exacte à mettre quand un écart baisse. En V7.14, six écarts ont dû **monter** (commentés `V7.14`), et en V7.15 vingt-quatre de plus de 1 à 4 (commentés `V7.15` : les quatre étapes du 3a tombent dans les trous qui traversent le Confirmé) ; cast, enhanced-input, input, interfaces et loops ont baissé. À faire redescendre au lot 3b par des rappels dans les étapes Confirmé (index 47 à 82 environ).
+- **Espacement** : cible 15 étapes ; `KNOWN_GAPS` dans `tests/spacing.test.ts` est un cliquet. Le test dit la valeur exacte à mettre quand un écart baisse. Le lot 3b a fait redescendre ce qui traversait le Confirmé ; les écarts commentés « lot 4 » finissent dans l'Avancé, ou sont des notions que le Confirmé n'écrit pas naturellement (maps, player-controller, sequence…). Depuis la V7.16, `writtenNotions` compte par Blueprint.
 - **Synthèse** (`kind: 'synthesis'`, `library/synthesis.ts`) : cahier des charges en fin de niveau, conseillé (Home.tsx le propose avant le niveau suivant), jamais bloquant ; elle n'enseigne rien (`teaches: []`) et peut durer 45 min.
 - **Projets UE5 après « Les contrôles au Player Controller »** (`l-ei-controleur`) : plus aucun événement de touche. Une leçon écrite avec la touche E passe par `UE5_INPUT` dans `index.ts` (`asEnhancedInput`, `core/lessons/ue5Input.ts`) ; une leçon native appelle `ensurePlayerInput(p, ['E'], { E: 'IA_…' })` dans son setup (exemple : `library/chest.ts`). `tests/ue5Input.test.ts` le vérifie.
 
@@ -34,9 +34,8 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 Détail et contenu des lots dans [PLAN_PARCOURS.md](PLAN_PARCOURS.md) (« Ce qui reste »). En résumé :
 
-1. **Lot 3b — Confirmé** : rappels dans les étapes Confirmé (faire redescendre les écarts montés en V7.14 et V7.15), composants et fonctions créés par l'apprenant, Prédis « Ordre et cycle de vie », synthèse S3 qui impose le choix de l'outil (Cast, Dispatcher ou Interface).
-2. **Lot 4 — Avancé et Expert** : cahiers des charges en Avancé, « Le levier universel », projets Expert sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), entraînement mélangé, synthèse S4.
-3. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
+1. **Lot 4 — Avancé et Expert** : cahiers des charges en Avancé, « Le levier universel », projets Expert sur plusieurs séances (dont la suite « jeu narratif » calquée sur Station enterrée, au backlog), entraînement mélangé, synthèse S4.
+2. Dettes connues : pas de déclencheur Tap (T2 utilise Hold + Canceled) ; D1 (Accessed None) reste en Confirmé ; le plan voulait que l'apprenant crée ses variables dès l'Intermédiaire, ce n'est fait que dans les nouvelles étapes.
 
 ### Ajouter ou modifier une étape : la liste à cocher
 
@@ -598,6 +597,18 @@ Tristan a lancé le lot 3 (« ok on peut passer au lot 3 ») sans répondre à l
 - Révision : 4 questions (137). `smoke.py` attend 107 étapes, captures 69 (Trigger when Paused) et 70 (PAUSED), vérifie qu'Espace met en pause et relance.
 
 Version 7.15.0.
+
+## V7.16 (2026-11-19) : plan du parcours, lot 3b (Confirmé, rappels et synthèse)
+
+Lancé par « tu peux passer a 3b ». Fin du lot 3 : 109 étapes. Tests : `tests/lot3.test.ts` (section 3b).
+
+- **Rappels** dans sept étapes Confirmé, chacun dans le cahier des charges (fiche « Rappel : … », un objectif, une vérification), révision + 1 : Choisis ton outil (clignotement par timer), Le générateur prévient (DoOnce « Premier démarrage », scénario avec un 3e appui), Le catalogue (DoOnce, le test repasse devant la lampe), Les badges (composant Porte du lecteur, Set Relative Rotation), La rangée de lampes (Enum `E_Puissance`, variable Puissance, Switch on Enum et Set Intensity dans le Construction Script, vérifiés dans l'éditeur et en jeu), Les vagues (Switch on Int : Éclaireur, Soldat, Boss), L'ascenseur (`OnArrivee` déclaré, BP_Quai déjà abonné ; l'apprenant fait DoOnce → Call ; `liftArrives` dans `timing.ts`, utilisé par la solution et `tests/quality.test.ts` ; les deux autres façons de faire préviennent aussi le quai).
+- **Prédis P14 « Qui parle en premier ? »** (`library/predicts3.ts`, après La clôture) : Spawn Actor construit et lance l'acteur avant de rendre la main. Notion `begin-order`.
+- **Synthèse S3 « Le poste de garde »** (`library/synthesis3.ts`) : cahier des charges, graphes vides, aucune variable. Vérifications bloquantes : « Badge requis » une fois, badge détruit, Point Light ajoutée aux gyrophares et éteinte au départ, alerte et fin d'alerte, porte fermée en douceur (pas encore fermée à 0,3 s, fermée à 1,3 s), BP_Joueur sans Cast, BP_Pupitre qui ne connaît ni gyrophares ni porte.
+- **Espacement** : `writtenNotions` (`notions/practice.ts`) compte les nœuds par Blueprint (un refactor qui déplace une chaîne l'écrit). Détail des baisses et des hausses dans PLAN_PARCOURS.md, « Lot 3b ».
+- Révision : 2 questions (139). `smoke.py` attend 109 étapes.
+
+Version 7.16.0.
 
 ## Méthode de travail
 

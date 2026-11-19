@@ -8,6 +8,7 @@ import { edit, ProjectBuilder } from '../src/core/lessons/builder';
 import { getLesson, LESSONS } from '../src/core/lessons';
 import { runLesson, runRobustness } from '../src/core/lessons/runner';
 import { lessonLabel } from '../src/core/lessons/types';
+import { liftArrives } from '../src/core/lessons/library/timing';
 import { adviceFor } from '../src/core/quality/advice';
 import { newAdvice } from '../src/core/quality/lessonAdvice';
 import { parseProject, serializeProject } from '../src/core/serialization/serialize';
@@ -82,6 +83,7 @@ describe('robustness cases', () => {
     // 200 cm/s at 30 images per second: 6.667 cm per Tick.
     const move = b.node('actor.addOffset', {}, { delta: { x: 200 / 30, y: 0, z: 0 } }, [1000, 96]);
     b.link(tick, 'then', br, 'exec').link(loc, 'result', split, 'in').link(split, 'x', less, 'a').link(less, 'result', br, 'condition').link(br, 'true', move, 'exec');
+    liftArrives(b, br);
     expect(runLesson(lesson, p).passed).toBe(true);
     const [fast] = runRobustness(lesson, p);
     expect(fast.ok).toBe(false);

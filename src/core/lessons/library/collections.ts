@@ -191,6 +191,7 @@ function badgesProject() {
   const reader = pb.blueprint('BP_Lecteur');
   reader.component('StaticMesh', 'Lecteur', { sizeX: 40, sizeY: 40, color: '#1d4ed8' });
   reader.component('BoxCollision', 'Zone', { sizeX: 120, sizeY: 120 });
+  reader.component('StaticMesh', 'Porte', { shape: 'door', x: 80, y: -100, sizeX: 200, sizeY: 16, color: '#1d4ed8' });
   const wanted = reader.variable('Couleur', T.name, 'BLEU');
   const rOver = reader.node('event.actorBeginOverlap', {}, {}, [64, 96]);
   const rCast = reader.node('cast.to', { class: player.cls.id }, {}, [340, 96]);
@@ -215,6 +216,8 @@ export const lessonBadges: Lesson = {
   situation:
     'Le joueur ramasse des badges de couleur et les range dans sa variable Badges. Le compteur affiché devrait dire combien de couleurs il possède : il ramasse Rouge, Bleu, puis un second badge rouge. Le lecteur de la porte bleue vérifie qu’il a le badge BLEU.',
   notions: ['Set', 'Name', 'Doublons', 'Changer le conteneur d’une variable'],
+  recalls: ['rotation'],
+  revision: 2,
   remember: 'Un Set garde chaque valeur une seule fois, et un Name ignore les majuscules : « rouge » et « Rouge » sont le même badge.',
   cards: [
     {
@@ -241,16 +244,21 @@ export const lessonBadges: Lesson = {
         '1. Sélectionne **Badges** dans BP_Joueur. Dans Details, la liste à côté du type choisit **Single**, **Array**, **Set** ou **Map** : passe-la à **Set**.\n2. Les nœuds de tableau qui la recevaient ne lui conviennent plus : un Set n’a pas d’index, ni d’ordre.\n3. Remplace-les par ceux de **Utilities › Set** : **Add**, **Length** dans BP_Badge ; **Contains** dans BP_Lecteur. Mêmes fils, mêmes rôles. Compile ensuite chacun des deux Blueprints.\n\n' +
         'Relance Play : 1, 2, puis 2.',
     },
+    {
+      title: 'Rappel : ouvrir la porte',
+      body: 'BP_Lecteur a aussi un composant **Porte**, fermé. Après « Accès autorisé », ouvre-le : un quart de tour (Yaw de 0 à 90). Tu connais le nœud qui règle la rotation d’un composant.',
+    },
   ],
   objectives: [
     'Badges devient un Set of Name.',
     'Après les trois badges, le compteur affiche 2.',
     'Le lecteur de la porte bleue affiche « Accès autorisé ».',
+    'Rappel : il ouvre sa Porte (Yaw 90).',
   ],
   hints: [
     'Combien d’éléments a le tableau après Rouge, Bleu et rouge ?',
     'Details de Badges : conteneur Set. Puis, dans BP_Badge : Add (Set) et Length (Set) ; dans BP_Lecteur : Contains (Set).',
-    'Solution : Badges en Set of Name ; BP_Badge : Cast → Add (Target Set = Badges, New Item = Couleur) → Print Length (Set) → Destroy ; BP_Lecteur : Contains (Set) → Branch → Print.',
+    'Solution : Badges en Set of Name ; BP_Badge : Cast → Add (Target Set = Badges, New Item = Couleur) → Print Length (Set) → Destroy ; BP_Lecteur : Contains (Set) → Branch → Print → Set Relative Rotation (Porte, Yaw 90).',
   ],
   challenge: 'Ajoute un badge « BLEU » : le compteur bouge-t-il ?',
   setup: badgesProject,
@@ -292,6 +300,14 @@ export const lessonBadges: Lesson = {
       label: 'Le lecteur de la porte bleue : « Accès autorisé »',
       test: (cx) => (countPrints(cx, 'Accès autorisé') ? true : 'Le lecteur n’a pas affiché « Accès autorisé » : il doit trouver BLEU dans les Badges du joueur (Contains).'),
     },
+    {
+      id: 'door',
+      label: 'Rappel : la Porte du lecteur s’ouvre',
+      test: (cx) => {
+        const yaw = cx.component('BP_Lecteur', 'Porte')?.props.yaw ?? 0;
+        return Math.abs(Math.abs(yaw) - 90) < 1 ? true : `La Porte du lecteur a un Yaw de ${Math.round(yaw)} : après « Accès autorisé », donne-lui un Yaw de 90 (Set Relative Rotation).`;
+      },
+    },
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -321,5 +337,9 @@ export const lessonBadges: Lesson = {
         if (n?.def.startsWith('set.') && l.to.pin === 'set') n.wild = { default: 'name' };
       }
     }
+    const reader = edit(p, 'BP_Lecteur');
+    const ok = Object.values(reader.graph.nodes).find((n) => n.def === 'debug.printString')!.id;
+    const open = reader.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [1300, 96]);
+    reader.link(ok, 'then', open, 'exec').target('Porte', open);
   },
 };

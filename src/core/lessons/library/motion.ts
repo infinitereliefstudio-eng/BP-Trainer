@@ -4,6 +4,7 @@
  * de lampes" (Construction Script).
  */
 import { readTimeline, timelineConfig, trackPin } from '../../nodes/library/timeline';
+import { addEnum } from '../../operations/enumOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { noRuntimeErrors, PRESS_E, usesNode, notion } from '../checks';
@@ -347,23 +348,29 @@ export const complete3: Lesson = {
 
 // ------------------------------------------------------ La rangée de lampes
 
-const LAMPS: { label: string; color: string; on: boolean }[] = [
-  { label: 'BP_Lampe', color: '#ff3b30', on: true },
-  { label: 'BP_Lampe2', color: '#34c759', on: false },
-  { label: 'BP_Lampe3', color: '#0a84ff', on: true },
+const LAMPS: { label: string; color: string; on: boolean; strong: boolean }[] = [
+  { label: 'BP_Lampe', color: '#ff3b30', on: true, strong: true },
+  { label: 'BP_Lampe2', color: '#34c759', on: false, strong: false },
+  { label: 'BP_Lampe3', color: '#0a84ff', on: true, strong: false },
 ];
+/** Intensity of each E_Puissance entry (the recall of lot 3b). */
+const POWER = { Faible: 1500, Forte: 8000 };
 
 function lampRowProject() {
   const pb = new ProjectBuilder('La rangée de lampes');
+  const e = addEnum(pb.project, 'E_Puissance');
+  if (!e.ok) throw new Error(e.reason);
+  e.value.entries = Object.keys(POWER);
   const b = pb.blueprint('BP_Lampe');
   b.component('StaticMesh', 'Pied', { shape: 'cylinder', sizeX: 40, sizeY: 40, color: '#6b7280' });
   b.component('PointLight', 'Lumiere', { visible: false, radius: 260 });
   const color = b.variable('Couleur', T.struct('LinearColor'), '#ffffff');
   const on = b.variable('Allumee', T.bool, false);
+  const power = b.variable('Puissance', T.enum('E_Puissance'), 0);
   for (const v of b.cls.variables) v.instanceEditable = true;
   LAMPS.forEach((l, i) => {
     const id = pb.place(b, -300 + i * 300, 0);
-    Object.assign(pb.project.level.actors.find((a) => a.id === id)!.overrides, { [color]: l.color, [on]: l.on });
+    Object.assign(pb.project.level.actors.find((a) => a.id === id)!.overrides, { [color]: l.color, [on]: l.on, [power]: l.strong ? 1 : 0 });
   });
   pb.playerStart(0, 350, -90);
   return pb.project;
@@ -377,6 +384,9 @@ function lampsWrong(cx: CheckContext, editor: boolean): string | undefined {
     if (!c) return `La Lumiere de ${l.label} est introuvable (renommée ou supprimée ?).`;
     if (c.props.visible !== l.on) return `${l.label} est réglée sur Allumee = ${l.on ? 'vrai' : 'faux'}, mais sa Lumiere est ${c.props.visible ? 'allumée' : 'éteinte'}.`;
     if (l.on && c.props.color.toLowerCase() !== l.color) return `${l.label} est allumée, mais pas de la couleur réglée dans sa variable Couleur.`;
+    const want = l.strong ? POWER.Forte : POWER.Faible;
+    if (Math.abs(c.props.intensity - want) > 1)
+      return `${l.label} a la Puissance ${l.strong ? 'Forte' : 'Faible'}, mais une intensité de ${Math.round(c.props.intensity)} au lieu de ${want}.`;
   }
   return undefined;
 }
@@ -393,6 +403,12 @@ export function solveLampRow(p: ReturnType<typeof lampRowProject>, where: 'const
   g.link(g.node('var.get', { variable: color }, {}, [200, 330]), 'value', setColor, 'color');
   g.link(g.node('var.get', { variable: on }, {}, [600, 330]), 'value', setVis, 'visible');
   g.target('Lumiere', setColor).target('Lumiere', setVis);
+  const sw = g.node('flow.switchEnum', { enum: 'E_Puissance' }, {}, [1180, 96]);
+  g.link(setVis, 'then', sw, 'exec').link(g.node('var.get', { variable: b.cls.variables[2].id }, {}, [1000, 330]), 'value', sw, 'selection');
+  Object.values(POWER).forEach((intensity, i) => {
+    const set = g.node('component.setIntensity', {}, { intensity }, [1520, 40 + i * 260]);
+    g.link(sw, `case${i}`, set, 'exec').target('Lumiere', set);
+  });
 }
 
 export const lessonLampRow: Lesson = {
@@ -404,6 +420,8 @@ export const lessonLampRow: Lesson = {
   situation:
     'Trois lampes, chacune réglée dans le niveau : une Couleur, et Allumee ou non. Elles doivent montrer leurs réglages dès l’éditeur, avant même de lancer Play.',
   notions: ['Construction Script', 'Instance Editable', 'Set Light Color', 'Éditeur ou jeu'],
+  recalls: ['enum', 'switch'],
+  revision: 2,
   remember:
     'Le Construction Script s’exécute dans l’éditeur à chaque placement ou réglage d’une instance, puis à l’apparition de l’acteur, avant BeginPlay. Il prépare l’acteur à partir de ses variables ; il ne tourne plus pendant la partie.',
   cards: [
@@ -411,7 +429,7 @@ export const lessonLampRow: Lesson = {
       title: 'Ce qui est en place',
       body:
         '**BP_Lampe** : un pied et une **Lumiere** éteinte, avec deux variables **Instance Editable** :\n\n' +
-        '- **Couleur** (Linear Color) ;\n- **Allumee** (Boolean).\n\n' +
+        '- **Couleur** (Linear Color) ;\n- **Allumee** (Boolean) ;\n- **Puissance** (l’Enum **E_Puissance** : Faible ou Forte).\n\n' +
         'Trois lampes sont posées et réglées dans le niveau : rouge allumée, verte éteinte, bleue allumée. Pour l’instant, toutes les trois ont l’air identiques dans le niveau : rien n’applique leurs réglages.',
     },
     {
@@ -420,6 +438,10 @@ export const lessonLampRow: Lesson = {
         'Chaque Blueprint a un second graphe : **ConstructionScript** (My Blueprint › Graphs). Il s’exécute :\n\n' +
         '- **dans l’éditeur**, chaque fois qu’une instance est placée, déplacée, ou qu’une de ses variables Instance Editable change ;\n- au lancement, quand l’acteur apparaît, **avant** tout BeginPlay.\n\n' +
         'C’est là qu’un acteur **applique ses réglages** : le niveau montre le résultat sans lancer Play. Un level designer règle Couleur dans Details et voit la lampe changer aussitôt.',
+    },
+    {
+      title: 'Rappel : un chemin par cas',
+      body: 'La Puissance règle l’intensité de la Lumiere : **Faible** = 1500, **Forte** = 8000. Un chemin par valeur d’un Enum : tu connais le nœud. Lui aussi va dans le ConstructionScript.',
     },
     {
       title: 'Ce qu’il ne fait pas',
@@ -444,12 +466,13 @@ export const lessonLampRow: Lesson = {
     'Ouvre le ConstructionScript de BP_Lampe (My Blueprint › Graphs).',
     'Set Light Color (Lumiere) avec la variable Couleur.',
     'Set Visibility (Lumiere) avec la variable Allumee.',
+    'Rappel : l’intensité selon la Puissance (Faible 1500, Forte 8000).',
     'Touche Vérifier : le niveau est contrôlé avant Play, puis en jeu.',
   ],
   hints: [
     'Les deux nœuds se suivent sur le fil blanc qui part de Construction Script, pas de BeginPlay.',
-    'Nœuds : Set Light Color, Set Visibility, Get Lumiere (deux fois), Get Couleur, Get Allumee.',
-    'Solution : Construction Script → Set Light Color (Lumiere, Couleur) → Set Visibility (Lumiere, Allumee).',
+    'Nœuds : Set Light Color, Set Visibility, Get Lumiere, Get Couleur, Get Allumee ; Switch on E_Puissance, Set Intensity.',
+    'Solution : Construction Script → Set Light Color (Lumiere, Couleur) → Set Visibility (Lumiere, Allumee) → Switch on E_Puissance (Puissance) : Faible → Set Intensity (Lumiere, 1500), Forte → Set Intensity (Lumiere, 8000).',
   ],
   challenge: 'Ajoute une variable Rayon (Float, Instance Editable) et… regarde la palette : il n’y a pas de Set pour le rayon ici. Dans UE, ce serait Set Attenuation Radius.',
   setup: lampRowProject,

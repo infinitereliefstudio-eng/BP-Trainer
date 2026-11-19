@@ -18,43 +18,43 @@ const SPACING_TARGET = 15;
 
 /**
  * Today's longest gaps above the target (steps), to bring down lot by lot.
- * « V7.15: +N »: the four Confirmé steps of lot 3a fall inside the gap;
- * lot 3b (recalls in the Confirmé steps) brings these back down.
+ * Lot 3b (V7.16) brought down what crosses the Confirmé with recalls; the
+ * gaps marked « lot 4 » run into the Avancé, or are notions no Confirmé
+ * step can write naturally (maps, player-controller…).
  */
 const KNOWN_GAPS: Record<string, number> = {
-  arrays: 21, // V7.15: +1
-  cast: 27,
-  components: 22, // V7.15: +1
-  construction: 39, // V7.15: +1
-  'data-tables': 40, // V7.15: +1
-  destroy: 44, // V7.15: +4
-  dispatchers: 36, // V7.15: +3
-  'enhanced-input': 27,
-  enum: 54, // V7.15: +4
-  'flow-memory': 52, // V7.15: +4
-  functions: 30, // V7.15: +3
+  arrays: 23, // lot 3 added Confirmé steps inside this gap: lot 4
+  cast: 28, // lot 3 added Confirmé steps inside this gap: lot 4
+  components: 16,
+  construction: 41, // lot 3 added Confirmé steps inside this gap: lot 4
+  'data-tables': 42, // lot 3 added Confirmé steps inside this gap: lot 4
+  destroy: 38,
+  dispatchers: 25,
+  'enhanced-input': 20,
+  enum: 30,
+  'flow-memory': 28,
+  functions: 32, // lot 3 added Confirmé steps inside this gap: lot 4
   inheritance: 16,
-  input: 27,
-  interfaces: 28,
-  latent: 28, // V7.15: +1
-  locals: 26, // V7.15: +2
-  loops: 21,
-  maps: 47, // V7.15: +4
-  'other-bp': 23, // V7.15: +2
-  overlap: 27, // V7.15: +1
-  'player-controller': 70, // V7.15: +4
-  random: 41, // V7.15: +1
-  rotation: 40, // V7.15: +4
-  'save-game': 24,
-  sequence: 42, // V7.15: +2
-  sets: 21, // V7.15: +1
-  spawn: 31,
-  structs: 38, // V7.15: +1
-  switch: 54, // V7.15: +4
-  tick: 29,
-  timeline: 64, // V7.15: +4
-  timers: 47, // V7.15: +3
-  visibility: 22, // V7.15: +1
+  input: 20,
+  interfaces: 22,
+  latent: 30, // lot 3 added Confirmé steps inside this gap: lot 4
+  locals: 28, // lot 3 added Confirmé steps inside this gap: lot 4
+  maps: 49, // lot 3 added Confirmé steps inside this gap: lot 4
+  'other-bp': 24, // lot 3 added Confirmé steps inside this gap: lot 4
+  overlap: 21,
+  'player-controller': 72, // lot 3 added Confirmé steps inside this gap: lot 4
+  random: 43, // lot 3 added Confirmé steps inside this gap: lot 4
+  rotation: 17,
+  'save-game': 25, // lot 3 added Confirmé steps inside this gap: lot 4
+  sequence: 44, // lot 3 added Confirmé steps inside this gap: lot 4
+  sets: 23, // lot 3 added Confirmé steps inside this gap: lot 4
+  spawn: 33, // lot 3 added Confirmé steps inside this gap: lot 4
+  structs: 40, // lot 3 added Confirmé steps inside this gap: lot 4
+  switch: 30,
+  tick: 30, // lot 3 added Confirmé steps inside this gap: lot 4
+  timeline: 41,
+  timers: 27,
+  visibility: 16,
 };
 
 const practised = LESSONS.map(practisedBy);

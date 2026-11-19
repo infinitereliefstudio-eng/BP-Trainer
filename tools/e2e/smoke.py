@@ -252,8 +252,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 107:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 107")
+        if await page.locator('.lesson-item').count() != 109:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 109")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')

@@ -58,6 +58,8 @@ import { lessonChooseTool } from './library/chooseTool';
 import { debug21 } from './library/whoTurnedOff';
 import { refactor4 } from './library/interactUe5';
 import { lessonPauseMenu } from './library/pauseMenu';
+import { synthesis3 } from './library/synthesis3';
+import { predictSpawnOrder } from './library/predicts3';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isChainExercise, type Lesson } from './types';
@@ -145,12 +147,14 @@ export const LESSONS: Lesson[] = [
   debug11,
   lessonPauseMenu,
   lessonFence,
+  predictSpawnOrder,
   debug3,
   lessonLift,
   lessonPiggyBank,
   debug17,
   predict11,
   debug18,
+  synthesis3,
   // Avancé
   lessonPureFunctions,
   complete2,

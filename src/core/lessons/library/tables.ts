@@ -91,10 +91,11 @@ const visit = (x: number) => [{ teleport: [x, 0] as [number, number] }, { wait: 
 export function solveCatalog(p: Project, split = true): void {
   const b = edit(p, 'BP_Examinable');
   const ev = b.node('event.actorBeginOverlap', {}, {}, [64, 96]);
-  const get = b.node('dataTable.getRow', { table: tableId(p, 'DT_Objets') }, {}, [360, 96]);
+  const once = b.node('flow.doOnce', {}, {}, [240, 96]);
+  const get = b.node('dataTable.getRow', { table: tableId(p, 'DT_Objets') }, {}, [460, 96]);
   const brk = b.node('struct.break', { struct: 'S_Fiche' }, {}, [700, 320]);
   const show = say(b, [1000, 40]);
-  b.link(ev, 'then', get, 'exec').link(getVar(b, 'IdObjet', [200, 300]), 'value', get, 'rowName');
+  b.link(ev, 'then', once, 'exec').link(once, 'completed', get, 'exec').link(getVar(b, 'IdObjet', [300, 300]), 'value', get, 'rowName');
   b.link(get, 'found', show, 'exec').link(get, 'row', brk, 'struct').link(brk, memberId(p, 'S_Fiche', 'Description'), show, 'text');
   if (split) b.link(get, 'notFound', say(b, [1000, 300], 'Objet inconnu'), 'exec');
   else b.link(get, 'notFound', show, 'exec');
@@ -109,6 +110,8 @@ export const lessonCatalog: Lesson = {
   situation:
     'Trois objets traînent au sol. Chacun connaît seulement son identifiant (IdObjet) ; leurs fiches, nom et description, sont rangées dans une Data Table. Quand le joueur s’approche, l’objet affiche sa description, ou « Objet inconnu » si sa fiche n’existe pas.',
   notions: ['Data Table', 'Row Name', 'Get Data Table Row', 'Break'],
+  recalls: ['flow-memory'],
+  revision: 2,
   remember:
     'Une Data Table garde les données hors des graphes : le Blueprint ne connaît qu’un Row Name, Get Data Table Row va chercher le reste. Row Found et Row Not Found sont deux chemins à traiter chacun.',
   cards: [
@@ -140,6 +143,10 @@ export const lessonCatalog: Lesson = {
         'Le test passe devant les trois objets. Le troisième, « Cartes », n’a pas de ligne : c’est une faute de frappe, typique quand les identifiants sont tapés à la main.',
     },
     {
+      title: 'Rappel : une seule présentation',
+      body: 'Chaque objet ne se présente **qu’une fois** : si le joueur repasse devant, il n’affiche plus rien. Le test repasse devant la lampe. Tu connais le nœud qui fait ça.',
+    },
+    {
       title: 'Le piège',
       body:
         'Relier **Row Found** et **Row Not Found** au **même** Print String. Pour la ligne absente, Out Row ne contient rien d’utile : le Print String affiche une ligne vide, sans la moindre erreur. On croit que l’objet n’a « pas de description », alors que son identifiant est faux.\n\n' +
@@ -150,22 +157,29 @@ export const lessonCatalog: Lesson = {
     'Dans BP_Examinable, sur ActorBeginOverlap : Get Data Table Row (DT_Objets), Row Name = IdObjet.',
     'Row Found : affiche la Description de la ligne.',
     'Row Not Found : affiche « Objet inconnu ».',
-    'Touche Vérifier : le joueur passe devant les trois objets.',
+    'Rappel : chaque objet ne se présente qu’une fois, même si le joueur repasse.',
+    'Touche Vérifier : le joueur passe devant les trois objets, et deux fois devant la lampe.',
   ],
   hints: [
     'La table et la structure existent déjà : il ne reste que le graphe de BP_Examinable.',
-    'Nœuds : Event ActorBeginOverlap, Get IdObjet, Get Data Table Row (DT_Objets), Break S_Fiche, deux Print String.',
-    'Solution : ActorBeginOverlap → Get Data Table Row (Row Name = IdObjet) ; Row Found → Print String (Break S_Fiche › Description) ; Row Not Found → Print String « Objet inconnu ».',
+    'Nœuds : Event ActorBeginOverlap, DoOnce, Get IdObjet, Get Data Table Row (DT_Objets), Break S_Fiche, deux Print String.',
+    'Solution : ActorBeginOverlap → DoOnce → Get Data Table Row (Row Name = IdObjet) ; Row Found → Print String (Break S_Fiche › Description) ; Row Not Found → Print String « Objet inconnu ».',
   ],
   challenge: 'Corrige la faute : passe IdObjet du troisième objet à « Carte » dans son Details. Puis ajoute une ligne Fusible à DT_Objets et un quatrième objet, sans toucher au graphe.',
   setup: catalogProject,
-  scenario: [{ wait: 0.2 }, ...visit(-300), { checkpoint: 'un' }, ...visit(0), { checkpoint: 'deux' }, ...visit(300)],
+  scenario: [{ wait: 0.2 }, ...visit(-300), { checkpoint: 'un' }, ...visit(-300), { checkpoint: 'revu' }, ...visit(0), { checkpoint: 'deux' }, ...visit(300)],
   checks: [
     {
       id: 'lampe',
       label: '« lampe » trouve la ligne Lampe (la casse ne compte pas)',
       at: 'un',
       test: (cx) => (countPrints(cx, ITEMS[0][2]) ? true : 'Rien de la Description de la lampe : l’objet doit chercher son IdObjet dans DT_Objets et afficher la Description de la ligne trouvée.'),
+    },
+    {
+      id: 'once',
+      label: 'Rappel : la lampe ne se présente qu’une fois',
+      at: 'revu',
+      test: (cx) => (countPrints(cx, ITEMS[0][2]) <= 1 ? true : 'Le joueur est repassé devant la lampe et elle s’est présentée une seconde fois : un objet ne se présente qu’une fois.'),
     },
     { id: 'cle', label: 'La clé affiche sa description', at: 'deux', test: (cx) => (countPrints(cx, ITEMS[1][2]) ? true : 'La clé n’affiche pas sa Description.') },
     {

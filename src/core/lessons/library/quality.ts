@@ -7,9 +7,15 @@
 import type { Project } from '../../model/project';
 import { readTimeline, timelineConfig, trackPin } from '../../nodes/library/timeline';
 import { T } from '../../types/pins';
-import { edit } from '../builder';
+import { edit, type ClassBuilder } from '../builder';
 import { printedNumbers } from '../checks';
 import type { Alternative, CheckContext, RobustnessCase } from '../types';
+
+/** Call OnArrivee of L'ascenseur (the recall of lot 3b), for its alternatives. */
+function arrivalCall(b: ClassBuilder, at: [number, number]): string {
+  const d = b.cls.dispatchers.find((x) => x.name === 'OnArrivee')!;
+  return b.node('dispatcher.call', { owner: b.cls.id, dispatcher: d.id }, {}, at);
+}
 
 interface Quality {
   robustness?: RobustnessCase[];
@@ -272,6 +278,8 @@ export const QUALITY: Record<string, Quality> = {
           b.link(br, 'true', move, 'exec').link(br, 'false', stop, 'exec');
           b.link(b.node('var.get', { variable: speed }, {}, [440, 800]), 'value', mul, 'a').link(mul, 'result', vec, 'x').link(vec, 'result', move, 'delta');
           b.link(b.node('var.get', { variable: handle }, {}, [560, 600]), 'value', stop, 'handle');
+          // Once the timer is cleared, Avancer is not called again: no DoOnce needed to warn the dock once.
+          b.link(stop, 'then', arrivalCall(b, [1060, 560]), 'exec');
         },
       },
       {
@@ -292,6 +300,8 @@ export const QUALITY: Record<string, Quality> = {
           const set = b.node('actor.setLocation', {}, {}, [900, 96]);
           b.link(begin, 'then', tl, 'play').link(tl, 'update', set, 'exec');
           b.link(tl, trackPin(data.tracks[0].id), vec, 'x').link(vec, 'result', set, 'location');
+          // Finished comes once, at the end of the track.
+          b.link(tl, 'finished', arrivalCall(b, [900, 300]), 'exec');
         },
       },
     ],

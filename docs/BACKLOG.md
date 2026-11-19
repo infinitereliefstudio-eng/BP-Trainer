@@ -258,6 +258,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.16 (19 novembre 2026), plan du parcours, lot 3b : rappels dans sept étapes Confirmé, Prédis P14 « Qui parle en premier ? », synthèse S3 « Le poste de garde » ; le lot 3 est fini.
 - V7.15 (19 novembre 2026), plan du parcours, lot 3a : quatre étapes Confirmé (Choisis ton outil, Débogue D21 « Qui a éteint la lumière ? », Refactor R4 « Interagir comme dans UE5 », Le menu pause) ; nœuds Set Game Paused et Is Game Paused, Trigger when Paused sur les Input Actions. Reste le lot 3b (rappels, synthèse S3).
 - V7.14 (18 novembre 2026), plan du parcours, lot 2b : Intermédiaire revu (La porte sur son gond, Les pièces, Prédis P13, Le gyrophare, Une valeur par lampe, Transfert T2, synthèse S2) ; le lot 2 est fini.
 - V7.13 (18 novembre 2026), plan du parcours, lot 2a : Débutant revu (Construis ta lampe, Prédis P12 avec Get World Location, compteur avant la leçon à touche, rappels, synthèse S1).

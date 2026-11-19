@@ -108,3 +108,62 @@ describe('Le menu pause', () => {
     expect(resumes.reason).toContain('Trigger when Paused');
   });
 });
+
+describe('lot 3b: recalls and the Confirmé synthesis', () => {
+  it('the new steps sit where planned: P14 after La clôture, S3 closes the Confirmé', () => {
+    const at = (id: string) => LESSONS.findIndex((l) => l.id === id);
+    expect(at('p14-cycle-de-vie')).toBe(at('l-cloture') + 1);
+    const s3 = at('s3-poste-garde');
+    expect(LESSONS[s3].level).toBe('confirme');
+    expect(LESSONS[s3 + 1].level).toBe('avance');
+  });
+
+  it('every step changed by a recall is flagged as changed (revision raised)', () => {
+    for (const id of ['l10-dispatcher', 'l-catalogue', 'l-badges', 'l-rangee-lampes', 'l-vagues', 'l-ascenseur', 'l-choisis-outil'])
+      expect(lesson(id).revision ?? 1, id).toBeGreaterThan(1);
+  });
+
+  it('S3: a player that casts to the console fails, and so does a console that looks for its listeners', () => {
+    const l = lesson('s3-poste-garde');
+    const casting = solved(l, (p) => {
+      const player = edit(p, 'BP_Joueur');
+      const desk = p.classes.find((c) => c.name === 'BP_Pupitre')!;
+      const leave = player.node('event.actorEndOverlap', {}, {}, [64, 700]);
+      const cast = player.node('cast.to', { class: desk.id }, {}, [400, 700]);
+      player.link(leave, 'then', cast, 'exec').link(leave, 'other', cast, 'object');
+    });
+    expect(failed(l, casting)).toEqual(['player-nocast']);
+    const looking = solved(l, (p) => {
+      const beacon = p.classes.find((c) => c.name === 'BP_Gyrophare')!;
+      edit(p, 'BP_Pupitre').node('actor.getAllOfClass', {}, { class: beacon.id }, [400, 900]);
+    });
+    expect(failed(l, looking)).toContain('console-blind');
+  });
+
+  it('S3: a door that snaps shut (no Timeline) fails the smooth check', () => {
+    const l = lesson('s3-poste-garde');
+    const p = solved(l, (p) => {
+      const door = edit(p, 'BP_Porte');
+      const tl = Object.values(door.graph.nodes).find((n) => n.def === 'timeline.node')!;
+      tl.config.length = 0.05;
+      (tl.config.tracks as { keys: { t: number; v: number }[] }[])[0].keys = [
+        { t: 0, v: 0 },
+        { t: 0.05, v: 1 },
+      ];
+    });
+    expect(failed(l, p)).toContain('smooth');
+  });
+
+  it('L’ascenseur: calling OnArrivee on every Tick after the arrival fails the recall', () => {
+    const l = lesson('l-ascenseur');
+    const p = solved(l, (p) => {
+      const b = edit(p, 'BP_Ascenseur');
+      const once = Object.values(b.graph.nodes).find((n) => n.def === 'flow.doOnce')!.id;
+      removeNodes(b.graph, [once]);
+      const br = Object.values(b.graph.nodes).find((n) => n.def === 'flow.branch')!.id;
+      const call = Object.values(b.graph.nodes).find((n) => n.def === 'dispatcher.call')!.id;
+      b.link(br, 'false', call, 'exec');
+    });
+    expect(failed(l, p)).toEqual(['dock']);
+  });
+});

@@ -4,7 +4,7 @@ import { addDispatcher, addDispatcherParam, implementInterface } from '../../ope
 import { addInterface, addInterfaceFunction } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
-import { noRuntimeErrors, notUsing, usesNode, visible, notion } from '../checks';
+import { countPrints, noRuntimeErrors, notUsing, usesNode, visible, notion } from '../checks';
 import type { Lesson } from '../types';
 import { doorBlueprint, generatorBlueprint, lampBlueprint, playerBlueprint, referenceVariable } from './props';
 
@@ -133,6 +133,8 @@ export const lesson10: Lesson = {
   title: 'Le générateur prévient',
   situation: 'Démarrer le générateur allume les trois lampes d’un coup, sans qu’aucune lampe ne surveille le générateur à chaque frame.',
   notions: ['Event Dispatcher', 'Call', 'Bind Event', 'Paramètre'],
+  recalls: ['flow-memory'],
+  revision: 2,
   remember: 'Celui qui change annonce (Call) ; ceux que ça intéresse s’abonnent (Bind), avant l’annonce. Le générateur n’a pas besoin de connaître les lampes.',
   cards: [
     {
@@ -140,6 +142,11 @@ export const lesson10: Lesson = {
       body:
         '- **BP_Generateur** : E bascule bEnMarche et affiche l’état, comme avant.\n- Trois lampes **BP_Lampe**, éteintes. Leur variable **Generateur** est **déjà réglée** sur le générateur, pour les trois. Le graphe de BP_Lampe est vide.\n\n' +
         'Le but : quand le générateur démarre, les trois lampes s’allument **dans la même image**, sans Tick.',
+    },
+    {
+      title: 'Rappel : une seule fois',
+      body:
+        'Le tout premier démarrage du générateur est un événement : il affiche `Premier démarrage`, **une seule fois** dans la partie. Les démarrages suivants ne l’affichent plus. Tu connais le nœud qui laisse passer le fil blanc une fois, puis le ferme.',
     },
     {
       title: 'Annoncer plutôt que surveiller',
@@ -172,11 +179,12 @@ export const lesson10: Lesson = {
     'BP_Generateur annonce chaque changement avec un Event Dispatcher (Call).',
     'Chaque lampe s’y abonne au BeginPlay (Bind) et règle sa Lumière avec le paramètre.',
     'Pas d’Event Tick dans BP_Lampe.',
+    'Rappel : le premier démarrage affiche « Premier démarrage », une seule fois.',
   ],
   hints: [
     'Le générateur ne connaît pas les lampes : ce sont elles qui s’abonnent à lui.',
-    'Nœuds : Call OnEtatChange (générateur), Event BeginPlay, Bind Event to OnEtatChange, Custom Event, Set Visibility (lampe).',
-    'Solution : générateur : Set bEnMarche → Call OnEtatChange (bEnMarche). Lampe : BeginPlay → Bind (Target Generateur, Event ← Custom Event) ; Custom Event → Set Visibility (Lumiere, paramètre).',
+    'Nœuds : Call OnEtatChange (générateur), Event BeginPlay, Bind Event to OnEtatChange, Custom Event, Set Visibility (lampe). Rappel : DoOnce et Print String dans le générateur.',
+    'Solution : générateur : Set bEnMarche → Call OnEtatChange (bEnMarche). Lampe : BeginPlay → Bind (Target Generateur, Event ← Custom Event) ; Custom Event → Set Visibility (Lumiere, paramètre). Rappel : après le Call, DoOnce → Print String « Premier démarrage ».',
   ],
   challenge: 'Ajoute une lampe dans le niveau : il suffit de régler sa référence, sans toucher au générateur.',
   setup() {
@@ -184,7 +192,19 @@ export const lesson10: Lesson = {
     referenceVariable(pb, lamp, 'Generateur', gen, ids.map((id) => [id, genId] as [string, string]));
     return pb.project;
   },
-  scenario: [{ wait: 0.3 }, { checkpoint: 'arret' }, { press: 'E' }, { checkpoint: 'marche' }, { release: 'E' }, { press: 'E' }, { checkpoint: 'stop' }, { release: 'E' }],
+  scenario: [
+    { wait: 0.3 },
+    { checkpoint: 'arret' },
+    { press: 'E' },
+    { checkpoint: 'marche' },
+    { release: 'E' },
+    { press: 'E' },
+    { checkpoint: 'stop' },
+    { release: 'E' },
+    { press: 'E' },
+    { release: 'E' },
+    { wait: 0.1 },
+  ],
   checks: [
     visible('off', 'BP_Lampe', 'Lumiere', false, 'Au départ, les lampes sont éteintes', 'arret'),
     {
@@ -197,6 +217,15 @@ export const lesson10: Lesson = {
       },
     },
     visible('stop', 'BP_Lampe3', 'Lumiere', false, 'À l’arrêt, elles s’éteignent', 'stop'),
+    {
+      id: 'first-start',
+      label: 'Rappel : « Premier démarrage », une seule fois',
+      test: (cx) => {
+        const n = countPrints(cx, 'Premier démarrage');
+        if (!n) return 'Aucun message « Premier démarrage » au premier démarrage du générateur.';
+        return n === 1 ? true : `« Premier démarrage » s’affiche ${n} fois : le générateur a démarré deux fois, le message doit passer une seule fois.`;
+      },
+    },
     notion(usesNode('call', 'BP_Generateur', ['dispatcher.call'], 'Le générateur utilise Call', 'Le générateur doit annoncer le changement avec Call.')),
     notion(usesNode('bind', 'BP_Lampe', ['dispatcher.bind'], 'La lampe utilise Bind Event', 'Chaque lampe doit s’abonner avec Bind Event.')),
     notion(notUsing('tick', 'BP_Lampe', ['event.tick'], 'Pas d’Event Tick dans BP_Lampe', 'BP_Lampe utilise encore Event Tick : le but est de s’en passer.')),
@@ -213,6 +242,9 @@ export const lesson10: Lesson = {
     const set = Object.values(gen.graph.nodes).find((n) => n.def === 'var.set')!.id;
     const call = gen.node('dispatcher.call', { owner: gen.cls.id, dispatcher: d.id }, {}, [1080, 96]);
     gen.link(say, 'then', call, 'exec').link(set, 'out', call, param);
+    const once = gen.node('flow.doOnce', {}, {}, [1400, 96]);
+    const first = gen.node('debug.printString', {}, { text: 'Premier démarrage' }, [1700, 96]);
+    gen.link(call, 'then', once, 'exec').link(once, 'completed', first, 'exec');
 
     const ref = varId(lamp, 'Generateur');
     const bp = lamp.node('event.beginPlay', {}, {}, [64, 96]);

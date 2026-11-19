@@ -271,6 +271,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Les entrées arrivent au joueur (pion ou Player Controller). Il sait ce qui est à portée et l’envoie à l’objet ; les objets n’écoutent aucune touche.',
   ),
   q(
+    'p14-cycle-de-vie',
+    'BeginPlay → Spawn Actor (BP_Drone) → Print « fini ». Quand le BeginPlay du drone s’exécute-t-il ?',
+    ['Pendant le Spawn Actor, avant « fini »', 'À l’image suivante, après « fini »', 'Au chargement du niveau', 'Jamais : un acteur créé n’a pas de BeginPlay'],
+    'Spawn Actor construit le drone (Construction Script), lance son BeginPlay, puis seulement sort par sa pin blanche.',
+  ),
+  q(
+    's3-poste-garde',
+    'Le pupitre déclenche une alerte ; les gyrophares et la porte doivent réagir, et on en ajoutera d’autres. Quel outil dans le pupitre ?',
+    ['Un Event Dispatcher : il annonce, ceux qui réagissent s’abonnent', 'Un Cast To par classe qui réagit', 'Une variable référence par gyrophare', 'Get All Actors Of Class à chaque alerte'],
+    'Le pupitre ne doit pas connaître ceux qui réagissent : il annonce (Call), chacun s’abonne (Bind) au BeginPlay. Ajouter un gyrophare ne change pas le pupitre.',
+  ),
+  q(
     'l-menu-pause',
     'IA_Pause met le jeu en pause avec Set Game Paused. Le second appui sur Espace ne fait plus rien. Pourquoi ?',
     ['Trigger when Paused n’est pas coché sur IA_Pause', 'Set Game Paused ne peut être appelé qu’une fois', 'Le Player Controller est détruit en pause', 'Il faut un Delay avant de reprendre'],

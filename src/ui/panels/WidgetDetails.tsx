@@ -13,6 +13,7 @@ import {
   stretchedX,
   stretchedY,
   WIDGET_LABEL,
+  type BindableProp,
   type HAlign,
   type Justification,
   type VAlign,
@@ -20,7 +21,17 @@ import {
   type WidgetProps,
   type WidgetSlot,
 } from '@core/model/widgets';
-import { removeWidget, renameWidget, setWidgetAnchors, setWidgetIsVariable, updateWidgetProps, updateWidgetSlot } from '@core/operations/widgetOps';
+import {
+  bindingCandidates,
+  createWidgetBinding,
+  removeWidget,
+  renameWidget,
+  setWidgetAnchors,
+  setWidgetBinding,
+  setWidgetIsVariable,
+  updateWidgetProps,
+  updateWidgetSlot,
+} from '@core/operations/widgetOps';
 import { DESIGN_H, DESIGN_W, layoutWidgets } from '@core/umg/layout';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
@@ -50,7 +61,55 @@ function Pair({ children }: { children: ComponentChildren }) {
   return <span class="d-pair">{children}</span>;
 }
 
-export function WidgetDetails({ id, onOpenClass }: { id: string; onOpenClass?: (classId: string) => void }) {
+/**
+ * A property with UE's Bind menu beside it: Create Binding (a new function
+ * GetText_0, opened in the Graph), a compatible function of the Blueprint,
+ * or Remove Binding. Bound, the property shows its function instead of its value.
+ */
+function Bindable({ w, prop, onOpenGraph, children }: { w: WidgetNode; prop: BindableProp; onOpenGraph?: (graphId: string) => void; children: ComponentChildren }) {
+  const store = useStore();
+  const cls = store.cls;
+  const bound = w.bindings?.[prop];
+  const fn = bound ? cls.graphs.find((g) => g.id === bound) : undefined;
+  const choices = bindingCandidates(cls, w.kind, prop);
+  const pick = (v: string) => {
+    if (v === '__create') {
+      const r = store.applyProject('Create Binding', (p) => createWidgetBinding(p, store.cls, w.id, prop));
+      if (r.ok) onOpenGraph?.(r.value.id);
+      else store.warn(r.reason);
+    } else if (v === '__remove') {
+      store.apply('Remove Binding', (c) => setWidgetBinding(c, w.id, prop, undefined));
+    } else if (v) {
+      const r = store.apply('Lier la propriété', (c) => setWidgetBinding(c, w.id, prop, v));
+      if (!r.ok) store.warn(r.reason);
+    }
+  };
+  return (
+    <span class="bind-row">
+      {fn ? (
+        <button class="btn bind-fn" onClick={() => onOpenGraph?.(fn.id)} title="Ouvrir la fonction liée">
+          ƒ {fn.name}
+        </button>
+      ) : (
+        children
+      )}
+      <select class={`field bind-btn${fn ? ' on' : ''}`} value="" aria-label={`Bind ${prop}`} onChange={(e) => pick((e.target as HTMLSelectElement).value)}>
+        <option value="">Bind</option>
+        {fn && <option value="__remove">Remove Binding</option>}
+        <option value="__create">Create Binding</option>
+        {choices
+          .filter((g) => g.id !== bound)
+          .map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+      </select>
+    </span>
+  );
+}
+
+export function WidgetDetails({ id, onOpenClass, onOpenGraph }: { id: string; onOpenClass?: (classId: string) => void; onOpenGraph?: (graphId: string) => void }) {
   const store = useStore();
   const cls = store.cls;
   const w = (cls.widgets ?? []).find((x) => x.id === id);
@@ -122,22 +181,26 @@ export function WidgetDetails({ id, onOpenClass }: { id: string; onOpenClass?: (
       {w.kind === 'TextBlock' && (
         <Group title="Content">
           <Field label="Text">
-            <textarea
-              class="field"
-              rows={2}
-              value={p.text}
-              onBlur={(e) => {
-                const text = (e.target as HTMLTextAreaElement).value;
-                if (text !== p.text) setProps({ text });
-              }}
-            />
+            <Bindable w={w} prop="text" onOpenGraph={onOpenGraph}>
+              <textarea
+                class="field"
+                rows={2}
+                value={p.text}
+                onBlur={(e) => {
+                  const text = (e.target as HTMLTextAreaElement).value;
+                  if (text !== p.text) setProps({ text });
+                }}
+              />
+            </Bindable>
           </Field>
         </Group>
       )}
       {w.kind === 'TextBlock' && (
         <Group title="Appearance">
           <Field label="Color and Opacity">
-            <Color value={p.color} onChange={(color) => setProps({ color })} />
+            <Bindable w={w} prop="color" onOpenGraph={onOpenGraph}>
+              <Color value={p.color} onChange={(color) => setProps({ color })} />
+            </Bindable>
           </Field>
           <Field label="Font Size">
             <NumberField value={p.fontSize} onCommit={(fontSize) => setProps({ fontSize: Math.max(1, Math.round(fontSize)) })} />
@@ -150,10 +213,14 @@ export function WidgetDetails({ id, onOpenClass }: { id: string; onOpenClass?: (
       {w.kind === 'ProgressBar' && (
         <Group title="Progress">
           <Field label="Percent">
-            <NumberField value={p.percent} onCommit={(percent) => setProps({ percent: Math.max(0, Math.min(1, percent)) })} />
+            <Bindable w={w} prop="percent" onOpenGraph={onOpenGraph}>
+              <NumberField value={p.percent} onCommit={(percent) => setProps({ percent: Math.max(0, Math.min(1, percent)) })} />
+            </Bindable>
           </Field>
           <Field label="Fill Color and Opacity">
-            <Color value={p.fillColor} onChange={(fillColor) => setProps({ fillColor })} />
+            <Bindable w={w} prop="fillColor" onOpenGraph={onOpenGraph}>
+              <Color value={p.fillColor} onChange={(fillColor) => setProps({ fillColor })} />
+            </Bindable>
           </Field>
         </Group>
       )}
@@ -182,13 +249,15 @@ export function WidgetDetails({ id, onOpenClass }: { id: string; onOpenClass?: (
 
       <Group title="Behavior">
         <Field label="Visibility">
-          <select class="field" value={String(p.visibility)} onChange={(e) => setProps({ visibility: Number((e.target as HTMLSelectElement).value) })}>
-            {SLATE_VISIBILITY_LABEL.map((l, i) => (
-              <option key={l} value={String(i)}>
-                {l}
-              </option>
-            ))}
-          </select>
+          <Bindable w={w} prop="visibility" onOpenGraph={onOpenGraph}>
+            <select class="field" value={String(p.visibility)} onChange={(e) => setProps({ visibility: Number((e.target as HTMLSelectElement).value) })}>
+              {SLATE_VISIBILITY_LABEL.map((l, i) => (
+                <option key={l} value={String(i)}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </Bindable>
         </Field>
       </Group>
 

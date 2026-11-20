@@ -267,6 +267,10 @@ function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, 
   if (n.def.endsWith('MappingContext') && n.def.startsWith('input.') && !(ctx.project?.mappingContexts ?? []).some((c) => c.id === n.config.context)) {
     out.push(['pickInputAsset', 'choisis le Mapping Context dans Details.']);
   }
+  if (n.def === 'widget.create' && !linked('class')) {
+    const id = n.defaults.class;
+    if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id && c.parent === 'UserWidget')) out.push(['pickClass', 'choisis un Widget Blueprint sur la pin Class.']);
+  }
   if (n.def === 'save.create' && !linked('saveClass')) {
     const id = n.defaults.saveClass;
     if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id && c.parent === 'SaveGame')) out.push(['pickSaveGame', 'choisis une classe SaveGame sur la pin Save Game Class.']);

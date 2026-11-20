@@ -8,6 +8,7 @@ import type { BlueprintClass, NodeInstance, Project } from '../../model/project'
 import type { NodeContext } from '../../nodes/definition';
 import type { NoteCode } from '../runRecord';
 import type { DebugLine, TraceHit } from '../trace';
+import type { Umg } from '../../umg/runtime';
 import type { ActorRT, ComponentRT, ObjRef, RValue, TimelineRT, TimerRT } from '../world';
 
 /** Entry pin used when a node asked to be resumed (loops). */
@@ -86,6 +87,8 @@ export interface WorldApi {
   /** Set Game Paused: game time stops, input only reaches the actions marked Trigger when Paused. */
   readonly gamePaused: boolean;
   setGamePaused(paused: boolean): void;
+  /** UMG: widget objects, the viewport, their properties. */
+  readonly umg: Umg;
 }
 
 export interface ValueCx {

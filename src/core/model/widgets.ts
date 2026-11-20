@@ -90,6 +90,45 @@ export interface WidgetNode {
   slot: WidgetSlot;
   /** A User Widget placed here: the Widget Blueprint it shows. */
   classId?: string;
+  /**
+   * Property Bindings (the Bind menu next to a property in Details): the
+   * function of the Widget Blueprint that gives the value, called every frame.
+   */
+  bindings?: Partial<Record<BindableProp, string>>;
+}
+
+/** Properties that can be bound to a function, as UE's Bind menu offers them. */
+export type BindableProp = 'text' | 'percent' | 'visibility' | 'color' | 'fillColor';
+
+/** The bindable properties of a kind, with UE's label and the type their function returns. */
+export interface BindableSpec {
+  prop: BindableProp;
+  label: string;
+  /** Pin category and subtype of the function's Return Value. */
+  type: { category: 'text' | 'float' | 'enum' | 'struct'; subtype?: string };
+  /** Name UE gives the function made by Create Binding (Get + property, then _0, _1…). */
+  fnName: string;
+}
+
+const BIND_VISIBILITY: BindableSpec = { prop: 'visibility', label: 'Visibility', type: { category: 'enum', subtype: 'ESlateVisibility' }, fnName: 'GetVisibility' };
+
+export function bindableProps(kind: WidgetKind): BindableSpec[] {
+  switch (kind) {
+    case 'TextBlock':
+      return [
+        { prop: 'text', label: 'Text', type: { category: 'text' }, fnName: 'GetText' },
+        { prop: 'color', label: 'Color and Opacity', type: { category: 'struct', subtype: 'LinearColor' }, fnName: 'GetColorAndOpacity' },
+        BIND_VISIBILITY,
+      ];
+    case 'ProgressBar':
+      return [
+        { prop: 'percent', label: 'Percent', type: { category: 'float' }, fnName: 'GetPercent' },
+        { prop: 'fillColor', label: 'Fill Color and Opacity', type: { category: 'struct', subtype: 'LinearColor' }, fnName: 'GetFillColorAndOpacity' },
+        BIND_VISIBILITY,
+      ];
+    default:
+      return [BIND_VISIBILITY];
+  }
 }
 
 /** How many children a widget takes: panels many, a Button one (its content), the others none. */

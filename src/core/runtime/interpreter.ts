@@ -650,6 +650,31 @@ export class Interpreter {
     return scope.outputs[call.id] ?? {};
   }
 
+  /**
+   * Run a function graph of `actor` to its end, outside any chain, and give
+   * its outputs by parameter id (a widget's Binding, called by Slate every
+   * frame). Breakpoints are not checked inside it.
+   */
+  evaluate(actor: ActorRT, graphId: string): Record<string, RValue> {
+    const entry = this.functionEntry(actor, graphId, true);
+    if (!entry) return {};
+    entry.outputs = {};
+    const scope: Scope = { outputs: {}, state: {}, locals: {} };
+    const base = this.stack.length;
+    this.stack.push({ actor, scope, gi: entry.gi, node: '__binding', mode: 'ret', pin: '' }, entry);
+    let steps = 0;
+    while (this.stack.length > base) {
+      const f = this.stack.pop()!;
+      if (++steps > MAX_STEPS) {
+        this.host.runtimeError(`Infinite loop detected dans la fonction ${entry.gi.graph.name}.`);
+        this.stack.length = base;
+        return {};
+      }
+      if (!this.gone(f.actor)) this.execute(f);
+    }
+    return scope.outputs.__binding ?? {};
+  }
+
   // ---------------------------------------------------------------- data
 
   /** The node feeding a data input, through any Reroute nodes. */

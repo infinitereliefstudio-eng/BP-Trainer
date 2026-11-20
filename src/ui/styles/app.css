@@ -794,3 +794,13 @@ select.field { padding-right: 4px; }
 .anchor-cell.on { border-color: var(--accent); background: var(--accent-soft); }
 .anchor-cell::before { content: ''; position: absolute; inset: 7px; border: 1px solid #5d6470; }
 .anchor-mark { position: absolute; margin: 7px; width: 0; height: 0; box-sizing: border-box; border: 2px solid #e8ecf2; border-radius: 2px; transform: translate(-2px, -2px); }
+
+/* V7.34 — UMG during Play: the viewport's widgets over the level (no touch yet: buttons come in V7.35). */
+.play-overlay > .umg-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.umg-screen { position: absolute; inset: 0; }
+.bind-btn { min-width: 0; padding: 0 8px; font-size: 12px; }
+.bind-btn.on { color: #08121c; background: #9ed36a; border-color: #9ed36a; }
+.bind-row { display: flex; gap: 6px; align-items: center; width: 100%; }
+.bind-row > :first-child { flex: 1; min-width: 0; }
+.bind-fn { font-size: 12px; color: #9ed36a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.designer-errors { color: var(--error); }

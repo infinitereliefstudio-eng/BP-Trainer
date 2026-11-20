@@ -9,6 +9,7 @@ import type { PinType } from '@core/types/pins';
 import { formatValue, type Value } from '@core/types/values';
 import type { PlaySession } from '@editor/world/playSession';
 import { useStore } from '../hooks';
+import { BindingsGroup, widgetWhere } from '../play/LiveOutliner';
 
 interface Props {
   session?: PlaySession;
@@ -62,10 +63,12 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
             <select class="field small-field" value={actor?.id} onChange={(e) => session.select((e.target as HTMLSelectElement).value)}>
               {instances.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.label}
+                  {a.widget ? a.objectName : a.label}
                 </option>
               ))}
             </select>
+          ) : store.cls.parent === 'UserWidget' ? (
+            <span class="muted">aucun {store.cls.name} créé (Create Widget)</span>
           ) : (
             <span class="muted">aucune instance de {store.cls.name} dans le niveau</span>
           )}
@@ -87,6 +90,15 @@ export function DebugPanel({ session, onFocusNode, compact }: Props) {
           </>
         ) : (
           <p class="hint">Touche un nœud du graphe pour voir les valeurs de sa dernière exécution.</p>
+        )}
+        {actor?.widget && (
+          <>
+            <div class="dbg-row">
+              <span class="dbg-pin">Où</span>
+              <span class="dbg-val">{widgetWhere(sim, actor)}</span>
+            </div>
+            <BindingsGroup sim={sim} obj={actor} />
+          </>
         )}
         {cls && cls.variables.length > 0 && actor && (
           <>

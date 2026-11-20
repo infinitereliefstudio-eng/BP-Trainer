@@ -4,6 +4,7 @@
  * and degrees, X to the right and Y downwards on screen (top view).
  */
 import type { ComponentKind, ComponentProps } from '../model/project';
+import type { WidgetProps } from '../model/widgets';
 import type { Value } from '../types/values';
 
 /**
@@ -91,6 +92,14 @@ export interface ActorRT {
   logic?: Record<string, string>;
   /** A widget object (UMG): its widgets ticked Is Variable, by widget id → their reference on the screen. */
   widgetRefs?: Record<string, RValue>;
+  /** A widget object (an instance of a Widget Blueprint, made by Create Widget): its state on the screen. */
+  widget?: WidgetRT;
+  /**
+   * A widget of a Designer ticked Is Variable (a Text Block, a Progress
+   * Bar…): the widget object it belongs to and its id there. Its properties
+   * live in that object's `widget.state`.
+   */
+  widgetEl?: { host: string; id: string };
   /** For the object of an Actor Component: the actor that carries it (Get Owner), and its component id there. */
   owner?: string;
   componentId?: string;
@@ -100,6 +109,33 @@ export interface ActorRT {
    * of that chain still runs; its latent actions and later events do not.
    */
   destroyedInRun?: number;
+}
+
+/**
+ * The running state of a widget object (UMG). Properties changed by the
+ * game (Set Text…) or by Bindings are kept by widget id over the Designer's
+ * values; '' is the object itself (Set Visibility on a whole widget).
+ */
+export interface WidgetRT {
+  /** Owning Player given to Create Widget (the controller's id), or null. */
+  owner: string | null;
+  state: Record<string, Partial<WidgetProps> & { removed?: boolean }>;
+  /** User Widgets placed in its Designer: widget id → the widget object made for it. */
+  nested: Record<string, string>;
+  /** Children added by Add Child to …: panel widget id → widget objects, in order. */
+  children: Record<string, string[]>;
+  /** Where it is shown: added to the viewport, or the panel of another widget it was added to. */
+  inViewport: boolean;
+  zOrder: number;
+  /** Order of the Add to Viewport, for widgets of the same Z-Order. */
+  addedAt: number;
+  parent?: { obj: string; panel: string };
+  /** For a User Widget placed in another's Designer: that widget object and its widget id there. */
+  placedIn?: { obj: string; id: string };
+  /** On the screen now (Construct ran, Destruct not yet). */
+  onScreen: boolean;
+  /** Bindings stopped by a Set on the same property: "widgetId:prop". */
+  broken: Record<string, true>;
 }
 
 /** A timer set by Set Timer by Event: an event to call after Time seconds. */

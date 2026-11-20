@@ -6,6 +6,7 @@
  */
 import { useEffect, useReducer } from 'preact/hooks';
 import { findClass, type Variable } from '@core/model/project';
+import { bindableProps } from '@core/model/widgets';
 import type { ActorRT, RValue } from '@core/runtime/world';
 import { isRef } from '@core/runtime/world';
 import { typeLabel, type PinType } from '@core/types/pins';
@@ -64,7 +65,9 @@ export function LiveOutliner({ session }: Props) {
   useEffect(() => session.onUi(() => force(0)), [session]);
   const sim = session.sim;
   const actors = [...sim.actors.filter((a) => !a.destroyed), sim.player];
-  const picked = actors.find((a) => a.id === session.selected);
+  // Widget objects are not actors: UE lists them in its Widget Reflector, here under the actors.
+  const widgets = sim.umg.widgetObjects().filter((o) => !o.widget!.placedIn);
+  const picked = [...actors, ...widgets].find((a) => a.id === session.selected);
 
   if (!picked) {
     return (
@@ -76,10 +79,80 @@ export function LiveOutliner({ session }: Props) {
             <span class="mb-sub">{a.className}</span>
           </button>
         ))}
+        {widgets.length > 0 && <div class="dbg-sub">Widgets (UMG)</div>}
+        {widgets.map((o) => (
+          <button key={o.id} class="mb-main outliner-row" onClick={() => session.select(o.id)}>
+            <span class="mb-label">{o.objectName}</span>
+            <span class="mb-sub">{widgetWhere(sim, o)}</span>
+          </button>
+        ))}
       </div>
     );
   }
+  if (picked.widget) return <LiveWidget session={session} obj={picked} />;
   return <LiveDetails session={session} actor={picked} />;
+}
+
+/** Where a widget object is: on the screen (viewport, or in a panel) or only created. */
+export function widgetWhere(sim: PlaySession['sim'], o: ActorRT): string {
+  const w = o.widget;
+  if (!w) return '';
+  if (w.inViewport) return `à l’écran · Z-Order ${w.zOrder}`;
+  if (w.parent) return `dans ${sim.objectById(w.parent.obj)?.objectName ?? '?'}${w.onScreen ? ' · à l’écran' : ''}`;
+  if (w.placedIn) return `placé dans ${sim.objectById(w.placedIn.obj)?.objectName ?? '?'}`;
+  return 'créé, pas à l’écran';
+}
+
+/** A widget object during Play: where it is, its variables and its Bindings. */
+function LiveWidget({ session, obj }: { session: PlaySession; obj: ActorRT }) {
+  const sim = session.sim;
+  return (
+    <div class="outliner">
+      <div class="row-buttons flush outliner-back">
+        <button class="btn" onClick={() => session.select(undefined)}>
+          ‹ Outliner
+        </button>
+        <strong>{obj.objectName}</strong>
+        <span class="muted small">{obj.className}</span>
+      </div>
+      <Group title="Widget">
+        <Field label="Où">
+          <span class="dbg-val">{widgetWhere(sim, obj)}</span>
+        </Field>
+        <Field label="Owning Player">
+          <span class="dbg-val">{obj.widget!.owner ? 'PlayerController' : 'None'}</span>
+        </Field>
+      </Group>
+      <BindingsGroup sim={sim} obj={obj} />
+      <LiveVariables session={session} obj={obj} title="Variables (en direct)" />
+      <p class="hint">Ces modifications ne valent que pour cette partie : Stop rend au projet ses valeurs.</p>
+    </div>
+  );
+}
+
+/** Each Binding of a widget object: its function, how many times Slate called it, or the Set that stopped it. */
+export function BindingsGroup({ sim, obj }: { sim: PlaySession['sim']; obj: ActorRT }) {
+  const cls = sim.classOf(obj);
+  const rows = (cls?.widgets ?? []).flatMap((w) =>
+    bindableProps(w.kind)
+      .filter((b) => w.bindings?.[b.prop])
+      .map((b) => {
+        const fn = cls!.graphs.find((g) => g.id === w.bindings![b.prop]);
+        const calls = sim.umg.bindingCalls[`${obj.id}:${w.id}:${b.prop}`] ?? 0;
+        const broken = obj.widget!.broken[`${w.id}:${b.prop}`];
+        return { key: `${w.id}:${b.prop}`, label: `${w.name} · ${b.label}`, text: `${fn?.name ?? '?'} · ${broken ? 'arrêtée par un Set' : `${calls} appel${calls > 1 ? 's' : ''}`}` };
+      }),
+  );
+  if (!rows.length) return null;
+  return (
+    <Group title="Bindings">
+      {rows.map((r) => (
+        <Field key={r.key} label={r.label}>
+          <span class="dbg-val">{r.text}</span>
+        </Field>
+      ))}
+    </Group>
+  );
 }
 
 function LiveDetails({ session, actor }: { session: PlaySession; actor: ActorRT }) {

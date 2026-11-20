@@ -1060,6 +1060,83 @@ async def main():
             errs.append('My Blueprint : le Text coché Is Variable manque aux Variables')
         await shot('88_widget_my_blueprint')
 
+        # V7.34: widgets on the screen. Create Binding from the Progress Bar's Details, Pre Construct in the Designer,
+        # then BP_Lampe creates the HUD and adds it to the viewport: Play draws it, the Outliner lists it with its Binding.
+        await page.locator('.drawer.left .drawer-head .btn').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.graph-tabs .tab', has_text='Designer').tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate("() => { const s = window.bpStore; s.setFocus({ kind: 'widget', id: s.cls.widgets.find(w => w.kind === 'ProgressBar').id }); }")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.drawer.right select[aria-label="Bind percent"]').select_option('__create')
+        await page.wait_for_timeout(400)
+        if await page.locator('.graph-tabs .tab.active', has_text='GetPercent_0').count() == 0:
+            errs.append('Create Binding : la fonction GetPercent_0 ne s’ouvre pas')
+        await shot('89_widget_create_binding')
+        if await page.locator('.drawer.right .drawer-head .btn').count():
+            await page.locator('.drawer.right .drawer-head .btn').tap()
+            await page.wait_for_timeout(200)
+        # Wire by hand what a learner would: Pre Construct and Construct set the Text; the binding returns 0.6.
+        await page.evaluate("""() => {
+          const s = window.bpStore;
+          s.applyProject('e2e HUD', (p) => {
+            const hud = p.classes.find(c => c.name === 'WBP_HUD');
+            const text = hud.widgets.find(w => w.kind === 'TextBlock');
+            const fn = hud.graphs.find(g => g.name === 'GetPercent_0');
+            const ret = Object.values(fn.nodes).find(n => n.def === 'fn.return');
+            ret.defaults[fn.fn.outputs[0].id] = 0.6;
+            const g = hud.graphs.find(g => g.kind === 'event');
+            const node = (id, def, x, y, config = {}, defaults = {}) => { g.nodes[id] = { id, def, x, y, config, defaults }; return id; };
+            const link = (id, a, pa, b, pb) => { g.links[id] = { id, from: { node: a, pin: pa }, to: { node: b, pin: pb } }; };
+            node('e2e_pre', 'event.preConstruct', 0, 600);
+            node('e2e_set1', 'widget.setText', 320, 600, {}, { text: 'Aperçu du Designer' });
+            node('e2e_get1', 'var.widget', 160, 760, { widget: text.id });
+            link('e2e_l1', 'e2e_pre', 'then', 'e2e_set1', 'exec');
+            link('e2e_l2', 'e2e_get1', 'value', 'e2e_set1', 'target');
+            node('e2e_con', 'event.construct', 0, 900);
+            node('e2e_set2', 'widget.setText', 320, 900, {}, { text: 'Score : 0' });
+            node('e2e_get2', 'var.widget', 160, 1060, { widget: text.id });
+            link('e2e_l3', 'e2e_con', 'then', 'e2e_set2', 'exec');
+            link('e2e_l4', 'e2e_get2', 'value', 'e2e_set2', 'target');
+            const lamp = p.classes.find(c => c.name === 'BP_Lampe');
+            const lg = lamp.graphs[0];
+            const begin = Object.values(lg.nodes).find(n => n.def === 'event.beginPlay');
+            for (const [id, l] of Object.entries(lg.links)) if (l.from.node === begin.id) delete lg.links[id];
+            lg.nodes.e2e_cw = { id: 'e2e_cw', def: 'widget.create', x: 300, y: 300, config: {}, defaults: { class: hud.id } };
+            lg.nodes.e2e_pc = { id: 'e2e_pc', def: 'player.getController', x: 100, y: 420, config: {}, defaults: {} };
+            lg.nodes.e2e_av = { id: 'e2e_av', def: 'widget.addToViewport', x: 620, y: 300, config: {}, defaults: {} };
+            lg.links.e2e_m1 = { id: 'e2e_m1', from: { node: begin.id, pin: 'then' }, to: { node: 'e2e_cw', pin: 'exec' } };
+            lg.links.e2e_m2 = { id: 'e2e_m2', from: { node: 'e2e_pc', pin: 'result' }, to: { node: 'e2e_cw', pin: 'owner' } };
+            lg.links.e2e_m3 = { id: 'e2e_m3', from: { node: 'e2e_cw', pin: 'then' }, to: { node: 'e2e_av', pin: 'exec' } };
+            lg.links.e2e_m4 = { id: 'e2e_m4', from: { node: 'e2e_cw', pin: 'result' }, to: { node: 'e2e_av', pin: 'target' } };
+          });
+        }""")
+        await page.wait_for_timeout(200)
+        await page.locator('.graph-tabs .tab', has_text='Designer').tap()
+        await page.wait_for_timeout(400)
+        if await page.locator('.designer .umg-text', has_text='Aperçu du Designer').count() == 0:
+            errs.append('Designer : Event Pre Construct ne change pas l’aperçu')
+        await shot('90_widget_pre_construct')
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(800)
+        if await page.locator('.umg-layer .umg-text', has_text='Score : 0').count() == 0:
+            errs.append('Play : le HUD (Score : 0) ne s’affiche pas')
+        fill = await page.evaluate("() => { const f = document.querySelector('.umg-layer .umg-bar-fill'); return f ? f.style.width : ''; }")
+        if fill != '60%':
+            errs.append(f'Play : la Progress Bar liée devrait être à 60 % ({fill})')
+        await shot('91_play_hud')
+        await page.locator('.pb-btn[aria-label="Outliner"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.outliner-row', has_text='WBP_HUD_C_0').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.outliner .d-field', has_text='GetPercent_0').count() == 0:
+            errs.append('Outliner : le widget ne montre pas sa Binding')
+        await shot('92_play_widget_outliner')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
         print('errors', errs)
         await b.close()
         return errs

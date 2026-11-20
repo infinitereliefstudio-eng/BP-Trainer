@@ -36,13 +36,25 @@ export interface LaidOutWidget {
   props: WidgetProps;
 }
 
-/** What a running game changed on a widget, by path (Set Text, Set Percent…). */
-export type PropsOverride = (path: string) => Partial<WidgetProps> | undefined;
+/** What a running game changed on a widget, by path (Set Text, Set Percent…); `removed`: Remove from Parent. */
+export type PropsOverride = (path: string) => (Partial<WidgetProps> & { removed?: boolean }) | undefined;
+
+/** Children a running game added to a panel (Add Child to Vertical Box…), by the panel's path. */
+export type ExtraChildren = (path: string, panel: WidgetNode) => WidgetNode[];
 
 interface Ctx {
   project?: Project;
   override?: PropsOverride;
+  extra?: ExtraChildren;
   guard: number;
+}
+
+/** A widget's children on the screen: its Designer's (minus the removed ones), then those the game added. */
+function childrenOf(list: WidgetNode[], w: WidgetNode, path: string, cx: Ctx): WidgetNode[] {
+  const own = widgetChildren(list, w.id);
+  if (!cx.override && !cx.extra) return own;
+  const pre = prefix(path);
+  return [...own.filter((c) => !cx.override?.(`${pre}${c.id}`)?.removed), ...(cx.extra?.(path, w) ?? [])];
 }
 
 type Size = [number, number];
@@ -60,7 +72,7 @@ function treeOf(cx: Ctx, classId: string | undefined): { cls: BlueprintClass; li
 function desired(w: WidgetNode, list: WidgetNode[], path: string, cx: Ctx): Size {
   const p = propsOf(w, path, cx);
   if (p.visibility === VIS_COLLAPSED) return [0, 0];
-  const kids = () => widgetChildren(list, w.id).filter((c) => propsOf(c, `${prefix(path)}${c.id}`, cx).visibility !== VIS_COLLAPSED);
+  const kids = () => childrenOf(list, w, path, cx).filter((c) => propsOf(c, `${prefix(path)}${c.id}`, cx).visibility !== VIS_COLLAPSED);
   const childSize = (c: WidgetNode): Size => desired(c, list, `${prefix(path)}${c.id}`, cx);
   switch (w.kind) {
     case 'TextBlock': {
@@ -145,7 +157,7 @@ function arrange(w: WidgetNode, list: WidgetNode[], classId: string, path: strin
   const drawn = parentDrawn && props.visibility !== VIS_COLLAPSED && props.visibility !== VIS_HIDDEN;
   out.push({ path, widget: w, classId, rect, drawn, depth, props });
   const pre = prefix(path);
-  const all = widgetChildren(list, w.id);
+  const all = childrenOf(list, w, path, cx);
   const kids = all.filter((c) => propsOf(c, `${pre}${c.id}`, cx).visibility !== VIS_COLLAPSED);
   const place = (c: WidgetNode, r: Rect) => arrange(c, list, classId, `${pre}${c.id}`, r, depth + 1, drawn, cx, out);
   const size = (c: WidgetNode): Size => desired(c, list, `${pre}${c.id}`, cx);
@@ -252,10 +264,18 @@ function arrange(w: WidgetNode, list: WidgetNode[], classId: string, path: strin
  * the screen, as a widget added to the viewport does. Widgets come out in
  * drawing order (parents before children, Canvas children by ZOrder).
  */
-export function layoutWidgets(cls: BlueprintClass, width: number, height: number, project?: Project, override?: PropsOverride, prefixPath = ''): LaidOutWidget[] {
+export function layoutWidgets(
+  cls: BlueprintClass,
+  width: number,
+  height: number,
+  project?: Project,
+  override?: PropsOverride,
+  prefixPath = '',
+  extra?: ExtraChildren,
+): LaidOutWidget[] {
   const list = cls.widgets ?? [];
   const root = widgetRoot(list);
   const out: LaidOutWidget[] = [];
-  if (root) arrange(root, list, cls.id, `${prefixPath}${root.id}`, { x: 0, y: 0, w: width, h: height }, 0, true, { project, override, guard: 0 }, out);
+  if (root) arrange(root, list, cls.id, `${prefixPath}${root.id}`, { x: 0, y: 0, w: width, h: height }, 0, true, { project, override, extra, guard: 0 }, out);
   return out;
 }

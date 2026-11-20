@@ -6,6 +6,7 @@ import type { PinType } from '../types/pins';
 import { validateName } from './classOps';
 import { addNode, connect, removeNodes, type OpResult } from './graphOps';
 import { pruneProject } from './projectOps';
+import { pruneBindings } from './widgetOps';
 
 const CALLS = ['call.function', 'call.pureFunction'];
 
@@ -115,4 +116,6 @@ export function removeFunctionParam(p: Project, cls: BlueprintClass, graphId: st
 export function removeFunction(p: Project, cls: BlueprintClass, graphId: string): void {
   for (const { graph, ids } of callers(p, cls, graphId)) removeNodes(graph, ids);
   cls.graphs = cls.graphs.filter((g) => g.id !== graphId);
+  // A widget property bound to it goes back to its own value.
+  pruneBindings(cls);
 }

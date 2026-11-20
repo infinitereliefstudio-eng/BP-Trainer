@@ -3,6 +3,7 @@
  * Enum assets. An enum value is the index of its entry, as in UE (a Byte).
  */
 import type { Project } from '../model/project';
+import { SLATE_VISIBILITY_LABEL } from '../model/widgets';
 
 export const BUILTIN_ENUMS: Record<string, string[]> = {
   ECollisionEnabled: ['No Collision', 'Query Only (No Physics Collision)', 'Physics Only (No Query Collision)', 'Collision Enabled (Query and Physics)'],
@@ -14,6 +15,8 @@ export const BUILTIN_ENUMS: Record<string, string[]> = {
   EDrawDebugTrace: ['None', 'For One Frame', 'For Duration', 'Persistent'],
   /** Why Event End Play runs (UE's EEndPlayReason). */
   EEndPlayReason: ['Destroyed', 'Level Transition', 'End Play In Editor', 'Removed From World', 'Quit'],
+  /** Visibility of a widget (UMG), in UE's order: Set Visibility, Bindings. */
+  ESlateVisibility: SLATE_VISIBILITY_LABEL,
 };
 
 /** Entries of an enum by name, or undefined if it does not exist. */

@@ -125,6 +125,13 @@ function checkWidgets(cls: Obj, where: string): void {
     w.isVariable = w.isVariable === true;
     w.props = { ...widgetPropsDefaults(w.kind as WidgetKind), ...(isObj(w.props) ? w.props : {}) };
     w.slot = { ...slotDefaults(), ...(isObj(w.slot) ? w.slot : {}) };
+    // Bindings name a function graph of the class: one that is gone is forgotten.
+    if (w.bindings !== undefined) {
+      const graphs = new Set((Array.isArray(cls.graphs) ? (cls.graphs as Obj[]) : []).map((g) => g.id));
+      const kept = Object.entries(isObj(w.bindings) ? w.bindings : {}).filter(([, g]) => isStr(g) && graphs.has(g));
+      if (kept.length) w.bindings = Object.fromEntries(kept);
+      else delete w.bindings;
+    }
   }
   const ids = new Set<string>();
   let root = false;

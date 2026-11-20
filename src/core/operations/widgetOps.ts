@@ -4,8 +4,9 @@
  * Hierarchy, Details) and the drag of a widget in a Canvas Panel.
  */
 import { newId } from '../model/ids';
-import { findClass, uniqueName, type BlueprintClass, type Project } from '../model/project';
+import { findClass, uniqueName, type BlueprintClass, type Graph, type Project } from '../model/project';
 import {
+  bindableProps,
   childCapacity,
   slotDefaults,
   stretchedX,
@@ -16,12 +17,14 @@ import {
   widgetSubtree,
   WIDGET_DEFAULT_NAME,
   WIDGET_LABEL,
+  type BindableProp,
   type WidgetKind,
   type WidgetNode,
   type WidgetProps,
   type WidgetSlot,
 } from '../model/widgets';
 import { namesInUse, validateName } from './classOps';
+import { addFunction, addFunctionParam } from './functionOps';
 import { removeNodes, type OpResult } from './graphOps';
 
 const ok = <T>(value: T): OpResult<T> => ({ ok: true, value });
@@ -281,4 +284,67 @@ export function moveWidgetInto(cls: BlueprintClass, id: string, parentId: string
 /** Widget Blueprints that place `classId` (User Widget): it cannot be deleted while they do. */
 export function widgetUsers(p: Project, classId: string): BlueprintClass[] {
   return p.classes.filter((c) => (c.widgets ?? []).some((w) => w.kind === 'UserWidget' && w.classId === classId));
+}
+
+/**
+ * Bindings whose function is gone, or no longer gives a value (no output),
+ * are dropped, as UE shows them broken and clears them at compile.
+ */
+export function pruneBindings(cls: BlueprintClass): void {
+  for (const w of cls.widgets ?? []) {
+    if (!w.bindings) continue;
+    for (const [prop, graphId] of Object.entries(w.bindings)) {
+      const g = cls.graphs.find((x) => x.id === graphId);
+      if (!g?.fn?.outputs.length) delete w.bindings[prop as keyof typeof w.bindings];
+    }
+    if (!Object.keys(w.bindings).length) delete w.bindings;
+  }
+}
+
+/** Functions of the Widget Blueprint that a property can be bound to: no input, a Return Value of its type (UE's Bind menu). */
+export function bindingCandidates(cls: BlueprintClass, kind: WidgetKind, prop: BindableProp): Graph[] {
+  const spec = bindableProps(kind).find((s) => s.prop === prop);
+  if (!spec) return [];
+  return cls.graphs.filter((g) => {
+    const out = g.fn?.outputs[0];
+    return g.kind === 'function' && !g.iface && !g.fn!.inputs.length && out && out.type.category === spec.type.category && (out.type.subtype ?? undefined) === spec.type.subtype && !out.type.container;
+  });
+}
+
+/** Bind a property to a function (or unbind it with undefined). */
+export function setWidgetBinding(cls: BlueprintClass, id: string, prop: BindableProp, graphId: string | undefined): OpResult {
+  const w = widgetsOf(cls).find((x) => x.id === id);
+  if (!w) return { ok: false, reason: 'Widget introuvable.' };
+  if (!bindableProps(w.kind).some((s) => s.prop === prop)) return { ok: false, reason: 'Cette propriété ne se lie pas.' };
+  if (graphId === undefined) {
+    if (w.bindings) delete w.bindings[prop];
+    if (w.bindings && !Object.keys(w.bindings).length) delete w.bindings;
+    return { ok: true, value: undefined };
+  }
+  if (!bindingCandidates(cls, w.kind, prop).some((g) => g.id === graphId)) return { ok: false, reason: 'Cette fonction ne convient pas : il lui faut une Return Value du bon type, et aucune entrée.' };
+  w.bindings = { ...w.bindings, [prop]: graphId };
+  return { ok: true, value: undefined };
+}
+
+/**
+ * Create Binding, as UE's Bind menu: a pure function GetText_0 (Get +
+ * property, numbered), its Return Node wired, then the property bound to it.
+ */
+export function createWidgetBinding(p: Project, cls: BlueprintClass, id: string, prop: BindableProp): OpResult<Graph> {
+  const w = widgetsOf(cls).find((x) => x.id === id);
+  const spec = w && bindableProps(w.kind).find((s) => s.prop === prop);
+  if (!w || !spec) return { ok: false, reason: 'Cette propriété ne se lie pas.' };
+  const names = cls.graphs.map((g) => g.name);
+  let n = 0;
+  while (names.includes(`${spec.fnName}_${n}`)) n++;
+  const g = addFunction(cls, `${spec.fnName}_${n}`);
+  g.fn!.pure = true;
+  g.fn!.description = `Liaison (Binding) de ${spec.label} de ${w.name} : appelée à chaque image.`;
+  addFunctionParam(p, cls, g.id, 'outputs', { category: spec.type.category, subtype: spec.type.subtype });
+  const ret = Object.values(g.nodes).find((x) => x.def === 'fn.return');
+  const param = g.fn!.outputs[0];
+  // Start from the Designer's own value, as UE's generated function does.
+  if (ret && param) ret.defaults[param.id] = prop === 'visibility' ? w.props.visibility : (w.props[prop] as string | number);
+  w.bindings = { ...w.bindings, [prop]: g.id };
+  return { ok: true, value: g };
 }

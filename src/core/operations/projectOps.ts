@@ -6,11 +6,14 @@ import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { renameTypeRefs } from './enumOps';
 import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
-import { widgetUsers } from './widgetOps';
+import { pruneBindings, widgetUsers } from './widgetOps';
 
 /** Drop links that no longer fit after a signature or type change, everywhere. */
 export function pruneProject(p: Project): void {
-  for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
+  for (const c of p.classes) {
+    pruneAllGraphs(c, contextFor(c, p));
+    pruneBindings(c);
+  }
 }
 
 const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self', 'UserWidget', 'Widget'];

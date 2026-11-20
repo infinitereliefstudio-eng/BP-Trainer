@@ -1,11 +1,12 @@
 /**
- * Play over the level: the controls of the toolbar (`PlayControls`), and over the level itself the joystick, the action
- * keys, on-screen Print String messages and PAUSED.
+ * Play over the level: the controls of the toolbar (`PlayControls`), and over the level itself the widgets added to
+ * the viewport (UMG), on-screen Print String messages, PAUSED, the joystick and the action keys.
  */
 import { useEffect, useReducer, useRef } from 'preact/hooks';
 import { haptic } from '@editor/haptics';
 import type { InputKey } from '@core/runtime/simulation';
 import type { PlaySession, Speed } from '@editor/world/playSession';
+import { WidgetLayer } from './WidgetLayer';
 
 interface Props {
   session: PlaySession;
@@ -58,6 +59,7 @@ export function PlayOverlay({ session }: Pick<Props, 'session'>) {
 
   return (
     <div class="play-overlay">
+      <WidgetLayer session={session} />
       {sim.gamePaused && (
         <div class="game-paused" title="Set Game Paused : le temps de jeu est arrêté">
           PAUSED

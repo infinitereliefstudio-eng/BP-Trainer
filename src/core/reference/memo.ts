@@ -163,13 +163,14 @@ export const MEMO: MemoCard[] = [
     body:
       'Une interface (barre de vie, menu, dialogue) est un **Widget Blueprint** : un onglet Designer pour placer textes, images et boutons, un onglet Graph pour la logique.\n\n' +
       'Pour l’afficher : **Create Widget** (choisir la classe, Owning Player), garder le résultat dans une variable, puis **Add to Viewport**. Pour l’enlever : **Remove from Parent**.\n\n' +
+      'Le cycle de vie : **Event On Initialized** une seule fois, à Create Widget (les variables Expose on Spawn n’y ont pas encore leur valeur) ; **Event Pre Construct** puis **Event Construct** à chaque Add to Viewport ; **Event Destruct** à chaque Remove from Parent. Retiré, le widget existe toujours : on peut le réafficher. Un 2e Add to Viewport ne fait qu’un Warning.\n\n' +
       'Pour le mettre à jour, deux écoles.\n\n' +
       '- **Binding** d’une propriété : simple, mais la fonction est rappelée à chaque image, pour chaque widget. À éviter dès que l’interface grossit.\n' +
       '- **Piloté par événement** : le jeu annonce un changement (Event Dispatcher « OnSanteChange »), le widget s’y abonne et appelle Set Text ou Set Percent. Rien ne tourne quand rien ne change.\n\n' +
       'Un bouton expose ses événements (On Clicked) dans le graphe du widget.\n\n' +
       'Pour un menu : **Set Input Mode UI Only** (ou Game and UI) et **Show Mouse Cursor** sur le PlayerController ; **Set Input Mode Game Only** en revenant au jeu.\n\n' +
       'Le widget lit le jeu, il ne le contient pas : la santé vit dans le personnage, pas dans la barre de vie.\n\n' +
-      'Dans BP Trainer : Content Drawer › + Add › User Interface › Widget Blueprint. Il s’ouvre sur son Designer (Palette, Hierarchy, Details) ; son Graph a Event Construct au lieu de BeginPlay.',
+      'Dans BP Trainer : Content Drawer › + Add › User Interface › Widget Blueprint. Il s’ouvre sur son Designer (Palette, Hierarchy, Details) ; son Graph a Event Construct au lieu de BeginPlay. Pour Set Text ou Set Percent, coche **Is Variable** sur le widget dans le Designer. Le menu **Bind** à côté d’une propriété crée sa fonction (GetText_0) ; pendant Play, l’Outliner montre combien de fois elle a été appelée. Event Pre Construct s’exécute aussi dans le Designer.',
   },
   {
     id: 'm-niveaux-sauvegarde',

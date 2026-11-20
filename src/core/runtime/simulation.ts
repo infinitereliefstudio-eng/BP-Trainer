@@ -25,6 +25,7 @@ import { movePlayer, type BlockingHit } from './movement';
 import { endOverlapsWith, updateOverlaps, type Broadcast, type Fire } from './overlaps';
 import { TimerSet } from './timers';
 import { lineTrace, type DebugLine, type TraceHit } from './trace';
+import { Umg } from '../umg/runtime';
 import { isRef, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
 
 export type { ScreenMessage, SimLogEntry, SimLogLevel } from './journal';
@@ -94,6 +95,8 @@ export class Simulation implements InterpreterHost {
    * Not the debugger's pause (`paused`), which stops everything.
    */
   gamePaused = false;
+  /** UMG: the widget objects, the viewport, their life cycle and Bindings. */
+  readonly umg: Umg;
   private readonly onSlotsChanged?: () => void;
 
   private readonly journal = new Journal();
@@ -140,6 +143,15 @@ export class Simulation implements InterpreterHost {
     this.slots = opts.slots ?? {};
     this.onSlotsChanged = opts.onSlotsChanged;
     this.interp = new Interpreter(project, this, opts.breakpoints);
+    this.umg = new Umg({
+      project,
+      objects: this.objects,
+      objectById: (id) => this.findActor(id),
+      newObjectName: (cls) => this.objectName(cls).name,
+      warning: (text) => this.journal.warning(this.time, text),
+      evaluate: (obj, graphId) => this.interp.evaluate(obj, graphId),
+      classOf: (obj) => (obj.classId ? findClass(project, obj.classId) : undefined),
+    });
     const ps = project.level.playerStart;
     const pawn = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
     this.player = createPlayer(pawn && inheritedView(pawn, project, true));
@@ -313,6 +325,8 @@ export class Simulation implements InterpreterHost {
       // UE's paused world: only input is processed, game time stands still.
       this.phases.push(
         () => this.fireActions(dt),
+        // Widgets keep ticking while the game is paused (a pause menu must answer).
+        ...this.widgetPhases(dt),
         () => {
           this.frame++;
           this.removeDestroyed();
@@ -341,6 +355,7 @@ export class Simulation implements InterpreterHost {
           if (owner && !owner.destroyed) this.fire(owner, (n) => n.id === t.node, 'then');
         });
       },
+      ...this.widgetPhases(dt),
       () => {
         this.time += dt;
         this.record.time = this.time;
@@ -351,6 +366,32 @@ export class Simulation implements InterpreterHost {
       },
     );
     this.runPhases();
+  }
+
+  /**
+   * UMG after the world: the Event Tick of each widget on the screen, then
+   * the Bindings, polled when Slate paints the frame.
+   */
+  private widgetPhases(dt: number): (() => void)[] {
+    return [
+      () => {
+        for (const o of this.umg.onScreen()) this.fire(o, (n) => n.def === 'event.widgetTick', 'then', { delta: dt });
+      },
+      () => this.umg.pollBindings(),
+    ];
+  }
+
+  /**
+   * The Designer's preview of a Widget Blueprint: a widget object made as
+   * UE's Designer makes one (no On Initialized, no Construct), then its Event
+   * Pre Construct with Is Design Time true, inner widgets first.
+   */
+  designTime(classId: string): ActorRT | null {
+    const made = this.umg.create(classId, null);
+    if (!made) return null;
+    for (const o of this.umg.subtree(made.obj).reverse()) this.fire(o, (n) => n.def === 'event.preConstruct', 'then', { designTime: true });
+    this.interp.drain(true);
+    return made.obj;
   }
 
   /** Run queued Blueprint work, then the rest of the frame, unless a breakpoint stops it. */
@@ -545,10 +586,10 @@ export class Simulation implements InterpreterHost {
 
   /**
    * What the debugger can watch for a class: its placed and spawned actors,
-   * the controller and the player, and the objects of its Actor Components.
+   * the controller and the player, the objects of its Actor Components and its widget objects.
    */
   instancesOf(classId: string): ActorRT[] {
-    const all = [...this.actors, this.player, ...(this.controller.classId ? [this.controller] : []), ...this.objects.filter((o) => o.owner)];
+    const all = [...this.actors, this.player, ...(this.controller.classId ? [this.controller] : []), ...this.objects.filter((o) => o.owner || o.widget)];
     return all.filter((a) => !a.destroyed && this.isA(a, classId));
   }
 

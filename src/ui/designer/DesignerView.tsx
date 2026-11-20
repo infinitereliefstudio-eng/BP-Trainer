@@ -11,6 +11,8 @@ import { useEffect, useImperativeHandle, useReducer, useRef } from 'preact/hooks
 import { widgetRoot } from '@core/model/widgets';
 import { moveWidgetBy, roundWidgetOffsets } from '@core/operations/widgetOps';
 import { DESIGN_H, DESIGN_W, layoutWidgets } from '@core/umg/layout';
+import { previewOverride, type DesignPreview } from '@core/umg/preview';
+import type { Project } from '@core/model/project';
 import { BOTTOM_BAR, FAB_RAIL } from '@editor/framing';
 import { haptic } from '@editor/haptics';
 import { useStore } from '../hooks';
@@ -225,7 +227,8 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
   };
 
   const cls = store.cls;
-  const laid = layoutWidgets(cls, DESIGN_W, DESIGN_H, store.project);
+  const preview = designPreview(store.project, cls.id);
+  const laid = layoutWidgets(cls, DESIGN_W, DESIGN_H, store.project, preview?.override, '', preview?.extra);
   const v = view.current;
   const s = scale();
   const f = store.focus;
@@ -245,9 +248,24 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
           )}
           <span class="designer-size app-only" title="Taille d’écran de référence de BP Trainer">
             {DESIGN_W} × {DESIGN_H} · aperçu ×{s.toFixed(2).replace('.', ',')}
+            {preview && ' · Pre Construct'}
+            {preview && preview.errors.length > 0 && <span class="designer-errors"> · {preview.errors.length} erreur{preview.errors.length > 1 ? 's' : ''}</span>}
           </span>
         </div>
       )}
     </div>
   );
 });
+
+/**
+ * Event Pre Construct runs in the Designer, as in UE (Is Design Time true).
+ * Its result is kept until the graphs or the widgets' properties change, so
+ * moving a widget around does not run it again.
+ */
+let cached: { key: string; value: DesignPreview | undefined } | undefined;
+function designPreview(project: Project, classId: string): DesignPreview | undefined {
+  const parts = project.classes.filter((c) => c.parent === 'UserWidget').map((c) => [c.id, c.graphs, c.variables, (c.widgets ?? []).map((w) => [w.id, w.kind, w.classId, w.props])]);
+  const key = `${classId}|${JSON.stringify(parts)}`;
+  if (cached?.key !== key) cached = { key, value: previewOverride(project, classId) };
+  return cached.value;
+}

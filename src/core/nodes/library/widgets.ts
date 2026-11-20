@@ -8,18 +8,36 @@
  * palette leaves out and Compile refuses, as NOT_IN_COMPONENT does for an
  * Actor Component.
  */
+import { inheritedView } from '../../model/inheritance';
+import { findClass, spawnPins, type NodeInstance } from '../../model/project';
 import { WIDGET_CLASS } from '../../model/widgets';
 import { T } from '../../types/pins';
-import { dataIn, dataOut, execOut, type NodeContext, type NodeDefinition, type PinSpec } from '../definition';
+import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition, type PinSpec } from '../definition';
 import { selfIs } from './actorComponents';
 import { classById } from './communication';
 
 const CAT = 'User Interface';
 
 /** Target of a widget function: self in a Widget Blueprint, a wire elsewhere. */
-function widgetTarget(ctx: NodeContext): PinSpec {
-  return dataIn('target', 'Target', T.object('Widget'), selfIs(ctx, 'UserWidget') ? { defaultsToSelf: true } : { required: true });
+function widgetTarget(ctx: NodeContext, type = 'Widget'): PinSpec {
+  return dataIn('target', 'Target', T.object(type), selfIs(ctx, 'UserWidget') ? { defaultsToSelf: true } : { required: true });
 }
+
+/** Target of a function of one kind of widget (Text Block…): a widget of the Designer, always wired. */
+const kindTarget = (type: string): PinSpec => dataIn('target', 'Target', T.object(type), { required: true });
+
+/** The Widget Blueprint picked on Create Widget's Class pin, or undefined. */
+function pickedWidget(n: NodeInstance, ctx: NodeContext) {
+  const id = n.defaults.class;
+  const cls = typeof id === 'string' && ctx.project ? findClass(ctx.project, id) : undefined;
+  return cls?.parent === 'UserWidget' ? cls : undefined;
+}
+
+const VIEWPORT = `${CAT}|Viewport`;
+const WIDGET = `${CAT}|Widget`;
+const PANEL = `${CAT}|Panel`;
+const TEXT = `${CAT}|Text Block`;
+const BAR = `${CAT}|Progress Bar`;
 
 /** The widget a "Get <widget>" node reads, and its class name. */
 export function widgetVariable(ctx: NodeContext, id: string): { name: string; type: string; isVariable: boolean } | undefined {
@@ -118,6 +136,189 @@ export const widgetNodes: NodeDefinition[] = [
     description: 'Le Pawn que possède le joueur à qui appartient ce widget : le plus court chemin d’un HUD vers le personnage.',
     keywords: ['owning player pawn', 'pawn', 'joueur', 'personnage', 'character'],
     pins: (_n, ctx) => [widgetTarget(ctx), dataOut('result', 'Return Value', T.object('Pawn'))],
+  },
+  {
+    id: 'widget.create',
+    title: (n, ctx) => {
+      const cls = pickedWidget(n, ctx);
+      return cls ? `Create ${cls.name} Widget` : 'Create Widget';
+    },
+    category: CAT,
+    kind: 'function',
+    description:
+      'Crée un widget de la classe choisie : un objet, pas encore à l’écran (il faut Add to Viewport). Event On Initialized s’y exécute une fois, tout de suite, avant que les variables Expose on Spawn reçoivent leur valeur. Garde la Return Value dans une variable pour pouvoir le retirer ou le mettre à jour.',
+    keywords: ['create widget', 'widget', 'creer', 'hud', 'menu', 'ui', 'interface', 'umg'],
+    pins: (n, ctx) => {
+      const own = pickedWidget(n, ctx);
+      const cls = own && inheritedView(own, ctx.project);
+      return [
+        execIn(),
+        dataIn('class', 'Class', T.class('UserWidget')),
+        dataIn('owner', 'Owning Player', T.object('PlayerController')),
+        ...(cls ? spawnPins(cls).map((v) => dataIn(`expose:${v.id}`, v.name, v.type, { default: v.defaultValue })) : []),
+        execOut(),
+        dataOut('result', 'Return Value', T.object(own?.name ?? 'UserWidget')),
+      ];
+    },
+  },
+  {
+    id: 'widget.addToViewport',
+    title: 'Add to Viewport',
+    category: VIEWPORT,
+    kind: 'function',
+    description:
+      'Affiche le widget à l’écran, par-dessus le jeu : Event Pre Construct puis Event Construct s’y exécutent. Z Order : les plus grands passent devant. L’ajouter une 2e fois ne fait rien (UE l’écrit en Warning).',
+    keywords: ['add to viewport', 'viewport', 'afficher', 'ecran', 'montrer', 'hud'],
+    pins: (_n, ctx) => [execIn(), widgetTarget(ctx, 'UserWidget'), dataIn('zOrder', 'ZOrder', T.int, { default: 0 }), execOut()],
+  },
+  {
+    id: 'widget.removeFromParent',
+    title: 'Remove from Parent',
+    category: WIDGET,
+    kind: 'function',
+    description:
+      'Retire le widget de l’écran (ou du panneau où il était) : Event Destruct s’y exécute. L’objet existe toujours : Is Valid reste vrai, et Add to Viewport peut le remontrer. Sans parent, il ne se passe rien.',
+    keywords: ['remove from parent', 'retirer', 'enlever', 'cacher', 'fermer', 'remove'],
+    pins: (_n, ctx) => [execIn(), widgetTarget(ctx), execOut()],
+  },
+  {
+    id: 'widget.isInViewport',
+    title: 'Is In Viewport',
+    category: VIEWPORT,
+    kind: 'pure',
+    description: 'Vrai si le widget a été ajouté au viewport (Add to Viewport) et pas encore retiré.',
+    keywords: ['is in viewport', 'affiche', 'ecran', 'visible'],
+    pins: (_n, ctx) => [widgetTarget(ctx, 'UserWidget'), dataOut('result', 'Return Value', T.bool)],
+  },
+  {
+    id: 'widget.setVisibility',
+    title: 'Set Visibility',
+    category: WIDGET,
+    kind: 'function',
+    description:
+      'Change la Visibility : Visible, Collapsed (caché, ne prend plus de place), Hidden (caché, garde sa place)… Plus léger que retirer et recréer : le widget reste construit.',
+    keywords: ['visibility', 'visible', 'cacher', 'montrer', 'hidden', 'collapsed'],
+    pins: (_n, ctx) => [execIn(), widgetTarget(ctx), dataIn('visibility', 'In Visibility', T.enum('ESlateVisibility'), { default: 0 }), execOut()],
+  },
+  {
+    id: 'widget.getVisibility',
+    title: 'Get Visibility',
+    category: WIDGET,
+    kind: 'pure',
+    description: 'La Visibility actuelle du widget.',
+    keywords: ['visibility', 'visible'],
+    pins: (_n, ctx) => [widgetTarget(ctx), dataOut('result', 'Return Value', T.enum('ESlateVisibility'))],
+  },
+  {
+    id: 'widget.isVisible',
+    title: 'Is Visible',
+    category: WIDGET,
+    kind: 'pure',
+    description: 'Vrai si sa Visibility le montre (Visible ou Not Hit-Testable), faux pour Hidden et Collapsed. Ne dit pas s’il est à l’écran : c’est Is In Viewport.',
+    keywords: ['is visible', 'visible', 'cache'],
+    pins: (_n, ctx) => [widgetTarget(ctx), dataOut('result', 'Return Value', T.bool)],
+  },
+  {
+    id: 'widget.setText',
+    title: 'SetText (Text)',
+    category: TEXT,
+    kind: 'function',
+    description:
+      'Change le texte d’un Text Block. Si sa propriété Text était liée (Bind), la liaison s’arrête : c’est cette valeur qui reste. Appelle-le quand la valeur change (un événement), pas à chaque Tick.',
+    keywords: ['set text', 'texte', 'ecrire', 'afficher', 'score', 'text'],
+    pins: [execIn(), kindTarget('TextBlock'), dataIn('text', 'In Text', T.text, { default: '' }), execOut()],
+  },
+  {
+    id: 'widget.getText',
+    title: 'GetText (Text)',
+    category: TEXT,
+    kind: 'pure',
+    description: 'Le texte affiché par le Text Block.',
+    keywords: ['get text', 'texte', 'lire'],
+    pins: [kindTarget('TextBlock'), dataOut('result', 'Return Value', T.text)],
+  },
+  {
+    id: 'widget.setTextColor',
+    title: 'Set Color and Opacity',
+    category: TEXT,
+    kind: 'function',
+    description: 'Change la couleur du texte d’un Text Block.',
+    keywords: ['color', 'couleur', 'opacity', 'texte'],
+    pins: [execIn(), kindTarget('TextBlock'), dataIn('color', 'In Color and Opacity', T.struct('LinearColor'), { default: '#ffffff' }), execOut()],
+  },
+  {
+    id: 'widget.setPercent',
+    title: 'Set Percent',
+    category: BAR,
+    kind: 'function',
+    description:
+      'Remplit la Progress Bar : 0 vide, 1 pleine (0,5 à moitié). Ce n’est pas un pourcentage de 0 à 100 : divise la vie par la vie max. Au-delà de 1, la barre reste pleine.',
+    keywords: ['set percent', 'barre', 'vie', 'progress', 'remplir', 'health'],
+    pins: [execIn(), kindTarget('ProgressBar'), dataIn('percent', 'In Percent', T.float, { default: 0 }), execOut()],
+  },
+  {
+    id: 'widget.getPercent',
+    title: 'Get Percent',
+    category: BAR,
+    kind: 'pure',
+    description: 'La valeur Percent de la Progress Bar, telle qu’elle a été donnée (même au-delà de 1).',
+    keywords: ['get percent', 'barre', 'progress'],
+    pins: [kindTarget('ProgressBar'), dataOut('result', 'Return Value', T.float)],
+  },
+  {
+    id: 'widget.setFillColor',
+    title: 'Set Fill Color and Opacity',
+    category: BAR,
+    kind: 'function',
+    description: 'Change la couleur du remplissage de la Progress Bar (rouge quand la vie est basse…).',
+    keywords: ['fill color', 'couleur', 'barre', 'progress'],
+    pins: [execIn(), kindTarget('ProgressBar'), dataIn('color', 'In Color', T.struct('LinearColor'), { default: '#ffffff' }), execOut()],
+  },
+  {
+    id: 'widget.addChildToVerticalBox',
+    title: 'Add Child to Vertical Box',
+    category: PANEL,
+    kind: 'function',
+    description:
+      'Ajoute Content à la fin de la Vertical Box (un widget créé par Create Widget). Il quitte l’écran ou le panneau où il était. Dans UE il renvoie aussi le Slot, pour régler son Padding : pas encore ici.',
+    keywords: ['add child', 'ajouter', 'liste', 'vertical box', 'enfant'],
+    pins: [execIn(), kindTarget('VerticalBox'), dataIn('content', 'Content', T.object('Widget'), { required: true }), execOut()],
+  },
+  {
+    id: 'widget.addChildToHorizontalBox',
+    title: 'Add Child to Horizontal Box',
+    category: PANEL,
+    kind: 'function',
+    description: 'Ajoute Content à la fin (à droite) de la Horizontal Box : un widget créé par Create Widget.',
+    keywords: ['add child', 'ajouter', 'horizontal box', 'enfant', 'ligne'],
+    pins: [execIn(), kindTarget('HorizontalBox'), dataIn('content', 'Content', T.object('Widget'), { required: true }), execOut()],
+  },
+  {
+    id: 'widget.removeChild',
+    title: 'Remove Child',
+    category: PANEL,
+    kind: 'function',
+    description: 'Retire Content du panneau. Return Value : vrai s’il y était.',
+    keywords: ['remove child', 'retirer', 'enlever', 'enfant'],
+    pins: [execIn(), kindTarget('PanelWidget'), dataIn('content', 'Content', T.object('Widget'), { required: true }), execOut(), dataOut('result', 'Return Value', T.bool)],
+  },
+  {
+    id: 'widget.clearChildren',
+    title: 'Clear Children',
+    category: PANEL,
+    kind: 'function',
+    description: 'Vide le panneau, y compris les enfants placés dans le Designer. Pratique avant de reconstruire une liste.',
+    keywords: ['clear children', 'vider', 'effacer', 'liste', 'enfants'],
+    pins: [execIn(), kindTarget('PanelWidget'), execOut()],
+  },
+  {
+    id: 'widget.getChildrenCount',
+    title: 'Get Children Count',
+    category: PANEL,
+    kind: 'pure',
+    description: 'Combien d’enfants a le panneau : ceux du Designer encore là, plus ceux ajoutés.',
+    keywords: ['children count', 'nombre', 'enfants', 'combien'],
+    pins: [kindTarget('PanelWidget'), dataOut('result', 'Return Value', T.int)],
   },
 ];
 

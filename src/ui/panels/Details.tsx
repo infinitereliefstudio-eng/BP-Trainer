@@ -44,6 +44,8 @@ import { LocalDetails } from './LocalDetails';
 interface DetailsProps {
   openOverlay: OpenOverlay;
   onOpenClass: (classId: string) => void;
+  /** Open a graph of the Blueprint being edited (a widget's Binding), leaving the Designer. */
+  onOpenGraph?: (graphId: string) => void;
   /** The running play session, or the last one: for "why did this node not run?". */
   run?: Simulation;
   onFocusNode: (graphId: string, nodeId: string, classId?: string) => void;
@@ -53,7 +55,7 @@ interface DetailsProps {
   placeNode?: (def: string, config: Record<string, Value>) => void;
 }
 
-export function Details({ openOverlay, onOpenClass, run, onFocusNode, onFind, placeNode }: DetailsProps) {
+export function Details({ openOverlay, onOpenClass, onOpenGraph, run, onFocusNode, onFind, placeNode }: DetailsProps) {
   const store = useStore();
   const f = store.focus;
   const [search, setSearch] = useState('');
@@ -65,7 +67,7 @@ export function Details({ openOverlay, onOpenClass, run, onFocusNode, onFind, pl
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} onFind={onFind} />;
   else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} placeNode={placeNode} onOpenClass={onOpenClass} />;
-  else if (f.kind === 'widget') body = <WidgetDetails id={f.id} onOpenClass={onOpenClass} />;
+  else if (f.kind === 'widget') body = <WidgetDetails id={f.id} onOpenClass={onOpenClass} onOpenGraph={onOpenGraph} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
   else if (f.kind === 'classDefaults') body = <ClassDefaults />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;

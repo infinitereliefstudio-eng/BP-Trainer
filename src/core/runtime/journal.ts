@@ -55,6 +55,11 @@ export class Journal {
     else if (count === 4) this.log.push({ id: nextId(), time, level: 'warning', text: `(erreur répétée, masquée) ${text}` });
   }
 
+  /** A warning of the engine, as UE writes it (Add to Viewport twice…). */
+  warning(time: number, text: string): void {
+    this.log.push({ id: nextId(), time, level: 'warning', text });
+  }
+
   /** A line from the simulator itself (not a Print String). */
   info(time: number, text: string): void {
     this.log.push({ id: nextId(), time, level: 'log', text: `LogBlueprintTrainer: ${text}` });

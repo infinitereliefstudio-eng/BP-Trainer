@@ -623,7 +623,14 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           {view === 'level' && levelPanel === 'outliner' ? (
             <LevelOutliner onCenter={(id) => setCenterOn((c) => ({ id, n: (c?.n ?? 0) + 1 }))} onDetails={() => setLevelPanel('details')} />
           ) : (
-            <Details openOverlay={setOverlay} onOpenClass={openClass} run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} placeNode={placeNode} />
+            <Details
+              openOverlay={setOverlay}
+              onOpenClass={openClass}
+              onOpenGraph={(id) => {
+                showGraph();
+                store.openGraph(id);
+              }}
+              run={session?.sim ?? lastRun} onFocusNode={focusNode} onFind={openFind} placeNode={placeNode} />
           )}
         </aside>
 

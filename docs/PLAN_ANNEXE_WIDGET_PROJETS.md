@@ -1,0 +1,54 @@
+# Chantier annexe : Widget Component et projets de la simulation libre
+
+Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé, **pas lancé** : chaque version attend son feu vert.
+
+## En bref
+
+Trois versions, une à la fois :
+
+| Version | Contenu | Taille |
+|---|---|---|
+| V7.41 | **Mes projets** : la simulation libre gère plusieurs projets | S à M |
+| V7.42 | **Widget Component, le moteur** : composant, un widget par acteur, dessin au-dessus de l'acteur, Get User Widget Object | M |
+| V7.43 | **Widget Component, les étapes** : trois ou quatre étapes à l'Avancé, et la reprise (glossaire, mémo, révision) | M |
+
+Les projets passent en premier : ils ne dépendent de rien, et Tristan pourra s'en servir pour essayer le Widget Component librement.
+
+## V7.41 : Mes projets
+
+Aujourd'hui, la simulation libre n'a qu'un projet (clé `project:sandbox`) ; « Nouveau projet » le **remplace** (seul l'export le garde), « Importer » aussi.
+
+- **« Simulation libre » ouvre « Mes projets »** : la liste (nom, date de dernière modification, nombre de Blueprints), le plus récent en haut, et **Nouveau projet**.
+- Par projet : **Ouvrir**, **Renommer**, **Dupliquer**, **Exporter** (.json), **Supprimer** (confirmation qui nomme le projet).
+- **Importer** crée un nouveau projet dans la liste au lieu de remplacer celui qui est ouvert.
+- Dans l'éditeur, le menu « … » : « Nouveau projet » crée un projet à côté au lieu de remplacer, « Renommer le projet », « Mes projets » pour revenir à la liste.
+- **Rien ne se perd** : le projet actuel devient le premier de la liste (nommé d'après son nom, sinon « Mon projet »). « Reprendre » sur l'accueil rouvre le dernier projet ouvert. La sauvegarde complète (export de la progression) emporte tous les projets.
+- Stockage : un projet par clé (`project:sandbox:<id>`), plus un index (noms, dates) ; toujours par `storage/storage.ts`. Le projet garde son autosauvegarde et son filet de secours (`rescue:*`) comme aujourd'hui.
+
+## V7.42 : Widget Component, le moteur
+
+Dans UE, le Widget Component porte un User Widget sur un acteur : chaque acteur a son exemplaire. Deux espaces : **Screen** (dessiné par-dessus la vue, toujours lisible, il suit l'acteur) et **World** (une surface plate dans la scène, cachée par les murs).
+
+- Nouveau composant **Widget** dans « Add » des Components, avec ses Details : **Widget Class** (un Widget Blueprint du projet), **Draw Size**, **Space**, la position relative (au-dessus de l'acteur).
+- En Play : chaque acteur qui a le composant a **son propre widget** (Pre Construct, Construct, Bindings, Tick comme les autres), dessiné au-dessus de l'acteur dans la vue de dessus, à taille fixe à l'écran (mode Screen). Il suit l'acteur, disparaît avec lui (Destroy Actor) et quand le composant est caché (Set Visibility, Set Hidden in Game).
+- Nœud **Get User Widget Object** (cible : le Widget Component) : rend un User Widget, d'où le **Cast To** vers le bon Widget Blueprint avant Set Percent / Set Text. Widget Class vide : None, puis Accessed None, comme dans UE.
+- Ordre : le widget existe quand l'Event BeginPlay de l'acteur tourne (dans UE, le composant le crée avant ; à vérifier dans l'éditeur).
+- Aperçu dans le viewport du Blueprint et dans le niveau : le cadre du widget au-dessus de l'acteur.
+- Glossaire, fiche, conseil de construction si le Widget Class est vide.
+
+## V7.43 : les étapes
+
+Les Actor Components (dont la santé) arrivent à l'Avancé, après « L'héritage » : les étapes du Widget Component vont donc **à l'Avancé**, après les étapes composants et T4. Proposition (à affiner en écrivant) :
+
+1. **Découverte** — « L'étiquette au-dessus du coffre » : ajouter un Widget Component, choisir le Widget Class, voir le widget suivre l'acteur en Play.
+2. **Guidée** — « Une barre par ennemi » : trois ennemis avec le composant de santé, chacun sa barre ; à chaque dégât, Get User Widget Object → Cast To WBP_BarreVie → Set Percent. Les trois barres sont indépendantes.
+3. **Débogue** — la barre ne bouge pas : Widget Class vide (Accessed None) ou Cast vers le mauvais Widget Blueprint (Cast Failed).
+4. **Transfert** (si le parcours le supporte) — l'invite « Appuie sur E » de la V7.37, déplacée au-dessus de l'objet : montrer ou cacher le composant à l'overlap.
+
+Plus : notions, question de révision, mémo UMG complété, mini-exercice « Interfaces (UMG) » s'il s'y prête.
+
+## Questions à trancher
+
+1. **Supprimer un projet** : définitif après confirmation (recommandé : simple, et l'export reste possible avant) ; ou une corbeille d'où on peut le récupérer.
+2. **Space World** : expliqué dans la fiche seulement, le mode Screen étant le seul simulé (recommandé : la vue de dessus ne peut pas montrer une surface en 3D) ; ou simulé comme un panneau posé à plat dans le niveau.
+3. **Boutons dans un Widget Component** en Screen : cliquables comme ceux d'un widget d'écran, selon le mode d'entrée (recommandé, à vérifier dans UE) ; ou affichage seulement.

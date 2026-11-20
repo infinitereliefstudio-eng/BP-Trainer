@@ -67,6 +67,8 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'pause', title: 'Pause du jeu', covers: 'Set Game Paused, Is Game Paused, Trigger when Paused' },
   { id: 'reusable', title: 'Blueprint réutilisable', covers: 'un même Blueprint posé plusieurs fois, réglé acteur par acteur, sans connaître ses cibles' },
   { id: 'input-mode', title: 'Modes de contrôle', covers: 'un Mapping Context par mode de jeu (dialogue, menu), ajouté et retiré par le Player Controller' },
+  { id: 'umg', title: 'Interfaces à l’écran (UMG)', covers: 'Widget Blueprint, Designer, Is Variable, Create Widget, Add to Viewport, Remove from Parent, Construct et Destruct' },
+  { id: 'ui-input', title: 'Menus et modes d’entrée', covers: 'boutons (On Clicked), Set Input Mode Game Only, UI Only, Game and UI, Show Mouse Cursor' },
   { id: 'mixed', title: 'Entraînement mélangé', covers: 'choisir soi-même l’outil, sans que la consigne le dise' },
 ];
 

@@ -282,8 +282,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 124:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 124")
+        if await page.locator('.lesson-item').count() != 130:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 130")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -778,7 +778,7 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l-menu-pause', (HERE / 'out' / 'l-menu-pause.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le menu pause').tap()
+        await page.locator('.lesson-item', has_text='Le menu pause').first.tap()
         await page.wait_for_timeout(500)
         await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'inputAction', id: s.project.inputActions.find(a => a.name === 'IA_Pause').id }); }""")
         await page.locator('button[aria-label="Ouvrir Details"]').tap()
@@ -1200,6 +1200,30 @@ async def main():
         if await page.locator('.play-badge', has_text='Game and UI').count() == 0 or await page.locator('.play-badge', has_text='Curseur').count() == 0:
             errs.append('Play : le mode Game and UI et le curseur ne sont pas signalés')
         await shot('95_play_button_game_and_ui')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
+        # V7.36: « Le vrai menu pause » solved. Space shows WBP_Pause over the frozen game; Reprendre answers during the pause.
+        await page.evaluate(PUT, ['project:lesson:l-vrai-menu-pause', (HERE / 'out' / 'l-vrai-menu-pause.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Le vrai menu pause').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='Le vrai menu pause').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(700)
+        await page.locator('.keys .key', has_text='Espace').tap()
+        await page.wait_for_timeout(600)
+        await shot('96_play_real_pause_menu')
+        if await page.locator('.game-paused').count() != 1 or await page.locator('.umg-layer .umg-Button.hit').count() != 1:
+            errs.append('Vrai menu pause : Espace n’affiche pas le menu et son bouton')
+        else:
+            await page.locator('.umg-layer .umg-Button.hit').first.tap()
+            await page.wait_for_timeout(500)
+            if await page.locator('.game-paused').count() != 0 or await page.locator('.umg-layer .umg-Button').count() != 0:
+                errs.append('Vrai menu pause : Reprendre ne ferme pas le menu ou ne relance pas le jeu')
+            await shot('97_play_real_pause_resumed')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

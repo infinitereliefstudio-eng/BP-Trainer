@@ -59,6 +59,9 @@ import { lessonChooseTool } from './library/chooseTool';
 import { debug21 } from './library/whoTurnedOff';
 import { refactor4 } from './library/interactUe5';
 import { lessonPauseMenu } from './library/pauseMenu';
+import { lessonScreenCounter, predictConstruct } from './library/umgCounter';
+import { debug24, lessonMenuControl } from './library/umgMenu';
+import { debug25, lessonRealPauseMenu } from './library/umgPause';
 import { synthesis3 } from './library/synthesis3';
 import { predictSpawnOrder } from './library/predicts3';
 import { lessonUniversalLever } from './library/universalLever';
@@ -122,6 +125,8 @@ export const LESSONS: Lesson[] = [
   debugMappingContext,
   lessonInputHold,
   lessonInputController,
+  // UMG (V7.36): the first widget, made by the Player Controller just created.
+  lessonScreenCounter,
   refactor2,
   lessonInventory,
   lessonCodes,
@@ -161,6 +166,12 @@ export const LESSONS: Lesson[] = [
   debug9,
   debug11,
   lessonPauseMenu,
+  // UMG (V7.36): life cycle, menus and input modes, after the pause.
+  predictConstruct,
+  lessonMenuControl,
+  debug24,
+  lessonRealPauseMenu,
+  debug25,
   lessonFence,
   predictSpawnOrder,
   debug3,

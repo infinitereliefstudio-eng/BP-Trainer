@@ -1,6 +1,6 @@
 # Chantier UMG — analyse (20 novembre 2026)
 
-Copie du Claude Doc https://claude.ai/artifact/FuxBJZTiJ2ifCMDb1TpzPn (« BP Trainer — Chantier UMG : analyse »). Proposé le 20 novembre ; **Tristan a répondu le même jour** (section « Décisions du 20 novembre », qui fait foi sur les sections précédentes). **V7.33 faite le 20 novembre** (Widget Blueprint et Designer ; le rejeu d'Event Pre Construct dans l'aperçu passe en V7.34). **V7.34 faite le même jour** (à l'écran, enfants dynamiques, Bindings, aperçu Pre Construct), **puis la V7.35** (boutons, modes d'entrée, curseur, pause ; Widget Component jugé « moyen »). La V7.36 attend son feu vert.
+Copie du Claude Doc https://claude.ai/artifact/FuxBJZTiJ2ifCMDb1TpzPn (« BP Trainer — Chantier UMG : analyse »). Proposé le 20 novembre ; **Tristan a répondu le même jour** (section « Décisions du 20 novembre », qui fait foi sur les sections précédentes). **V7.33 faite le 20 novembre** (Widget Blueprint et Designer ; le rejeu d'Event Pre Construct dans l'aperçu passe en V7.34). **V7.34 faite le même jour** (à l'écran, enfants dynamiques, Bindings, aperçu Pre Construct), **puis la V7.35** (boutons, modes d'entrée, curseur, pause ; Widget Component jugé « moyen »), **puis la V7.36** (« tu peux lancer », 20 novembre : les six premières étapes, voir HANDOFF.md). La V7.37 attend son feu vert.
 
 ## En bref
 

@@ -17,7 +17,8 @@ const NODE_NOTIONS: [RegExp, string][] = [
   // Receiving input on an actor (Auto Receive Input, Consume Input): with a key event, or an action event since UE5.
   [/^(event\.inputKey|input\.action)$/, 'input'],
   [/^input\./, 'enhanced-input'],
-  [/^(player|pawn)\.getController$/, 'player-controller'],
+  // Get Owning Player, in a widget, is the way back to the Player Controller (V7.36).
+  [/^((player|pawn)\.getController|widget\.getOwningPlayer)$/, 'player-controller'],
   [/^var\.(get|set)$/, 'variables'],
   [/^flow\.branch$/, 'branch'],
   [/^(math|logic)\./, 'math'],

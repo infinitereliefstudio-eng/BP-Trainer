@@ -27,36 +27,39 @@ const SPACING_TARGET = 15;
 const KNOWN_GAPS: Record<string, number> = {
   // V7.20 and V7.21 inserted the nine Actor Components steps in the Avancé: the gaps that cross them grew. V7.22
   // brought input, enhanced-input and loops back (« La salle de contrôle ») and trace (M2), all at 15 or less.
-  arrays: 24, // lot 3 added Confirmé steps inside this gap: lot 4
-  cast: 28, // lot 3 added Confirmé steps inside this gap: lot 4
-  components: 16,
-  construction: 35, // lot 3 added Confirmé steps inside this gap: lot 4
-  'data-tables': 53, // runs to the end of the path
-  destroy: 38,
-  dispatchers: 25,
-  enum: 31,
-  'flow-memory': 28,
-  functions: 32, // lot 3 added Confirmé steps inside this gap: lot 4
+  // V7.36 inserted six UMG steps (one at the end of Intermédiaire, five in the Confirmé after « Le menu pause »):
+  // the gaps that cross them grew by up to six; loops entered the list.
+  arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
+  cast: 33, // lot 3 added Confirmé steps inside this gap: lot 4
+  components: 21,
+  construction: 40, // lot 3 added Confirmé steps inside this gap: lot 4
+  'data-tables': 58, // runs to the end of the path
+  destroy: 43,
+  dispatchers: 30,
+  enum: 36,
+  'flow-memory': 29,
+  functions: 37, // lot 3 added Confirmé steps inside this gap: lot 4
   inheritance: 24, // runs to the end of the path
-  interfaces: 22,
-  latent: 39, // runs to the end of the path
-  locals: 28, // lot 3 added Confirmé steps inside this gap: lot 4
-  maps: 49, // lot 3 added Confirmé steps inside this gap: lot 4
-  'other-bp': 24, // lot 3 added Confirmé steps inside this gap: lot 4
-  overlap: 21,
-  'player-controller': 86, // written again only in Expert X1 (dialogue context): a natural recall in the Confirmé or Avancé is still to find
-  random: 48, // lot 3 added Confirmé steps inside this gap: lot 4
-  rotation: 17,
+  interfaces: 27,
+  latent: 44, // runs to the end of the path
+  locals: 33, // lot 3 added Confirmé steps inside this gap: lot 4
+  loops: 19,
+  maps: 54, // lot 3 added Confirmé steps inside this gap: lot 4
+  'other-bp': 29, // lot 3 added Confirmé steps inside this gap: lot 4
+  overlap: 26,
+  'player-controller': 49, // V7.36: Get Owning Player in the Confirmé menus; from there to Expert X1, a recall in the Avancé is still to find
+  random: 53, // lot 3 added Confirmé steps inside this gap: lot 4
+  rotation: 22,
   'save-game': 36, // runs to the end of the path
-  sequence: 53, // runs to the end of the path
-  sets: 25, // lot 3 added Confirmé steps inside this gap: lot 4
+  sequence: 58, // runs to the end of the path
+  sets: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   spawn: 38, // lot 3 added Confirmé steps inside this gap: lot 4
-  structs: 49, // runs to the end of the path
-  switch: 30,
+  structs: 54, // runs to the end of the path
+  switch: 32,
   tick: 41, // runs to the end of the path
-  timeline: 41,
-  timers: 27,
-  visibility: 18, // runs to the end of the path
+  timeline: 46,
+  timers: 28,
+  visibility: 21, // runs to the end of the path
 };
 
 const practised = LESSONS.map(practisedBy);

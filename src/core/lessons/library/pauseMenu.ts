@@ -3,8 +3,8 @@
  * player, not to an actor of the level: the Player Controller receives
  * IA_Pause and calls Set Game Paused. The UE trap it teaches: once the game
  * is paused, an Input Action only arrives if Trigger when Paused is ticked,
- * otherwise nothing can end the pause. The app has no widgets: the « menu »
- * is a message, the cards say what UE would use (Create Widget).
+ * otherwise nothing can end the pause. The « menu » is a message here, to
+ * keep to the pause; « Le vrai menu pause » (V7.36) makes it a widget.
  */
 import type { Project } from '../../model/project';
 import { addInputAction, addMapping, setTriggerWhenPaused } from '../../operations/inputOps';
@@ -74,7 +74,7 @@ export const lessonPauseMenu: Lesson = {
       title: 'Cahier des charges',
       body:
         '- Une Input Action **IA_Pause**, sur **Espace** dans IMC_Joueur (Content Drawer › + Add › Input).\n- Dans **BP_PlayerController** : Espace met le jeu en pause s’il tourne, le relance s’il est en pause.\n- En entrant en pause, un message avec le mot « pause » ; en reprenant, un message avec le mot « reprise ».\n- Pendant la pause, plus aucun `Tic`.\n\n' +
-        'Dans UE, le menu serait un **Widget Blueprint** affiché par Create Widget et Add to Viewport (voir le Mémo UE, fiche Widgets). L’appli n’a pas de widgets : ici, le menu est un message.',
+        'Ici, le menu est un simple message : on se concentre sur la pause. Dans UE, ce serait un **Widget Blueprint** affiché par Create Widget et Add to Viewport ; c’est l’étape « Le vrai menu pause », un peu plus loin.',
     },
   ],
   objectives: [

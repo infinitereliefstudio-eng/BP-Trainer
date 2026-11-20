@@ -325,6 +325,42 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'En pause, une Input Action n’arrive dans les graphes que si Trigger when Paused est coché dans ses Details : sans lui, rien ne peut enlever la pause.',
   ),
   q(
+    'l-compteur-ecran',
+    'Create Widget s’exécute au BeginPlay, sa Return Value est gardée dans une variable. Que voit le joueur ?',
+    ['Rien : il manque Add to Viewport', 'Le widget, en haut à gauche', 'Le widget, au centre de l’écran', 'Une erreur dans l’Output Log'],
+    'Create Widget crée l’objet sans le dessiner. Add to Viewport l’affiche, par-dessus la vue.',
+  ),
+  q(
+    'p16-construct',
+    'Un widget est ajouté à l’écran, retiré, puis ajouté de nouveau. Combien de fois passe Event Construct ?',
+    ['Deux fois : à chaque Add to Viewport', 'Une fois : c’est le BeginPlay du widget', 'Trois fois', 'Aucune : il faut On Initialized'],
+    'Construct revient à chaque arrivée à l’écran, Destruct à chaque départ. Ce qui ne doit arriver qu’une fois va dans Event On Initialized.',
+  ),
+  q(
+    'l-menu-controle',
+    'Un menu ouvert en Set Input Mode UI Only. Le joueur rappuie sur F, la touche qui l’a ouvert. Que se passe-t-il ?',
+    ['Rien : en UI Only, aucune Input Action n’arrive au jeu', 'Le menu se ferme', 'Un second menu s’ouvre', 'Le jeu se met en pause'],
+    'UI Only donne toutes les entrées à l’interface. Pour fermer : un bouton du menu, ou le mode Game and UI.',
+  ),
+  q(
+    'd24-menu-reste',
+    'Pour cacher un menu affiché : Create Widget (WBP_Menu) → Remove from Parent (sa Return Value). Le menu part-il ?',
+    ['Non : on retire un nouveau widget, jamais affiché', 'Oui : c’est la même classe', 'Oui, au bout d’une image', 'Non : Remove from Parent détruit seulement'],
+    'Chaque Create Widget fabrique un nouvel objet. Il faut la référence du widget affiché, gardée dans une variable.',
+  ),
+  q(
+    'l-vrai-menu-pause',
+    'Le jeu est en pause (Set Game Paused). Le bouton Reprendre d’un widget à l’écran répond-il ?',
+    ['Oui : la pause fige le monde, pas l’interface', 'Non : tout est figé', 'Seulement si Trigger when Paused est coché sur le bouton', 'Seulement en Game Only'],
+    'Les widgets continuent pendant la pause : leurs boutons et leur Event Tick. C’est ce qui rend un menu pause possible.',
+  ),
+  q(
+    'd25-bouton-muet',
+    'Un menu est à l’écran, le curseur visible, mais aucun Set Input Mode n’a été appelé. Le joueur touche un bouton. Que se passe-t-il ?',
+    ['Rien : le jeu est en Game Only, le toucher part au jeu', 'Le bouton répond : le curseur suffit', 'Le bouton répond une fois sur deux', 'Une erreur Accessed None'],
+    'Game Only est le mode du lancement, et Set Show Mouse Cursor ne le change pas. Game and UI ou UI Only laissent les boutons recevoir le toucher.',
+  ),
+  q(
     'l09-generateur',
     'Une variable de type BP_Lampe (Object Reference) n’a jamais été réglée. Que contient-elle ?',
     ['None : elle ne désigne aucun acteur', 'La première lampe du niveau', 'Une lampe créée automatiquement', 'Le Blueprint lui-même'],

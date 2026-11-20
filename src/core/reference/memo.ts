@@ -160,6 +160,7 @@ export const MEMO: MemoCard[] = [
     title: 'Interfaces à l’écran (UMG)',
     summary: 'Widget Blueprint, Create Widget, Add to Viewport, et comment le mettre à jour.',
     keywords: ['widget', 'umg', 'hud', 'add to viewport', 'binding', 'bouton', 'texte', 'menu', 'input mode'],
+    lessons: ['l-compteur-ecran', 'p16-construct', 'l-menu-controle', 'd24-menu-reste', 'l-vrai-menu-pause', 'd25-bouton-muet'],
     body:
       'Une interface (barre de vie, menu, dialogue) est un **Widget Blueprint** : un onglet Designer pour placer textes, images et boutons, un onglet Graph pour la logique.\n\n' +
       'Pour l’afficher : **Create Widget** (choisir la classe, Owning Player), garder le résultat dans une variable, puis **Add to Viewport**. Pour l’enlever : **Remove from Parent**.\n\n' +

@@ -1,6 +1,6 @@
 # Améliorations possibles
 
-Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG), puis le soir du 19 novembre après la V7.30 (chantier n° 2 terminé, ce qu'il laisse noté, liste « Déjà fait » remise dans l'ordre), et enfin après la V7.32 (chantier annexe « retouches de l'interface » terminé, ce qu'il laisse noté, ergonomie et technique remises à jour). Rien ne se fait sans le feu vert de Tristan.
+Tout ce qui pourrait améliorer BP Trainer, au même endroit : fiabilité, pédagogie, leçons, fonctions, fidélité à UE, ergonomie sur téléphone, motivation, technique. Réorganisé le 2026-11-18 (revue de Codex du 17 novembre fondue dans les sections), revu le 2026-11-19 après la V7.18 (plan du parcours livré, analyse `docs/ANALYSE_COUVERTURE_UNREAL.md` intégrée, ordre des prochains chantiers choisi), puis mis à jour le même jour après la V7.22 (chantier n° 1, Actor Components, terminé), après la revue (V7.23 à V7.26) et après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md` (nouveau chantier n° 2, révisions de graphes espacées, placé avant l'UMG), puis le soir du 19 novembre après la V7.30 (chantier n° 2 terminé, ce qu'il laisse noté, liste « Déjà fait » remise dans l'ordre), après la V7.32 (chantier annexe « retouches de l'interface » terminé, ce qu'il laisse noté, ergonomie et technique remises à jour), et enfin le 20 novembre après la V7.35 (chantier n° 3, UMG, en cours : le moteur est fait, restent les leçons ; ce qu'il laisse noté). Rien ne se fait sans le feu vert de Tristan.
 
 Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) et les **lots du plan du parcours** (0 à 4, [PLAN_PARCOURS.md](PLAN_PARCOURS.md), tous faits). Ici, « lot » sans précision désigne ceux du backlog.
 
@@ -9,7 +9,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 
 ## Par où commencer
 
-État au 19 novembre, après la V7.32 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22) ; le chantier n° 2, révisions de graphes espacées, est fait (V7.27 à V7.30) ; le chantier annexe « retouches de l'interface » est fait (V7.31, V7.32). **La suite est dans « Prochains chantiers » juste en dessous** : l'UMG minimal (lot 7), puis les niveaux (lot 6), puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
+État au 20 novembre, après la V7.35 : le lot 1 est fait (V7.2) ; le lot 2 a été repris et dépassé par le plan du parcours (V7.10 à V7.18) ; Enhanced Input est fait (V7.4, V7.7, puis partout au lot 1 du plan) ; le lot 5 est fait (Actor Components, V7.19 à V7.22) ; le chantier n° 2, révisions de graphes espacées, est fait (V7.27 à V7.30) ; le chantier annexe « retouches de l'interface » est fait (V7.31, V7.32). **Le chantier n° 3, l'UMG (lot 7), est en cours** : le moteur est fait (V7.33 Designer, V7.34 widgets à l'écran et Bindings, V7.35 boutons et modes d'entrée) ; restent les douze étapes du parcours (V7.36, puis V7.37), chacune sur feu vert. Ensuite, dans « Prochains chantiers » juste en dessous : les niveaux (lot 6), puis un projet Expert final. Les lots 3 (le reste), 4 et 8 restent des propositions.
 
 | # | Lot | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
@@ -19,31 +19,33 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | 4 | Navigation et prise en main | Recherche et filtres dans les 124 étapes, gestes guidés | ★★★ | M |
 | 5 | ~~Composition~~ **fait en V7.19 à V7.22** | Actor Components : santé, inventaire, interaction, énergie (chantier n° 1) | ★★★ | L |
 | 6 | Cycle de vie et niveaux | Plusieurs niveaux, Open Level, GameInstance, GameMode léger. **Chantier n° 4** | ★★★ | L |
-| 7 | Interface de jeu | Quelques widgets prédéfinis (texte, bouton, jauge), puis réévaluer un éditeur UMG complet. **Chantier n° 3** | ★★★ | M, XL pour l'éditeur |
+| 7 | Interface de jeu | **Chantier n° 3, en cours** : Designer réduit fidèle à UE, widgets à l'écran, Bindings, boutons et modes d'entrée faits (V7.33 à V7.35) ; leçons en V7.36 et V7.37 | ★★★ | L |
 | 8 | Motivation et diffusion | Objectif du jour, série avec gel, rappels (le défi du jour est devenu la file « À retravailler en Blueprint », V7.28) | ★★ à ★★★ | S à L |
 
 L'objectif du jour et le gel de série sont deux petites passes (S) : ils peuvent se glisser entre deux lots sans attendre le lot 8.
 
 Questions ouvertes :
-- Lot 3 : le composant d'interaction réutilisable est fait (« Interagir par composant », V7.21). Reste à décider si la version intermédiaire (appui maintenu, surbrillance, invite « Appuie sur E ») vaut une passe, par exemple avec l'UMG (l'invite est un widget).
+- Lot 3 : le composant d'interaction réutilisable est fait (« Interagir par composant », V7.21). L'invite « Appuie sur E » est prévue en V7.37 (étape du chantier UMG, en widget d'écran) ; reste à décider si l'appui maintenu et la surbrillance valent une passe.
+- Chantier UMG : le Widget Component (widget porté par un acteur) a été jugé **moyen** à la fin de la V7.35, pas « facile » : en V7.37 ou au backlog ? (détail dans « Fonctions et fidélité à UE »).
+- Chantier UMG : la taille de référence 1280 × 720 reste à confirmer à l'œil sur le téléphone (Designer et Play). Le recueil complet n'est pas dans le dépôt public : seul son résumé est dans PLAN_UMG.md, faute de réponse sur ce point.
 - Quel objectif du jour par défaut : une leçon, cinq questions de révision, ou une carte de la file « À retravailler en Blueprint » ?
 - Tranchée le 19 novembre : la suite narrative avance avec les chantiers (X1 fait en V7.18, puis l'inventaire et le projet Expert final), sans attendre une appli plus généraliste.
 
 ## Prochains chantiers, dans l'ordre (choix du 19 novembre)
 
-Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.32.
+Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet ordre le 19 novembre ; le même jour, après l'étude de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, il a placé les révisions de graphes espacées en n° 2, avant l'UMG. Chaque chantier attend son feu vert, après ses essais sur téléphone des versions V7.8 à V7.35.
 
 | # | Chantier | Contenu | Pertinence | Difficulté |
 |---|---|---|---|---|
 | 1 | ~~Actor Components~~ **fait** (V7.19 à V7.22) | Blueprints de composant créés par l'apprenant, ajoutés à plusieurs acteurs ; Get Owner, Get Component by Class, BeginPlay et Tick du composant ; neuf étapes (santé, interaction réutilisable, inventaire, énergie) et le conseil « Chaîne copiée entre Blueprints » | ★★★ | L |
 | 2 | ~~Révisions de graphes espacées~~ **fait** (V7.27 à V7.30) | Journal des tentatives, file « À retravailler en Blueprint » programmée en jours, trois familles de mini-exercices à variantes, hypothèse avant l'indice dans les Débogue. Détail juste en dessous | ★★★ | L |
-| 3 | **UMG** (lot 7) — **en cours** ([PLAN_UMG.md](PLAN_UMG.md), V7.33 à V7.35 faites, puis V7.36 et V7.37) | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
+| 3 | **UMG** (lot 7) — **en cours** ([PLAN_UMG.md](PLAN_UMG.md), V7.33 à V7.35 faites, puis V7.36 et V7.37) | Fait : Widget Blueprint et Designer réduit (Palette, Hierarchy, Details, ancres, aperçu 1280 × 720), widgets à l'écran avec le cycle de vie d'UE, Set Text / Set Percent…, enfants ajoutés en jeu, Bindings simulés avec leur compteur d'appels, boutons, modes d'entrée, curseur, pause. À faire : V7.36 (le compteur à l'écran en fin d'Intermédiaire ; P16, D24, E10 « Le menu qui rend le contrôle », « Le vrai menu pause », D25 au Confirmé) puis V7.37 (la barre de vie, R6, « Appuie sur E », E27 « La playlist », A3 au Confirmé ; T4 à l'Avancé ; reprise : notions, révision, mini-exercices ; Widget Component si Tristan le veut). Détail ci-dessous | ★★★ | L |
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
 ### Chantier annexe (fait) : retouches de l'interface
 
-Demandé par Tristan le 19 novembre au soir, avant l'UMG : améliorer l'interface et l'aspect général sans refonte. [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). **Terminé le même soir** : V7.31 (place pour le graphe, boutons flottants en colonne, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, menu, Timeline, couleurs). Tristan les a essayées : « les points sont ok » (20 novembre). L'UMG minimal reste le prochain chantier. Laissé de côté ou remarqué en chemin :
+Demandé par Tristan le 19 novembre au soir, avant l'UMG : améliorer l'interface et l'aspect général sans refonte. [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). **Terminé le même soir** : V7.31 (place pour le graphe, boutons flottants en colonne, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, menu, Timeline, couleurs). Tristan les a essayées : « les points sont ok » (20 novembre). L'UMG a suivi (chantier n° 3). Laissé de côté ou remarqué en chemin :
 
 | Point | Où on en est | Pertinence | Difficulté |
 |---|---|---|---|
@@ -110,7 +112,7 @@ Décision de Tristan du 19 novembre, après la V7.18 : le plan du parcours (lots
 | Troisième projet Expert | Deux projets (X2, X1) | Remplacé par le chantier n° 5 (projet Expert final) |
 | ~~« S'adapter à l'apprenant »~~ | Repris par le chantier n° 2 (révisions de graphes espacées) | — |
 | Déclencheur Tap | Absent ; T2 utilise Hold + Canceled | L'ajouter à Enhanced Input, et voir si une étape en a besoin |
-| Menu pause | Fait sans widget, sur Espace ; choix confirmé par Tristan le 20 novembre | Le chantier UMG propose une étape de plus, « Le vrai menu pause » ([PLAN_UMG.md](PLAN_UMG.md)) |
+| Menu pause | Fait sans widget, sur Espace ; choix confirmé par Tristan le 20 novembre | « Le vrai menu pause » (widget, boutons, Game and UI) arrive en V7.36 ; les nœuds qu'il demande existent depuis la V7.35 ([PLAN_UMG.md](PLAN_UMG.md)) |
 
 ## Cadre : ce qu'il faut garder
 
@@ -179,7 +181,7 @@ Les retouches des V7.31 et V7.32 gardent ces principes : barres plus fines en pa
 |---|---|---|---|
 | ~~Enhanced Input~~ **fait** (V7.4, V7.7, Trigger when Paused en V7.15, partout après la leçon Player Controller depuis le lot 1 du plan) | Reste : actions Axis2D et déplacement par Add Movement Input, modificateurs (Negate, Swizzle), déclencheurs Tap, Pulse, Chorded, déclencheurs sur l'asset Input Action | ★★★ | M |
 | Regard indépendant du déplacement | Viser avec un Line Trace oblige aujourd'hui à bouger : un second manche, ou tourner sur place | ★★★ | S à M |
-| Interaction plus complète (version intermédiaire) | Le schéma UE5 est en place (le joueur reçoit IA_Interagir et prévient par interface : « Interagir avec tout », R4, R3), et le composant réutilisable aussi (« Interagir par composant », V7.21). Reste : surbrillance de l'objet visé, invite « Appuie sur E » (un widget : avec l'UMG), appui maintenu sur un objet | ★★★ | M |
+| Interaction plus complète (version intermédiaire) | Le schéma UE5 est en place (le joueur reçoit IA_Interagir et prévient par interface : « Interagir avec tout », R4, R3), et le composant réutilisable aussi (« Interagir par composant », V7.21). Reste : surbrillance de l'objet visé, invite « Appuie sur E » (prévue en V7.37, étape du chantier UMG), appui maintenu sur un objet | ★★★ | M |
 | ~~Leçons Enhanced Input~~ **faites en V7.4** | La lampe en Enhanced Input, D20 (Add Mapping Context oublié), Maintenir pour ouvrir (Hold) | ★★★ | fait |
 | Tick maîtrisé | Set Actor Tick Enabled, Tick Interval, Start with Tick Enabled, Event End Play (avec End Play Reason), Set Timer by Function Name | ★★ | S |
 
@@ -212,8 +214,10 @@ Les leçons liées à une fonction (Enhanced Input, Save Game, niveaux) sont ran
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
 | ~~Actor Components~~ (lot 5) | **Fait en V7.19 à V7.22** (exercice E14 du recueil couvert). La suite laissée de côté est sous « Prochains chantiers » | ★★★ | fait |
-| Widgets UMG (lot 7, chantier n° 3) | Plan validé le 20 novembre : [PLAN_UMG.md](PLAN_UMG.md). E10 et E27 du recueil y entrent ; E38 est noté à part | ★★★ | L |
-| Widget Component | Un widget porté par un acteur (espace Screen : suit l'acteur, toujours au-dessus), Get User Widget Object ; pour l'invite « Appuie sur E » au-dessus de l'objet et les barres de vie au-dessus des acteurs. Décision du 20 novembre : à faire en V7.37 s'il est facile une fois le runtime des widgets en place, sinon plus tard | ★★ | S à M |
+| Widgets UMG (lot 7, chantier n° 3) | **En cours** : moteur fait (V7.33 à V7.35), leçons en V7.36 et V7.37. [PLAN_UMG.md](PLAN_UMG.md). E10 et E27 du recueil y entrent ; E38 est noté à part | ★★★ | L |
+| Widget Component | Un widget porté par un acteur (espace Screen : suit l'acteur, toujours au-dessus), Get User Widget Object ; pour l'invite « Appuie sur E » au-dessus de l'objet et les barres de vie au-dessus des acteurs. Décision du 20 novembre : à faire en V7.37 s'il est facile une fois le runtime des widgets en place, sinon plus tard. **Jugé à la fin de la V7.35 : moyen** (nouveau type de composant avec Widget Class et Draw Size, un objet widget par acteur, dessin au-dessus de l'acteur dans la vue de dessus, Get User Widget Object, touchers). Décision à prendre par Tristan | ★★ | M |
+| Restes du moteur UMG | Laissés de côté pendant les V7.33 à V7.35, aucun n'est demandé par les étapes prévues : le Slot rendu par Add Child to Vertical Box (pour régler Padding et Size en jeu) ; Get Child At, Get All Children ; On Hovered / On Unhovered (pas de survol au doigt) ; focus clavier, In Widget to Focus (gardé sur le nœud, sans effet) et On Key Down redéfini (fermer un menu UI Only au clavier) ; Play Animation et l'onglet Animations ; Scroll Box, Widget Switcher, List View, Border, Size Box ; polices, styles de bouton, images importées ; curseur réellement dessiné (une pastille « Curseur » le signale) ; héritage entre Widget Blueprints ; Widget Reflector | ★ à ★★ | S à M chacun |
+| Vérifier dans UE | Choix faits d'après la documentation et les forums d'Epic, à confirmer dans l'éditeur : Text Block en Not Hit-Testable (Self Only) par défaut (Canvas Panel : confirmé par Epic), ordre On Released puis On Clicked, toucher ignoré en Game Only (décision 5), Expose on Spawn posé après On Initialized | ★★ | S |
 | Glisser-déposer UMG (E38 du recueil) | Le tableau de tâches : Detect Drag if Pressed, Create Drag & Drop Operation, On Drag Detected / On Drop / On Drag Cancelled redéfinis, visuel qui suit le doigt. Écarté du chantier UMG le 20 novembre (trop lourd), à reprendre après | ★★ | L |
 | Exercices en widgets | E07 (viseur), E43 (interrogatoire), E25 (régie) affichent avec des Text Render faute de widgets : les passer en UMG après le chantier n° 3 | ★ | S chacun |
 | Sons | Play Sound 2D avec quelques sons intégrés | ★★ | S à M |

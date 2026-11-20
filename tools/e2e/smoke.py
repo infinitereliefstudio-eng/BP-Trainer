@@ -294,8 +294,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 136:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 136")
+        if await page.locator('.lesson-item').count() != 140:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 140")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -1382,6 +1382,25 @@ async def main():
         if await page.locator('.umg-world').count() != 2:
             errs.append(f'Widget Component : {await page.locator(".umg-world").count()} barres en Play au lieu de 2')
         await shot('107_widget_component_play')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
+        # V7.43: « Une barre par ennemi » solved: three enemies, three bars in Play.
+        await page.evaluate(PUT, ['project:lesson:l-barre-par-ennemi', (HERE / 'out' / 'l-barre-par-ennemi.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Une barre par ennemi').scroll_into_view_if_needed()
+        await page.wait_for_timeout(200)
+        await shot('108_home_widget_component_steps')
+        await page.locator('.lesson-item', has_text='Une barre par ennemi').tap()
+        await page.wait_for_timeout(500)
+        await close_sheet()
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(900)
+        if await page.locator('.umg-world').count() != 3:
+            errs.append(f'Une barre par ennemi : {await page.locator(".umg-world").count()} barres en Play au lieu de 3')
+        await shot('109_bar_per_enemy_play')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

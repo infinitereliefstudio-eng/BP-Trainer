@@ -1,6 +1,6 @@
 # Chantier annexe : Widget Component et projets de la simulation libre
 
-Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé le 20 novembre ; **Tristan a pris les recommandations et lancé le chantier** (« Ok pour tes recos, tu peux lancer »). **V7.41 faite le même soir**, puis **V7.42** (« Passe a la suite »). V7.43 attend son feu vert.
+Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé le 20 novembre ; **Tristan a pris les recommandations et lancé le chantier** (« Ok pour tes recos, tu peux lancer »). **V7.41 faite le même soir**, puis **V7.42** (« Passe a la suite ») et **V7.43** (« Tu peux passer a la suite ») : **chantier terminé**.
 
 ## En bref
 
@@ -71,3 +71,14 @@ Les trois recommandations : suppression définitive après confirmation (pas de 
 - Les widgets des Widget Components sont sous ceux du viewport. Hors Play, l'éditeur (niveau et Viewport du Blueprint) dessine le cadre de la Draw Size avec le nom du Widget Blueprint.
 - Pas de Set Widget ni de Set Draw Size en jeu : ils ne sont pas demandés par les étapes prévues (noté au BACKLOG si besoin).
 - Le correcteur ne sait pas encore toucher le bouton d'un Widget Component par son nom (les scénarios touchent ceux du viewport) : à ajouter en V7.43 si une étape le demande.
+
+## Ce que la V7.43 a fait
+
+Quatre étapes, notion `widget-component` (échelle découverte → guidée → transfert, plus un Débogue) :
+
+- **« La barre au-dessus de l'ennemi »** (découverte, juste après T4) : trois ennemis avec BP_Sante ; poser le Widget Component (WBP_BarreVie), régler Draw Size et Location Y. Aucun nœud. Les pièges vérifiés : 500 × 500, widget sur l'acteur, Widget Class à None.
+- **« Une barre par ennemi »** (guidée) : après InfligerDegats, Get User Widget Object → Cast To WBP_BarreVie → AfficherVie (Vie de BP_Sante). Chaque barre suit son ennemi ; l'ennemi à 0 part avec la sienne (OnMort → Delay 0,3 → Destroy Actor, pour qu'on voie la barre à 0).
+- **D26 « La barre figée »** (après « Le checkpoint ») : le Widget Class a été changé pour WBP_BarreBoss, une copie : le Cast échoue sans erreur. Deux corrections acceptées (remettre WBP_BarreVie, ou caster vers la copie). L'hypothèse avant l'indice désigne la référence.
+- **Transfert T5 « Les noms au-dessus des têtes »** (avant S4) : trois membres d'équipage, un Nom Instance Editable chacun ; à l'Event BeginPlay, Get User Widget Object → Cast To WBP_Etiquette → AfficherNom (Nom).
+
+Pas d'étape « Appuie sur E au-dessus de l'objet » : le Transfert T5 fait le même travail dans une autre situation, et l'invite d'écran existe déjà (V7.37).

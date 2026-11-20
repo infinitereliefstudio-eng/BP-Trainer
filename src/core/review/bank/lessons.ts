@@ -397,6 +397,30 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Get Component by Class trouve le composant sur n’importe quel acteur. Un composant n’est pas un acteur du niveau : Get Actor Of Class ne le trouve pas.',
   ),
   q(
+    'l-barre-ennemi',
+    'Trois ennemis doivent avoir chacun une barre de vie au-dessus d’eux. Comment la poser ?',
+    ['Un Widget Component dans BP_Ennemi, avec WBP_BarreVie en Widget Class', 'Create Widget puis Add to Viewport dans BP_Ennemi', 'Un seul widget dans le Player Controller, qui dessine trois barres', 'Un Text Render dans BP_Ennemi'],
+    'Le Widget Component donne à chaque acteur son propre exemplaire du widget, qui le suit et part avec lui. Add to Viewport poserait trois barres au même endroit de l’écran.',
+  ),
+  q(
+    'l-barre-par-ennemi',
+    'Dans BP_Ennemi, Get User Widget Object (Barre) est branché sur la Target d’AfficherVie : le fil refuse. Pourquoi ?',
+    ['Il rend un User Widget : il faut un Cast To WBP_BarreVie', 'Barre n’a pas encore créé son widget', 'AfficherVie ne s’appelle que depuis le widget lui-même', 'Il faut d’abord Add to Viewport'],
+    'Get User Widget Object est typé User Widget, le type de tous les widgets. Cast To WBP_BarreVie vérifie que c’en est un et donne accès à ses fonctions.',
+  ),
+  q(
+    'd26-barre-figee',
+    'Après Get User Widget Object, un Cast To WBP_BarreVie part toujours par Cast Failed, sans erreur. Le plus probable ?',
+    ['Le Widget Class du composant est un autre Widget Blueprint', 'Le widget n’a pas été ajouté au viewport', 'La barre est cachée (Collapsed)', 'Le composant n’a pas de Draw Size'],
+    'Un Cast échoue sans bruit quand l’objet n’est pas de cette classe. Le Widget Class du composant et la classe du Cast doivent être le même Widget Blueprint.',
+  ),
+  q(
+    't5-noms',
+    'Un PNJ veut écrire son nom dans le widget de son Widget Component dès le lancement. Où le faire ?',
+    ['À l’Event BeginPlay du PNJ : le widget existe déjà', 'Dans l’Event Construct de l’étiquette, avec Get Owning Player', 'Dans le Construction Script du PNJ', 'Sur Event Tick, le temps que le widget existe'],
+    'Le composant crée son widget en commençant la partie, avant l’Event BeginPlay de l’acteur. Get Owning Player donnerait le joueur, pas le PNJ.',
+  ),
+  q(
     'l09-generateur',
     'Une variable de type BP_Lampe (Object Reference) n’a jamais été réglée. Que contient-elle ?',
     ['None : elle ne désigne aucun acteur', 'La première lampe du niveau', 'Une lampe créée automatiquement', 'Le Blueprint lui-même'],

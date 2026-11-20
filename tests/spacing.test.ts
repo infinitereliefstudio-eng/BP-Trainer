@@ -30,19 +30,20 @@ const KNOWN_GAPS: Record<string, number> = {
   // V7.36 inserted six UMG steps (one at the end of Intermédiaire, five in the Confirmé after « Le menu pause »):
   // the gaps that cross them grew by up to six; loops entered the list. V7.37 inserted six more (five in the Confirmé,
   // T4 in the Avancé): most gaps grew by up to six again; cast, dispatchers, interfaces, other-bp, overlap and
-  // player-controller came down (the menus and HUDs write them).
+  // player-controller came down (the menus and HUDs write them). V7.43 inserted four Widget Component steps in the
+  // Avancé (two after T4, D26 after « Le checkpoint », T5 before S4): the gaps that cross them grew by up to four.
   arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4
   components: 26,
   construction: 45, // lot 3 added Confirmé steps inside this gap: lot 4
-  'data-tables': 64, // runs to the end of the path
+  'data-tables': 66, // runs to the end of the path
   destroy: 48,
   dispatchers: 27,
   enum: 41,
   'flow-memory': 29,
   functions: 42, // lot 3 added Confirmé steps inside this gap: lot 4
-  hit: 16, // V7.37: T4 sits after l-caisse, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
-  inheritance: 25, // runs to the end of the path
+  hit: 20, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
+  inheritance: 29, // runs to the end of the path
   interfaces: 21,
   latent: 49, // runs to the end of the path
   locals: 38, // lot 3 added Confirmé steps inside this gap: lot 4
@@ -50,16 +51,16 @@ const KNOWN_GAPS: Record<string, number> = {
   maps: 59, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 25, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 20,
-  'player-controller': 42, // V7.36: Get Owning Player in the Confirmé menus; from there to Expert X1, a recall in the Avancé is still to find
+  'player-controller': 46, // V7.36: Get Owning Player in the Confirmé menus; from there to Expert X1, a recall in the Avancé is still to find
   random: 58, // lot 3 added Confirmé steps inside this gap: lot 4
   rotation: 27,
-  'save-game': 39, // runs to the end of the path
+  'save-game': 41, // runs to the end of the path
   sequence: 63, // runs to the end of the path
   sets: 33, // lot 3 added Confirmé steps inside this gap: lot 4
   spawn: 40, // lot 3 added Confirmé steps inside this gap: lot 4
   structs: 59, // runs to the end of the path
   switch: 37,
-  tick: 44, // runs to the end of the path
+  tick: 47, // runs to the end of the path
   timeline: 51,
   timers: 28,
   visibility: 26, // runs to the end of the path

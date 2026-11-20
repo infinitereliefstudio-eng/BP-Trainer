@@ -50,6 +50,7 @@ const NODE_NOTIONS: [RegExp, string][] = [
   [/^call\.parentEvent$|^call\.function$/, 'inheritance'],
   [/^trace\./, 'trace'],
   [/^event\.hit$/, 'hit'],
+  [/^widgetComponent\./, 'widget-component'],
   [/^(component\.getOwner|actor\.getComponentsByClass|actor\.getComponentByClass|event\.componentDispatcher|dispatcher\.bindNative)$/, 'actor-components'],
 ];
 

@@ -82,6 +82,8 @@ import { debug23 } from './library/battery';
 import { lessonComponentInteraction } from './library/componentInteraction';
 import { lessonComponentInventory } from './library/componentInventory';
 import { autonomyEnergy } from './library/stationEnergy';
+import { debug26, lessonBarPerEnemy, lessonEnemyBar } from './library/widgetBars';
+import { transferNames } from './library/widgetNames';
 import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isNumbered, type Lesson } from './types';
@@ -226,12 +228,17 @@ export const LESSONS: Lesson[] = [
   mixedDispenser,
   // UMG (V7.37): the HUD method, on an Actor Component (after M2: placed earlier, it would stretch input or events past 15).
   transferEnergy,
+  // Widget Component (V7.43): discover and guided right after the HUD on a component, the repair and the transfer spaced out.
+  lessonEnemyBar,
+  lessonBarPerEnemy,
   lessonTalk,
   lessonDialogueTable,
   lessonCheckpoint,
+  debug26,
   complete6,
   lessonGrid,
   autonomyEnergy,
+  transferNames,
   synthesis4,
   // Expert
   expertWorkshop,

@@ -4,13 +4,13 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_UMG.md](REVUE_UMG.md) (la dernière revue, celle du chantier UMG) et [REVUE_V7.md](REVUE_V7.md). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-20, après la V7.42)
+## Reprise rapide (2026-11-20, après la V7.43)
 
 ### Où on en est
 
-- **Version en ligne : 7.42.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.43.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **Les trois lots sont faits** (V7.38 à V7.40, voir leurs sections). À la reprise : ses essais sur téléphone des V7.33 à V7.40 (rien n'a encore été essayé, dont le Screen Size et les boutons sous le joystick), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite, avant toute version. **Pause demandée par Tristan le 20 novembre à 16 h 30 (« met à jour le backlog et on arrête ») : rien n'est en cours.** La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
-- **Chantier annexe en cours (20 novembre au soir), avant le n° 4** : le Widget Component, avec plusieurs projets en simulation libre. Plan : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md) (V7.41 Mes projets, V7.42 moteur du Widget Component, V7.43 étapes à l'Avancé). Tristan a pris les trois recommandations (« Ok pour tes recos, tu peux lancer »). **V7.41 faite**, puis **V7.42 faite** (« Passe a la suite » ; voir leurs sections). **Suivante : V7.43 (les étapes, à l'Avancé), sur son feu vert explicite.** Le chantier n° 4 vient après.
+- **Chantier annexe en cours (20 novembre au soir), avant le n° 4** : le Widget Component, avec plusieurs projets en simulation libre. Plan : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md) (V7.41 Mes projets, V7.42 moteur du Widget Component, V7.43 étapes à l'Avancé). Tristan a pris les trois recommandations (« Ok pour tes recos, tu peux lancer »). **V7.41**, **V7.42** et **V7.43** faites (voir leurs sections) : **chantier annexe terminé**. À la reprise : ses essais (Mes projets, Widget Component en simulation libre, les quatre étapes de l'Avancé), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite.
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **Retours de Tristan du 20 novembre** : « les points sont ok » pour ce qu'on lui avait fait essayer (interface des V7.31 et V7.32, file « À retravailler en Blueprint » et mini-exercices, étapes Actor Components) ; il confirme aussi le menu pause sans widget, sur Espace. Aucun retour détaillé étape par étape.
 - **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
@@ -19,7 +19,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Le parcours aujourd'hui
 
-136 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 33 (fin : A1 puis synthèse S2), Confirmé 48 (fin : A3, C7 puis synthèse S3), Avancé 38 (fin : A2 puis synthèse S4), Expert 2 (Projet X2, Projet X1). 166 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (`isNumbered` : les leçons `build` sans code, hors transfert/autonomie), les exercices et les étapes à code ont un libellé à eux (P, D, C, R, T, A, S ; M pour Entraînement, X pour Projet).
+140 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 33 (fin : A1 puis synthèse S2), Confirmé 48 (fin : A3, C7 puis synthèse S3), Avancé 42 (fin : A2, T5 puis synthèse S4), Expert 2 (Projet X2, Projet X1). 170 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (`isNumbered` : les leçons `build` sans code, hors transfert/autonomie), les exercices et les étapes à code ont un libellé à eux (P, D, C, R, T, A, S ; M pour Entraînement, X pour Projet).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Une première marche (`discover`, `guided`) garde sa méthode visible et ouvre sa solution après 3 échecs, à tout niveau (V7.25). Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -48,7 +48,7 @@ Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) 
 5. Une question de révision (`core/review/bank/lessons.ts`, bonne réponse en premier).
 6. `recalls` si la solution réécrit une notion ancienne ; relancer `tests/spacing.test.ts` et suivre ses messages.
 7. Si la leçon change le projet de départ d'une étape existante : `revision` + 1 (l'appli signale alors la leçon comme changée).
-8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~285 (nombre d'étapes attendu, 136 depuis la V7.37) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
+8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~285 (nombre d'étapes attendu, 140 depuis la V7.43) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
 9. Les textes qui renvoient à une leçon la nomment par son **titre**, jamais par son numéro (les numéros bougent).
 10. Le correcteur rejoue chaque solution avec des appuis tenus 0,1 s (V7.23) : une étape à touche doit passer quand la touche reste enfoncée quelques images (Started plutôt que Triggered sans déclencheur).
 
@@ -962,6 +962,17 @@ Lancé par Tristan (« Passe a la suite ») : [PLAN_ANNEXE_WIDGET_PROJETS.md](PL
 - **Tests** : `tests/widgetComponent.test.ts` (8). Smoke : projet `widget-component.json` (`solved.gen.ts`), captures 105 (cadres dans le niveau), 106 (Details), 107 (deux barres en Play).
 
 Version 7.42.0.
+
+## V7.43 (2026-11-20) : chantier annexe, les étapes du Widget Component
+
+Lancé par Tristan (« Tu peux passer a la suite ») : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md), dernière version du chantier annexe. Le parcours passe de 136 à 140 étapes ; aucune étape existante ne change de règle ni de solution (les numéros des leçons suivantes avancent d'un ou deux).
+
+- **Notion `widget-component`** (catalogue, `practice.ts` : nœuds `widgetComponent.*`), échelle découverte → guidée → transfert.
+- **« La barre au-dessus de l'ennemi »** (`l-barre-ennemi`, découverte, après T4), **« Une barre par ennemi »** (`l-barre-par-ennemi`, guidée), **D26 « La barre figée »** (`d26-barre-figee`, après « Le checkpoint ») : `lessons/library/widgetBars.ts`. **T5 « Les noms au-dessus des têtes »** (`t5-noms`, avant S4) : `widgetNames.ts`. Détail dans le plan.
+- Quatre questions de révision ; `KNOWN_GAPS` remonté de 2 à 4 pour data-tables, hit, inheritance, player-controller, save-game et tick (étapes insérées dans leur écart) ; `widget-component` reste sous 15.
+- **Tests** : `tests/widgetComponentLessons.test.ts` (5 : place dans le parcours, pièges de la découverte, barres figées, D26 et ses deux corrections, l'hypothèse « référence », T5 avec un seul nom pour tous). Smoke : 140 étapes, captures 108 (accueil) et 109 (trois barres en Play, « Une barre par ennemi » résolue).
+
+Version 7.43.0.
 
 ## Méthode de travail
 

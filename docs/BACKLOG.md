@@ -212,8 +212,10 @@ Les leçons liées à une fonction (Enhanced Input, Save Game, niveaux) sont ran
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
 | ~~Actor Components~~ (lot 5) | **Fait en V7.19 à V7.22** (exercice E14 du recueil couvert). La suite laissée de côté est sous « Prochains chantiers » | ★★★ | fait |
-| Widgets UMG (lot 7, chantier n° 3) | Plan validé le 20 novembre : [PLAN_UMG.md](PLAN_UMG.md). Les exercices E10, E27, E38 du recueil sont abandonnés (recueil introuvable) | ★★★ | L |
+| Widgets UMG (lot 7, chantier n° 3) | Plan validé le 20 novembre : [PLAN_UMG.md](PLAN_UMG.md). E10 et E27 du recueil y entrent ; E38 est noté à part | ★★★ | L |
 | Widget Component | Un widget porté par un acteur (espace Screen : suit l'acteur, toujours au-dessus), Get User Widget Object ; pour l'invite « Appuie sur E » au-dessus de l'objet et les barres de vie au-dessus des acteurs. Décision du 20 novembre : à faire en V7.37 s'il est facile une fois le runtime des widgets en place, sinon plus tard | ★★ | S à M |
+| Glisser-déposer UMG (E38 du recueil) | Le tableau de tâches : Detect Drag if Pressed, Create Drag & Drop Operation, On Drag Detected / On Drop / On Drag Cancelled redéfinis, visuel qui suit le doigt. Écarté du chantier UMG le 20 novembre (trop lourd), à reprendre après | ★★ | L |
+| Exercices en widgets | E07 (viseur), E43 (interrogatoire), E25 (régie) affichent avec des Text Render faute de widgets : les passer en UMG après le chantier n° 3 | ★ | S chacun |
 | Sons | Play Sound 2D avec quelques sons intégrés | ★★ | S à M |
 | Macros et Collapse | Macros de l'utilisateur, Collapse to Function, Collapse to Macro | ★★ | M à L |
 | Copier-coller entre graphes | Aujourd'hui seulement dans un même graphe | ★★ | M |

@@ -216,15 +216,27 @@ Tristan a répondu aux six questions ; elles changent la place des étapes et l'
 5. **Toucher ignoré en Game Only**, avec un « Pourquoi ? ».
 6. **1280 × 720**, à confirmer à l'œil sur le téléphone avec la V7.33.
 
-Le recueil n'est ni dans le dépôt ni dans le Drive (il avait été envoyé en pièce jointe le 16 novembre) : E10, E27 et E38 sont abandonnés ; les dix étapes de ce plan les remplacent.
+Le recueil (v1.1 du 16 novembre) a été retrouvé : E10 et E27 entrent dans le chantier, E38 part au backlog (section suivante). Le parcours compte donc douze étapes UMG au lieu de dix.
 
 | Version | Contenu après décisions |
 | --- | --- |
-| V7.33 | Widget Blueprint et Designer réduit, aperçu en 1280 × 720 |
-| V7.34 | À l'écran (Create Widget, Add to Viewport, cycle de vie, Set Text, Set Percent…) et Bindings avec leur compteur d'appels |
-| V7.35 | Boutons, modes d'entrée, curseur, pause |
-| V7.36 | Le compteur à l'écran (Intermédiaire), P16, D24, Le vrai menu pause, D25 (Confirmé) |
-| V7.37 | La barre de vie, R6, Appuie sur E, A3 (Confirmé), T4 (Avancé), reprise ; Widget Component si facile |
+| V7.33 | Widget Blueprint et Designer réduit (dont les widgets créés par l'utilisateur, placés dans un autre), aperçu en 1280 × 720 |
+| V7.34 | À l'écran (Create Widget avec Expose on Spawn, Add to Viewport, cycle de vie, Set Text, Set Percent…), enfants dynamiques (Add Child to Vertical Box, Remove Child, Clear Children) et Bindings avec leur compteur d'appels |
+| V7.35 | Boutons, modes d'entrée (UI Only bloque aussi le joystick), curseur, pause |
+| V7.36 | Le compteur à l'écran (Intermédiaire), P16, D24, E10 Le menu qui rend le contrôle, Le vrai menu pause, D25 (Confirmé) |
+| V7.37 | La barre de vie, R6, Appuie sur E, E27 La playlist, A3 (Confirmé), T4 (Avancé), reprise ; Widget Component si facile |
+
+## Le recueil retrouvé : E10, E27 et E38
+
+Tristan a renvoyé le recueil (« Recueil d'exercices progressifs — Unreal Engine 5 et Blueprints », v1.1 du 16 novembre) le 20 novembre. Les trois exercices restent pertinents pour UE5 ; deux s'intègrent au chantier sans le grossir beaucoup, le troisième demande trop pour maintenant.
+
+| Exercice | Ce qu'il demande | Verdict | Dans l'appli |
+| --- | --- | --- | --- |
+| E10 — Le menu qui rend le contrôle | Une touche ouvre un menu ; pendant son affichage, curseur sans déplacer le personnage ; le bouton Fermer rend le contrôle ; une ouverture répétée ne crée pas deux menus. Pause hors périmètre | **Retenu**, Confirmé, leçon guidée. Il précède « Le vrai menu pause », qui devient sa suite avec Set Game Paused | Tests du recueil repris : trois ouvertures et fermetures, double ouverture, reprise de la marche. Variante « fermer avec la touche d'ouverture » : en défi, elle pose le piège d'UI Only |
+| E27 — La playlist qui commande le bon morceau | Une ligne enfant par morceau (cinq morceaux fictifs), boutons Lire et Retirer ; chaque bouton agit sur son morceau même après réorganisation ; le parent décide, une seule source garde la liste ; rafraîchir ne multiplie pas les actions | **Retenu**, fin du Confirmé, format Complète avec le bug du recueil (index pris pour un identifiant après suppression ou réorganisation) | Lecture remplacée par un texte « En lecture : … », comme le recueil l'autorise. Demande en plus : widgets dans un widget, Add Child to Vertical Box, Clear Children, dispatcher d'un widget, Expose on Spawn. Tests : retirer le premier puis lire le suivant, inverser deux lignes, rafraîchir trois fois puis cliquer une fois, retirer le morceau courant |
+| E38 — Le tableau de tâches en glisser-déposer | Glisser une tâche entre trois colonnes, colonne limitée à deux, dépôt refusé sans perte, affichage reconstructible depuis les données | **Au backlog** | Il faut des fonctions redéfinies (On Drag Detected, On Drop, On Drag Cancelled), un objet Drag & Drop Operation et un visuel qui suit le doigt : un chantier à lui seul. À reprendre après celui-ci |
+
+D'autres exercices déjà intégrés avaient remplacé un widget par un Text Render (E07 le viseur, E43 l'interrogatoire, E25 la régie). Les passer en widgets est possible après le chantier ; c'est noté au backlog, pas prévu ici.
 
 ## Sources
 

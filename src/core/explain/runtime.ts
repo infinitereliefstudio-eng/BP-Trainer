@@ -48,6 +48,16 @@ export function explainRuntime(message: string, at?: ErrorSite): Explanation | u
       ],
     };
   }
+  if (message.startsWith('Infinite script recursion')) {
+    return {
+      why: 'Un appel en a déclenché un autre, qui en a déclenché un autre… plus de 250 fois sans qu’aucun ne se termine : UE arrête la chaîne. Un événement ou une fonction finit par se rappeler lui-même.',
+      fixes: [
+        'Un Custom Event ou une fonction qui s’appelle lui-même doit avoir une condition d’arrêt (Branch).',
+        'Dans un widget, Event Construct revient à chaque Add to Viewport : n’y crée pas et n’y ajoute pas un widget de la même classe.',
+        'Deux Blueprints qui s’appellent l’un l’autre en boucle : décide lequel prévient l’autre, une seule fois.',
+      ],
+    };
+  }
   if (message.startsWith('SpawnActor failed because no class was specified')) {
     return { why: 'La pin Class de Spawn Actor a reçu une classe vide.', fixes: ['Choisis une classe sur la pin Class, ou vérifie la variable Class Reference qui y est reliée.'] };
   }

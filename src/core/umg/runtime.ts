@@ -213,12 +213,33 @@ export class Umg {
   subtree(o: ActorRT, out: ActorRT[] = [], guard = 0): ActorRT[] {
     if (!o.widget || guard > 16 || out.includes(o)) return out;
     out.push(o);
+    for (const c of this.innerOf(o)) this.subtree(c, out, guard + 1);
+    return out;
+  }
+
+  /** The widgets shown inside an object, then the object: the order Slate builds them in (inner first, siblings in tree order). */
+  private built(o: ActorRT): ActorRT[] {
+    const pre = this.subtree(o);
+    const out: ActorRT[] = [];
+    const visit = (x: ActorRT, guard: number) => {
+      if (guard > 16) return;
+      for (const c of this.innerOf(x)) if (pre.includes(c) && !out.includes(c)) visit(c, guard + 1);
+      if (!out.includes(x)) out.push(x);
+    };
+    visit(o, 0);
+    return out;
+  }
+
+  /** The widget objects shown directly inside an object: placed in its Designer, added to its panels, in tree order. */
+  private innerOf(o: ActorRT): ActorRT[] {
+    const out: ActorRT[] = [];
+    if (!o.widget) return out;
     for (const w of this.tree(o)) {
       const inner = w.kind === 'UserWidget' ? this.get(o.widget.nested[w.id]) : undefined;
-      if (inner) this.subtree(inner, out, guard + 1);
+      if (inner) out.push(inner);
       for (const id of o.widget.children[w.id] ?? []) {
         const c = this.get(id);
-        if (c) this.subtree(c, out, guard + 1);
+        if (c) out.push(c);
       }
     }
     return out;
@@ -227,13 +248,13 @@ export class Umg {
   /**
    * After a change of the screen: Destruct for what left it (outer widget
    * first), Pre Construct then Construct for what came (inner widgets first,
-   * as Slate builds them).
+   * siblings in tree order, as Slate builds them).
    */
   private sync(around: ActorRT[]): UmgEvent[] {
     const objs = [...new Set(around.flatMap((o) => this.subtree(o)))];
     const events: UmgEvent[] = [];
     const leaving = objs.filter((o) => o.widget!.onScreen && !this.shown(o));
-    const coming = objs.filter((o) => !o.widget!.onScreen && this.shown(o)).reverse();
+    const coming = [...new Set(around.flatMap((o) => this.built(o)))].filter((o) => !o.widget!.onScreen && this.shown(o));
     for (const o of leaving) {
       o.widget!.onScreen = false;
       events.push({ obj: o, def: 'event.destruct', outputs: {} });
@@ -275,7 +296,11 @@ export class Umg {
       st.removed = true;
       this.version++;
       const inner = this.get(t.obj.widget!.nested[t.id]);
-      return inner ? this.sync([inner]) : [];
+      if (!inner) return [];
+      // As in UE, the User Widget leaves the tree: no parent any more, it can go to the viewport or another panel.
+      delete t.obj.widget!.nested[t.id];
+      inner.widget!.placedIn = undefined;
+      return this.sync([inner]);
     }
     const o = t.obj;
     const w = o.widget!;
@@ -380,17 +405,64 @@ export class Umg {
     return this.viewport().flatMap((o) => this.subtree(o)).filter((o) => o.widget!.onScreen);
   }
 
+  /** The Visibility a widget of a Designer has now: set by the game, else the Designer's (a placed User Widget: its object's own). */
+  private visibilityOf(o: ActorRT, w: WidgetNode): number {
+    const inner = w.kind === 'UserWidget' ? this.get(o.widget!.nested[w.id]) : undefined;
+    return inner?.widget?.state['']?.visibility ?? o.widget!.state[w.id]?.visibility ?? w.props.visibility;
+  }
+
+  /** A widget of a Designer and every parent up to the root are neither Collapsed nor Hidden, nor removed. */
+  private nodeDrawn(o: ActorRT, id: string | undefined): boolean {
+    const list = this.tree(o);
+    for (let cur = id, guard = 0; cur && guard < 64; guard++) {
+      const w = list.find((x) => x.id === cur);
+      if (!w) return true;
+      const v = this.visibilityOf(o, w);
+      if (v === VIS_COLLAPSED || v === VIS_HIDDEN || o.widget!.state[cur]?.removed) return false;
+      cur = w.parent;
+    }
+    return true;
+  }
+
   /**
-   * Bindings: every frame, the function bound to each property is called and
-   * its Return Value shown, unless a Set on that property stopped it.
+   * Is the widget object painted now: on the screen, and neither it, its
+   * root, nor anything it sits in is Collapsed or Hidden. Slate does not
+   * paint the others, so they do not tick and their Bindings are not read.
+   */
+  drawn(o: ActorRT, guard = 0): boolean {
+    const w = o.widget;
+    if (!w?.onScreen || guard > 16) return false;
+    const self = w.state['']?.visibility;
+    if (self === VIS_COLLAPSED || self === VIS_HIDDEN) return false;
+    const root = widgetRoot(this.tree(o));
+    if (root && !this.nodeDrawn(o, root.id)) return false;
+    if (w.inViewport) return true;
+    const host = this.get(w.parent?.obj ?? w.placedIn?.obj);
+    return !!host && this.drawn(host, guard + 1) && this.nodeDrawn(host, w.parent?.panel ?? w.placedIn?.id);
+  }
+
+  /** Widget objects whose Event Tick runs this frame: the ones painted. */
+  ticking(): ActorRT[] {
+    return this.onScreen().filter((o) => this.drawn(o));
+  }
+
+  /**
+   * Bindings: every frame, the function bound to each property of a painted
+   * widget is called and its Return Value shown, unless a Set on that
+   * property stopped it. A widget's own Visibility is read as long as its
+   * parent is painted (that is how it can come back).
    */
   pollBindings(): void {
     for (const o of this.onScreen()) {
+      if (!this.drawn(o)) continue;
       for (const w of this.tree(o)) {
         if (!w.bindings || o.widget!.state[w.id]?.removed) continue;
+        const parentDrawn = this.nodeDrawn(o, w.parent);
+        const selfDrawn = parentDrawn && this.nodeDrawn(o, w.id);
         for (const spec of bindableProps(w.kind)) {
           const graphId = w.bindings[spec.prop];
           if (!graphId || o.widget!.broken[`${w.id}:${spec.prop}`]) continue;
+          if (!(spec.prop === 'visibility' ? parentDrawn : selfDrawn)) continue;
           const g = this.host.classOf(o)?.graphs.find((x) => x.id === graphId);
           const out = g?.fn?.outputs[0];
           if (!out) continue;

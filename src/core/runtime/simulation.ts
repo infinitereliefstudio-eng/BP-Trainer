@@ -390,13 +390,14 @@ export class Simulation implements InterpreterHost {
   }
 
   /**
-   * UMG after the world: the Event Tick of each widget on the screen, then
-   * the Bindings, polled when Slate paints the frame.
+   * UMG after the world: the Event Tick of each widget painted on the
+   * screen, then the Bindings, polled when Slate paints the frame.
    */
   private widgetPhases(dt: number): (() => void)[] {
     return [
       () => {
-        for (const o of this.umg.onScreen()) this.fire(o, (n) => n.def === 'event.widgetTick', 'then', { delta: dt });
+        // Only painted widgets tick: a Collapsed or Hidden one stops, as in UE.
+        for (const o of this.umg.ticking()) this.fire(o, (n) => n.def === 'event.widgetTick', 'then', { delta: dt });
       },
       () => this.umg.pollBindings(),
     ];

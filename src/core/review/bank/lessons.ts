@@ -521,7 +521,7 @@ export const LESSON_QUIZ: QuizQuestion[] = [
   q(
     'c2-factorielle',
     'Une fonction s’appelle elle-même sans condition d’arrêt. Que se passe-t-il ?',
-    ['« Infinite loop detected » : l’exécution est interrompue', 'Elle tourne en silence pour toujours', 'Elle s’arrête après 10 appels', 'Elle renvoie 0'],
+    ['« Infinite script recursion » : UE coupe la chaîne d’appels', 'Elle tourne en silence pour toujours', 'Elle s’arrête après 10 appels', 'Elle renvoie 0'],
     'Une récursion a besoin d’un cas où elle ne s’appelle plus.',
   ),
   q(

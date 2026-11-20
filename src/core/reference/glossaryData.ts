@@ -246,10 +246,10 @@ export const GLOSSARY: GlossaryEntry[] = [
   },
   {
     title: 'Fonction',
-    names: ['Fonction', 'Entrées et sorties', 'Return Node', 'Récursion', 'Condition d’arrêt', 'Infinite loop detected'],
+    names: ['Fonction', 'Entrées et sorties', 'Return Node', 'Récursion', 'Condition d’arrêt', 'Infinite script recursion', 'Infinite loop detected'],
     what: 'Une fonction range une suite de nœuds sous un nom, avec des entrées et des sorties (Return Node). On l’appelle d’un seul nœud, autant de fois qu’on veut. Une fonction qui s’appelle elle-même est récursive.',
     when: 'Dès qu’une même suite existe deux fois, ou qu’un morceau du graphe mérite un nom. Pas de Delay ni de Timeline dans une fonction : pour cela, un Custom Event.',
-    trap: 'Sans condition d’arrêt, une fonction récursive ne finit jamais : UE l’arrête avec « Infinite loop detected ».',
+    trap: 'Sans condition d’arrêt, une fonction récursive ne finit jamais : au 250e appel imbriqué, UE l’arrête avec « Infinite script recursion ». Une boucle sans fin, elle, finit sur « Infinite loop detected ».',
   },
   // --------------------------------------------------------------- le temps
   {

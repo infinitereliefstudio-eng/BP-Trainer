@@ -75,6 +75,8 @@ interface Frame {
   pin: string;
   via?: string;
   outputs?: Record<string, RValue>;
+  /** Nested calls under the event that started the chain (a called event or function adds one). */
+  depth?: number;
 }
 
 /**
@@ -118,6 +120,8 @@ export interface PinWatch {
 
 /** Steps allowed for one event before UE-style "Infinite loop detected". */
 export const MAX_STEPS = 100_000;
+/** UE stops a chain of nested calls (events, functions) past this depth: « Infinite script recursion ». */
+export const MAX_CALL_DEPTH = 250;
 const MAX_PURE_DEPTH = 64;
 
 /** Nodes run by the interpreter itself rather than by a behaviour. */
@@ -462,11 +466,11 @@ export class Interpreter {
     return frames;
   }
 
-  private pushTargets(actor: ActorRT, scope: Scope, gi: GraphIndex, node: string, pin: string): void {
+  private pushTargets(actor: ActorRT, scope: Scope, gi: GraphIndex, node: string, pin: string, depth = 0): void {
     this.host.record.took(gi.graph.id, node, pin);
     const targets = gi.execOut.get(`${node}:${pin}`) ?? [];
     for (let i = targets.length - 1; i >= 0; i--) {
-      this.stack.push({ actor, scope, gi, node: targets[i].to.node, mode: 'in', pin: targets[i].to.pin, via: targets[i].link });
+      this.stack.push({ actor, scope, gi, node: targets[i].to.node, mode: 'in', pin: targets[i].to.pin, via: targets[i].link, depth });
     }
   }
 
@@ -485,7 +489,7 @@ export class Interpreter {
         scope.outputs[node.id] = { ...f.outputs };
         for (const [pin, v] of Object.entries(f.outputs)) this.remember(actor, node.id, pin, v);
       }
-      this.pushTargets(actor, scope, gi, node.id, f.pin);
+      this.pushTargets(actor, scope, gi, node.id, f.pin, f.depth);
       return;
     }
     this.enter(f);
@@ -561,10 +565,19 @@ export class Interpreter {
       },
     };
     const outs = behavior.exec(cx);
-    if (resume) this.stack.push({ actor, scope, gi, node: node.id, mode: 'in', pin: RESUME });
-    for (let i = outs.length - 1; i >= 0; i--) this.pushTargets(actor, scope, gi, node.id, outs[i]);
+    const depth = f.depth ?? 0;
+    if (resume) this.stack.push({ actor, scope, gi, node: node.id, mode: 'in', pin: RESUME, depth });
+    for (let i = outs.length - 1; i >= 0; i--) this.pushTargets(actor, scope, gi, node.id, outs[i], depth);
+    if (calls.some((c) => c.mode !== 'ret') && depth + 1 > MAX_CALL_DEPTH) {
+      // As UE: a chain of calls that never returns (an event that calls itself, a widget's Construct that adds a new one…).
+      this.host.runtimeError(
+        `Infinite script recursion (${MAX_CALL_DEPTH} calls) detected - aborting! Blueprint: ${gi.cls.name} — ${nodeTitle(node, gi.ctx)} appelle un événement ou une fonction qui finit par le rappeler, sans fin.`,
+      );
+      this.stack.length = 0;
+      return;
+    }
     // Called events go on top: they run before this node's outputs continue.
-    for (let i = calls.length - 1; i >= 0; i--) this.stack.push(calls[i]);
+    for (let i = calls.length - 1; i >= 0; i--) this.stack.push({ ...calls[i], depth: calls[i].mode === 'ret' ? depth : depth + 1 });
   }
 
   // ------------------------------------------------------------ functions

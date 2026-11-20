@@ -4,12 +4,12 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_UMG.md](REVUE_UMG.md) (la dernière revue, celle du chantier UMG) et [REVUE_V7.md](REVUE_V7.md). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-20, après la V7.37)
+## Reprise rapide (2026-11-20, après la V7.38)
 
 ### Où on en est
 
-- **Version en ligne : 7.37.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
-- **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots proposés (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs) et deux questions (PAUSED devant les widgets, aperçu « Téléphone » du Designer). **Rien n'est lancé** : attendre son feu vert. La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
+- **Version en ligne : 7.38.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **V7.38 faite** (voir sa section) ; V7.39 et V7.40 suivent, une version chacune. La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **Retours de Tristan du 20 novembre** : « les points sont ok » pour ce qu'on lui avait fait essayer (interface des V7.31 et V7.32, file « À retravailler en Blueprint » et mini-exercices, étapes Actor Components) ; il confirme aussi le menu pause sans widget, sur Espace. Aucun retour détaillé étape par étape.
 - **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
@@ -900,6 +900,19 @@ Lancé par Tristan (« tu peux passer a la prochaine étape »). Le parcours pas
 - **Tests** : `tests/umgLessons.test.ts` (21 : place et échelles des chaînes `umg` et `ui-input`, barre sans mise à jour immédiate, Percent sans ÷ 100, R6 tel quel, Hidden au lieu de Collapsed, playlist sans Remove Item, `nth` sur la 5e ligne, A3 en Game and UI, T4 sans mise à jour immédiate) ; `tests/drills.test.ts` couvre la nouvelle famille (36 graines, chaque erreur typique). Smoke : 136 étapes, sélecteur de « Le terminal » rendu non ambigu, capture 98 (la playlist en Play, Lire sur la 2e ligne).
 
 Version 7.37.0.
+
+## V7.38 (2026-11-20) : revue du chantier UMG, lot 1 (le moteur au plus près d'UE)
+
+Lancé par Tristan (« ok pour tes recos, tu peux passer aux corrections ») après la revue ([REVUE_UMG.md](REVUE_UMG.md)). Il a pris les recommandations des deux questions (PAUSED caché quand un widget est à l'écran ; aperçu « Téléphone » dans le Designer), qui sont pour la V7.39. Les trois lots s'enchaînent, une version chacun.
+
+- **F1, Owning Player vide** : Create Widget sans Owning Player donne le widget au contrôleur du joueur (UE prend le premier joueur local, GameInstance GetFirstGamePlayer). Seul l'aperçu du Designer fait un widget sans propriétaire (Get Owning Player = None en Pre Construct, comme UE). Conseil de construction `widget-no-owner` (« Create Widget sans Owning Player », dès l'Intermédiaire, `quality/advice.ts`). Descriptions de Create Widget et Get Owning Player complétées.
+- **F2, widget non dessiné** : `Umg.drawn(o)` (à l'écran, ni lui, ni sa racine, ni ce qui le contient Collapsed ou Hidden ou retiré), `Umg.ticking()`. L'Event Tick ne tourne que pour eux ; les Bindings d'un widget ne sont lus que s'il est dessiné, sauf celui de sa Visibility, lu tant que son parent l'est (c'est ce qui lui permet de revenir).
+- **F3** : `Umg.built` (post-ordre, frères dans l'ordre de l'arbre) pour Pre Construct et Construct ; `innerOf` partagé avec `subtree`.
+- **F4** : Remove from Parent d'un User Widget placé l'enlève de l'arbre (`nested` et `placedIn` effacés) : il peut aller au viewport ou dans un panneau.
+- **R1, récursion** : `Frame.depth` dans l'interpréteur (un événement ou une fonction appelés ajoutent 1) ; au-delà de `MAX_CALL_DEPTH` (250), « Infinite script recursion (250 calls) detected - aborting! », pile vidée, avec son « Pourquoi ? » (`explain/runtime.ts`). Le Construct qui recrée son widget s'arrête en quelques millisecondes (5,5 s et 33 333 objets avant). Le correcteur (`runner.ts`) arrête le scénario sur ce message comme sur Infinite loop detected. **C2 « La factorielle »** finit maintenant sur ce message, comme dans UE : textes, notion « Infinite script recursion » (glossaire, fiche Fonction), question de révision mis à jour ; la règle et la solution ne changent pas.
+- **Tests** : `tests/umgFidelity.test.ts` (8) ; `umgRuntime` dit maintenant que Get Owning Player Pawn vaut le joueur sans Owning Player ; `lessonVariantsV2` attend le message de récursion pour C2.
+
+Version 7.38.0.
 
 ## Méthode de travail
 

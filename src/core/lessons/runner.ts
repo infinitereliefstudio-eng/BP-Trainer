@@ -137,12 +137,12 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
   const notes: string[] = [];
   sim.start();
   let dt = STEP;
-  // After "Infinite loop detected" the rest of the scenario is not played: every further event
+  // After "Infinite loop detected" (or an infinite recursion) the rest of the scenario is not played: every further event
   // would run to the step limit again, seconds each on a phone. Checkpoints are still evaluated.
   let seen = 0;
   let runaway = false;
   const ranAway = () => {
-    for (; seen < sim.log.length; seen++) if (sim.log[seen].level === 'error' && sim.log[seen].text.includes('Infinite loop detected')) return true;
+    for (; seen < sim.log.length; seen++) if (sim.log[seen].level === 'error' && (sim.log[seen].text.includes('Infinite loop detected') || sim.log[seen].text.includes('Infinite script recursion'))) return true;
     return false;
   };
   for (const step of lesson.scenario) {

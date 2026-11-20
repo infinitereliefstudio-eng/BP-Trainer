@@ -347,16 +347,16 @@ export const complete2: Lesson = {
   number: 0,
   title: 'La factorielle',
   situation:
-    'Factorielle(N) = N × Factorielle(N − 1) : la fonction s’appelle elle-même. Mais rien ne l’arrête, et Play finit sur « Infinite loop detected ». Il manque la condition d’arrêt, dans le cadre jaune.',
-  notions: ['Récursion', 'Condition d’arrêt', 'Return Node', 'Infinite loop detected'],
-  remember: 'Une fonction qui s’appelle elle-même a besoin d’un cas où elle ne s’appelle plus : sans lui, elle tourne jusqu’à ce qu’UE l’arrête (Infinite loop detected).',
+    'Factorielle(N) = N × Factorielle(N − 1) : la fonction s’appelle elle-même. Mais rien ne l’arrête, et Play finit sur « Infinite script recursion ». Il manque la condition d’arrêt, dans le cadre jaune.',
+  notions: ['Récursion', 'Condition d’arrêt', 'Return Node', 'Infinite script recursion'],
+  remember: 'Une fonction qui s’appelle elle-même a besoin d’un cas où elle ne s’appelle plus : sans lui, elle s’appelle sans fin jusqu’à ce qu’UE coupe la chaîne (Infinite script recursion, à 250 appels imbriqués).',
   cards: [
     {
       title: 'Ce qui est en place',
       body:
         '**BP_Calcul** a une fonction **Factorielle** : entrée **N**, sortie **Resultat**. Dans son graphe :\n\n' +
         '- un appel à **Factorielle** elle-même, avec N **−** 1 ;\n- un **×** qui multiplie N par le résultat de cet appel ;\n- le **Return Node**, qui rend ce produit ;\n- un cadre jaune vide, juste après l’entrée de la fonction.\n\n' +
-        'Le BeginPlay affiche Factorielle(5). Lance Play : « Infinite loop detected ».',
+        'Le BeginPlay affiche Factorielle(5). Lance Play : « Infinite script recursion ».',
     },
     {
       title: 'Une fonction qui s’appelle',
@@ -367,7 +367,7 @@ export const complete2: Lesson = {
     {
       title: 'La condition d’arrêt',
       body:
-        'Sans cas où elle ne s’appelle plus, la fonction descend à 0, −1, −2… sans fin. UE coupe au bout d’un très grand nombre de nœuds : **Infinite loop detected**.\n\n' +
+        'Sans cas où elle ne s’appelle plus, la fonction descend à 0, −1, −2… sans fin. Chaque appel attend le suivant ; au 250e appel imbriqué, UE coupe tout : **Infinite script recursion (250 calls) detected**.\n\n' +
         'Le cas de base : quand **N <= 1**, le résultat est **1**, et la fonction **ne s’appelle pas**.\n\n' +
         'À placer dans le cadre jaune :\n\n' +
         '- **<= (Integer)** : N <= 1 ;\n- **Branch** sur ce résultat ;\n- un second **Return Node** (appui long dans le vide du graphe de la fonction), avec Resultat = 1.',

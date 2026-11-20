@@ -1,6 +1,8 @@
 /**
  * UMG functions. One local player here: a widget's owner is the player's
- * controller (or None if Create Widget got none), its pawn the player.
+ * controller (Create Widget without Owning Player takes the first local
+ * player, as UE does), its pawn the player. Only the Designer's preview
+ * makes a widget with no owner.
  * The work is done by core/umg/runtime; life-cycle events (On Initialized,
  * Construct, Destruct) run as synchronous calls, before the chain goes on.
  */
@@ -90,8 +92,8 @@ export const widgetBehaviors: Record<string, Behavior> = {
         cx.out('result', null);
         return ['then'];
       }
-      const owner = cx.world.tryActor(cx.in('owner'));
-      const made = cx.world.umg.create(id, owner && owner.id === cx.world.playerController().id ? owner.id : null);
+      // Owning Player left empty: UE gives the widget the first local player (GetFirstGamePlayer), here the only one.
+      const made = cx.world.umg.create(id, cx.world.playerController().id);
       if (!made) {
         cx.world.runtimeError('Create Widget : la classe choisie n’est pas un Widget Blueprint.');
         cx.out('result', null);

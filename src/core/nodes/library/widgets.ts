@@ -147,7 +147,7 @@ export const widgetNodes: NodeDefinition[] = [
     title: 'Get Owning Player',
     category: CAT,
     kind: 'pure',
-    description: 'Le Player Controller à qui appartient ce widget : celui donné à Owning Player sur Create Widget.',
+    description: 'Le Player Controller à qui appartient ce widget : celui donné à Owning Player sur Create Widget. Si la pin était vide, UE a pris le premier joueur local. Dans le Designer (Pre Construct), il n’y en a pas : None.',
     keywords: ['owning player', 'owner', 'player controller', 'proprietaire', 'joueur'],
     pins: (_n, ctx) => [widgetTarget(ctx), dataOut('result', 'Return Value', T.object('PlayerController'))],
   },
@@ -169,7 +169,7 @@ export const widgetNodes: NodeDefinition[] = [
     category: CAT,
     kind: 'function',
     description:
-      'Crée un widget de la classe choisie : un objet, pas encore à l’écran (il faut Add to Viewport). Event On Initialized s’y exécute une fois, tout de suite, avant que les variables Expose on Spawn reçoivent leur valeur. Garde la Return Value dans une variable pour pouvoir le retirer ou le mettre à jour.',
+      'Crée un widget de la classe choisie : un objet, pas encore à l’écran (il faut Add to Viewport). Event On Initialized s’y exécute une fois, tout de suite, avant que les variables Expose on Spawn reçoivent leur valeur. Garde la Return Value dans une variable pour pouvoir le retirer ou le mettre à jour. Owning Player : le joueur à qui il appartient ; laissé vide, UE prend le premier joueur local.',
     keywords: ['create widget', 'widget', 'creer', 'hud', 'menu', 'ui', 'interface', 'umg'],
     pins: (n, ctx) => {
       const own = pickedWidget(n, ctx);

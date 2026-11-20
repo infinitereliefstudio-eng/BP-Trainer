@@ -161,7 +161,7 @@ describe('the life cycle of a widget, as in UE', () => {
     expect(prints(sim)).toEqual(['ligne init', 'hud init', 'ligne construct', 'hud construct']);
   });
 
-  it('Get Owning Player Pawn is None when Create Widget got no Owning Player', () => {
+  it('Create Widget without Owning Player: UE takes the first local player, so Get Owning Player Pawn is the player', () => {
     const t = setup();
     t.add('CanvasPanel');
     const init = t.w.node('event.onInitialized');
@@ -173,7 +173,7 @@ describe('the life cycle of a widget, as in UE', () => {
     const sim = new Simulation(t.p);
     sim.start();
     sim.step();
-    expect(prints(sim)).toEqual(['pas de pawn']);
+    expect(prints(sim)).toEqual(['pawn']);
   });
 });
 

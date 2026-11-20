@@ -115,7 +115,7 @@ describe('V2 lesson traps, step D', () => {
 
   it('Détruire proprement, C2, D3, R1: the starting project fails for the reason the lesson is about', () => {
     expect(reasons(start(lessonCleanDestroy)).list).toMatch(/dont une détruite/);
-    expect(start(complete2).runtimeErrors[0]).toMatch(/Infinite loop detected/);
+    expect(start(complete2).runtimeErrors[0]).toMatch(/Infinite script recursion \(250 calls\) detected/);
     expect(start(debug3).runtimeErrors[0]).toMatch(/Accessed None/);
     expect(reasons(start(refactor1)).once).toMatch(/à chaque Tick/);
     expect(Object.keys(reasons(start(lessonControlRoom)))).toContain('eco-mode');

@@ -72,6 +72,18 @@ const overlapRule: Rule = (v, add) => {
   }
 };
 
+const widgetOwnerRule: Rule = (v, add) => {
+  for (const n of Object.values(v.graph.nodes)) {
+    if (n.def !== 'widget.create' || v.wiredIn.has(`${n.id}:owner`)) continue;
+    add(
+      'widget-no-owner',
+      n,
+      'Create Widget sans Owning Player',
+      'La pin Owning Player est vide : UE donne alors le widget au premier joueur local. Ça marche en solo, mais en écran partagé ou en multijoueur il appartiendrait au mauvais joueur, et Get Owning Player renverrait celui-là. Relie Self dans un Player Controller, ou Get Player Controller.',
+    );
+  }
+};
+
 /** What makes two nodes "the same" for a copied chain: definition, settings and typed values. */
 const signature = (n: NodeInstance) => `${n.def}|${JSON.stringify(n.config)}|${JSON.stringify(n.defaults)}`;
 const CHAIN = 3;
@@ -105,6 +117,7 @@ const RULES: { from: Level; run: Rule }[] = [
   { from: 'intermediaire', run: tickRules },
   { from: 'intermediaire', run: overlapRule },
   { from: 'confirme', run: copiedChainRule },
+  { from: 'intermediaire', run: widgetOwnerRule },
   ...HYGIENE_RULES,
 ];
 

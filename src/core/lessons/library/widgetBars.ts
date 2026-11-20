@@ -322,6 +322,35 @@ export const lessonBarPerEnemy: Lesson = {
   solve(p) {
     followLife(p);
   },
+  alternatives: [
+    {
+      title: 'Caster une fois, à l’Event BeginPlay',
+      gains:
+        'Le Cast se fait une seule fois par ennemi, au lancement : la référence typée (variable BarreVie, de type WBP_BarreVie) sert ensuite à chaque coup, et à toute autre fonction du widget. C’est l’habitude dans UE : on garde la référence plutôt que de recaster à chaque fois.',
+      loses:
+        'Une variable de plus à tenir. Si le Cast échoue au lancement, rien ne le dit : BarreVie reste None, et chaque coup donne Accessed None. Et si le Widget Class changeait en jeu, la variable garderait l’ancien widget.',
+      build(p) {
+        const e = edit(p, 'BP_Ennemi');
+        const health = p.classes.find((c) => c.name === 'BP_Sante')!;
+        const wbp = edit(p, 'WBP_BarreVie');
+        const afficher = wbp.cls.graphs.find((g) => g.name === 'AfficherVie')!;
+        const ref = e.variable('BarreVie', T.object('WBP_BarreVie'));
+        // Event BeginPlay → Cast To WBP_BarreVie (Get User Widget Object) → Set BarreVie.
+        const begin = e.node('event.beginPlay', {}, {}, [64, 820]);
+        const get = e.node('widgetComponent.getUserWidgetObject', {}, {}, [240, 1000]);
+        const cast = e.node('cast.to', { class: wbp.cls.id }, {}, [420, 820]);
+        const set = e.node('var.set', { variable: ref }, {}, [760, 820]);
+        e.link(e.node('var.component', { component: e.componentId('Barre') }, {}, [64, 1000]), 'value', get, 'target').link(get, 'result', cast, 'object');
+        e.link(begin, 'then', cast, 'exec').link(cast, 'then', set, 'exec').link(cast, 'as', set, 'value');
+        // After each hit: AfficherVie on the kept reference.
+        const hit = Object.values(e.graph.nodes).find((n) => n.def === 'call.function')!.id;
+        const show = e.node('call.function', { owner: wbp.cls.id, graph: afficher.id }, {}, [760, 96]);
+        const vie = e.node('var.getExternal', { owner: health.id, variable: health.variables.find((v) => v.name === 'Vie')!.id }, {}, [560, 300]);
+        e.link(hit, 'then', show, 'exec').link(e.node('var.get', { variable: ref }, {}, [560, 220]), 'value', show, 'target');
+        e.link(e.node('var.component', { component: e.componentId('BP_Sante') }, {}, [400, 380]), 'value', vie, 'target').link(vie, 'value', show, afficher.fn!.inputs[0].id);
+      },
+    },
+  ],
 };
 
 // ---------------------------------------------- D26

@@ -4,8 +4,8 @@
  * export, delete (for good, after a confirmation that names it).
  */
 import { useEffect, useState } from 'preact/hooks';
-import { checkProjectName } from '@core/projects/list';
-import { saveFile } from '@storage/backup';
+import { checkProjectName, projectFileName } from '@core/projects/list';
+import { saveFile } from '@storage/shareFile';
 import { pickProjectFile } from '@storage/persistence';
 import {
   createProject,
@@ -31,8 +31,6 @@ type Ask = { kind: 'new'; initial: string } | { kind: 'rename'; entry: ProjectEn
 
 const when = (t: number) =>
   t ? new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(',', ' à') : 'date inconnue';
-
-const fileName = (name: string) => `${name.replace(/[^\w-]+/g, '_') || 'projet'}.bptrainer.json`;
 
 export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
   const tap = useOwnTap();
@@ -79,8 +77,8 @@ export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
       .catch(report);
 
   const exportOne = (entry: ProjectEntry) =>
-    saveFile(fileName(entry.name), entry.text).then(
-      (how) => setMessage({ text: how === 'shared' ? 'Fichier prêt : choisis où l’enregistrer.' : `Fichier téléchargé : ${fileName(entry.name)}.` }),
+    saveFile(projectFileName(entry.name), entry.text).then(
+      (how) => setMessage({ text: how === 'shared' ? 'Fichier prêt : choisis où l’enregistrer.' : `Fichier téléchargé : ${projectFileName(entry.name)}.` }),
       report,
     );
 

@@ -43,16 +43,30 @@ export function checkProjectName(raw: string, taken: string[]): { name: string }
   return { name };
 }
 
-/** `base`, or `base 2`, `base 3`… : the first one no project uses. */
+/** `base`, or `base 2`, `base 3`… : the first one no project uses, within MAX_NAME_LENGTH (V7.45: an imported name is cut). */
 export function uniqueName(base: string, taken: string[]): string {
   const used = new Set(taken.map((t) => t.toLocaleLowerCase('fr')));
-  const clean = base.trim() || 'Projet';
-  if (!used.has(clean.toLocaleLowerCase('fr'))) return clean;
+  const clean = base.trim().replace(/\s+/g, ' ') || 'Projet';
+  const withSuffix = (suffix: string) => `${clean.slice(0, MAX_NAME_LENGTH - suffix.length).trimEnd()}${suffix}`;
+  if (!used.has(withSuffix('').toLocaleLowerCase('fr'))) return withSuffix('');
   for (let i = 2; ; i++) {
-    const candidate = `${clean} ${i}`;
+    const candidate = withSuffix(` ${i}`);
     if (!used.has(candidate.toLocaleLowerCase('fr'))) return candidate;
   }
 }
 
 /** The name of a copy: « Mon projet (copie) », then « Mon projet (copie) 2 »… */
 export const copyName = (name: string, taken: string[]): string => uniqueName(`${name} (copie)`, taken);
+
+/**
+ * The file a project is exported to (V7.45): its name with accents kept
+ * (« Élise » → `Élise.bptrainer.json`), anything else than letters, digits,
+ * `-` and `_` turned into `_`.
+ */
+export function projectFileName(name: string): string {
+  const safe = name
+    .trim()
+    .replace(/[^\p{L}\p{N}_-]+/gu, '_')
+    .replace(/^_+|_+$/g, '');
+  return `${safe || 'projet'}.bptrainer.json`;
+}

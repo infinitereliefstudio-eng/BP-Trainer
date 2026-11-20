@@ -6,11 +6,11 @@
 import 'fake-indexeddb/auto';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createProject as createModel } from '../src/core/model/project';
-import { checkProjectName, copyName, summarizeProjectText, uniqueName } from '../src/core/projects/list';
+import { checkProjectName, copyName, MAX_NAME_LENGTH, projectFileName, summarizeProjectText, uniqueName } from '../src/core/projects/list';
 import { sanitizeProgress } from '../src/core/progress/progress';
 import { serializeProject } from '../src/core/serialization/serialize';
 import { createStarterProject } from '../src/core/templates/starterProject';
-import { makeBackup } from '../src/storage/backup';
+import { makeBackup, restoreBackup } from '../src/storage/backup';
 import { kv } from '../src/storage/idb';
 import { LEGACY_KEY, SANDBOX_KEY } from '../src/storage/persistence';
 import {
@@ -155,6 +155,38 @@ describe('the free-play projects', () => {
     // Opened once under the new rules, it does not say it again.
     const again = await openWorkspace({ kind: 'sandbox', projectId: id });
     expect(again.ok && again.workspace.notices).toEqual([]);
+  });
+
+  it('cuts an imported name to 60 characters, suffix included (V7.45)', async () => {
+    const long = createStarterProject();
+    long.name = 'Un très long nom de projet qui ne tient pas dans soixante caractères';
+    const first = await importProject(long, await listProjects());
+    expect(first.name.length).toBeLessThanOrEqual(MAX_NAME_LENGTH);
+    const again = createStarterProject();
+    again.name = long.name;
+    const second = await importProject(again, await listProjects());
+    expect(second.name.length).toBeLessThanOrEqual(MAX_NAME_LENGTH);
+    expect(second.name.endsWith(' 2')).toBe(true);
+    expect(uniqueName('  a   b ', [])).toBe('a b');
+  });
+
+  it('gives a free name to a project a restored backup brings twice (V7.45)', async () => {
+    await createProject('Projet 1');
+    const other = createStarterProject();
+    other.name = 'Projet 1';
+    other.updatedAt = 1;
+    await restoreBackup({ kind: 'bp-trainer-backup', format: 1, savedAt: '', entries: { [sandboxKey('sb_ailleurs')]: serializeProject(other) } });
+    const names = (await listProjects()).map((e) => e.name).sort();
+    expect(names).toEqual(['Projet 1', 'Projet 1 2']);
+    // The older one was renamed, without moving its date.
+    const renamed = (await listProjects()).find((e) => e.name === 'Projet 1 2')!;
+    expect(renamed.id).toBe('sb_ailleurs');
+    expect(renamed.updatedAt).toBe(1);
+  });
+
+  it('names an exported file after the project, accents kept (V7.45)', () => {
+    expect(projectFileName('Élise et sa porte')).toBe('Élise_et_sa_porte.bptrainer.json');
+    expect(projectFileName('  ?!  ')).toBe('projet.bptrainer.json');
   });
 
   it('lists a damaged project instead of hiding it', async () => {

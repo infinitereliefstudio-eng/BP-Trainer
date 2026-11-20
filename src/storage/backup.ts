@@ -5,6 +5,7 @@
 import { checkProgress } from '@core/progress/progress';
 import { parseProject } from '@core/serialization/serialize';
 import { RESCUE_PREFIX } from './persistence';
+import { dedupeProjectNames } from './projects';
 import { readStored, storedKeys, writeMany } from './storage';
 
 export const BACKUP_KIND = 'bp-trainer-backup';
@@ -81,42 +82,10 @@ export function parseBackup(text: string): Backup {
  */
 export async function restoreBackup(b: Backup): Promise<number> {
   await writeMany(b.entries);
+  // A backup from another device can bring a project whose name one here already has (V7.45).
+  await dedupeProjectNames().catch(() => undefined);
   return Object.keys(b.entries).length;
 }
 
-/** Hand a file to the user: the share sheet on a phone (the installed app), a download otherwise. */
-export async function saveFile(name: string, text: string): Promise<'shared' | 'downloaded'> {
-  const file = new File([text], name, { type: 'application/json' });
-  const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
-  if (nav.canShare?.({ files: [file] }) && matchMedia('(pointer: coarse)').matches) {
-    try {
-      await nav.share({ files: [file], title: name });
-      return 'shared';
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') return 'shared';
-      /* sharing refused: download instead */
-    }
-  }
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-  return 'downloaded';
-}
-
-export function pickTextFile(): Promise<string | null> {
-  return new Promise((resolve) => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json,application/json';
-    input.onchange = async () => {
-      const file = input.files?.[0];
-      resolve(file ? await file.text() : null);
-    };
-    input.click();
-  });
-}
+// Kept here for the callers of the V4 to V7.44: the function lives in shareFile.ts (V7.45).
+export { pickTextFile, saveFile } from './shareFile';

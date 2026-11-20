@@ -272,7 +272,15 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
   const items: MenuItem[] = [
     { label: 'Class Settings', action: opts.onClassSettings },
     ...(key ? sandboxItems(store, openOverlay, key, opts) : []),
-    { label: 'Exporter le projet', hint: 'fichier .json', action: () => exportProject(store.project) },
+    {
+      label: 'Exporter le projet',
+      hint: 'fichier .json',
+      action: () =>
+        exportProject(store.project).then(
+          (how) => store.info(how === 'shared' ? 'Fichier prêt : choisis où l’enregistrer.' : 'Projet exporté (fichier téléchargé).'),
+          (e: Error) => store.error(`Export impossible : ${e.message}`),
+        ),
+    },
     key && opts.onOpenProject
       ? { label: 'Importer un projet', hint: 'ajouté à ta liste de projets', action: () => importAsNew(store, opts.onOpenProject!) }
       : { label: 'Importer un projet', action: () => importInto(store) },

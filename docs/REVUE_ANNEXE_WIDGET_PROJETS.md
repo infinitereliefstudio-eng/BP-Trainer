@@ -1,6 +1,6 @@
 # Revue du chantier annexe Widget Component et projets, V7.41 à V7.43 (20 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Revue du chantier annexe (V7.41 à V7.43) » : https://claude.ai/artifact/138H1RP5QSDFRbmznHPFyu. Demandée par Tristan le 20 novembre au soir (« je veux faire une phase de review du dernier chantier »). Tristan a pris les recommandations et lancé les corrections le même soir (« Ok pour tes recos, lance les corrections ») : les deux lots s'enchaînent, une version chacun. **Lot 1 fait (V7.44)**, lot 2 en cours.
+Copie du Claude Doc « BP Trainer — Revue du chantier annexe (V7.41 à V7.43) » : https://claude.ai/artifact/138H1RP5QSDFRbmznHPFyu. Demandée par Tristan le 20 novembre au soir (« je veux faire une phase de review du dernier chantier »). Tristan a pris les recommandations et lancé les corrections le même soir (« Ok pour tes recos, lance les corrections ») : les deux lots s'enchaînent, une version chacun. **Les deux lots sont faits** (V7.44 et V7.45).
 
 État de départ : lint, types et build sans erreur, 1 735 tests, smoke test sans erreur (captures 100 à 109 relues), CI verte sur les quatre pushs. Rien ne casse une sauvegarde ni une progression. Chaque constat a été reproduit par un test jetable (non versionné) ou se lit dans le code.
 
@@ -27,7 +27,7 @@ Juste et à garder : Mes projets (un projet par clé, liste lue dans le stockage
 | Lot | Contenu | Version | État |
 | --- | --- | --- | --- |
 | 1 | W1, P1 : widget au-dessus de son acteur quelle que soit sa rotation (Play et cadre de l'éditeur) ; avis de règles à l'ouverture d'un projet importé ; un test chacun | V7.44 | fait |
-| 2 | P2, P3, L1, L2, D1 : un seul export (partage), accents gardés dans le nom du fichier, noms coupés à 60 et uniques à l'import et à la restauration, autre façon de faire « caster une fois au BeginPlay », taille alignée, docs | V7.45 | proposé |
+| 2 | P2, P3, L1, L2, D1 : un seul export (partage), accents gardés dans le nom du fichier, noms coupés à 60 et uniques à l'import et à la restauration, autre façon de faire « caster une fois au BeginPlay », taille alignée, docs | V7.45 | fait |
 
 ## Questions à trancher
 

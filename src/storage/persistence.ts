@@ -6,8 +6,10 @@
  * loadSavedProject says why, and keeps the text so that it can be rescued.
  */
 import type { Project } from '@core/model/project';
+import { projectFileName } from '@core/projects/list';
 import { parseProject, ProjectFileError, serializeProject } from '@core/serialization/serialize';
 import type { EditorStore } from '@core/store/editorStore';
+import { saveFile } from './shareFile';
 import { readStored, settled, StorageReadError, writeStored } from './storage';
 
 /** Key of the free-play project; step 1 saved it under 'current-project'. */
@@ -115,17 +117,12 @@ export function startAutosave(store: EditorStore, key = SANDBOX_KEY, delayMs = 7
 
 // ----------------------------------------------------------- project files
 
-export function exportProject(p: Project): void {
-  const blob = new Blob([serializeProject(p)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const safe = p.name.replace(/[^\w-]+/g, '_') || 'projet';
-  a.href = url;
-  a.download = `${safe}.bptrainer.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+/**
+ * Hands the project to the user as a file, like the full backup (V7.45): the
+ * share sheet on a phone, a download otherwise. The name keeps its accents.
+ */
+export function exportProject(p: Project): Promise<'shared' | 'downloaded'> {
+  return saveFile(projectFileName(p.name), serializeProject(p));
 }
 
 /** Ask the user for a project file and parse it. */

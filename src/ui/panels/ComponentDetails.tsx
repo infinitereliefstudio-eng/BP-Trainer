@@ -216,7 +216,7 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
             </p>
             <p>
               <b>Draw Size</b> : la taille du widget à l’écran, en pixels de l’écran de référence (720 de haut). UE part de 500 × 500, souvent trop grand :
-              une barre de vie fait plutôt 150 × 20.
+              une barre de vie fait plutôt 120 × 14.
             </p>
             <p>
               <b>Space</b> : en World, UE pose le widget comme un panneau dans la scène 3D (un écran de terminal), caché par les murs et vu de biais. La vue

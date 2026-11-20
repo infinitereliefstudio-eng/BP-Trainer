@@ -107,3 +107,25 @@ export async function deleteProject(entry: ProjectEntry): Promise<void> {
   await removeStored(entry.key);
   if (entry.id === MAIN_ID) await removeStored(LEGACY_KEY);
 }
+
+/**
+ * Gives a free name to the projects that share one (V7.45: a full backup
+ * restored from another device can bring a second « Projet 1 »). The most
+ * recently changed keeps its name; the date of the others does not move.
+ * Returns how many were renamed.
+ */
+export async function dedupeProjectNames(): Promise<number> {
+  const taken: string[] = [];
+  let renamed = 0;
+  for (const entry of await listProjects()) {
+    const name = entry.damaged ? entry.name : uniqueName(entry.name, taken);
+    if (name !== entry.name) {
+      const file = JSON.parse(entry.text) as { project: Project };
+      file.project.name = name;
+      await writeStored(entry.key, JSON.stringify(file, null, 1));
+      renamed++;
+    }
+    taken.push(name);
+  }
+  return renamed;
+}

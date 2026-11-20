@@ -1,6 +1,6 @@
 # Chantier UMG — analyse (20 novembre 2026)
 
-Copie du Claude Doc https://claude.ai/artifact/FuxBJZTiJ2ifCMDb1TpzPn (« BP Trainer — Chantier UMG : analyse »). **Proposé le 20 novembre, en attente des réponses de Tristan** aux six questions de la fin. Rien n'est lancé.
+Copie du Claude Doc https://claude.ai/artifact/FuxBJZTiJ2ifCMDb1TpzPn (« BP Trainer — Chantier UMG : analyse »). Proposé le 20 novembre ; **Tristan a répondu le même jour** (section « Décisions du 20 novembre », qui fait foi sur les sections précédentes). La V7.33 attend son feu vert.
 
 ## En bref
 
@@ -204,6 +204,27 @@ Six choix avant de lancer la V7.33, chacun avec une recommandation. Tristan peut
 6. **Taille de référence de l'aperçu** : 1280 × 720, lisible sur le Pixel (recommandé) ; ou 1920 × 1080 comme beaucoup de projets UE, au prix de textes une fois et demie plus petits à l'écran.
 
 Demande en plus : les énoncés d'E10, E27 et E38 du recueil, pour les intégrer aux étapes.
+
+## Décisions du 20 novembre
+
+Tristan a répondu aux six questions ; elles changent la place des étapes et l'ordre des versions.
+
+1. **Designer réduit** (niveau B), fidèle à UE (« design reproduit mais réduit »).
+2. **Au Confirmé, et plus tôt si ça vient naturellement.** « Le compteur à l'écran » passe en fin d'Intermédiaire, juste après « Les contrôles au Player Controller », où le Player Controller vient d'être créé. La barre de vie, le Refactor du Binding, « Appuie sur E » et A3 passent au Confirmé : la santé y est une variable du joueur avec son dispatcher, et l'invite s'appuie sur « Interagir comme dans UE5 » (R4). Seule T4, la jauge d'énergie par Actor Component, reste à l'Avancé.
+3. **Bindings simulés.** Ils montent en V7.34 pour être prêts avant les leçons.
+4. **Widget Component : au backlog**, sauf s'il s'avère facile une fois le runtime des widgets en place ; alors en V7.37. Taille à juger à la fin de la V7.35.
+5. **Toucher ignoré en Game Only**, avec un « Pourquoi ? ».
+6. **1280 × 720**, à confirmer à l'œil sur le téléphone avec la V7.33.
+
+Le recueil n'est ni dans le dépôt ni dans le Drive (il avait été envoyé en pièce jointe le 16 novembre) : E10, E27 et E38 sont abandonnés ; les dix étapes de ce plan les remplacent.
+
+| Version | Contenu après décisions |
+| --- | --- |
+| V7.33 | Widget Blueprint et Designer réduit, aperçu en 1280 × 720 |
+| V7.34 | À l'écran (Create Widget, Add to Viewport, cycle de vie, Set Text, Set Percent…) et Bindings avec leur compteur d'appels |
+| V7.35 | Boutons, modes d'entrée, curseur, pause |
+| V7.36 | Le compteur à l'écran (Intermédiaire), P16, D24, Le vrai menu pause, D25 (Confirmé) |
+| V7.37 | La barre de vie, R6, Appuie sur E, A3 (Confirmé), T4 (Avancé), reprise ; Widget Component si facile |
 
 ## Sources
 

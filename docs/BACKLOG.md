@@ -37,7 +37,7 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 |---|---|---|---|---|
 | 1 | ~~Actor Components~~ **fait** (V7.19 à V7.22) | Blueprints de composant créés par l'apprenant, ajoutés à plusieurs acteurs ; Get Owner, Get Component by Class, BeginPlay et Tick du composant ; neuf étapes (santé, interaction réutilisable, inventaire, énergie) et le conseil « Chaîne copiée entre Blueprints » | ★★★ | L |
 | 2 | ~~Révisions de graphes espacées~~ **fait** (V7.27 à V7.30) | Journal des tentatives, file « À retravailler en Blueprint » programmée en jours, trois familles de mini-exercices à variantes, hypothèse avant l'indice dans les Débogue. Détail juste en dessous | ★★★ | L |
-| 3 | **UMG** (lot 7) — **le prochain, analyse proposée le 20 novembre** ([PLAN_UMG.md](PLAN_UMG.md), en attente des réponses de Tristan) | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
+| 3 | **UMG** (lot 7) — **le prochain, plan validé le 20 novembre** ([PLAN_UMG.md](PLAN_UMG.md), V7.33 à V7.37) | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
@@ -212,7 +212,8 @@ Les leçons liées à une fonction (Enhanced Input, Save Game, niveaux) sont ran
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
 | ~~Actor Components~~ (lot 5) | **Fait en V7.19 à V7.22** (exercice E14 du recueil couvert). La suite laissée de côté est sous « Prochains chantiers » | ★★★ | fait |
-| Widgets UMG (lot 7, chantier n° 3) | D'abord texte, bouton et jauge prédéfinis, mis à jour par événement ; réévaluer ensuite un éditeur complet. Exercices E10, E27, E38 | ★★★ | M, XL pour l'éditeur |
+| Widgets UMG (lot 7, chantier n° 3) | Plan validé le 20 novembre : [PLAN_UMG.md](PLAN_UMG.md). Les exercices E10, E27, E38 du recueil sont abandonnés (recueil introuvable) | ★★★ | L |
+| Widget Component | Un widget porté par un acteur (espace Screen : suit l'acteur, toujours au-dessus), Get User Widget Object ; pour l'invite « Appuie sur E » au-dessus de l'objet et les barres de vie au-dessus des acteurs. Décision du 20 novembre : à faire en V7.37 s'il est facile une fois le runtime des widgets en place, sinon plus tard | ★★ | S à M |
 | Sons | Play Sound 2D avec quelques sons intégrés | ★★ | S à M |
 | Macros et Collapse | Macros de l'utilisateur, Collapse to Function, Collapse to Macro | ★★ | M à L |
 | Copier-coller entre graphes | Aujourd'hui seulement dans un même graphe | ★★ | M |

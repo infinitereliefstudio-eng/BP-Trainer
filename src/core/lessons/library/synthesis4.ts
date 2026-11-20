@@ -13,6 +13,7 @@ import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../che
 import type { CheckContext, Lesson } from '../types';
 import { goTo, varId } from './kit';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const SLOT = 'Station';
 const FUSES: [number, number][] = [
@@ -33,7 +34,7 @@ function project(): Project {
   fuse.cls.variables[0].instanceEditable = true;
   FUSES.forEach((at, i) => {
     const a = pb.place(fuse, ...at);
-    pb.project.level.actors.find((x) => x.id === a)!.overrides[id] = `F${i + 1}`;
+    levelOf(pb.project).actors.find((x) => x.id === a)!.overrides[id] = `F${i + 1}`;
   });
   const door = pb.blueprint('BP_Porte');
   door.component('StaticMesh', 'Porte', { shape: 'door', sizeX: 180, sizeY: 16, color: '#a0703c', blocks: false });

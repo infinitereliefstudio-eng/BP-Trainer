@@ -1,7 +1,8 @@
 /**
  * The Content Drawer, as UE5's (Ctrl+Space): the project's assets as
  * thumbnails, a search field, and + Add with UE's menu (Blueprint Class,
- * then Blueprint, Input, Miscellaneous). A Blueprint Class asks for its
+ * Level, then Blueprint, Input, Miscellaneous). A Level opens in the level
+ * editor; Play plays the open one. A Blueprint Class asks for its
  * parent (Pick Parent Class), a Data Table for its row structure.
  *
  * Touch: a tap selects (the bar at the bottom offers Open, Place in level,
@@ -12,6 +13,7 @@ import { useRef, useState } from 'preact/hooks';
 import { addDataTable } from '@core/operations/dataTableOps';
 import { addEnum } from '@core/operations/enumOps';
 import { addInputAction, addMappingContext } from '@core/operations/inputOps';
+import { addLevel, renameLevel } from '@core/operations/levelAssetOps';
 import { addClass, addInterface, addInterfaceFunction, setParentClass } from '@core/operations/projectOps';
 import { addStruct } from '@core/operations/structOps';
 import { rootParent } from '@core/model/inheritance';
@@ -30,6 +32,8 @@ interface Props {
   onOpenBlueprint?: (classId: string) => void;
   /** Place an actor of this Blueprint in the level, and show it. */
   onPlaceActor?: (classId: string) => void;
+  /** Show the level editor (after a Level asset is opened). */
+  onOpenLevel?: () => void;
 }
 
 type Mode = 'browse' | 'add' | 'parent' | 'rowStruct';
@@ -44,7 +48,7 @@ const COMMON: { id: 'Actor' | 'Pawn' | 'PlayerController' | 'ActorComponent'; na
 
 type Result = { ok: true; value: { id: string } } | { ok: false; reason: string };
 
-export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBlueprint, onPlaceActor }: Props) {
+export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBlueprint, onPlaceActor, onOpenLevel }: Props) {
   const store = useStore();
   const tap = useOwnTap();
   const [mode, setMode] = useState<Mode>('browse');
@@ -58,7 +62,17 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
   const shown = q ? assets.filter((a) => a.name.toLowerCase().includes(q) || a.type.toLowerCase().includes(q)) : assets;
   const current = assets.find((a) => `${a.kind}:${a.id}` === selected);
 
+  const openLevel = (id: string) => {
+    store.openLevel(id);
+    onClose();
+    onOpenLevel?.();
+  };
+
   const openAsset = (a: Asset) => {
+    if (a.kind === 'level') {
+      openLevel(a.id);
+      return;
+    }
     if (a.kind === 'blueprint') {
       if (onOpenBlueprint) onOpenBlueprint(a.id);
       else store.openClass(a.id);
@@ -290,11 +304,35 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
               {current ? (
                 <>
                   <span class="cd-sel-name">
-                    <strong>{current.name}</strong> <span class="muted small">{current.parent ? `${current.type} · parent : ${current.parent}` : current.type}</span>
+                    <strong>{current.name}</strong>{' '}
+                    <span class="muted small">
+                      {current.parent
+                        ? `${current.type} · parent : ${current.parent}`
+                        : [current.type, current.open && 'ouvert', current.defaultMap && 'Game Default Map'].filter(Boolean).join(' · ')}
+                    </span>
                   </span>
                   <button class="btn primary" onClick={() => openAsset(current)}>
                     Ouvrir
                   </button>
+                  {current.kind === 'level' && (
+                    <button
+                      class="btn"
+                      onClick={() =>
+                        openOverlay({
+                          kind: 'prompt',
+                          title: `Renommer ${current.name}`,
+                          initial: current.name,
+                          confirmLabel: 'Renommer',
+                          onSubmit: (name) => {
+                            const res = store.applyProject('Renommer le niveau', (p) => renameLevel(p, current.id, name));
+                            return res.ok ? null : res.reason;
+                          },
+                        })
+                      }
+                    >
+                      Renommer
+                    </button>
+                  )}
                   {current.placeable && onPlaceActor && (
                     <button
                       class="btn"
@@ -339,6 +377,13 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
               <button class="palette-item" onClick={() => setMode('parent')}>
                 <span class="pi-title">Blueprint Class</span>
                 <span class="pi-desc">Un Blueprint : on choisit d’abord sa classe parente.</span>
+              </button>
+              <button
+                class="palette-item"
+                onClick={() => create('Nouveau niveau', 'Lvl_NewLevel', 'Créer un niveau', (p, name) => addLevel(p, name), (id) => openLevel(id))}
+              >
+                <span class="pi-title">Level</span>
+                <span class="pi-desc">Un niveau vide, avec son Player Start : il s’ouvre dans l’éditeur de niveau, et Play lance le niveau ouvert.</span>
               </button>
               <div class="palette-cat">Create Advanced Asset</div>
               {ADVANCED.map((g) => (

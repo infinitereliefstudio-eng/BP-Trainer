@@ -7,6 +7,7 @@
 import { useState } from 'preact/hooks';
 import { outlinerRows } from '@core/model/outliner';
 import { useStore } from '../hooks';
+import { levelOf } from '@core/model/project';
 
 interface Props {
   /** Bring the item into the middle of the level view. */
@@ -46,7 +47,7 @@ export function LevelOutliner({ onCenter, onDetails }: Props) {
           )}
         </div>
       ))}
-      <p class="outliner-count">{store.project.level.actors.length + 1} actors</p>
+      <p class="outliner-count">{levelOf(store.project).actors.length + 1} actors</p>
     </div>
   );
 }

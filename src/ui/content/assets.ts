@@ -6,13 +6,14 @@
 import { removeDataTable } from '@core/operations/dataTableOps';
 import { removeEnum } from '@core/operations/enumOps';
 import { removeInputAction, removeMappingContext } from '@core/operations/inputOps';
+import { removeLevel } from '@core/operations/levelAssetOps';
 import { removeClass, removeInterface } from '@core/operations/projectOps';
 import { removeStruct } from '@core/operations/structOps';
 import type { OpResult } from '@core/operations/graphOps';
-import { isPlaceableParent, type Project } from '@core/model/project';
+import { defaultLevel, isPlaceableParent, levelOf, type Project } from '@core/model/project';
 import type { Focus } from '@core/store/editorStore';
 
-export type AssetKind = 'blueprint' | 'interface' | 'enum' | 'struct' | 'dataTable' | 'inputAction' | 'mappingContext';
+export type AssetKind = 'blueprint' | 'interface' | 'enum' | 'struct' | 'dataTable' | 'inputAction' | 'mappingContext' | 'level';
 
 export interface Asset {
   kind: AssetKind;
@@ -24,6 +25,9 @@ export interface Asset {
   parent?: string;
   /** Can be placed in the level (an Actor or Pawn Blueprint). */
   placeable?: boolean;
+  /** For a level: open in the editor, or the Game Default Map. */
+  open?: boolean;
+  defaultMap?: boolean;
 }
 
 /** Thumbnail glyph and stripe colour, by kind (close to UE's asset colours). */
@@ -35,6 +39,7 @@ export const ASSET_STYLE: Record<AssetKind, { glyph: string; color: string }> = 
   dataTable: { glyph: '▤', color: '#639922' },
   inputAction: { glyph: '⏻', color: '#d85a30' },
   mappingContext: { glyph: '⌨', color: '#d4537e' },
+  level: { glyph: '▦', color: '#e08a1e' },
 };
 
 /** A Widget Blueprint has UE's own thumbnail colour, apart from the other Blueprints. */
@@ -61,13 +66,14 @@ export function projectAssets(p: Project): Asset[] {
     ...(p.dataTables ?? []).map((t) => ({ kind: 'dataTable' as const, id: t.id, name: t.name, type: 'Data Table' })),
     ...(p.inputActions ?? []).map((a) => ({ kind: 'inputAction' as const, id: a.id, name: a.name, type: 'Input Action' })),
     ...(p.mappingContexts ?? []).map((c) => ({ kind: 'mappingContext' as const, id: c.id, name: c.name, type: 'Input Mapping Context' })),
+    ...p.levels.map((l) => ({ kind: 'level' as const, id: l.id, name: l.name, type: 'Level', open: l.id === levelOf(p).id, defaultMap: l.id === defaultLevel(p).id })),
   ];
   return out.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 }
 
-/** The Details shown when a non-Blueprint asset is opened. */
+/** The Details shown when a non-Blueprint asset is opened (a Blueprint and a Level open in their editor). */
 export function assetFocus(a: Asset): Focus | undefined {
-  if (a.kind === 'blueprint') return undefined;
+  if (a.kind === 'blueprint' || a.kind === 'level') return undefined;
   return { kind: a.kind, id: a.id } as Focus;
 }
 
@@ -91,5 +97,7 @@ export function removeAsset(p: Project, a: Asset): OpResult {
       return removeInputAction(p, a.id);
     case 'mappingContext':
       return removeMappingContext(p, a.id);
+    case 'level':
+      return removeLevel(p, a.id, levelOf(p).id);
   }
 }

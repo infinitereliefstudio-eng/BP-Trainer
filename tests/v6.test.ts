@@ -15,6 +15,7 @@ import { inverseTransformLocation, transformLocation } from '../src/core/runtime
 import { Simulation } from '../src/core/runtime/simulation';
 import { parseProject, serializeProject } from '../src/core/serialization/serialize';
 import { T } from '../src/core/types/pins';
+import { levelOf } from '../src/core/model/project';
 
 function world(setup: (b: ClassBuilder, pb: ProjectBuilder) => void, yaw = 0) {
   const pb = new ProjectBuilder('t');
@@ -180,7 +181,7 @@ describe('a list of level references on an instance', () => {
     const a = pb.place(lamp, 0, 0);
     const b = pb.place(lamp, 100, 0);
     const h = pb.place(hub, 0, 200);
-    pb.project.level.actors.find((x) => x.id === h)!.overrides[list] = [`actor:${a}`, `actor:${b}`];
+    levelOf(pb.project).actors.find((x) => x.id === h)!.overrides[list] = [`actor:${a}`, `actor:${b}`];
     pb.playerStart(2000, 0);
     const s = run(pb.project);
     expect(errors(s)).toEqual([]);

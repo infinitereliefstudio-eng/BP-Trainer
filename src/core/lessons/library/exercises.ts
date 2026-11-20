@@ -12,6 +12,7 @@ import type { Lesson } from '../types';
 import { interactionWorld, lampFollowsGenerator, playerInteracts, setReference } from './module3';
 import { DEBUG_METHOD, PREDICT_METHOD } from './kit';
 import { generatorBlueprint, lampBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const PREDICT_OBJECTIVES = [
   'Lis le graphe sans lancer Play : suis le fil blanc depuis l’événement.',
@@ -267,8 +268,8 @@ export const debug1: Lesson = {
     pb.playerStart(-600, 300);
     const ref = lamp.variable('Generateur', T.object('BP_Generateur'));
     lamp.cls.variables.find((v) => v.id === ref)!.instanceEditable = true;
-    pb.project.level.actors.find((a) => a.id === l1)!.overrides[ref] = `actor:${genId}`;
-    pb.project.level.actors.find((a) => a.id === l2)!.overrides[ref] = null;
+    levelOf(pb.project).actors.find((a) => a.id === l1)!.overrides[ref] = `actor:${genId}`;
+    levelOf(pb.project).actors.find((a) => a.id === l2)!.overrides[ref] = null;
     lampFollowsGenerator(lamp, gen, ref, false);
     return pb.project;
   },

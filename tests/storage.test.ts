@@ -5,7 +5,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LESSONS } from '../src/core/lessons';
-import { createClass, createProject, PROJECT_FORMAT, type Project } from '../src/core/model/project';
+import { createClass, createProject, PROJECT_FORMAT, type Project, levelOf } from '../src/core/model/project';
 import { projectRules, RULE_CHANGES, RULES_VERSION, rulesChangedSince } from '../src/core/model/rules';
 import { checkProgress, sanitizeProgress } from '../src/core/progress/progress';
 import { Simulation } from '../src/core/runtime/simulation';
@@ -164,7 +164,7 @@ describe('D3 — imports are checked completely before anything is written', () 
   it('refuses ill-formed nodes, classes, assets and level', () => {
     expect(() => parseProject(withClasses((p) => (p.classes[0].parent = 'Banana' as never)))).toThrow(/parente/);
     expect(() => parseProject(withClasses((p) => (p.classes = [])))).toThrow(/aucun Blueprint/);
-    expect(() => parseProject(withClasses((p) => ((p.level as unknown as Record<string, unknown>).actors = 3)))).toThrow(/actors/);
+    expect(() => parseProject(withClasses((p) => ((levelOf(p) as unknown as Record<string, unknown>).actors = 3)))).toThrow(/actors/);
     expect(() => parseProject(withClasses((p) => {
           p.classes.push({ ...p.classes[0] });
         }))).toThrow(/même identifiant/);
@@ -183,12 +183,12 @@ describe('D3 — imports are checked completely before anything is written', () 
     const text = withClasses((p) => {
       const graph = p.classes[0].graphs[0];
       graph.links.l = { id: 'l', from: { node: 'nowhere', pin: 'then' }, to: { node: 'nowhere2', pin: 'exec' } };
-      p.level.actors.push({ id: 'a', classId: 'gone', name: 'Ghost', x: 0, y: 0, yaw: 0, overrides: {} });
+      levelOf(p).actors.push({ id: 'a', classId: 'gone', name: 'Ghost', x: 0, y: 0, yaw: 0, overrides: {} });
       p.playerClassId = 'gone';
     });
     const p = parseProject(text);
     expect(p.classes[0].graphs[0].links.l).toBeUndefined();
-    expect(p.level.actors.some((a) => a.classId === 'gone')).toBe(false);
+    expect(levelOf(p).actors.some((a) => a.classId === 'gone')).toBe(false);
     expect(p.playerClassId).toBeUndefined();
   });
 

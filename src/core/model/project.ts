@@ -260,9 +260,23 @@ export interface LevelActor {
   componentOverrides?: Record<string, Record<string, Value>>;
 }
 
+/**
+ * A level (UE's Level asset, a .umap): its placed actors and its Player
+ * Start. A project has one or more; Play plays the one open in the editor,
+ * as UE's Play In Editor does.
+ */
 export interface Level {
+  id: string;
+  /** Its asset name, the one Open Level (by Name) asks for: Lvl_Couloir. */
+  name: string;
   actors: LevelActor[];
   playerStart: { x: number; y: number; yaw: number };
+}
+
+/** Project Settings › Maps & Modes. */
+export interface MapsModes {
+  /** Game Default Map: the level the game starts in (a level id). The lessons' checks start there too. */
+  gameDefaultMap?: string;
 }
 
 /** A user Enum asset: named entries, stored as their index (Byte in UE). */
@@ -387,12 +401,17 @@ export interface Project {
   rules?: number;
   /** For a lesson's project: the revision of the lesson it was started from (Lesson.revision). */
   lessonRevision?: number;
-  level: Level;
+  /** The levels, never empty (format 14: before, a single `level`). */
+  levels: Level[];
+  /** The level open in the editor (the first if unset or gone). */
+  editorLevelId?: string;
+  /** Project Settings › Maps & Modes. */
+  mapsModes?: MapsModes;
   createdAt: number;
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 13;
+export const PROJECT_FORMAT = 14;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -424,8 +443,32 @@ export function componentDefaults(kind: ComponentKind): ComponentProps {
   };
 }
 
-export function createLevel(): Level {
-  return { actors: [], playerStart: { x: 0, y: 0, yaw: 0 } };
+/** The level every project starts with, and the one an older project's level becomes. */
+export const MAIN_LEVEL_ID = 'lvl-principal';
+export const MAIN_LEVEL_NAME = 'Lvl_Principal';
+
+export function createLevel(name = MAIN_LEVEL_NAME, id = MAIN_LEVEL_ID): Level {
+  return { id, name, actors: [], playerStart: { x: 0, y: 0, yaw: 0 } };
+}
+
+/** The level open in the editor: the one the level view, the Outliner and Play work on. */
+export function levelOf(p: Project): Level {
+  return p.levels.find((l) => l.id === p.editorLevelId) ?? p.levels[0];
+}
+
+/** Game Default Map: where the game starts (the lessons' checks too). */
+export function defaultLevel(p: Project): Level {
+  return p.levels.find((l) => l.id === p.mapsModes?.gameDefaultMap) ?? p.levels[0];
+}
+
+export function findLevel(p: Project, id: string): Level | undefined {
+  return p.levels.find((l) => l.id === id);
+}
+
+/** A level by its asset name, as Open Level (by Name) finds it (case ignored, as UE's names). */
+export function findLevelByName(p: Project, name: string): Level | undefined {
+  const n = name.trim().toLowerCase();
+  return p.levels.find((l) => l.name.toLowerCase() === n);
 }
 
 /** Engine class each component kind maps to (used for reference pins). */
@@ -488,7 +531,8 @@ export function createProject(name = 'Mon projet'): Project {
     dataTables: [],
     inputActions: [],
     mappingContexts: [],
-    level: createLevel(),
+    levels: [createLevel()],
+    mapsModes: { gameDefaultMap: MAIN_LEVEL_ID },
     createdAt: now,
     updatedAt: now,
   };

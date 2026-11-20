@@ -9,6 +9,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { noRuntimeErrors, PRESS_E, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { levelOf } from '../../model/project';
 
 // ------------------------------------------------------ La porte qui glisse
 
@@ -370,7 +371,7 @@ function lampRowProject() {
   for (const v of b.cls.variables) v.instanceEditable = true;
   LAMPS.forEach((l, i) => {
     const id = pb.place(b, -300 + i * 300, 0);
-    Object.assign(pb.project.level.actors.find((a) => a.id === id)!.overrides, { [color]: l.color, [on]: l.on, [power]: l.strong ? 1 : 0 });
+    Object.assign(levelOf(pb.project).actors.find((a) => a.id === id)!.overrides, { [color]: l.color, [on]: l.on, [power]: l.strong ? 1 : 0 });
   });
   pb.playerStart(0, 350, -90);
   return pb.project;
@@ -502,7 +503,7 @@ export const lessonLampRow: Lesson = {
       mutate(p) {
         const cls = p.classes.find((c) => c.name === 'BP_Lampe')!;
         const [color, on] = cls.variables.map((v) => v.id);
-        p.level.actors.push({ id: 'robust-lamp', classId: cls.id, name: 'BP_Lampe4', x: 600, y: 0, yaw: 0, overrides: { [color]: '#ffd60a', [on]: true } });
+        levelOf(p).actors.push({ id: 'robust-lamp', classId: cls.id, name: 'BP_Lampe4', x: 600, y: 0, yaw: 0, overrides: { [color]: '#ffd60a', [on]: true } });
       },
       scenario: [{ wait: 0.1 }],
       checks: [

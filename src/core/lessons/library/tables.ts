@@ -13,6 +13,7 @@ import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, normText, notion, PRESS_E, usesNode } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 import { DEBUG_METHOD, editable, getVar, say, setVar } from './kit';
+import { levelOf } from '../../model/project';
 
 /** A structure with these members; returns the member ids by name. */
 export function makeStruct(p: Project, name: string, members: [string, PinType][]): Record<string, string> {
@@ -79,7 +80,7 @@ function catalogProject() {
   const id = editable(b, 'IdObjet', T.name, '');
   ASKED.forEach((asked, i) => {
     const a = pb.place(b, -300 + i * 300, 0);
-    pb.project.level.actors.find((x) => x.id === a)!.overrides[id] = asked;
+    levelOf(pb.project).actors.find((x) => x.id === a)!.overrides[id] = asked;
   });
   pb.playerStart(-300, 300);
   return pb.project;
@@ -226,7 +227,7 @@ function mutedProject(fixed = false) {
   const ecran = editable(b, 'Ecran', T.name, '');
   for (const [i, v] of ['Accueil', 'Maintenance'].entries()) {
     const a = pb.place(b, -200 + i * 400, 0);
-    pb.project.level.actors.find((x) => x.id === a)!.overrides[ecran] = v;
+    levelOf(pb.project).actors.find((x) => x.id === a)!.overrides[ecran] = v;
   }
   pb.playerStart(0, 300);
   terminalGraph(b, pb.project, fixed);

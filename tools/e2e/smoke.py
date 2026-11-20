@@ -205,7 +205,7 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.lesson-item', has_text='Remettre la station').tap()
         await page.wait_for_timeout(500)
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(600)
         await page.locator('.pb-btn[aria-label="Outliner"]').tap()
@@ -502,7 +502,7 @@ async def main():
         await page.locator('.lesson-item', has_text='La rangée de lampes').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.wait_for_timeout(300)
         await shot('43_construction_level')
         await graph(page)
@@ -517,8 +517,8 @@ async def main():
         if await page.locator('.tab.active', has_text='Construction Script').count() != 1:
             errs.append('Construction Script : le graphe ne s’ouvre pas depuis My Blueprint')
         # Changing an instance in the level reruns the script: the editor preview follows.
-        lit = await page.evaluate("""() => { const s = window.bpStore; const a = s.project.level.actors[1]; const on = s.cls.variables.find(v => v.name === 'Allumee').id; s.applyProject('test', p => { p.level.actors[1].overrides[on] = true; }); return a.name; }""")
-        await page.locator('.tab', has_text='Niveau').tap()
+        lit = await page.evaluate("""() => { const s = window.bpStore; const a = s.project.levels[0].actors[1]; const on = s.cls.variables.find(v => v.name === 'Allumee').id; s.applyProject('test', p => { p.levels[0].actors[1].overrides[on] = true; }); return a.name; }""")
+        await page.locator('.doc-tab.level').tap()
         await page.wait_for_timeout(300)
         await shot('46_construction_rerun')
 
@@ -682,7 +682,7 @@ async def main():
         await page.wait_for_timeout(300)
         await shot('59_mirrors_graph')
         await page.evaluate("() => { const s = window.bpStore; const n = Object.values(s.graph.nodes).find(n => n.def === 'trace.lineByChannel'); n.defaults.debug = 1; }")
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(1200)
         await shot('60_mirrors_play')
@@ -693,7 +693,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Le réseau en boucle').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.wait_for_timeout(300)
         await shot('61_grid_level')
         await page.goto(home)
@@ -799,7 +799,7 @@ async def main():
         if await page.locator('.drawer.right', has_text='Trigger when Paused').count() != 1:
             errs.append('Input Action : Trigger when Paused absent des Details')
         await page.locator('.drawer.right .drawer-head .btn').tap()
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(700)
         await page.locator('.keys .key', has_text='Espace').tap()
@@ -1141,7 +1141,7 @@ async def main():
         await page.wait_for_timeout(300)
         if '1280 × 720' not in await page.locator('.designer-size').inner_text():
             errs.append('Designer : retour à 1280 × 720 impossible')
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(800)
         if await page.locator('.umg-layer .umg-text', has_text='Score : 0').count() == 0:
@@ -1189,7 +1189,7 @@ async def main():
             g.links.e2e_c1 = { id: 'e2e_c1', from: { node: ev.id, pin: 'then' }, to: { node: 'e2e_clic', pin: 'exec' } };
           });
         }""")
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(800)
         await page.locator('.umg-layer .umg-Button.hit').first.tap()
@@ -1233,7 +1233,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Le vrai menu pause').scroll_into_view_if_needed()
         await page.locator('.lesson-item', has_text='Le vrai menu pause').tap()
         await page.wait_for_timeout(500)
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(700)
         await page.locator('.keys .key', has_text='Espace').tap()
@@ -1259,7 +1259,7 @@ async def main():
         await page.locator('.lesson-item', has_text='La playlist').scroll_into_view_if_needed()
         await page.locator('.lesson-item', has_text='La playlist').tap()
         await page.wait_for_timeout(500)
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(800)
         # Twelve buttons that take touches, in layout order: Lire and Retirer of each row, then Rafraîchir and Inverser.
@@ -1354,8 +1354,8 @@ async def main():
         await page.wait_for_timeout(400)
         await page.locator('.project-open', has_text='Barres au-dessus').tap()
         await page.wait_for_timeout(700)
-        if await page.locator('.tab', has_text='Niveau').count():
-            await page.locator('.tab', has_text='Niveau').first.tap()
+        if await page.locator('.doc-tab.level').count():
+            await page.locator('.doc-tab.level').first.tap()
             await page.wait_for_timeout(300)
         await shot('105_widget_component_level')
         await page.evaluate("""() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Ennemi'); s.openClass(c.id); s.setFocus({ kind: 'component', id: c.components.find(k => k.kind === 'Widget').id }); }""")
@@ -1375,8 +1375,8 @@ async def main():
         await page.wait_for_timeout(400)
         await page.locator('.project-open', has_text='Barres au-dessus').tap()
         await page.wait_for_timeout(700)
-        if await page.locator('.tab', has_text='Niveau').count():
-            await page.locator('.tab', has_text='Niveau').first.tap()
+        if await page.locator('.doc-tab.level').count():
+            await page.locator('.doc-tab.level').first.tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(900)
         if await page.locator('.umg-world').count() != 2:
@@ -1395,7 +1395,7 @@ async def main():
         await page.locator('.lesson-item', has_text='Une barre par ennemi').tap()
         await page.wait_for_timeout(500)
         await close_sheet()
-        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(900)
         if await page.locator('.umg-world').count() != 3:
@@ -1403,6 +1403,63 @@ async def main():
         await shot('109_bar_per_enemy_play')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
+
+        # V7.46: several levels. + Add › Level, the tab takes its name, Play plays it, the Content Drawer and Maps & Modes.
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await free_play(page)
+        await page.wait_for_timeout(600)
+        await page.locator('.doc-tab.level').first.tap()
+        if (await page.locator('.doc-tab.level').inner_text()).strip().endswith('Lvl_Principal') is False:
+            errs.append(f'Niveaux : l’onglet du niveau s’appelle « {await page.locator(".doc-tab.level").inner_text()} »')
+        await page.locator('.content-drawer-btn').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.btn.primary', has_text='+ Add').tap()
+        await page.wait_for_timeout(200)
+        await shot('110_levels_add_menu')
+        await page.locator('.palette-item', has_text='Level').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('input.field').last.fill('Lvl_Couloir')
+        await page.locator('.dialog .btn.primary', has_text='Créer').tap()
+        await page.wait_for_timeout(600)
+        tab = (await page.locator('.doc-tab.level').inner_text()).strip()
+        if not tab.endswith('Lvl_Couloir'):
+            errs.append(f'Niveaux : après + Add › Level, l’onglet dit « {tab} »')
+        n = await page.evaluate('() => window.bpStore.project.levels.length')
+        if n < 2:
+            errs.append(f'Niveaux : {n} niveau(x) après + Add › Level')
+        await shot('111_levels_new_level')
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(600)
+        played = await page.evaluate('() => window.bpStore.project.levels.find(l => l.name === "Lvl_Couloir").actors.length')
+        if played != 0:
+            errs.append('Niveaux : le nouveau niveau n’est pas vide')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.content-drawer-btn').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.cd-search').fill('Lvl')
+        await page.wait_for_timeout(200)
+        await page.locator('.cd-tile', has_text='Lvl_Principal').tap()
+        await page.wait_for_timeout(200)
+        await shot('112_levels_content_drawer')
+        await page.locator('.cd-tile', has_text='Lvl_Principal').tap()
+        await page.wait_for_timeout(100)
+        if await page.locator('.content-drawer').count():
+            await page.locator('.cd-tile', has_text='Lvl_Principal').tap()
+        await page.wait_for_timeout(500)
+        tab = (await page.locator('.doc-tab.level').inner_text()).strip()
+        if not tab.endswith('Lvl_Principal'):
+            errs.append(f'Niveaux : deux touches sur Lvl_Principal laissent l’onglet sur « {tab} »')
+        await page.locator('button[aria-label^="Plus d"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Project Settings').tap()
+        await page.wait_for_timeout(300)
+        await shot('113_levels_maps_modes')
+        if await page.locator('select[aria-label="Game Default Map"] option').count() < 2:
+            errs.append('Maps & Modes : Game Default Map ne propose pas les niveaux')
+        await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(200)
 
         print('errors', errs)
         await b.close()

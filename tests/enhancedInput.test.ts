@@ -8,7 +8,7 @@ import { compileClass } from '../src/core/compiler/validate';
 import { edit } from '../src/core/lessons/builder';
 import { debugMappingContext, lessonInputHold, lessonInputLamp } from '../src/core/lessons/library/enhancedInput';
 import { runLesson } from '../src/core/lessons/runner';
-import { createClass, createProject, type Project } from '../src/core/model/project';
+import { createClass, createProject, type Project, levelOf } from '../src/core/model/project';
 import { addInputAction, addMapping, addMappingContext, removeInputAction } from '../src/core/operations/inputOps';
 import { STEP, Simulation } from '../src/core/runtime/simulation';
 import { type ActionEvent, EnhancedInput, transitionEvents } from '../src/core/runtime/enhancedInput';
@@ -201,7 +201,7 @@ describe('in the simulation', () => {
     const say = b.node('debug.printString', {}, { text: 'reçu' }, [400, 96]);
     b.link(ev, 'started', say, 'exec');
     addAtBeginPlay(edit(p, 'BP_A'), context);
-    p.level.actors.push(
+    levelOf(p).actors.push(
       { id: 'a', classId: p.classes[0].id, name: 'BP_A', x: 0, y: 0, yaw: 0, overrides: {} },
       { id: 'l1', classId: lamp.id, name: 'BP_Lampe', x: 100, y: 0, yaw: 0, overrides: {} },
       { id: 'l2', classId: lamp.id, name: 'BP_Lampe2', x: 200, y: 0, yaw: 0, overrides: {} },
@@ -230,7 +230,7 @@ describe('in the simulation', () => {
     const ev = a.node('input.action', { action }, {}, [64, 400]);
     const say = a.node('debug.printString', {}, {}, [400, 400]);
     a.link(ev, 'completed', say, 'exec').link(ev, 'elapsed', say, 'text');
-    p.level.actors.push({ id: 'a', classId: a.cls.id, name: 'BP_A', x: 0, y: 0, yaw: 0, overrides: {} });
+    levelOf(p).actors.push({ id: 'a', classId: a.cls.id, name: 'BP_A', x: 0, y: 0, yaw: 0, overrides: {} });
     const sim = new Simulation(p);
     sim.start();
     sim.pressKey('E');

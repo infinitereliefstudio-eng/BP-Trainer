@@ -12,6 +12,7 @@ import { parseProject, serializeProject } from '../src/core/serialization/serial
 import { raycast } from '../src/core/runtime/physics';
 import { Simulation, STEP } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
+import { levelOf } from '../src/core/model/project';
 
 const run = (sim: Simulation, seconds: number) => {
   for (let t = 0; t < seconds - 1e-9; t += STEP) sim.step();
@@ -179,7 +180,7 @@ function lamps() {
   cs.target('Lumiere', set);
   const first = pb.place(b, 0, 0);
   pb.place(b, 300, 0);
-  pb.project.level.actors.find((a) => a.id === first)!.overrides[on] = true;
+  levelOf(pb.project).actors.find((a) => a.id === first)!.overrides[on] = true;
   return { pb, b, on };
 }
 
@@ -214,7 +215,7 @@ describe('Construction Script', () => {
     const spawn = sp.node('actor.spawn', {}, { class: b.cls.id, [`expose:${on}`]: true }, [400, 96]);
     sp.cls.autoReceiveInput = true;
     sp.link(sp.node('event.inputKey', { key: 'E' }, {}, [64, 96]), 'pressed', spawn, 'exec');
-    pb.project.level.actors = [];
+    levelOf(pb.project).actors = [];
     pb.place(sp, 0, 0);
     const sim = new Simulation(pb.project);
     sim.pressKey('E');
@@ -231,7 +232,7 @@ describe('Construction Script', () => {
     const { b: pcs } = b.construction();
     const setNode = Object.values(pcs.graph.nodes).find((n) => n.def === 'component.setVisibility')!.id;
     pcs.link(setNode, 'then', pcs.node('debug.printString', {}, { text: 'parent' }, [800, 96]), 'exec');
-    pb.project.level.actors = [];
+    levelOf(pb.project).actors = [];
     pb.place(child, 0, 0);
     expect(prints(new Simulation(pb.project))).toEqual(['parent', 'enfant']);
   });

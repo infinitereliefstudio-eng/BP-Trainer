@@ -18,6 +18,7 @@ import type { CheckContext, Lesson } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
 import { goTo, tap } from './kit';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const PLOT_A: [number, number] = [-300, 0];
 const PLOT_B: [number, number] = [300, 0];
@@ -57,7 +58,7 @@ function project(): Project {
     [PLOT_B, 'B'],
   ] as const) {
     const id = pb.place(plot, ...at);
-    p.level.actors.find((a) => a.id === id)!.overrides[label] = letter;
+    levelOf(p).actors.find((a) => a.id === id)!.overrides[label] = letter;
   }
 
   const door = pb.blueprint('BP_Porte');
@@ -83,7 +84,7 @@ const state = (cx: CheckContext) => `porte ${doorOpen(cx) ? 'ouverte' : 'fermée
 
 /** The placed levers, and whether each plot has one. */
 function levers(cx: CheckContext): string | undefined {
-  const all = cx.project.level.actors.filter((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === 'BP_Levier');
+  const all = levelOf(cx.project).actors.filter((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === 'BP_Levier');
   if (!cx.project.classes.some((c) => c.name === 'BP_Levier')) return 'Crée le Blueprint BP_Levier (Content Drawer › + Add › Blueprint Class › Actor).';
   if (all.length !== 2) return `${all.length} BP_Levier posé(s) dans le niveau : il en faut deux, un sur chaque plot.`;
   for (const [at, letter] of [
@@ -223,7 +224,7 @@ export const lessonUniversalLever: Lesson = {
     b.link(ev, 'then', set, 'exec').link(set, 'then', loop, 'exec').link(b.node('var.get', { variable: cibles }, {}, [520, 320]), 'value', loop, 'array');
     b.link(loop, 'body', msg, 'exec').link(loop, 'element', msg, 'target').link(b.node('var.get', { variable: active }, {}, [860, 340]), 'value', msg, etat.id);
 
-    const id = (name: string) => `actor:${p.level.actors.find((a) => p.classes.find((c) => c.id === a.classId)?.name === name)!.id}`;
+    const id = (name: string) => `actor:${levelOf(p).actors.find((a) => p.classes.find((c) => c.id === a.classId)?.name === name)!.id}`;
     for (const [at, targets] of [
       [PLOT_A, ['BP_Porte', 'BP_Lampe']],
       [PLOT_B, ['BP_Pont']],

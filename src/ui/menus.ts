@@ -11,7 +11,7 @@ import { graphBounds, layoutGraph } from '@editor/layout';
 
 /** Text width close enough to frame nodes, without a canvas at hand. */
 const roughMeasure = (text: string, font: string) => text.length * (font.includes('600') ? 7.4 : 6.8);
-import { isPlaceableParent, type PinRef } from '@core/model/project';
+import { isPlaceableParent, type PinRef, levelOf } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import type { EditorStore } from '@core/store/editorStore';
 import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
@@ -271,6 +271,7 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
   const key = opts.sandboxKey;
   const items: MenuItem[] = [
     { label: 'Class Settings', action: opts.onClassSettings },
+    { label: 'Project Settings', hint: 'Maps & Modes', action: () => openOverlay({ kind: 'projectSettings' }) },
     ...(key ? sandboxItems(store, openOverlay, key, opts) : []),
     {
       label: 'Exporter le projet',
@@ -353,7 +354,7 @@ function interfaceEventItems(store: EditorStore, ids: string[]): MenuItem[] {
 
 /** Long press on an actor in the level. */
 export function actorMenu(store: EditorStore, actorId: string, openClass: (classId: string) => void): MenuItem[] {
-  const a = store.project.level.actors.find((x) => x.id === actorId);
+  const a = levelOf(store.project).actors.find((x) => x.id === actorId);
   if (!a) return [];
   return [
     { label: 'Ouvrir le Blueprint', action: () => openClass(a.classId) },

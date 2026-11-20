@@ -14,6 +14,7 @@ import { paletteEntries } from '../src/core/nodes/palette';
 import { contextFor } from '../src/core/nodes/registry';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
+import { levelOf } from '../src/core/model/project';
 
 const prints = (s: Simulation) => s.log.filter((l) => l.message !== undefined).map((l) => l.message);
 const errors = (s: Simulation) => s.log.filter((l) => l.level === 'error').map((l) => l.text);
@@ -163,7 +164,7 @@ describe('interface functions with inputs and outputs', () => {
     const refs = [tId, rId].map((id, i) => {
       const v = player.variable(`Cible${i}`, T.object('Actor'));
       player.cls.variables.find((x) => x.id === v)!.instanceEditable = true;
-      pb.project.level.actors.find((a) => a.id === pId)!.overrides[v] = `actor:${id}`;
+      levelOf(pb.project).actors.find((a) => a.id === pId)!.overrides[v] = `actor:${id}`;
       return v;
     });
     const ev = player.node('event.beginPlay');

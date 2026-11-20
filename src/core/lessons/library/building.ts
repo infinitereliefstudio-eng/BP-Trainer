@@ -14,6 +14,7 @@ import { noRuntimeErrors } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 import { PREDICT_METHOD } from './kit';
 import { predictLesson } from './predicts';
+import { levelOf } from '../../model/project';
 
 // ------------------------------------------------------- Construis ta lampe
 
@@ -36,7 +37,7 @@ function lightOffset(c: BlueprintClass): number {
   return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
-const placedCount = (p: Project, c: BlueprintClass) => p.level.actors.filter((a) => a.classId === c.id).length;
+const placedCount = (p: Project, c: BlueprintClass) => levelOf(p).actors.filter((a) => a.classId === c.id).length;
 
 /** The learner's lamp: the one placed most often, to judge it fairly. */
 const bestLamp = (p: Project) => [...lamps(p)].sort((a, b) => placedCount(p, b) - placedCount(p, a))[0];

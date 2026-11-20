@@ -15,6 +15,7 @@ import type { CheckContext, Lesson } from '../types';
 import { classBuilder, componentVar } from './health';
 import { DEBUG_METHOD, nodeOf } from './kit';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const CHARGER: [number, number] = [0, 0];
 const RANGE = 300;
@@ -127,7 +128,7 @@ export const debug23: Lesson = {
       label: 'le chargeur est déplacé près du robot',
       mutate: (p) => {
         const cls = p.classes.find((c) => c.name === 'BP_Chargeur');
-        const a = p.level.actors.find((x) => x.classId === cls?.id);
+        const a = levelOf(p).actors.find((x) => x.classId === cls?.id);
         if (a) a.x = 800;
       },
       scenario: [{ wait: 2 }],

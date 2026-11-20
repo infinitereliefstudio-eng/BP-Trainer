@@ -2,7 +2,7 @@
  * A small helper to build projects in code: lesson setups, their reference
  * solutions and tests all use it.
  */
-import { createProject, type BlueprintClass, type ComponentKind, type ComponentProps, type ParentClass, type Project } from '../model/project';
+import { createProject, type BlueprintClass, type ComponentKind, type ComponentProps, type ParentClass, type Project, levelOf } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { addActorComponent, addComponent, addVariable, updateComponentProps } from '../operations/classOps';
 import { ensureConstructionScript } from '../operations/constructionOps';
@@ -115,7 +115,7 @@ export class ProjectBuilder {
   }
 
   playerStart(x: number, y: number, yaw = 0): this {
-    this.project.level.playerStart = { x, y, yaw };
+    levelOf(this.project).playerStart = { x, y, yaw };
     return this;
   }
 }

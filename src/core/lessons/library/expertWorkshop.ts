@@ -19,6 +19,7 @@ import { EXPERT_RULES, expertScenery } from './expertRadio';
 import { goTo, tap } from './kit';
 import { playerBlueprint } from './props';
 import { playerTells } from './universalLever';
+import { levelOf } from '../../model/project';
 
 const PUMP_AT: [number, number] = [-350, -200];
 const FAN_AT: [number, number] = [350, -200];
@@ -41,7 +42,7 @@ const machine = (cx: CheckContext, cls: string) => cx.sim.actors.find((a) => a.c
 const lightOn = (cx: CheckContext, cls: string) => !!machine(cx, cls)?.components.some((c) => c.kind === 'PointLight' && c.props.visible);
 const bladesYaw = (cx: CheckContext) => machine(cx, 'BP_Ventilo')?.components.find((c) => c.name === 'Helice')?.props.yaw ?? 0;
 const placed = (cx: CheckContext, name: string, at: [number, number]) =>
-  cx.project.level.actors.some((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === name && Math.hypot(a.x - at[0], a.y - at[1]) <= 80);
+  levelOf(cx.project).actors.some((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === name && Math.hypot(a.x - at[0], a.y - at[1]) <= 80);
 
 export const expertWorkshop: Lesson = {
   id: 'x2-atelier',

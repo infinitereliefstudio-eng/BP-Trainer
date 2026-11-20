@@ -2,7 +2,7 @@
  * The project a first launch opens: one lamp Blueprint with a light, and a
  * BeginPlay → Print String chain, so there is something to touch at once.
  */
-import { createProject, type Project } from '../model/project';
+import { createProject, type Project, levelOf } from '../model/project';
 import { addComponent, addVariable } from '../operations/classOps';
 import { addNode, connect } from '../operations/graphOps';
 import { addClass } from '../operations/projectOps';
@@ -30,6 +30,6 @@ export function createStarterProject(): Project {
     connect(g, { node: begin.value.id, pin: 'then' }, { node: print.value.id, pin: 'exec' }, ctx);
   }
   placeActor(p, cls.id, 0, 0);
-  p.level.playerStart = { x: -400, y: 0, yaw: 0 };
+  levelOf(p).playerStart = { x: -400, y: 0, yaw: 0 };
   return p;
 }

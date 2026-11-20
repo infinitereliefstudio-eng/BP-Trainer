@@ -1,6 +1,6 @@
 # Chantier n° 4, niveaux et GameInstance : analyse (20 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Chantier n° 4, niveaux et GameInstance : analyse » : https://claude.ai/artifact/8jupgWRbXyTExFaxjEXqv1. Demandée par Tristan le 20 novembre au soir (« Analyse pour le chantier 4 ce qui existe dans l'App, les règles ue, et de quelle manière on pourrait implémenter le chantier »). **Rien n'est lancé** : les sept questions attendent ses réponses.
+Copie du Claude Doc « BP Trainer — Chantier n° 4, niveaux et GameInstance : analyse » : https://claude.ai/artifact/8jupgWRbXyTExFaxjEXqv1. Demandée par Tristan le 20 novembre au soir (« Analyse pour le chantier 4 ce qui existe dans l'App, les règles ue, et de quelle manière on pourrait implémenter le chantier »). **Décisions du 20 novembre à 22 h 58** : Tristan a pris les sept recommandations (« Ok pour tes recos »), et demandé de garder au backlog comment aller plus loin (BACKLOG.md, « Aller plus loin après le chantier n° 4 »). Donc : vrai GameMode (GameModeBase, Maps & Modes, World Settings), pas de Level Blueprint, étapes à l'Avancé après « Le checkpoint », Quit Game simulé, pin Options sans effet, autonomie A4 dans le parcours, `Lvl_Principal`. **V7.46 faite** (plusieurs niveaux, Maps & Modes) ; la suite (V7.47) attend son feu vert.
 
 ## En bref
 

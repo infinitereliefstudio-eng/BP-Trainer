@@ -9,6 +9,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, notUsing, PRESS_E, usesNode, notion } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { levelOf } from '../../model/project';
 
 const REACH = 300;
 
@@ -395,7 +396,7 @@ export const lessonCrate: Lesson = {
       advice: 'Chaque caisse a son propre Do Once et sa propre position : n’utilise ni Get Actor Of Class ni référence fixe, seulement Self.',
       mutate(p) {
         const cls = p.classes.find((c) => c.name === 'BP_Caisse')!;
-        p.level.actors.push({ id: 'robust-crate', classId: cls.id, name: 'BP_Caisse2', x: 0, y: 300, yaw: 0, overrides: {} });
+        levelOf(p).actors.push({ id: 'robust-crate', classId: cls.id, name: 'BP_Caisse2', x: 0, y: 300, yaw: 0, overrides: {} });
       },
       scenario: [{ wait: 0.1 }, { walk: [1, 0], seconds: 0.6 }, { wait: 0.4 }, { teleport: [0, 150] }, { walk: [0, 1], seconds: 0.6 }, { checkpoint: 'fin' }],
       checks: [

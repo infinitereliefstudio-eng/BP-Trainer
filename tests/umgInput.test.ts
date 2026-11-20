@@ -292,7 +292,7 @@ describe('format 13', () => {
     file.project.format = 12;
     for (const w of file.project.classes.find((c: { name: string }) => c.name === 'WBP_Menu').widgets) w.props.visibility = 0;
     const back = parseProject(JSON.stringify(file));
-    expect(PROJECT_FORMAT).toBe(13);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(13);
     const ws = back.classes.find((c) => c.name === 'WBP_Menu')!.widgets!;
     expect(ws.find((x) => x.id === t.root.id)!.props.visibility).toBe(VIS_SELF_HIT_TEST_INVISIBLE);
     expect(ws.find((x) => x.id === text.id)!.props.visibility).toBe(VIS_SELF_HIT_TEST_INVISIBLE);

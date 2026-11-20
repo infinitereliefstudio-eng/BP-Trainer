@@ -18,7 +18,9 @@ describe('Content Drawer assets', () => {
       'BP_Sauvegarde:Blueprint Class',
       'BPI_Interactif:Blueprint Interface',
       'IA_Ouvrir:Input Action',
+      'Lvl_Principal:Level',
     ]);
+    expect(projectAssets(p).find((x) => x.type === 'Level')).toMatchObject({ open: true, defaultMap: true });
     expect(projectAssets(p).find((x) => x.name === 'BP_Sauvegarde')?.placeable).toBe(false);
     expect(projectAssets(p).find((x) => x.name === 'BP_Porte')?.parent).toBe('Actor');
   });

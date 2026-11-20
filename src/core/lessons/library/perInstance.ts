@@ -8,6 +8,7 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
+import { levelOf } from '../../model/project';
 
 /** The lamps' places, left to right: the first and the last must start lit. */
 const LAMPS = [-250, 0, 250];
@@ -47,7 +48,7 @@ const checks: Check[] = [
       const cls = cx.project.classes.find((c) => c.name === 'BP_Lampe');
       const v = cls?.variables.find((k) => k.instanceEditable);
       if (!v) return 'Crée une variable Boolean dans BP_Lampe et coche Instance Editable (l’œil) : chaque lampe posée pourra avoir sa valeur.';
-      const values = cx.project.level.actors.filter((a) => a.classId === cls?.id).map((a) => a.overrides[v.id] ?? v.defaultValue);
+      const values = levelOf(cx.project).actors.filter((a) => a.classId === cls?.id).map((a) => a.overrides[v.id] ?? v.defaultValue);
       return new Set(values.map(String)).size > 1 ? true : `Toutes les lampes ont la même valeur de ${v.name}. Règle-la dans le niveau, lampe par lampe (Details de l’instance).`;
     },
   }),
@@ -114,7 +115,7 @@ export const lessonPerLamp: Lesson = {
     const get = b.node('var.get', { variable: v }, {}, [200, 300]);
     const set = b.node('component.setVisibility', {}, { visible: true }, [660, 96]);
     b.link(begin, 'then', br, 'exec').link(get, 'value', br, 'condition').link(br, 'true', set, 'exec').target('Lumiere', set);
-    const lamps = p.level.actors.filter((a) => a.classId === b.cls.id).sort((a, c) => a.x - c.x);
+    const lamps = levelOf(p).actors.filter((a) => a.classId === b.cls.id).sort((a, c) => a.x - c.x);
     lamps.forEach((a, i) => {
       if (LIT[i]) a.overrides[v] = true;
     });

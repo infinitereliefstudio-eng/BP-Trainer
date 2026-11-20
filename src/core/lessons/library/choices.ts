@@ -9,6 +9,7 @@ import { edit, ProjectBuilder } from '../builder';
 import { nodeOf } from './kit';
 import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, visible, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
+import { levelOf } from '../../model/project';
 
 const press = PRESS_E;
 
@@ -158,7 +159,7 @@ function stateDoorsProject() {
   b.node('event.inputKey', { key: 'E', consumeInput: false }, {}, [64, 96]);
   pb.place(b, 0, -200);
   const locked = pb.place(b, 0, 200);
-  pb.project.level.actors.find((a) => a.id === locked)!.overrides[etat] = 2;
+  levelOf(pb.project).actors.find((a) => a.id === locked)!.overrides[etat] = 2;
   pb.playerStart(-300, 0);
   return pb.project;
 }
@@ -288,7 +289,7 @@ function lightsProject() {
   b.cls.variables[0].instanceEditable = true;
   COLORS.forEach((_, i) => {
     const id = pb.place(b, 200 * i, 0);
-    pb.project.level.actors.find((a) => a.id === id)!.overrides[couleur] = i;
+    levelOf(pb.project).actors.find((a) => a.id === id)!.overrides[couleur] = i;
   });
   // The clumsy version: three Branch in a row, one per colour.
   const begin = b.node('event.beginPlay', {}, {}, [64, 96]);

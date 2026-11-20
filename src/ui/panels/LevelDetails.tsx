@@ -1,6 +1,6 @@
 /** Details of what is selected in the level: an actor instance or the Player Start. */
 import { inheritedView, isA, rootParent } from '@core/model/inheritance';
-import { findClass, type Variable } from '@core/model/project';
+import { findClass, type Variable, levelOf } from '@core/model/project';
 import { actorRefValue, removeActor, setActorOverride, setComponentOverride, updateActor } from '@core/operations/levelOps';
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
@@ -9,7 +9,7 @@ import { AppHelp, Field, Group, NumberField, TextCommit } from './fields';
 
 export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (classId: string) => void }) {
   const store = useStore();
-  const a = store.project.level.actors.find((x) => x.id === id);
+  const a = levelOf(store.project).actors.find((x) => x.id === id);
   if (!a) return null;
   const own = findClass(store.project, a.classId);
   const cls = own && inheritedView(own, store.project);
@@ -105,7 +105,7 @@ function VariableField({ v, actorId, value, onChange }: { v: Variable; actorId: 
   if (v.type.category === 'object' && v.type.container !== 'array') {
     // UE's actor picker: any placed actor of the right class, or None.
     const wanted = v.type.subtype ?? 'Actor';
-    const choices = store.project.level.actors.filter((o) => {
+    const choices = levelOf(store.project).actors.filter((o) => {
       const oc = findClass(store.project, o.classId);
       const wantedId = store.project.classes.find((c) => c.name === wanted)?.id;
       // A child Blueprint fits where its parent is expected.
@@ -134,8 +134,8 @@ function VariableField({ v, actorId, value, onChange }: { v: Variable; actorId: 
 
 export function PlayerStartDetails() {
   const store = useStore();
-  const ps = store.project.level.playerStart;
-  const set = (patch: Partial<typeof ps>) => store.applyProject('Régler le Player Start', () => Object.assign(store.project.level.playerStart, patch));
+  const ps = levelOf(store.project).playerStart;
+  const set = (patch: Partial<typeof ps>) => store.applyProject('Régler le Player Start', () => Object.assign(levelOf(store.project).playerStart, patch));
   return (
     <>
     <Group title="Transform">

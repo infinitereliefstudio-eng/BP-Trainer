@@ -7,13 +7,14 @@ import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, notUsing, usesNode, visible, notion } from '../checks';
 import type { Lesson } from '../types';
 import { doorBlueprint, generatorBlueprint, lampBlueprint, playerBlueprint, referenceVariable } from './props';
+import { levelOf } from '../../model/project';
 
 const MODULE = 'Faire communiquer les Blueprints';
 
 /** Point an instance's reference variable at another placed actor (or None). */
 export function setReference(p: Project, fromLabel: string, variableId: string, toLabel: string | null): void {
-  const from = p.level.actors.find((a) => a.name === fromLabel)!;
-  const to = toLabel ? p.level.actors.find((a) => a.name === toLabel) : undefined;
+  const from = levelOf(p).actors.find((a) => a.name === fromLabel)!;
+  const to = toLabel ? levelOf(p).actors.find((a) => a.name === toLabel) : undefined;
   from.overrides[variableId] = to ? `actor:${to.id}` : null;
 }
 

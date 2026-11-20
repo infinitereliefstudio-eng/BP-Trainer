@@ -15,6 +15,7 @@ import { countPrints, noRuntimeErrors, notion, notUsing, usesNode } from '../che
 import type { CheckContext, Lesson } from '../types';
 import { carries, componentVar, isComponentClass } from './health';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const LAMP_A: [number, number] = [-350, -150];
 const LAMP_B: [number, number] = [0, -150];
@@ -183,7 +184,7 @@ export const autonomyEnergy: Lesson = {
     const shut = door.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 0 } }, [400, 96]);
     door.link(dev, 'then', shut, 'exec').target('Porte', shut).link(shut, 'then', door.node('debug.printString', {}, { text: DOOR_SHUT }, [760, 96]), 'exec');
 
-    for (const a of p.level.actors) {
+    for (const a of levelOf(p).actors) {
       if (a.classId !== lamp.cls.id) continue;
       setComponentOverride(p, a.id, lc, charge, a.x === LAMP_A[0] ? 3 : 1);
     }

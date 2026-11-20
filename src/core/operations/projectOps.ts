@@ -54,7 +54,7 @@ export function removeClass(p: Project, id: string): OpResult {
   const carrier = p.classes.find((c) => c.components.some((k) => k.kind === 'Widget' && k.classId === id));
   if (carrier) return { ok: false, reason: `${carrier.name} affiche ce Widget Blueprint dans un Widget Component : change d’abord son Widget Class.` };
   p.classes = p.classes.filter((c) => c.id !== id);
-  p.level.actors = p.level.actors.filter((a) => a.classId !== id);
+  for (const level of p.levels) level.actors = level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;
   if (p.playerControllerClassId === id) delete p.playerControllerClassId;
   return { ok: true, value: undefined };
@@ -120,10 +120,12 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   const pc = p.classes.find((c) => c.id === p.playerControllerClassId);
   if (p.playerControllerClassId && (!pc || rootParent(p, pc) !== 'PlayerController')) delete p.playerControllerClassId;
   // A Player Controller is made by the game, never placed: its instances leave the level.
-  p.level.actors = p.level.actors.filter((a) => {
-    const c = p.classes.find((x) => x.id === a.classId);
-    return !c || isPlaceableParent(c.parent);
-  });
+  for (const level of p.levels) {
+    level.actors = level.actors.filter((a) => {
+      const c = p.classes.find((x) => x.id === a.classId);
+      return !c || isPlaceableParent(c.parent);
+    });
+  }
   pruneProject(p);
   return { ok: true, value: undefined };
 }

@@ -10,7 +10,7 @@
  */
 import { explainRuntime } from '../explain/runtime';
 import { inheritedView, isA, lineage } from '../model/inheritance';
-import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Project, type SavedGame } from '../model/project';
+import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Level, type Project, type SavedGame, levelOf } from '../model/project';
 import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
@@ -66,6 +66,8 @@ export class Simulation implements InterpreterHost {
   frame = 0;
   actors: ActorRT[] = [];
   readonly player: ActorRT;
+  /** The level being played. */
+  readonly level: Level;
   /** The player's PlayerController (a Blueprint when Player Controller Class is set), and its Enhanced Input subsystem. */
   readonly controller: ActorRT;
   private readonly subsystem = createInputSubsystem();
@@ -150,8 +152,11 @@ export class Simulation implements InterpreterHost {
       slots?: Record<string, SavedGame>;
       /** Told each time a node writes or deletes a slot, so that it can be kept at once. */
       onSlotsChanged?: () => void;
+      /** The level to play (a level id): the one open in the editor if unset, as UE's Play In Editor. */
+      levelId?: string;
     } = {},
   ) {
+    this.level = project.levels.find((l) => l.id === opts.levelId) ?? levelOf(project);
     this.rng = opts.seed ?? 12345;
     this.slots = opts.slots ?? {};
     this.onSlotsChanged = opts.onSlotsChanged;
@@ -188,7 +193,7 @@ export class Simulation implements InterpreterHost {
       run: () => this.runPhases(),
       step: () => this.step(),
     });
-    const ps = project.level.playerStart;
+    const ps = this.level.playerStart;
     const pawn = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
     this.player = createPlayer(pawn && inheritedView(pawn, project, true));
     this.player.x = ps.x;
@@ -239,7 +244,7 @@ export class Simulation implements InterpreterHost {
   }
 
   private spawnLevel(): void {
-    for (const la of this.project.level.actors) {
+    for (const la of this.level.actors) {
       const cls = findClass(this.project, la.classId);
       // A SaveGame is not an actor, a PlayerController is made by the game: neither is placed.
       if (!cls || !isPlaceableParent(cls.parent)) continue;

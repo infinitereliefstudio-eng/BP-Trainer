@@ -4,7 +4,7 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import { inheritedView } from '@core/model/inheritance';
-import { findClass, type Project } from '@core/model/project';
+import { findClass, type Project, levelOf } from '@core/model/project';
 import { moveActor, movePlayerStart, snapActor } from '@core/operations/levelOps';
 import { componentShape, overlaps } from '@core/runtime/physics';
 import { Simulation } from '@core/runtime/simulation';
@@ -68,7 +68,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
   const fitCamera = (cam: Camera) => {
     const { w, h } = live.current.size;
     if (!w) return;
-    const ps = store.project.level.playerStart;
+    const ps = levelOf(store.project).playerStart;
     let x0 = ps.x - 200,
       y0 = ps.y - 200,
       x1 = ps.x + 200,
@@ -104,7 +104,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       {
         actors: actors(),
         player: s?.sim.player,
-        playerStart: store.project.level.playerStart,
+        playerStart: levelOf(store.project).playerStart,
         camera: camera(),
         width: l.size.w,
         height: l.size.h,
@@ -167,7 +167,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       hitAt(sx, sy): Hit {
         const w = camera().toWorld(sx, sy);
         if (!live.current.session) {
-          const ps = store.project.level.playerStart;
+          const ps = levelOf(store.project).playerStart;
           if (Math.hypot(w.x - ps.x, w.y - ps.y) < Math.max(PLAYER_RADIUS, 24 / camera().zoom)) return { kind: 'node', node: 'playerStart' };
         }
         const id = actorAt(w.x, w.y);
@@ -226,11 +226,11 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
         }
         const z = camera().zoom;
         if (id === 'playerStart') {
-          const ps = store.project.level.playerStart;
+          const ps = levelOf(store.project).playerStart;
           ps.x += dsx / z;
           ps.y += dsy / z;
         } else {
-          const a = store.project.level.actors.find((x) => x.id === id);
+          const a = levelOf(store.project).actors.find((x) => x.id === id);
           if (a) moveActor(store.project, id, a.x + dsx / z, a.y + dsy / z);
         }
         live.current.preview = undefined;
@@ -241,7 +241,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
         live.current.dragId = undefined;
         if (!id) return;
         if (id === 'playerStart') {
-          const ps = store.project.level.playerStart;
+          const ps = levelOf(store.project).playerStart;
           movePlayerStart(store.project, Math.round(ps.x / 10) * 10, Math.round(ps.y / 10) * 10);
         } else snapActor(store.project, id);
         store.commit();
@@ -265,7 +265,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
 
   useEffect(() => {
     if (!center || live.current.session) return;
-    const ps = store.project.level.playerStart;
+    const ps = levelOf(store.project).playerStart;
     const a = center.id === 'playerStart' ? ps : actors().find((x) => x.id === center.id);
     const { w, h } = live.current.size;
     if (!a || !w) return;
@@ -294,7 +294,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
 /** Which placed actor points at which, through an Instance Editable reference variable. */
 function levelReferences(p: Project): { from: string; to: string; label: string }[] {
   const out: { from: string; to: string; label: string }[] = [];
-  for (const a of p.level.actors) {
+  for (const a of levelOf(p).actors) {
     const cls = findClass(p, a.classId);
     if (!cls) continue;
     for (const v of inheritedView(cls, p).variables) {

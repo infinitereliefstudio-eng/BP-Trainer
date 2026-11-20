@@ -12,6 +12,7 @@ import { noRuntimeErrors, usesNode, notion } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 import { playerInteracts } from './module3';
 import { doorBlueprint, generatorBlueprint, lampBlueprint, playerBlueprint, referenceVariable } from './props';
+import { levelOf } from '../../model/project';
 
 const MODULE = 'Synthèse';
 const LAMPS = ['BP_Lampe', 'BP_Lampe2'];
@@ -54,7 +55,7 @@ function stationWorld() {
   const genId = pb.place(gen, -500, -300);
   const lampIds = [pb.place(lamp, 350, -220), pb.place(lamp, 350, 220)];
   for (const [x, y] of FUSES) pb.place(fuse, x, y);
-  const doorId = pb.project.level.actors.find((a) => a.classId === door.cls.id)!.id;
+  const doorId = levelOf(pb.project).actors.find((a) => a.classId === door.cls.id)!.id;
   referenceVariable(pb, lamp, 'Generateur', gen, lampIds.map((id) => [id, genId] as [string, string]));
   referenceVariable(pb, door, 'Generateur', gen, [[doorId, genId]]);
   pb.playerStart(-800, 0);

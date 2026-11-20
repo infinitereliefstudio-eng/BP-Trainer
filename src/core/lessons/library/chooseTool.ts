@@ -15,6 +15,7 @@ import { noRuntimeErrors, notion, notUsing, usesNode } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 import { editable, goTo, override, ref, varId } from './kit';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const MODULE = 'Faire communiquer les Blueprints';
 
@@ -239,8 +240,8 @@ export const lessonChooseTool: Lesson = {
     alarm.link(e2, 'then', call, 'exec');
     const beacon = edit(p, 'BP_Gyrophare');
     const ref = editable(beacon, 'Alarme', T.object('BP_Alarme'));
-    const alarmActor = p.level.actors.find((a) => a.classId === alarm.cls.id)!;
-    for (const a of p.level.actors.filter((x) => x.classId === beacon.cls.id)) a.overrides[ref] = `actor:${alarmActor.id}`;
+    const alarmActor = levelOf(p).actors.find((a) => a.classId === alarm.cls.id)!;
+    for (const a of levelOf(p).actors.filter((x) => x.classId === beacon.cls.id)) a.overrides[ref] = `actor:${alarmActor.id}`;
     const begin = beacon.node('event.beginPlay', {}, {}, [64, 96]);
     const get = beacon.node('var.get', { variable: ref }, {}, [160, 300]);
     const bind = beacon.node('dispatcher.bind', { owner: alarm.cls.id, dispatcher: d.id }, {}, [400, 96]);

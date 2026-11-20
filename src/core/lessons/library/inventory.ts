@@ -7,6 +7,7 @@ import { edit, ProjectBuilder } from '../builder';
 import { countPrints as count, noRuntimeErrors, PRESS_E, usesNode, notion } from '../checks';
 import type { Lesson } from '../types';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const press = PRESS_E;
 
@@ -22,7 +23,7 @@ function inventoryProject() {
   b.cls.variables[0].instanceEditable = true;
   ITEMS.forEach((name, i) => {
     const id = pb.place(b, 200 + 200 * i, 0);
-    pb.project.level.actors.find((a) => a.id === id)!.overrides[nom] = name;
+    levelOf(pb.project).actors.find((a) => a.id === id)!.overrides[nom] = name;
   });
   pb.playerStart(-200, 0);
   return pb.project;

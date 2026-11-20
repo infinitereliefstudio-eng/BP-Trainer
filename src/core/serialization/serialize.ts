@@ -2,7 +2,7 @@
  * Saved-file format. `format` is bumped whenever the model changes shape;
  * `migrate` upgrades older files so projects survive app updates.
  */
-import { PROJECT_FORMAT, componentDefaults, createLevel, type Project } from '../model/project';
+import { PROJECT_FORMAT, componentDefaults, createLevel, type Level, type Project } from '../model/project';
 import { adoptFromLinks } from '../operations/wildcardOps';
 import { ProjectFileError, validateProject } from './validate';
 import { wireSubsystemTargets } from './wireSubsystem';
@@ -52,8 +52,8 @@ export function parseProject(json: string): Project {
 function migrate(p: Project, from: number): Project {
   let cur = from;
   if (cur === 1) {
-    // v2: level, component properties, Auto Receive Input.
-    p.level ??= createLevel();
+    // v2: level, component properties, Auto Receive Input (the level becomes a list at v14).
+    (p as unknown as { level?: unknown }).level ??= { actors: [], playerStart: { x: 0, y: 0, yaw: 0 } };
     for (const c of p.classes ?? []) {
       c.autoReceiveInput ??= false;
       for (const k of c.components ?? []) k.props = { ...componentDefaults(k.kind), ...(k.props ?? {}) };
@@ -137,6 +137,15 @@ function migrate(p: Project, from: number): Project {
       }
     }
     cur = 13;
+  }
+  if (cur === 13) {
+    // v14: several levels (UE's Level assets). The one level becomes Lvl_Principal, the Game Default Map.
+    const old = p as unknown as { level?: Partial<Level> };
+    const main = createLevel();
+    p.levels = [{ ...main, actors: old.level?.actors ?? [], playerStart: old.level?.playerStart ?? main.playerStart }];
+    delete old.level;
+    p.mapsModes = { gameDefaultMap: main.id };
+    cur = 14;
   }
   p.format = cur;
   return p;

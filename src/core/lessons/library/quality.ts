@@ -10,6 +10,7 @@ import { T } from '../../types/pins';
 import { edit, type ClassBuilder } from '../builder';
 import { printedNumbers } from '../checks';
 import type { Alternative, CheckContext, RobustnessCase } from '../types';
+import { levelOf } from '../../model/project';
 
 /** Call OnArrivee of L'ascenseur (the recall of lot 3b), for its alternatives. */
 function arrivalCall(b: ClassBuilder, at: [number, number]): string {
@@ -27,7 +28,7 @@ const lit = (cx: CheckContext, actor: string) => !!cx.component(actor, 'Lumiere'
 /** Another instance of a class, placed in the learner's level. */
 function place(p: Project, className: string, name: string, x: number, y: number, overrides: Record<string, string | null> = {}): void {
   const cls = p.classes.find((c) => c.name === className);
-  if (cls) p.level.actors.push({ id: `robust-${name}`, classId: cls.id, name, x, y, yaw: 0, overrides });
+  if (cls) levelOf(p).actors.push({ id: `robust-${name}`, classId: cls.id, name, x, y, yaw: 0, overrides });
 }
 
 /** The learner's reference variable towards `target` in `className`, whatever they named it. */
@@ -187,7 +188,7 @@ export const QUALITY: Record<string, Quality> = {
         advice: 'La lampe doit lire le générateur désigné par sa variable Instance Editable, pas un générateur trouvé ou fixé dans le graphe.',
         mutate(p) {
           const ref = referenceTo(p, 'BP_Lampe', 'BP_Generateur');
-          const gen = p.level.actors.find((a) => a.name === 'BP_Generateur');
+          const gen = levelOf(p).actors.find((a) => a.name === 'BP_Generateur');
           place(p, 'BP_Lampe', 'BP_Lampe3', 300, 80, ref && gen ? { [ref]: `actor:${gen.id}` } : {});
         },
         scenario: [{ wait: 0.3 }, { press: 'E' }, { release: 'E' }, { wait: 0.1 }, { checkpoint: 'marche' }],

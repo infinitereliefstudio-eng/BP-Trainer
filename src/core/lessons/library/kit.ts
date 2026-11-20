@@ -10,6 +10,7 @@ import type { PinType } from '../../types/pins';
 import type { Value } from '../../types/values';
 import type { ClassBuilder, ProjectBuilder } from '../builder';
 import type { CheckContext, LessonCard, ScenarioStep } from '../types';
+import { levelOf } from '../../model/project';
 
 export const varId = (b: ClassBuilder, name: string): string => {
   const v = b.cls.variables.find((x) => x.name === name);
@@ -26,7 +27,7 @@ export function editable(b: ClassBuilder, name: string, type: PinType, value?: V
 
 /** Value of an Instance Editable variable on one placed actor. `actor:<id>` is a reference to another placed actor. */
 export function override(pb: ProjectBuilder, actorId: string, variable: string, value: Value): void {
-  pb.project.level.actors.find((a) => a.id === actorId)!.overrides[variable] = value;
+  levelOf(pb.project).actors.find((a) => a.id === actorId)!.overrides[variable] = value;
 }
 
 export const ref = (actorId: string): Value => `actor:${actorId}`;

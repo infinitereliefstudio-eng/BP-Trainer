@@ -17,6 +17,7 @@ import { removeNodes } from '../../operations/graphOps';
 import { T } from '../../types/pins';
 import { cut, norm, wire } from '../edit';
 import type { Family, Situation } from '../types';
+import { levelOf } from '../../model/project';
 
 const count = (prints: string[], text: string) => prints.filter((p) => norm(p).includes(norm(text))).length;
 const go = (x: number, y = 0) => [{ teleport: [x, y] as [number, number] }, { wait: 0.3 }];
@@ -318,11 +319,11 @@ const lever: Situation<LeverP> = {
     b.cls.variables.find((v) => v.id === porte)!.instanceEditable = true;
     const d1 = pb.place(door, 600, -200);
     const l1 = pb.place(b, 300, -200);
-    pb.project.level.actors.find((a) => a.id === l1)!.overrides[porte] = `actor:${d1}`;
+    levelOf(pb.project).actors.find((a) => a.id === l1)!.overrides[porte] = `actor:${d1}`;
     if (two) {
       const d2 = pb.place(door, 600, 200);
       const l2 = pb.place(b, 300, 200);
-      pb.project.level.actors.find((a) => a.id === l2)!.overrides[porte] = `actor:${d2}`;
+      levelOf(pb.project).actors.find((a) => a.id === l2)!.overrides[porte] = `actor:${d2}`;
     }
     pb.playerStart(-300, two ? 200 : -200);
     return pb.project;

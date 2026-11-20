@@ -15,7 +15,7 @@ import { runLesson, runRobustness } from '@core/lessons/runner';
 import { newAdvice } from '@core/quality/lessonAdvice';
 import { avoidHits, sizeReport, verdict } from '@core/quality/review';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
-import { familyOf } from '@core/model/project';
+import { familyOf, levelOf } from '@core/model/project';
 import { addNode } from '@core/operations/graphOps';
 import { placeActor } from '@core/operations/levelOps';
 import type { Simulation } from '@core/runtime/simulation';
@@ -35,6 +35,7 @@ import { DesignerPanel } from './designer/DesignerPanel';
 import { DesignerView, type DesignerHandle } from './designer/DesignerView';
 import { ContextMenu } from './overlays/ContextMenu';
 import { AdviceDialog } from './overlays/AdviceDialog';
+import { ProjectSettings } from './overlays/ProjectSettings';
 import { AboutDialog, ConfirmDialog, PromptDialog, ValueDialog } from './overlays/Dialogs';
 import { Palette } from './overlays/Palette';
 import { TimelineEditor } from './overlays/TimelineEditor';
@@ -229,7 +230,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
   /** Content Drawer › Place in level: next to the Player Start, then shown in the level with its Details. */
   const placeFromDrawer = (classId: string) => {
-    const start = store.project.level.playerStart;
+    const start = levelOf(store.project).playerStart;
     const res = store.applyProject('Placer un acteur', (p) => placeActor(p, classId, Math.round((start.x + 200) / 10) * 10, Math.round(start.y / 10) * 10));
     if (!res.ok) {
       store.warn(res.reason);
@@ -693,7 +694,14 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         <ConfirmDialog title={overlay.title} text={overlay.text} confirmLabel={overlay.confirmLabel} onConfirm={overlay.onConfirm} onClose={close} />
       )}
       {overlay?.kind === 'content' && (
-        <ContentDrawer onClose={close} openOverlay={setOverlay} onOpenDetails={openDetails} onOpenBlueprint={openClass} onPlaceActor={placeFromDrawer} />
+        <ContentDrawer
+          onClose={close}
+          openOverlay={setOverlay}
+          onOpenDetails={openDetails}
+          onOpenBlueprint={openClass}
+          onPlaceActor={placeFromDrawer}
+          onOpenLevel={() => setView('level')}
+        />
       )}
       {overlay?.kind === 'about' && <AboutDialog onClose={close} />}
       {overlay?.kind === 'timeline' && <TimelineEditor nodeId={overlay.nodeId} onClose={close} />}
@@ -741,6 +749,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         />
       )}
       {overlay?.kind === 'advice' && <AdviceDialog onClose={close} onFocusNode={focusNode} />}
+      {overlay?.kind === 'projectSettings' && <ProjectSettings onClose={close} />}
 
       <div class="rotate-hint">
         <p>Tourne ton téléphone en paysage pour utiliser l’éditeur.</p>

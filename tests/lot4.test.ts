@@ -11,6 +11,7 @@ import { runLesson } from '../src/core/lessons/runner';
 import type { Lesson } from '../src/core/lessons/types';
 import type { Project } from '../src/core/model/project';
 import { removeNodes } from '../src/core/operations/graphOps';
+import { levelOf } from '../src/core/model/project';
 
 const lesson = (id: string) => getLesson(id)!;
 const solved = (l: Lesson, tweak?: (p: Project) => void) => {
@@ -64,7 +65,7 @@ describe('Le levier universel', () => {
   it('a single lever is not enough', () => {
     const p = solved(l, (p) => {
       const lever = p.classes.find((c) => c.name === 'BP_Levier')!;
-      p.level.actors = p.level.actors.filter((a, i, all) => a.classId !== lever.id || all.findIndex((x) => x.classId === lever.id) === i);
+      levelOf(p).actors = levelOf(p).actors.filter((a, i, all) => a.classId !== lever.id || all.findIndex((x) => x.classId === lever.id) === i);
     });
     expect(failed(l, p)).toContain('placed');
   });

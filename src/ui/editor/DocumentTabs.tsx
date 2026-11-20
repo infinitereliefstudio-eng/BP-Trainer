@@ -1,8 +1,10 @@
 /**
- * The first row, like UE's tab bar: the level, then one tab per open
+ * The first row, like UE's tab bar: the level (named after the open
+ * Level asset), then one tab per open
  * Blueprint (a Blueprint editor, as when it is opened from the Content
  * Browser). Home, the lesson and the app menu are BP Trainer's own (amber).
  */
+import { levelOf } from '@core/model/project';
 import { useStore } from '../hooks';
 
 interface Props {
@@ -30,7 +32,7 @@ export function DocumentTabs(p: Props) {
           <span class="doc-icon" aria-hidden="true">
             ▦
           </span>
-          Niveau
+          {levelOf(store.project).name}
         </button>
         {p.tabs.map((id) => {
           const cls = classes.find((c) => c.id === id);

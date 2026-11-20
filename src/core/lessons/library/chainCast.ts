@@ -11,6 +11,7 @@ import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, notion, usesNode } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const MODULE = 'Cast To';
 
@@ -31,7 +32,7 @@ function terminalProject(): Project {
   t.cls.variables.find((v) => v.id === required)!.instanceEditable = true;
   pb.place(t, 300, -TERMINAL_Y);
   const second = pb.place(t, 300, TERMINAL_Y);
-  pb.project.level.actors.find((a) => a.id === second)!.overrides[required] = 3;
+  levelOf(pb.project).actors.find((a) => a.id === second)!.overrides[required] = 3;
   const crate = pb.blueprint('BP_Caisse');
   crate.component('StaticMesh', 'Caisse', { sizeX: 60, sizeY: 60, color: '#8b5a2b', blocks: false });
   crate.component('BoxCollision', 'Contact', { sizeX: 80, sizeY: 80 });
@@ -288,7 +289,7 @@ export const autonomyTrap: Lesson = {
       advice: 'La Vie doit être lue et écrite sur le joueur (depuis As BP_Joueur), pas gardée dans le piège : chaque piège enlève alors son point.',
       mutate: (p) => {
         const cls = p.classes.find((c) => c.name === 'BP_Piege');
-        if (cls) p.level.actors.push({ id: 'robust-piege2', classId: cls.id, name: 'BP_Piege2', x: 200, y: 320, yaw: 0, overrides: {} });
+        if (cls) levelOf(p).actors.push({ id: 'robust-piege2', classId: cls.id, name: 'BP_Piege2', x: 200, y: 320, yaw: 0, overrides: {} });
       },
       scenario: [{ wait: 0.3 }, { teleport: [200, 0] }, { wait: 0.3 }, { teleport: [200, 320] }, { wait: 0.3 }],
       checks: [lifeIs('two-traps-life', 1, 'chaque piège enlève un point', (v) => `Après deux pièges différents, la Vie vaut ${String(v)} au lieu de 1.`)],

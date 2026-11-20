@@ -11,6 +11,7 @@ import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { noRuntimeErrors, normText } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 import { gap, getVar, nodeOf, nodesOf, say, tap, SHARED_KEYS } from './kit';
+import { levelOf } from '../../model/project';
 
 const REACH = 200;
 
@@ -60,7 +61,7 @@ function crosshairProject() {
   gap(player, 'Trou 3 : le nom de l’objet touché', [1400, 100], 280, 180);
 
   const far = pb.place(chest, 0, 150);
-  pb.project.level.actors.find((a) => a.id === far)!.overrides[fragile] = true;
+  levelOf(pb.project).actors.find((a) => a.id === far)!.overrides[fragile] = true;
   pb.place(lever, 150, 0);
   pb.place(wall, -100, 0);
   pb.place(lever, -165, 0); // behind the wall

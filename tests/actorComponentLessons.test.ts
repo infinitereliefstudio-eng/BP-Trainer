@@ -9,6 +9,7 @@ import { removeComponent } from '../src/core/operations/classOps';
 import { removeNodes } from '../src/core/operations/graphOps';
 import { setParentClass } from '../src/core/operations/projectOps';
 import { playerTells } from '../src/core/lessons/library/universalLever';
+import { levelOf } from '../src/core/model/project';
 
 const lesson = (id: string) => getLesson(id)!;
 const nodes = (p: Project, cls: string, def: string) => Object.values(edit(p, cls).graph.nodes).filter((n) => n.def === def);
@@ -269,7 +270,7 @@ describe('A2 L’énergie de la station', () => {
 
   it('the same charge on both lamps (no per-lamp value) is caught', () => {
     const p = solved(l, (p) => {
-      for (const a of p.level.actors) delete a.componentOverrides;
+      for (const a of levelOf(p).actors) delete a.componentOverrides;
     });
     expect(failures(l, p).map((f) => f.split(':')[0])).toContain('lamp-b');
   });

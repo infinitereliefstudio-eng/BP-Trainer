@@ -13,6 +13,7 @@ import { setPlayerClass } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
 import type { Value } from '../src/core/types/values';
+import { levelOf } from '../src/core/model/project';
 
 /** One Blueprint placed at the origin, the player far away. */
 function world(setup: (b: ClassBuilder, pb: ProjectBuilder) => void) {
@@ -248,7 +249,7 @@ describe('actors', () => {
       const hide = b.node('actor.setHidden', {}, { hidden: true });
       chain(b, move, hide);
     });
-    p.level.playerStart = { x: 0, y: 0, yaw: 0 };
+    levelOf(p).playerStart = { x: 0, y: 0, yaw: 0 };
     const s = run(p);
     expect([s.actors[0].x, s.actors[0].hidden]).toEqual([300, true]);
     s.move = { x: 1, y: 0 };
@@ -266,7 +267,7 @@ describe('actors', () => {
       b.target('Mur', off).target('Zone', off2);
       b.link(b.node('event.actorBeginOverlap'), 'then', b.node('debug.printString', {}, { text: 'touché' }), 'exec');
     });
-    p.level.playerStart = { x: -600, y: 0, yaw: 0 };
+    levelOf(p).playerStart = { x: -600, y: 0, yaw: 0 };
     const s = run(p);
     s.move = { x: 1, y: 0 };
     for (let i = 0; i < 120; i++) s.step();

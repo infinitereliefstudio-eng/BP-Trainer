@@ -19,7 +19,7 @@ core/      modèle, nœuds, règles, opérations, historique, compilation, inter
 | `model/` | Les données du projet : `Project` → `BlueprintClass` → `Graph` → `NodeInstance` / `Link`, plus variables et composants. Du JSON pur |
 | `nodes/` | La bibliothèque de nœuds : une **définition** par nœud (titre, pins, réglages, aide), rangée par catégorie dans `library/`, indexée par `registry.ts`. `palette.ts` génère les entrées de recherche (dont Get/Set par variable) |
 | `graph/rules.ts` | Les règles de connexion d'UE (une source par entrée de données, une cible par sortie exec, types compatibles) |
-| `operations/` | Les mutateurs : ajouter un nœud, relier, renommer une variable… Chaque fonction modifie le modèle, sans gérer l'annulation. `wildcardOps` type les nœuds génériques, `organizeOps` gère Reroute et Comment, `enumOps` les Enums et les renommages de types, `localOps` les variables locales, `interfaceOps` les entrées et sorties des fonctions d'interface et leurs graphes d'implémentation |
+| `operations/` | Les mutateurs : ajouter un nœud, relier, renommer une variable… Chaque fonction modifie le modèle, sans gérer l'annulation. `wildcardOps` type les nœuds génériques, `organizeOps` gère Reroute et Comment, `enumOps` les Enums et les renommages de types, `localOps` les variables locales, `interfaceOps` les entrées et sorties des fonctions d'interface et leurs graphes d'implémentation, `levelAssetOps` les niveaux comme assets (ajouter, renommer, supprimer, Game Default Map ; V7.46), `levelOps` les acteurs du niveau ouvert |
 | `history/` | Annuler / rétablir par instantanés JSON du Blueprint touché (ou du projet) |
 | `compiler/` | Le bouton Compile : vérifications façon UE et messages pour Compiler Results |
 | `store/` | `EditorStore`, la source de vérité de la session : projet, historique, Blueprint et graphe ouverts, sélection, messages |
@@ -113,6 +113,12 @@ store.apply('Libellé pour Annuler', (cls, graph) => addNode(graph, 'flow.branch
 - `ui/panels/FindResults.tsx` (V7.8) : onglet Find Results du panneau du bas, bouton Find de la barre d'outils, « Find References » dans le menu d'un nœud et les Details d'une variable.
 - `ui/home/` : les onglets de l'accueil (Révision, Carnet, Nœuds, Mémo UE) et la sauvegarde complète. `AttemptLog.tsx` (V7.27) : le journal des essais en tête du Carnet, replié, effaçable. `ReworkQueue.tsx` (V7.28) : la file « À retravailler en Blueprint » sous les questions de Révision. Une reprise est un espace de travail `practice` (`ui/workspace.ts`, clé `project:practice:<id>`, nom « (reprise) ») : le projet de départ de l'étape, à part du projet de la leçon ; aide comptée sous `practice:<id>` (`practiceHelpKey`), essais notés `practice: true`, jamais `withPassed` ; bandeau « Reprise de zéro » et retour à l'onglet Révision. `ui/lesson/GoalStrip.tsx` : les objectifs sous la barre d'outils ; la vérification d'une leçon est faite par `App.tsx` et partagée avec la fiche. `storage/backup.ts` : export et restauration de toutes les clés `progress`, `project:*` et `rescue:*` (voir « Stockage »). `ui/status/` : bandeaux persistants (progression non enregistrée, nouvelle version), dialogue de récupération d'un projet illisible, avis de changement des règles.
 - `world/playSession.ts` garde l'acteur choisi (`selected`) : surligné dans le niveau, montré dans l'Outliner en direct (`ui/play/LiveOutliner.tsx`), et objet débogué.
+
+## Niveaux (V7.46)
+
+- Un projet a plusieurs niveaux (`Project.levels`, format 14 ; un ancien projet a son niveau changé en `Lvl_Principal`, `MAIN_LEVEL_ID`). `levelOf(p)` : le niveau ouvert dans l'éditeur (`Project.editorLevelId`, changé par `EditorStore.openLevel`, sauvé mais pas annulable) ; `defaultLevel(p)` : le Game Default Map (`Project.mapsModes`) ; `findLevelByName` pour Open Level (by Name). Toute lecture des acteurs ou du Player Start passe par `levelOf` ; supprimer un Blueprint retire ses acteurs de tous les niveaux.
+- `Simulation` joue `opts.levelId` (le niveau ouvert si absent, comme Play in Editor) et le garde dans `sim.level`. Le correcteur (`runner.ts`) part du Game Default Map.
+- Éditeur : assets Level dans le Content Drawer (`ui/content/assets.ts`, kind `level`), onglet du niveau à son nom (`DocumentTabs`), Project Settings › Maps & Modes (`ui/overlays/ProjectSettings.tsx`, menu ⋮).
 
 ## Débogage
 

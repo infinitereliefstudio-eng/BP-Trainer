@@ -9,6 +9,7 @@ import { addDispatcher, implementInterface } from '../src/core/operations/classO
 import { addInterface, addInterfaceFunction } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
+import { levelOf } from '../src/core/model/project';
 
 function run(pb: ProjectBuilder, play: (s: Simulation) => void = (s) => s.step(), order: 'level' | 'reversed' = 'level') {
   const s = new Simulation(pb.project, { order });
@@ -24,7 +25,7 @@ function why(s: Simulation, b: ClassBuilder, nodeId: string) {
 function refVar(pb: ProjectBuilder, from: ClassBuilder, fromActor: string, name: string, to: ClassBuilder, toActor: string): string {
   const id = from.variable(name, T.object(to.cls.name));
   from.cls.variables.find((v) => v.id === id)!.instanceEditable = true;
-  pb.project.level.actors.find((a) => a.id === fromActor)!.overrides[id] = `actor:${toActor}`;
+  levelOf(pb.project).actors.find((a) => a.id === fromActor)!.overrides[id] = `actor:${toActor}`;
   return id;
 }
 

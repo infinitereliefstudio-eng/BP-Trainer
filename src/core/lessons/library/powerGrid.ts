@@ -8,6 +8,7 @@ import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, notion, usesNode } from '../checks';
 import type { CheckContext, Lesson } from '../types';
 import { editable, fnDef, fnOf, getVar, nodeOf, override, ref, say, setVar, tap, varId, SHARED_KEYS } from './kit';
+import { levelOf } from '../../model/project';
 
 /** Position of each node; N1 is the source's start, N4 the switch, N6 stands alone. */
 const NODES: [string, number, number][] = [
@@ -276,7 +277,7 @@ export const lessonGrid: Lesson = {
         const cls = p.classes.find((c) => c.name === 'BP_Noeud');
         const v = cls?.variables.find((x) => x.name === 'Voisins');
         if (!v) return;
-        for (const a of p.level.actors) if (a.classId === cls!.id && Array.isArray(a.overrides[v.id])) a.overrides[v.id] = [...(a.overrides[v.id] as string[])].reverse();
+        for (const a of levelOf(p).actors) if (a.classId === cls!.id && Array.isArray(a.overrides[v.id])) a.overrides[v.id] = [...(a.overrides[v.id] as string[])].reverse();
       },
       scenario: [{ wait: 0.2 }, ...tap('E')],
       checks: [state('order', undefined, 'mêmes bornes alimentées', ALL_BUT_6, 'Le parcours ne doit pas dépendre de l’ordre des voisins.')],

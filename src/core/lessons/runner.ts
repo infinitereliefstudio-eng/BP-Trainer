@@ -9,7 +9,7 @@
  * one frame): a solution that only works with instant presses fails too.
  */
 import { compileClass, type CompileMessage } from '../compiler/validate';
-import type { Project } from '../model/project';
+import { defaultLevel, type Project } from '../model/project';
 import { type ActorOrder, Simulation, STEP } from '../runtime/simulation';
 import type { Check, CheckContext, Lesson, RobustnessCase, ScenarioStep } from './types';
 
@@ -94,7 +94,9 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
   const project = structuredClone(source);
   // The slots are those of the lesson, shared by every game of the scenario (restart keeps them).
   const slots = lesson.slots?.() ?? {};
-  let sim = new Simulation(project, { order, slots });
+  // The game starts in the Game Default Map, whatever level the editor shows (a packaged game, not Play In Editor).
+  const levelId = defaultLevel(project).id;
+  let sim = new Simulation(project, { order, slots, levelId });
   // Prints and errors of the games before a restart.
   const earlier: { prints: string[]; errors: string[] } = { prints: [], errors: [] };
   const cx: CheckContext = {
@@ -114,7 +116,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     },
     nodes: (className) => Object.values(project.classes.find((c) => c.name === className)?.graphs.flatMap((g) => Object.values(g.nodes)) ?? []),
     preview: () => {
-      preview ??= new Simulation(structuredClone(source));
+      preview ??= new Simulation(structuredClone(source), { levelId });
       return preview;
     },
   };
@@ -154,7 +156,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     if ('restart' in step) {
       earlier.prints = cx.prints();
       earlier.errors.push(...sim.log.filter((l) => l.level === 'error').map((l) => l.text));
-      sim = new Simulation(project, { order, slots });
+      sim = new Simulation(project, { order, slots, levelId });
       sim.start();
       seen = 0;
     } else if ('fps' in step) dt = 1 / step.fps;

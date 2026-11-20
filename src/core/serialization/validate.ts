@@ -171,9 +171,29 @@ function checkAssets(p: Obj): void {
   }
 }
 
-function checkLevel(p: Obj, classIds: Set<string>): void {
-  const level = record(p, 'level', 'Projet');
-  const actors = list(level, 'actors', 'Niveau');
+/** The levels (format 14): at least one, unique ids and names; Maps & Modes and the editor's level point to one of them. */
+function checkLevels(p: Obj, classIds: Set<string>): void {
+  const levels = list(p, 'levels', 'Projet');
+  need(levels.length > 0, 'Projet incomplet : aucun niveau.');
+  const ids = new Set<string>();
+  const names = new Set<string>();
+  for (const l of levels) {
+    const level = named(l, 'Un niveau');
+    need(!ids.has(level.id as string), 'Deux niveaux ont le même identifiant.');
+    need(!names.has((level.name as string).toLowerCase()), `Deux niveaux s’appellent « ${level.name} ».`);
+    ids.add(level.id as string);
+    names.add((level.name as string).toLowerCase());
+    checkLevel(level, classIds);
+  }
+  if (p.editorLevelId !== undefined && !ids.has(p.editorLevelId as string)) delete p.editorLevelId;
+  p.mapsModes ??= {};
+  need(isObj(p.mapsModes), 'Maps & Modes mal formé.');
+  const mm = p.mapsModes as Obj;
+  if (!ids.has(mm.gameDefaultMap as string)) mm.gameDefaultMap = (levels[0] as Obj).id;
+}
+
+function checkLevel(level: Obj, classIds: Set<string>): void {
+  const actors = list(level, 'actors', `Niveau « ${level.name} »`);
   // An actor of a class that no longer exists cannot be placed: dropped.
   level.actors = actors.filter((a) => isObj(a) && isStr(a.classId) && classIds.has(a.classId));
   for (const a of level.actors as Obj[]) {
@@ -232,7 +252,7 @@ export function validateProject(value: unknown): asserts value is Project {
     });
   }
   checkAssets(p);
-  checkLevel(p, classIds);
+  checkLevels(p, classIds);
   if (p.playerClassId !== undefined && !classIds.has(p.playerClassId as string)) delete p.playerClassId;
   if (p.playerControllerClassId !== undefined && !classIds.has(p.playerControllerClassId as string)) delete p.playerControllerClassId;
   if (p.saveSlots !== undefined) {

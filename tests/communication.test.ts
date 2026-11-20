@@ -6,6 +6,7 @@ import { addFunction, addFunctionParam, removeFunction, setFunctionPure } from '
 import { addInterface, addInterfaceFunction, renameCustomEvent, setPlayerClass } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
+import { levelOf } from '../src/core/model/project';
 
 const prints = (s: Simulation) => s.log.filter((l) => l.message !== undefined).map((l) => l.message);
 const errors = (s: Simulation) => s.log.filter((l) => l.level === 'error').map((l) => l.text);
@@ -14,7 +15,7 @@ const errors = (s: Simulation) => s.log.filter((l) => l.level === 'error').map((
 function refVar(pb: ProjectBuilder, from: ClassBuilder, fromActor: string, name: string, to: ClassBuilder, toActor: string): string {
   const id = from.variable(name, T.object(to.cls.name));
   from.cls.variables.find((v) => v.id === id)!.instanceEditable = true;
-  pb.project.level.actors.find((a) => a.id === fromActor)!.overrides[id] = `actor:${toActor}`;
+  levelOf(pb.project).actors.find((a) => a.id === fromActor)!.overrides[id] = `actor:${toActor}`;
   return id;
 }
 
@@ -119,7 +120,7 @@ describe('Event Dispatchers', () => {
     // Lamp: BeginPlay → Bind (Generateur) ← custom event Allumer(param) → Print param
     const v = lamp.variable('Generateur', T.object('BP_Generateur'));
     lamp.cls.variables.find((x) => x.id === v)!.instanceEditable = true;
-    for (const id of [l1, l2]) pb.project.level.actors.find((a) => a.id === id)!.overrides[v] = `actor:${gId}`;
+    for (const id of [l1, l2]) levelOf(pb.project).actors.find((a) => a.id === id)!.overrides[v] = `actor:${gId}`;
     const bp = lamp.node('event.beginPlay');
     const bind = lamp.node('dispatcher.bind', { owner: gen.cls.id, dispatcher: d.id });
     const get = lamp.node('var.get', { variable: v });

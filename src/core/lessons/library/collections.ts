@@ -9,6 +9,7 @@ import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, printedNumbers, usesNode, notion } from '../checks';
 import type { Lesson } from '../types';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const editable = (b: ClassBuilder, id: string) => {
   b.cls.variables.find((v) => v.id === id)!.instanceEditable = true;
@@ -38,7 +39,7 @@ function codesProject() {
   editable(b, tape);
   DOORS.forEach(([name, code], i) => {
     const id = pb.place(b, -300 + i * 300, 0);
-    Object.assign(pb.project.level.actors.find((a) => a.id === id)!.overrides, { [nom]: name, [tape]: code });
+    Object.assign(levelOf(pb.project).actors.find((a) => a.id === id)!.overrides, { [nom]: name, [tape]: code });
   });
   pb.playerStart(0, 300);
   return pb.project;
@@ -185,7 +186,7 @@ function badgesProject() {
   badge.link(say, 'then', kill, 'exec');
   BADGES.forEach((c, i) => {
     const id = pb.place(badge, -400 + i * 250, 0);
-    pb.project.level.actors.find((a) => a.id === id)!.overrides[couleur] = c;
+    levelOf(pb.project).actors.find((a) => a.id === id)!.overrides[couleur] = c;
   });
   // The reader at the blue door: Contains (BLEU) → "Accès autorisé".
   const reader = pb.blueprint('BP_Lecteur');

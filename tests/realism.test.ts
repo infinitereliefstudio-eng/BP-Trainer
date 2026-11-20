@@ -13,6 +13,7 @@ import { resolvePins } from '../src/core/nodes/registry';
 import { updateVariable } from '../src/core/operations/classOps';
 import { Simulation } from '../src/core/runtime/simulation';
 import { T } from '../src/core/types/pins';
+import { levelOf } from '../src/core/model/project';
 
 const prints = (s: Simulation) => s.log.filter((l) => l.message !== undefined).map((l) => l.message);
 const errorsOf = (pb: ProjectBuilder, b: ClassBuilder) =>
@@ -30,7 +31,7 @@ function orderProbe() {
   const bId = pb.place(b, 400, 0);
   const cible = a.variable('Cible', T.object('BP_B'));
   a.cls.variables.find((v) => v.id === cible)!.instanceEditable = true;
-  pb.project.level.actors.find((x) => x.id === aId)!.overrides[cible] = `actor:${bId}`;
+  levelOf(pb.project).actors.find((x) => x.id === aId)!.overrides[cible] = `actor:${bId}`;
   const evA = a.node('event.beginPlay');
   const get = a.node('var.get', { variable: cible });
   const set = a.node('var.setExternal', { owner: b.cls.id, variable: valeur }, { value: 5 });

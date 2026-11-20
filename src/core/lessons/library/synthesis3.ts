@@ -18,6 +18,7 @@ import type { CheckContext, Lesson } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
 import { editable, goTo, tap, varId } from './kit';
 import { playerBlueprint } from './props';
+import { levelOf } from '../../model/project';
 
 const CONSOLE: [number, number] = [300, 0];
 const BADGE: [number, number] = [-300, 260];
@@ -263,10 +264,10 @@ export const synthesis3: Lesson = {
     desk.link(br, 'false', once, 'exec').link(once, 'completed', refuse, 'exec');
 
     // Who reacts subscribes: a reference to the console, set on each placed actor.
-    const deskActor = p.level.actors.find((a) => a.classId === desk.cls.id)!;
+    const deskActor = levelOf(p).actors.find((a) => a.classId === desk.cls.id)!;
     const listen = (b: ClassBuilder, act: (ev: string, on: string) => void) => {
       const ref = editable(b, 'Pupitre', T.object('BP_Pupitre'));
-      for (const a of p.level.actors.filter((x) => x.classId === b.cls.id)) a.overrides[ref] = `actor:${deskActor.id}`;
+      for (const a of levelOf(p).actors.filter((x) => x.classId === b.cls.id)) a.overrides[ref] = `actor:${deskActor.id}`;
       const begin = b.node('event.beginPlay', {}, {}, [64, 96]);
       const bind = b.node('dispatcher.bind', { owner: desk.cls.id, dispatcher: d.id }, {}, [400, 96]);
       const cb = b.node('event.custom', { name: 'SurAlerte', signature: d.id, signatureOwner: desk.cls.id }, {}, [64, 480]);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createProject, type BlueprintClass, type Project } from '../src/core/model/project';
+import { createProject, type BlueprintClass, type Project, levelOf } from '../src/core/model/project';
 import { contextFor } from '../src/core/nodes/registry';
 import { addComponent, addVariable, updateComponentProps } from '../src/core/operations/classOps';
 import { addNode, connect } from '../src/core/operations/graphOps';
@@ -18,7 +18,7 @@ function build(setup: (b: Builder) => void): { p: Project; cls: BlueprintClass }
   const cls = r.value;
   setup(new Builder(cls));
   placeActor(p, cls.id, 0, 0);
-  p.level.playerStart = { x: 1000, y: 0, yaw: 0 };
+  levelOf(p).playerStart = { x: 1000, y: 0, yaw: 0 };
   return { p, cls };
 }
 
@@ -239,7 +239,7 @@ describe('interpreter', () => {
     const { p, cls } = build(() => undefined);
     const wall = addComponent(cls, 'StaticMesh');
     updateComponentProps(cls, wall.id, { sizeX: 100, sizeY: 1000 });
-    p.level.playerStart = { x: -300, y: 0, yaw: 0 };
+    levelOf(p).playerStart = { x: -300, y: 0, yaw: 0 };
     const s = new Simulation(p);
     s.move = { x: 1, y: 0 };
     runFor(s, 1);

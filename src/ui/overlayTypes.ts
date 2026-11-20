@@ -28,6 +28,8 @@ export type Overlay =
   | { kind: 'lesson'; tab?: 'learn' | 'goals' | 'help' }
   /** Construction advice on the whole project. */
   | { kind: 'advice' }
+  /** Project Settings › Maps & Modes. */
+  | { kind: 'projectSettings' }
   /** The track editor of a Timeline node of the open graph. */
   | { kind: 'timeline'; nodeId: string };
 

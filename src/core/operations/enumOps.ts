@@ -54,7 +54,7 @@ export function enumUsage(p: Project, name: string): number {
   return count;
 }
 
-/** Names of every asset type: Enums, Structures, Blueprints and Interfaces share one namespace, as in UE. */
+/** Names of every asset type: Enums, Structures, Blueprints, Interfaces and Levels share one namespace, as in UE. */
 export function takenNames(p: Project, except?: string): string[] {
   return [
     ...p.enums.filter((e) => e.id !== except).map((e) => e.name),
@@ -62,6 +62,7 @@ export function takenNames(p: Project, except?: string): string[] {
     ...(p.dataTables ?? []).filter((x) => x.id !== except).map((x) => x.name),
     ...(p.inputActions ?? []).filter((x) => x.id !== except).map((x) => x.name),
     ...(p.mappingContexts ?? []).filter((x) => x.id !== except).map((x) => x.name),
+    ...(p.levels ?? []).filter((x) => x.id !== except).map((x) => x.name),
     ...p.classes.map((c) => c.name),
     ...p.interfaces.map((i) => i.name),
     ...Object.keys(BUILTIN_ENUMS),

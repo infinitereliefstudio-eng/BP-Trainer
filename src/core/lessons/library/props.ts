@@ -6,6 +6,7 @@
 import { setPlayerClass } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import type { ClassBuilder, ProjectBuilder } from '../builder';
+import { levelOf } from '../../model/project';
 
 /** BP_Joueur: the player's Pawn, with an optional bHasKey variable. */
 export function playerBlueprint(pb: ProjectBuilder, withKey = false): { b: ClassBuilder; hasKey?: string } {
@@ -86,7 +87,7 @@ export function referenceVariable(pb: ProjectBuilder, b: ClassBuilder, name: str
   const v = b.variable(name, T.object(target.cls.name));
   b.cls.variables.find((x) => x.id === v)!.instanceEditable = true;
   for (const [from, to] of links) {
-    const a = pb.project.level.actors.find((x) => x.id === from)!;
+    const a = levelOf(pb.project).actors.find((x) => x.id === from)!;
     a.overrides[v] = to ? `actor:${to}` : null;
   }
   return v;

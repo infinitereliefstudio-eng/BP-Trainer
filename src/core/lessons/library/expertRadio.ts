@@ -21,6 +21,7 @@ import { goTo, tap } from './kit';
 import { playerBlueprint } from './props';
 import { makeStruct, makeTable } from './tables';
 import { playerTells } from './universalLever';
+import { levelOf } from '../../model/project';
 
 const RADIO_AT: [number, number] = [-350, -200];
 const DOOR_AT: [number, number] = [350, -200];
@@ -47,7 +48,7 @@ export function expertScenery(pb: ProjectBuilder, plots: [[number, number], stri
   cs.link(entry, 'then', set, 'exec').link(cs.node('var.get', { variable: label }, {}, [200, 300]), 'value', set, 'value').target('Lettre', set);
   for (const [at, letter] of plots) {
     const id = pb.place(plot, ...at);
-    pb.project.level.actors.find((a) => a.id === id)!.overrides[label] = letter;
+    levelOf(pb.project).actors.find((a) => a.id === id)!.overrides[label] = letter;
   }
 }
 
@@ -88,7 +89,7 @@ function project(): Project {
 // ------------------------------------------------------------------ checks
 
 const classIs = (cx: CheckContext, name: string, at: [number, number]) =>
-  cx.project.level.actors.some((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === name && Math.hypot(a.x - at[0], a.y - at[1]) <= 80);
+  levelOf(cx.project).actors.some((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === name && Math.hypot(a.x - at[0], a.y - at[1]) <= 80);
 const said = (cx: CheckContext, i: number) => cx.prints().filter((t) => normText(t) === normText(lineText(i))).length;
 const doorOpen = (cx: CheckContext) => {
   const a = cx.sim.actors.find((x) => x.className === 'BP_PorteCode');

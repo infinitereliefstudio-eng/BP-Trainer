@@ -1,12 +1,12 @@
 /** Level mutators: placing, moving and configuring actor instances. */
 import { newId } from '../model/ids';
-import { isPlaceableParent, type LevelActor, type Project } from '../model/project';
+import { isPlaceableParent, type LevelActor, type Project, levelOf } from '../model/project';
 import type { Value } from '../types/values';
 import type { OpResult } from './graphOps';
 
 /** UE-style labels in the level: BP_Lampe, BP_Lampe2, BP_Lampe3… */
 function nextLabel(p: Project, base: string): string {
-  const taken = new Set(p.level.actors.map((a) => a.name));
+  const taken = new Set(levelOf(p).actors.map((a) => a.name));
   if (!taken.has(base)) return base;
   for (let i = 2; ; i++) if (!taken.has(`${base}${i}`)) return `${base}${i}`;
 }
@@ -31,12 +31,12 @@ export function placeActor(p: Project, classId: string, x: number, y: number): O
     yaw: 0,
     overrides: {},
   };
-  p.level.actors.push(a);
+  levelOf(p).actors.push(a);
   return { ok: true, value: a };
 }
 
 export function moveActor(p: Project, id: string, x: number, y: number): void {
-  const a = p.level.actors.find((x2) => x2.id === id);
+  const a = levelOf(p).actors.find((x2) => x2.id === id);
   if (a) {
     a.x = x;
     a.y = y;
@@ -44,7 +44,7 @@ export function moveActor(p: Project, id: string, x: number, y: number): void {
 }
 
 export function snapActor(p: Project, id: string, grid = 10): void {
-  const a = p.level.actors.find((x) => x.id === id);
+  const a = levelOf(p).actors.find((x) => x.id === id);
   if (a) {
     a.x = Math.round(a.x / grid) * grid;
     a.y = Math.round(a.y / grid) * grid;
@@ -52,12 +52,12 @@ export function snapActor(p: Project, id: string, grid = 10): void {
 }
 
 export function updateActor(p: Project, id: string, patch: Partial<Pick<LevelActor, 'x' | 'y' | 'yaw' | 'name'>>): void {
-  const a = p.level.actors.find((x) => x.id === id);
+  const a = levelOf(p).actors.find((x) => x.id === id);
   if (a) Object.assign(a, patch);
 }
 
 export function setActorOverride(p: Project, id: string, variableId: string, value: Value | undefined): void {
-  const a = p.level.actors.find((x) => x.id === id);
+  const a = levelOf(p).actors.find((x) => x.id === id);
   if (!a) return;
   if (value === undefined) delete a.overrides[variableId];
   else a.overrides[variableId] = value;
@@ -65,7 +65,7 @@ export function setActorOverride(p: Project, id: string, variableId: string, val
 
 /** An Instance Editable variable of one of the actor's Actor Components, on this placed actor: a value, or back to its Blueprint's (undefined). */
 export function setComponentOverride(p: Project, id: string, componentId: string, variableId: string, value: Value | undefined): void {
-  const a = p.level.actors.find((x) => x.id === id);
+  const a = levelOf(p).actors.find((x) => x.id === id);
   if (!a) return;
   const own = { ...(a.componentOverrides?.[componentId] ?? {}) };
   if (value === undefined) delete own[variableId];
@@ -79,9 +79,9 @@ export function setComponentOverride(p: Project, id: string, componentId: string
 export const actorRefValue = (id: string) => `actor:${id}`;
 
 export function removeActor(p: Project, id: string): void {
-  p.level.actors = p.level.actors.filter((a) => a.id !== id);
+  levelOf(p).actors = levelOf(p).actors.filter((a) => a.id !== id);
   // References to it, set in other instances' Details, become None.
-  for (const a of p.level.actors) {
+  for (const a of levelOf(p).actors) {
     for (const [k, v] of Object.entries(a.overrides)) if (v === actorRefValue(id)) a.overrides[k] = null;
     for (const values of Object.values(a.componentOverrides ?? {})) {
       for (const [k, v] of Object.entries(values)) if (v === actorRefValue(id)) values[k] = null;
@@ -90,7 +90,7 @@ export function removeActor(p: Project, id: string): void {
 }
 
 export function duplicateActor(p: Project, id: string): OpResult<LevelActor> {
-  const src = p.level.actors.find((a) => a.id === id);
+  const src = levelOf(p).actors.find((a) => a.id === id);
   if (!src) return { ok: false, reason: 'Acteur introuvable.' };
   const res = placeActor(p, src.classId, src.x + 100, src.y + 100);
   if (res.ok) {
@@ -102,6 +102,6 @@ export function duplicateActor(p: Project, id: string): OpResult<LevelActor> {
 }
 
 export function movePlayerStart(p: Project, x: number, y: number): void {
-  p.level.playerStart.x = Math.round(x);
-  p.level.playerStart.y = Math.round(y);
+  levelOf(p).playerStart.x = Math.round(x);
+  levelOf(p).playerStart.y = Math.round(y);
 }

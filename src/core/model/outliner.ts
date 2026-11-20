@@ -4,6 +4,7 @@
  */
 import { normalize } from '../nodes/palette';
 import { findClass, type Project } from './project';
+import { levelOf } from './project';
 
 export interface OutlinerRow {
   /** A level actor's id, or « playerStart ». */
@@ -16,7 +17,7 @@ export interface OutlinerRow {
 export function outlinerRows(p: Project, search: string): OutlinerRow[] {
   const rows: OutlinerRow[] = [
     { id: 'playerStart', label: 'Player Start', type: 'PlayerStart' },
-    ...p.level.actors.map((a) => ({ id: a.id, label: a.name, type: findClass(p, a.classId)?.name ?? '?' })),
+    ...levelOf(p).actors.map((a) => ({ id: a.id, label: a.name, type: findClass(p, a.classId)?.name ?? '?' })),
   ];
   const words = normalize(search).split(/\s+/).filter(Boolean);
   return rows

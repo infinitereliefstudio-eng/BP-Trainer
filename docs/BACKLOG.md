@@ -284,6 +284,28 @@ Depuis, la synthèse S4 (V7.17) fait sauver un Set de Name à chaque fusible et 
 
 Non simulés, à expliquer dans le mémo : versions Async des nœuds de sauvegarde, chargement de niveaux en streaming.
 
+**Analyse faite le 20 novembre** ([PLAN_NIVEAUX.md](PLAN_NIVEAUX.md)) ; Tristan a pris les sept recommandations (« Ok pour tes recos ») : vrai GameMode, pas de Level Blueprint, étapes à l'Avancé après « Le checkpoint », Quit Game simulé, pin Options sans effet, autonomie A4 dans le parcours, `Lvl_Principal`. Les étapes ci-dessus sont remplacées par celles du plan.
+
+### Aller plus loin après le chantier n° 4 (demandé par Tristan : à garder, rien n'est lancé)
+
+Ce que le chantier laisse de côté, du plus utile au moins utile pour un jeu solo comme Station enterrée :
+
+| Idée | Ce qu'elle apprendrait | Pertinence | Difficulté |
+| --- | --- | --- | --- |
+| **Level Blueprint** | Un graphe par niveau, qui référence directement les acteurs posés ; ses variables meurent avec le niveau ; pourquoi la logique d'un objet va plutôt dans sa classe | ★★ | M |
+| **Plusieurs Player Start et Player Start Tag** | Choisir où apparaître (Find Player Start, ChoosePlayerStart surchargé dans le GameMode) au lieu de déplacer le pion au BeginPlay | ★★ | M |
+| **GameInstance Subsystems** | Ce qu'utilise Station enterrée : créés en C++, appelés depuis un Blueprint ; une fiche « Dans UE » puis, si on simule, un sous-système fourni par l'appli | ★★ | S (fiche) à M |
+| **Streaming de niveaux** | Load Stream Level / Unload Stream Level, niveau persistant et sous-niveaux, World Partition (le défaut d'UE5) : ce qui reste chargé, l'attente d'un nœud latent | ★★ | L |
+| **Recharger le niveau** | Open Level sur Get Current Level Name pour recommencer, et ce qui repart de zéro | ★★ | S |
+| **GameState, PlayerState, HUD Class** | Le reste du Gameplay Framework : état de la partie, données du joueur, HUD créé par le GameMode | ★ | M |
+| **Options d'Open Level** | `?porte=Nord`, Parse Option, Options String du GameMode : l'autre façon de passer une info au niveau suivant (pin montrée sans effet au chantier n° 4) | ★ | S à M |
+| **Open Level (by Object Reference)** | Une référence au niveau au lieu d'un nom tapé (pas de faute de frappe possible) | ★ | S |
+| **Écran de chargement** | Pourquoi un widget ne survit pas à Open Level, et les solutions d'UE (Seamless Travel, module de chargement) | ★ | M à L |
+| **Save Game asynchrone** | Async Save Game to Slot, Async Load Game from Slot : attendre la fin avant d'enchaîner | ★ | M |
+| **Seamless Travel, réseau** | Hors du solo : à expliquer seulement dans le mémo | ★ | — |
+
+À vérifier dans UE avant d'en dépendre : Event Destroyed au changement de niveau (a priori non, End Play seulement) ; Delay et timers dans le graphe d'un GameInstance ; le message d'Open Level vers un niveau introuvable. Exercice E40 du recueil (v1.1) : à relire pour aligner les étapes 3 à 6.
+
 ## Ergonomie et design sur téléphone
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
@@ -355,6 +377,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.46 (20 novembre 2026), chantier n° 4 (niveaux et GameInstance), première version : plusieurs niveaux par projet (format 14, l'ancien niveau devient Lvl_Principal), assets Level dans le Content Drawer (+ Add › Level, ouvrir, renommer, supprimer), onglet du niveau à son nom, Play du niveau ouvert, Project Settings › Maps & Modes (Game Default Map, d'où partent les vérifications des leçons).
 - V7.40 (20 novembre 2026), revue du chantier UMG, lot 3 (code et docs) : touchers rangés dans `core/umg/touchInput.ts`, un seul résolveur des chemins de widgets, Details d'un widget découpés par rubrique (`ui/panels/widgetDetails/`), docs à jour. La revue du chantier UMG est entièrement corrigée.
 - V7.45 (20 novembre 2026), revue du chantier annexe, lot 2 : un seul export de projet (partage Android, comme la sauvegarde complète ; accents gardés dans le nom du fichier), noms de projet coupés à 60 caractères et rendus uniques après une restauration, « Une autre façon de faire » sur « Une barre par ennemi » (caster une fois à l'Event BeginPlay), taille de barre conseillée alignée (120 × 14), docs à jour. **Revue du chantier annexe corrigée.**
 - V7.44 (20 novembre 2026), revue du chantier annexe, lot 1 ([REVUE_ANNEXE_WIDGET_PROJETS.md](REVUE_ANNEXE_WIDGET_PROJETS.md)) : le widget d'un Widget Component reste au-dessus de son acteur quelle que soit sa rotation (sa Location ne tourne plus avec l'acteur, en Play et dans l'éditeur) ; un projet importé garde ses règles de simulation et l'avis « règles changées » revient à son ouverture.

@@ -9,7 +9,7 @@ import { compileClass } from '../src/core/compiler/validate';
 import { edit, ProjectBuilder } from '../src/core/lessons/builder';
 import { lessonInputController } from '../src/core/lessons/library/enhancedInput';
 import { runLesson } from '../src/core/lessons/runner';
-import { createProject, type Project } from '../src/core/model/project';
+import { createProject, type Project, levelOf } from '../src/core/model/project';
 import { contextFor } from '../src/core/nodes/registry';
 import { compatiblePin, paletteEntries } from '../src/core/nodes/palette';
 import { placeActor } from '../src/core/operations/levelOps';
@@ -153,7 +153,7 @@ describe('the Player Controller', () => {
     expect(placeActor(p, actor.value.id, 0, 0).ok).toBe(true);
     // Becoming a Player Controller takes it out of the level.
     expect(setParentClass(p, actor.value.id, 'PlayerController').ok).toBe(true);
-    expect(p.level.actors).toEqual([]);
+    expect(levelOf(p).actors).toEqual([]);
     const b = edit(p, 'BP_Joueur');
     const destroy = b.node('actor.destroy');
     b.link(b.node('event.beginPlay'), 'then', destroy, 'exec').link(b.node('player.getController'), 'result', destroy, 'target');

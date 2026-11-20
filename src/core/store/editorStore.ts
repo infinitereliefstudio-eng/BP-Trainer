@@ -11,7 +11,7 @@
  */
 import { compileClass, type CompileMessage, type CompileStatus } from '../compiler/validate';
 import { History, snapshot, type Scope } from '../history/history';
-import { findGraph, type BlueprintClass, type Graph, type Project } from '../model/project';
+import { findGraph, type BlueprintClass, type Graph, type Project, levelOf } from '../model/project';
 import type { NodeContext } from '../nodes/definition';
 import { contextFor } from '../nodes/registry';
 import { releaseClassWildcards } from '../operations/wildcardOps';
@@ -101,6 +101,18 @@ export class EditorStore {
 
   /** Save slots changed (a game saved, or the Content Drawer cleared one): saved, but not undoable. */
   saveSlotsChanged(): void {
+    this.project.updatedAt = Date.now();
+    this.notify('model');
+  }
+
+  /**
+   * Open a level in the editor (Content Drawer, double tap on a Level):
+   * saved with the project, not undoable, as opening a map in UE.
+   */
+  openLevel(id: string): void {
+    if (!this.project.levels.some((l) => l.id === id) || levelOf(this.project).id === id) return;
+    this.project.editorLevelId = id;
+    if (this.focus.kind === 'actor' || this.focus.kind === 'playerStart') this.focus = { kind: 'none' };
     this.project.updatedAt = Date.now();
     this.notify('model');
   }
@@ -230,7 +242,7 @@ export class EditorStore {
     if (f.kind === 'component' && !this.cls.components.some((c) => c.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'widget' && !(this.cls.widgets ?? []).some((w) => w.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'nodes' && this.selection.size === 0) this.focus = { kind: 'none' };
-    if (f.kind === 'actor' && !this.project.level.actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'actor' && !levelOf(this.project).actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'function' && !this.cls.graphs.some((g) => g.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'dispatcher' && !this.cls.dispatchers.some((d) => d.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'struct' && !this.project.structs.some((x) => x.id === f.id)) this.focus = { kind: 'none' };

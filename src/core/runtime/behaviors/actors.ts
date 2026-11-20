@@ -65,6 +65,7 @@ export const actorBehaviors: Record<string, Behavior> = {
         cx.callConstruction(a);
         const beginPlay = (n: { def: string }) => n.def === 'event.beginPlay';
         for (const c of cx.world.componentsOf(a)) cx.callEvents(c, beginPlay, {});
+        for (const e of cx.world.initWidgetComponents(a)) cx.callEvents(e.obj, (n) => n.def === e.def, e.outputs);
         cx.callEvents(a, beginPlay, {});
       }
       return ['then'];

@@ -72,6 +72,24 @@ const overlapRule: Rule = (v, add) => {
   }
 };
 
+/** A Widget Component read with Get User Widget Object while its Widget Class is None: it can only give None. */
+const widgetComponentClassRule: Rule = (v, add) => {
+  for (const n of Object.values(v.graph.nodes)) {
+    if (n.def !== 'widgetComponent.getUserWidgetObject') continue;
+    const link = Object.values(v.graph.links).find((l) => l.to.node === n.id && l.to.pin === 'target');
+    const get = link && v.graph.nodes[link.from.node];
+    if (get?.def !== 'var.component') continue;
+    const comp = v.cls.components.find((c) => c.id === get.config.component);
+    if (comp?.kind !== 'Widget' || comp.classId) continue;
+    add(
+      'widget-component-no-class',
+      n,
+      'Widget Component sans Widget Class',
+      `${comp.name} n’a pas de Widget Class (None) : il ne crée aucun widget, et Get User Widget Object rend None. Choisis un Widget Blueprint dans ses Details › User Interface › Widget Class.`,
+    );
+  }
+};
+
 const widgetOwnerRule: Rule = (v, add) => {
   for (const n of Object.values(v.graph.nodes)) {
     if (n.def !== 'widget.create' || v.wiredIn.has(`${n.id}:owner`)) continue;
@@ -118,6 +136,7 @@ const RULES: { from: Level; run: Rule }[] = [
   { from: 'intermediaire', run: overlapRule },
   { from: 'confirme', run: copiedChainRule },
   { from: 'intermediaire', run: widgetOwnerRule },
+  { from: 'avance', run: widgetComponentClassRule },
   ...HYGIENE_RULES,
 ];
 

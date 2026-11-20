@@ -15,6 +15,13 @@ export type InputMode = 'GameOnly' | 'UIOnly' | 'GameAndUI';
 
 export type ButtonEvent = 'pressed' | 'released' | 'clicked';
 
+/**
+ * Where a finger is: on the 720-high screen of the viewport's widgets (`width`
+ * wide), or inside the widget of a Widget Component (`component`: its widget
+ * object; x, y on its Draw Size).
+ */
+export type TouchPoint = { x: number; y: number; width: number } | { x: number; y: number; component: string };
+
 /** What a touch on the widgets did: a Button answered, or it was ignored, and why. */
 export type TouchOutcome =
   | { kind: 'none' }
@@ -42,12 +49,16 @@ export interface TouchHost {
 export class TouchInput {
   constructor(private readonly host: TouchHost) {}
 
-  /** A finger goes down at (x, y): On Pressed on a Button, when the input mode lets widgets have it. As in UE, Game Only keeps the touch from them. */
-  down(x: number, y: number, width: number): TouchOutcome {
+  private hitAt(p: TouchPoint) {
+    return 'component' in p ? this.host.umg.hitComponent(p.component, p.x, p.y) : this.host.umg.hit(p.x, p.y, p.width);
+  }
+
+  /** A finger goes down: On Pressed on a Button, when the input mode lets widgets have it. As in UE, Game Only keeps the touch from them. */
+  down(p: TouchPoint): TouchOutcome {
     const h = this.host;
     h.ensureStarted();
     if (h.stopped()) return { kind: 'none' };
-    const hit = h.umg.hit(x, y, width);
+    const hit = this.hitAt(p);
     if (hit.kind === 'none') return hit;
     if (hit.kind === 'blocked') return this.ignored({ kind: 'ignored', reason: 'blocked', button: hit.under, by: hit.by });
     const label = `${hit.obj.className}/${hit.name}`;
@@ -60,7 +71,7 @@ export class TouchInput {
   }
 
   /** The finger goes up: On Released, then On Clicked if it is still on the same Button. */
-  up(x: number, y: number, width: number): void {
+  up(at: TouchPoint): void {
     const h = this.host;
     const p = h.umg.pressed;
     h.umg.setPressed(undefined);
@@ -68,7 +79,7 @@ export class TouchInput {
     const obj = h.findActor(p.obj);
     if (!obj) return;
     h.fireButton(obj, p.id, 'released');
-    const hit = h.umg.hit(x, y, width);
+    const hit = this.hitAt(at);
     if (hit.kind === 'button' && hit.path === p.path && hit.enabled && h.inputMode() !== 'GameOnly') {
       h.record.buttons.push(`${obj.className}/${hit.name}`);
       h.fireButton(obj, p.id, 'clicked');
@@ -99,9 +110,9 @@ export class TouchInput {
     if (!target) return { kind: 'none' };
     const cx = target.rect.x + target.rect.w / 2;
     const cy = target.rect.y + target.rect.h / 2;
-    const out = this.down(cx, cy, width);
+    const out = this.down({ x: cx, y: cy, width });
     this.host.step();
-    this.up(cx, cy, width);
+    this.up({ x: cx, y: cy, width });
     return out;
   }
 

@@ -42,6 +42,13 @@ export class ClassBuilder {
     return c.id;
   }
 
+  /** Add a Widget Component (V7.42) showing `widget` (a Widget Blueprint; none: None), its Draw Size in sizeX × sizeY. */
+  widgetComponent(name: string, widget: ClassBuilder | undefined, props: Partial<ComponentProps> = {}): string {
+    const id = this.component('Widget', name, props);
+    if (widget) this.cls.components.find((c) => c.id === id)!.classId = widget.cls.id;
+    return id;
+  }
+
   /** Add an Actor Component made in Blueprint (`comp`, parent ActorComponent), with values for its Instance Editable variables. */
   logic(comp: ClassBuilder, name?: string, values: Record<string, Value> = {}): string {
     if (!this.project) throw new Error('logic() needs the project');

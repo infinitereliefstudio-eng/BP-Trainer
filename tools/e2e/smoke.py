@@ -1346,6 +1346,45 @@ async def main():
                 errs.append('Mes projets : le projet supprimé est encore là')
         await shot('104_projects_after')
 
+        # V7.42: Widget Component. Two enemies, each with its own bar over it: the editor's frames, the Details, then Play.
+        await page.evaluate(PUT, ['project:sandbox:sb_e2e_widget', (HERE / 'out' / 'widget-component.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await page.wait_for_timeout(400)
+        await page.locator('.project-open', has_text='Barres au-dessus').tap()
+        await page.wait_for_timeout(700)
+        if await page.locator('.tab', has_text='Niveau').count():
+            await page.locator('.tab', has_text='Niveau').first.tap()
+            await page.wait_for_timeout(300)
+        await shot('105_widget_component_level')
+        await page.evaluate("""() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Ennemi'); s.openClass(c.id); s.setFocus({ kind: 'component', id: c.components.find(k => k.kind === 'Widget').id }); }""")
+        await page.wait_for_timeout(400)
+        if await page.locator('[aria-label="Ouvrir Details"]').count():
+            await page.locator('[aria-label="Ouvrir Details"]').first.tap()
+            await page.wait_for_timeout(300)
+        if await page.locator('.details', has_text='Widget Class').count() == 0:
+            errs.append('Widget Component : pas de Widget Class dans les Details')
+        else:
+            await page.get_by_text('Widget Class', exact=True).first.scroll_into_view_if_needed()
+            await page.wait_for_timeout(200)
+        await shot('106_widget_component_details')
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await page.wait_for_timeout(400)
+        await page.locator('.project-open', has_text='Barres au-dessus').tap()
+        await page.wait_for_timeout(700)
+        if await page.locator('.tab', has_text='Niveau').count():
+            await page.locator('.tab', has_text='Niveau').first.tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(900)
+        if await page.locator('.umg-world').count() != 2:
+            errs.append(f'Widget Component : {await page.locator(".umg-world").count()} barres en Play au lieu de 2')
+        await shot('107_widget_component_play')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
         print('errors', errs)
         await b.close()
         return errs

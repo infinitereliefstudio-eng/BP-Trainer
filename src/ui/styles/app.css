@@ -836,3 +836,7 @@ select.field { padding-right: 4px; }
 .project-more { width: 46px; flex: none; border: none; border-left: 1px solid var(--line-2); border-radius: 0 8px 8px 0; font-size: 18px; }
 .project-tools { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 8px 8px; }
 .project-tool { height: 38px; flex: 1 1 auto; }
+
+/* V7.42 — Widget Components: each widget over its actor (Space Screen), under the viewport's widgets. */
+.umg-world { position: absolute; left: 0; top: 0; will-change: transform; }
+.umg-world.disabled { opacity: 0.45; }

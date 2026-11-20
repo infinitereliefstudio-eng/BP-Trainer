@@ -21,7 +21,7 @@ export class ProjectFileError extends Error {
 }
 
 const GRAPH_KINDS = ['event', 'function', 'construction'];
-const COMPONENT_KINDS = ['Scene', 'StaticMesh', 'PointLight', 'BoxCollision', 'TextRender', 'ActorComponent'];
+const COMPONENT_KINDS = ['Scene', 'StaticMesh', 'PointLight', 'BoxCollision', 'TextRender', 'Widget', 'ActorComponent'];
 const KEYS = ['E', 'F', 'SpaceBar'];
 const TRIGGERS = ['Down', 'Pressed', 'Released', 'Hold'];
 
@@ -215,6 +215,10 @@ export function validateProject(value: unknown): asserts value is Project {
   }
   // A User Widget whose Widget Blueprint is gone: dropped from the tree.
   const widgetClasses = new Set((classes as Obj[]).filter((c) => c.parent === 'UserWidget').map((c) => c.id as string));
+  // A Widget Component whose Widget Class is gone keeps its place, with None, as in UE.
+  for (const c of classes as Obj[]) {
+    for (const k of c.components as Obj[]) if (k.kind === 'Widget' && k.classId !== undefined && !widgetClasses.has(k.classId as string)) delete k.classId;
+  }
   for (const c of classes as Obj[]) {
     if (!Array.isArray(c.widgets)) continue;
     const gone = new Set((c.widgets as Obj[]).filter((w) => w.kind === 'UserWidget' && !widgetClasses.has(w.classId as string)).map((w) => w.id as string));

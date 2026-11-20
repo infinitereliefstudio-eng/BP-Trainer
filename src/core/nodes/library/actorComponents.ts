@@ -12,7 +12,7 @@ import { classById } from './communication';
 import { NATIVE_DISPATCHERS } from './nativeDispatchers';
 
 /** Native component classes Get Component by Class can look for, with UE's names. */
-export const NATIVE_COMPONENT_CLASSES = ['SceneComponent', 'StaticMeshComponent', 'PointLightComponent', 'BoxComponent', 'TextRenderComponent'];
+export const NATIVE_COMPONENT_CLASSES = ['SceneComponent', 'StaticMeshComponent', 'PointLightComponent', 'BoxComponent', 'TextRenderComponent', 'WidgetComponent'];
 
 /** Is this Blueprint's Self of `native` (Actor, ActorComponent…)? */
 export function selfIs(ctx: NodeContext, native: string): boolean {

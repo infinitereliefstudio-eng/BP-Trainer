@@ -1,6 +1,6 @@
 /** Details of a component: name and the properties its kind uses. */
 import { COMPONENT_LABEL, findComponent, type ComponentProps, type MeshShape } from '@core/model/project';
-import { removeComponent, renameComponent, updateComponentProps } from '@core/operations/classOps';
+import { removeComponent, renameComponent, setWidgetClass, updateComponentProps } from '@core/operations/classOps';
 import { BUILTIN_ENUMS } from '@core/types/enums';
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
@@ -139,6 +139,50 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
         </Group>
       )}
 
+      {c.kind === 'Widget' && (
+        <Group title="User Interface">
+          <Field label="Space">
+            <select class="field" value="Screen" disabled title="Seul Screen est simulé : la vue de dessus ne peut pas montrer une surface posée dans la scène (World)">
+              <option value="Screen">Screen</option>
+            </select>
+          </Field>
+          <Field label="Widget Class">
+            <select
+              class="field"
+              value={c.classId ?? ''}
+              onChange={(e) => {
+                const v = (e.target as HTMLSelectElement).value;
+                const res = store.apply(`Modifier ${c.name}`, (cl) => setWidgetClass(store.project, cl, c.id, v || undefined));
+                if (!res.ok) store.warn(res.reason);
+              }}
+            >
+              <option value="">None</option>
+              {store.project.classes
+                .filter((k) => k.parent === 'UserWidget')
+                .map((k) => (
+                  <option key={k.id} value={k.id}>
+                    {k.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+          <Field label="Draw Size X">
+            <NumberField value={p.sizeX} unit="px" onCommit={(sizeX) => set({ sizeX: Math.max(1, Math.round(sizeX)) })} />
+          </Field>
+          <Field label="Draw Size Y">
+            <NumberField value={p.sizeY} unit="px" onCommit={(sizeY) => set({ sizeY: Math.max(1, Math.round(sizeY)) })} />
+          </Field>
+        </Group>
+      )}
+
+      {c.kind === 'Widget' && (
+        <Group title="Rendering">
+          <Field label="Visible">
+            <Check checked={p.visible} onChange={(visible) => set({ visible })} />
+          </Field>
+        </Group>
+      )}
+
       {c.parent && (
         <Group title="Composant" app>
           <button
@@ -155,10 +199,32 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
       <AppHelp>
         {!isRoot && <p><b>Transform</b> : relatif au composant parent (Attach Parent), comme la Relative Location d’UE.</p>}
         {c.kind === 'StaticMesh' && <p><b>Static Mesh</b> : dans UE, la forme est un asset (Cube, Cylinder…) ; ici, une forme simple. « Bloque le joueur » résume la collision Block All.</p>}
-        {(c.kind === 'PointLight' || c.kind === 'StaticMesh' || c.kind === 'TextRender') && (
+        {(c.kind === 'PointLight' || c.kind === 'StaticMesh' || c.kind === 'TextRender' || c.kind === 'Widget') && (
           <p><b>Visible</b> est l’état au lancement du jeu. Ta logique peut le changer avec Set Visibility.</p>
         )}
         {c.kind === 'BoxCollision' && <p><b>Box Collision</b> : une zone qui ne bloque rien ; elle déclenche les événements Begin / End Overlap.</p>}
+        {c.kind === 'Widget' && (
+          <>
+            <p>
+              <b>Widget Component</b> : un Widget Blueprint porté par l’acteur. Chaque acteur posé a <b>son propre exemplaire</b> du widget : trois ennemis,
+              trois barres. En Play, il est dessiné par-dessus la vue (Space Screen) et suit l’acteur ; il disparaît avec lui.
+            </p>
+            <p>
+              <b>Get User Widget Object</b> (cible : ce composant) donne ce widget. Il est typé User Widget : un <b>Cast To</b> vers ton Widget Blueprint
+              donne accès à ses variables et à ses widgets (Set Percent…). Widget Class à None : il n’y a pas de widget, et Get User Widget Object donne
+              None.
+            </p>
+            <p>
+              <b>Draw Size</b> : la taille du widget à l’écran, en pixels de l’écran de référence (720 de haut). UE part de 500 × 500, souvent trop grand :
+              une barre de vie fait plutôt 150 × 20.
+            </p>
+            <p>
+              <b>Space</b> : en World, UE pose le widget comme un panneau dans la scène 3D (un écran de terminal), caché par les murs et vu de biais. La vue
+              de dessus ne peut pas le montrer : l’appli simule Screen seulement. Dans UE, on le place au-dessus de l’acteur avec Location Z ; ici, Location
+              Y négatif le remonte à l’écran.
+            </p>
+          </>
+        )}
         {(c.kind === 'StaticMesh' || c.kind === 'BoxCollision') && (
           <p>
             <b>Collision Enabled</b> : Query sert aux overlaps, aux Line Trace et au déplacement du joueur (un mesh qui bloque l’arrête). Physics concerne les

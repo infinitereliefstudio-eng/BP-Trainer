@@ -16,7 +16,7 @@ interface Props {
   onOpenDetails: () => void;
 }
 
-const ADDABLE: ComponentKind[] = ['StaticMesh', 'PointLight', 'BoxCollision', 'TextRender', 'Scene'];
+const ADDABLE: ComponentKind[] = ['StaticMesh', 'PointLight', 'BoxCollision', 'TextRender', 'Widget', 'Scene'];
 
 export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
   const store = useStore();

@@ -159,7 +159,7 @@ export const MEMO: MemoCard[] = [
     theme: 'framework',
     title: 'Interfaces à l’écran (UMG)',
     summary: 'Widget Blueprint, Create Widget, Add to Viewport, et comment le mettre à jour.',
-    keywords: ['widget', 'umg', 'hud', 'add to viewport', 'binding', 'bouton', 'texte', 'menu', 'input mode'],
+    keywords: ['widget', 'umg', 'hud', 'add to viewport', 'binding', 'bouton', 'texte', 'menu', 'input mode', 'widget component', 'user widget object'],
     lessons: ['l-compteur-ecran', 'p16-construct', 'l-menu-controle', 'd24-menu-reste', 'l-vrai-menu-pause', 'd25-bouton-muet', 'l-barre-vie', 'r6-oxygene', 'l-appuie-sur-e', 'a3-terminal', 'c7-playlist', 't4-energie'],
     body:
       'Une interface (barre de vie, menu, dialogue) est un **Widget Blueprint** : un onglet Designer pour placer textes, images et boutons, un onglet Graph pour la logique.\n\n' +
@@ -174,6 +174,7 @@ export const MEMO: MemoCard[] = [
       'Pour un menu : **Set Input Mode UI Only** (ou Game and UI) et **Show Mouse Cursor** sur le PlayerController ; **Set Input Mode Game Only** en revenant au jeu. En Game Only, le mode du début, les boutons ne reçoivent rien ; en UI Only, le jeu ne reçoit plus rien, pas même la touche qui a ouvert le menu.\n\n' +
       'Ce qui prend un clic : un widget Visible. Un Canvas Panel et un Text sont Not Hit-Testable (Self Only) par défaut, le clic les traverse ; une Image restée Visible par-dessus un bouton lui prend ses clics. Les widgets continuent pendant Set Game Paused (Event Tick, boutons), mais leurs Delay attendent.\n\n' +
       'Le widget lit le jeu, il ne le contient pas : la santé vit dans le personnage, pas dans la barre de vie.\n\n' +
+      'Un widget qui appartient à un acteur (une barre de vie au-dessus de chaque ennemi, une invite au-dessus d’un coffre) se pose avec un **Widget Component** : ajouté dans les Components de l’acteur, avec son **Widget Class** et sa **Draw Size**. Chaque acteur a son propre exemplaire, créé quand le composant commence la partie (avant l’Event BeginPlay de l’acteur), construit à l’image suivante et détruit avec l’acteur. **Get User Widget Object** le donne, typé User Widget : un **Cast To** vers ton Widget Blueprint ouvre ses variables. En Space Screen il est dessiné par-dessus la vue et suit l’acteur ; en World il est posé dans la scène 3D (l’appli ne simule que Screen).\n\n' +
       'Dans BP Trainer : Content Drawer › + Add › User Interface › Widget Blueprint. Il s’ouvre sur son Designer (Palette, Hierarchy, Details) ; son Graph a Event Construct au lieu de BeginPlay. Pour Set Text ou Set Percent, coche **Is Variable** sur le widget dans le Designer. Le menu **Bind** à côté d’une propriété crée sa fonction (GetText_0) ; pendant Play, l’Outliner montre combien de fois elle a été appelée. Event Pre Construct s’exécute aussi dans le Designer. Un bouton coché Is Variable a ses événements dans ses Details (On Clicked +) ; pendant Play, il répond au doigt si le mode d’entrée le permet, sinon un message dit pourquoi. En UI Only, le joystick et les touches E, F, Espace n’arrivent plus au jeu.',
   },
   {

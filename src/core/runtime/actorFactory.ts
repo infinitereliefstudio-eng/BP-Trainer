@@ -50,7 +50,9 @@ export function createActor(id: string, label: string, objectName: string, cls: 
     native: cls.parent,
     classId: cls.id,
     // Actor Components have no place in the world: their logic runs in an object of their own (Simulation.attachComponents).
-    components: cls.components.filter(isSceneComponent).map((c) => ({ id: c.id, name: c.name, kind: c.kind, parent: c.parent, props: structuredClone(c.props) })),
+    components: cls.components
+      .filter(isSceneComponent)
+      .map((c) => ({ id: c.id, name: c.name, kind: c.kind, parent: c.parent, props: structuredClone(c.props), ...(c.kind === 'Widget' && c.classId ? { classId: c.classId } : {}) })),
     vars,
     receivesInput: cls.autoReceiveInput,
   };

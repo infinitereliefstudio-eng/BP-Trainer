@@ -14,7 +14,7 @@ import { Camera, type Point } from '../camera';
 import { GestureController, type GestureHost } from '../gestures';
 import type { Hit } from '../hit';
 import type { PlaySession } from './playSession';
-import { actorRadius, renderWorld } from './worldRender';
+import { actorRadius, renderWorld, widgetNames } from './worldRender';
 import { BOTTOM_BAR, FAB_RAIL } from '../framing';
 
 export interface WorldRequests {
@@ -95,7 +95,10 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
     if (!c || !l.size.w) return;
     const s = l.session;
     const f = store.focus;
-    if (s) followPlayer(camera(), s.sim.player, l.size.w, l.size.h);
+    if (s) {
+      followPlayer(camera(), s.sim.player, l.size.w, l.size.h);
+      s.camera = camera();
+    }
     renderWorld(
       c,
       {
@@ -109,6 +112,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
         selectedId: s ? s.selected : f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : undefined,
         debugLines: s?.sim.debugLines,
         references: s ? undefined : levelReferences(store.project),
+        widgetNames: widgetNames(store.project),
       },
       l.size.dpr,
     );

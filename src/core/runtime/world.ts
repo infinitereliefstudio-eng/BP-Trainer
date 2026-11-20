@@ -30,6 +30,10 @@ export interface ComponentRT {
   parent?: string;
   /** Live properties; start as a copy of the class defaults. */
   props: ComponentProps;
+  /** A Widget Component: its Widget Class (absent: None). */
+  classId?: string;
+  /** A Widget Component: the id of the widget object it made (Get User Widget Object), once the game began. */
+  widget?: string;
 }
 
 /** An event bound to an Event Dispatcher: which actor, which event node. */
@@ -132,6 +136,8 @@ export interface WidgetRT {
   parent?: { obj: string; panel: string };
   /** For a User Widget placed in another's Designer: that widget object and its widget id there. */
   placedIn?: { obj: string; id: string };
+  /** For the widget of a Widget Component (V7.42): the actor that carries it and the component's id. Shown in Screen space, over the view. */
+  component?: { actor: string; id: string };
   /** On the screen now (Construct ran, Destruct not yet). */
   onScreen: boolean;
   /** Bindings stopped by a Set on the same property: "widgetId:prop". */

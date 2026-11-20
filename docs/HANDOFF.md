@@ -4,13 +4,13 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_UMG.md](REVUE_UMG.md) (la dernière revue, celle du chantier UMG) et [REVUE_V7.md](REVUE_V7.md). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-20, après la V7.41)
+## Reprise rapide (2026-11-20, après la V7.42)
 
 ### Où on en est
 
-- **Version en ligne : 7.41.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Version en ligne : 7.42.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **Les trois lots sont faits** (V7.38 à V7.40, voir leurs sections). À la reprise : ses essais sur téléphone des V7.33 à V7.40 (rien n'a encore été essayé, dont le Screen Size et les boutons sous le joystick), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite, avant toute version. **Pause demandée par Tristan le 20 novembre à 16 h 30 (« met à jour le backlog et on arrête ») : rien n'est en cours.** La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
-- **Chantier annexe en cours (20 novembre au soir), avant le n° 4** : le Widget Component, avec plusieurs projets en simulation libre. Plan : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md) (V7.41 Mes projets, V7.42 moteur du Widget Component, V7.43 étapes à l'Avancé). Tristan a pris les trois recommandations (« Ok pour tes recos, tu peux lancer »). **V7.41 faite** (voir sa section). **Suivante : V7.42, sur son feu vert explicite.** Le chantier n° 4 vient après.
+- **Chantier annexe en cours (20 novembre au soir), avant le n° 4** : le Widget Component, avec plusieurs projets en simulation libre. Plan : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md) (V7.41 Mes projets, V7.42 moteur du Widget Component, V7.43 étapes à l'Avancé). Tristan a pris les trois recommandations (« Ok pour tes recos, tu peux lancer »). **V7.41 faite**, puis **V7.42 faite** (« Passe a la suite » ; voir leurs sections). **Suivante : V7.43 (les étapes, à l'Avancé), sur son feu vert explicite.** Le chantier n° 4 vient après.
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **Retours de Tristan du 20 novembre** : « les points sont ok » pour ce qu'on lui avait fait essayer (interface des V7.31 et V7.32, file « À retravailler en Blueprint » et mini-exercices, étapes Actor Components) ; il confirme aussi le menu pause sans widget, sur Espace. Aucun retour détaillé étape par étape.
 - **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
@@ -949,6 +949,19 @@ Lancé par Tristan (« Ok pour tes recos, tu peux lancer ») : [PLAN_ANNEXE_WIDG
 - **Tests** : `tests/projects.test.ts` (10). Smoke : helper `free_play` (ouvre le premier projet de la liste, ou en crée un), captures 100 à 104 (liste, menu de l'éditeur, actions, confirmation de suppression).
 
 Version 7.41.0.
+
+## V7.42 (2026-11-20) : chantier annexe, le moteur du Widget Component
+
+Lancé par Tristan (« Passe a la suite ») : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md), deuxième version.
+
+- **Modèle** : `ComponentKind` `Widget` (`COMPONENT_CLASS` WidgetComponent, sous PrimitiveComponent), Widget Class dans `Component.classId` (`setWidgetClass` de `classOps.ts`), Draw Size dans `sizeX` × `sizeY` (500 × 500 par défaut). Dans + Add des Components. Un Widget Class introuvable redevient None au chargement ; un Widget Blueprint utilisé par un Widget Component ne se supprime pas. Builder : `widgetComponent(nom, wbp, props)`.
+- **Runtime** : un widget par acteur, fait avant l'Event BeginPlay de l'acteur (et des acteurs apparus par Spawn Actor), On Initialized à ce moment ; Pre Construct et Construct à l'image suivante ; Destruct avec Destroy Actor ; caché (sans Tick ni Bindings) avec Set Visibility du composant ou Set Actor Hidden In Game. Pas dans le viewport (Is In Viewport faux ; Add to Viewport dessus : le Warning « already has a parent widget »). **Get User Widget Object** (pur, User Widget, None sans Widget Class).
+- **Play** : chaque widget sur sa Draw Size, centré sur son composant, suit la caméra (`ui/play/ComponentWidgets.tsx`), sous les widgets du viewport ; ses boutons répondent selon le mode d'entrée (le « Pourquoi ? » de Game Only compris).
+- **Éditeur** : Details › User Interface (Space Screen seul, grisé, Widget Class, Draw Size X / Y) et Rendering (Visible), aide ; cadre pointillé de la Draw Size avec le nom du Widget Blueprint dans le niveau et le Viewport.
+- **Reprise** : glossaire « Widget Component », mémo UMG complété, conseil `widget-component-no-class` (à partir de l'Avancé).
+- **Tests** : `tests/widgetComponent.test.ts` (8). Smoke : projet `widget-component.json` (`solved.gen.ts`), captures 105 (cadres dans le niveau), 106 (Details), 107 (deux barres en Play).
+
+Version 7.42.0.
 
 ## Méthode de travail
 

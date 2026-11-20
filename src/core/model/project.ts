@@ -108,6 +108,13 @@ export type ComponentKind =
   | 'PointLight'
   | 'BoxCollision'
   | 'TextRender'
+  /**
+   * UE's Widget Component (V7.42): a User Widget carried by the actor, one
+   * object per actor. `classId` is its Widget Class (a Widget Blueprint);
+   * `props.sizeX` × `props.sizeY` its Draw Size, in screen pixels. Only the
+   * Screen space is simulated: drawn over the view, it follows the actor.
+   */
+  | 'Widget'
   /** A Blueprint of the project whose parent is ActorComponent: logic only, no place in the world. */
   | 'ActorComponent';
 
@@ -119,7 +126,7 @@ export interface Component {
   parent?: string;
   /** Initial values of the component's properties (Details panel). */
   props: ComponentProps;
-  /** An Actor Component: its Blueprint class (parent ActorComponent). */
+  /** An Actor Component: its Blueprint class (parent ActorComponent). A Widget Component: its Widget Class (a Widget Blueprint), absent for None. */
   classId?: string;
   /**
    * An Actor Component: values of its class's Instance Editable variables for
@@ -393,6 +400,8 @@ const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   PointLight: { sizeX: 0, sizeY: 0, intensity: 5000, radius: 600, color: '#ffd27a' },
   BoxCollision: { sizeX: 200, sizeY: 200, blocks: false },
   TextRender: { text: 'Text', color: '#ffffff' },
+  // UE's default Draw Size: 500 × 500.
+  Widget: { sizeX: 500, sizeY: 500 },
   ActorComponent: {},
 };
 
@@ -426,6 +435,7 @@ export const COMPONENT_CLASS: Record<ComponentKind, string> = {
   PointLight: 'PointLightComponent',
   BoxCollision: 'BoxComponent',
   TextRender: 'TextRenderComponent',
+  Widget: 'WidgetComponent',
   ActorComponent: 'ActorComponent',
 };
 
@@ -435,6 +445,7 @@ export const COMPONENT_LABEL: Record<ComponentKind, string> = {
   PointLight: 'Point Light',
   BoxCollision: 'Box Collision',
   TextRender: 'Text Render',
+  Widget: 'Widget',
   ActorComponent: 'Actor Component',
 };
 

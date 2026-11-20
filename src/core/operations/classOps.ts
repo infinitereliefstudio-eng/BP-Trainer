@@ -126,6 +126,7 @@ const DEFAULT_COMPONENT_NAME: Record<ComponentKind, string> = {
   PointLight: 'PointLight',
   BoxCollision: 'Box',
   TextRender: 'TextRender',
+  Widget: 'Widget',
   ActorComponent: 'ActorComponent',
 };
 
@@ -175,6 +176,22 @@ export function setComponentValue(cls: BlueprintClass, id: string, variable: str
 export function updateComponentProps(cls: BlueprintClass, id: string, patch: Partial<ComponentProps>): void {
   const c = cls.components.find((x) => x.id === id);
   if (c) Object.assign(c.props, patch);
+}
+
+/**
+ * A Widget Component's Widget Class: a Widget Blueprint of the project, or
+ * none (`undefined`, UE's None: the component then shows nothing and Get User
+ * Widget Object gives None).
+ */
+export function setWidgetClass(p: Project, cls: BlueprintClass, id: string, classId: string | undefined): OpResult {
+  const c = cls.components.find((x) => x.id === id);
+  if (c?.kind !== 'Widget') return { ok: false, reason: 'Ce composant n’est pas un Widget Component.' };
+  if (classId !== undefined && p.classes.find((x) => x.id === classId)?.parent !== 'UserWidget') {
+    return { ok: false, reason: 'Widget Class : choisis un Widget Blueprint (Content Drawer › + Add › User Interface).' };
+  }
+  if (classId === undefined) delete c.classId;
+  else c.classId = classId;
+  return { ok: true, value: undefined };
 }
 
 export function renameComponent(cls: BlueprintClass, id: string, name: string): OpResult {

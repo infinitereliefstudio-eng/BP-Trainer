@@ -1,6 +1,6 @@
 # Chantier annexe : Widget Component et projets de la simulation libre
 
-Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé le 20 novembre ; **Tristan a pris les recommandations et lancé le chantier** (« Ok pour tes recos, tu peux lancer »). **V7.41 faite le même soir.** V7.42 et V7.43 attendent chacune son feu vert.
+Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé le 20 novembre ; **Tristan a pris les recommandations et lancé le chantier** (« Ok pour tes recos, tu peux lancer »). **V7.41 faite le même soir**, puis **V7.42** (« Passe a la suite »). V7.43 attend son feu vert.
 
 ## En bref
 
@@ -63,3 +63,11 @@ Les trois recommandations : suppression définitive après confirmation (pas de 
 - Un projet illisible reste dans la liste (marqué « Illisible ») : il s'ouvre sur le dialogue de récupération habituel, s'exporte tel quel ou se supprime ; il ne se renomme ni ne se duplique.
 - Deux projets ne peuvent pas porter le même nom (majuscules comprises) ; à la création, à l'import et à la copie, un nom libre est proposé (« Projet 3 », « Mon projet 2 », « … (copie) »).
 - Le premier usage, sans aucun projet, montre une liste vide et « Nouveau projet ».
+
+## Ce que la V7.42 a fait autrement que prévu
+
+- Le widget est fait au BeginPlay du composant (avant l'Event BeginPlay de l'acteur : Get User Widget Object y marche déjà), mais il n'arrive à l'écran, avec Pre Construct et Construct, qu'à l'image suivante, comme le widget Screen d'UE ajouté à son calque au premier Tick. À vérifier dans l'éditeur d'UE.
+- Draw Size en pixels de l'écran de référence (720 de haut), mis à l'échelle comme les widgets du viewport ; par défaut 500 × 500, comme UE. Location Y négatif le remonte à l'écran (Location Z dans UE).
+- Les widgets des Widget Components sont sous ceux du viewport. Hors Play, l'éditeur (niveau et Viewport du Blueprint) dessine le cadre de la Draw Size avec le nom du Widget Blueprint.
+- Pas de Set Widget ni de Set Draw Size en jeu : ils ne sont pas demandés par les étapes prévues (noté au BACKLOG si besoin).
+- Le correcteur ne sait pas encore toucher le bouton d'un Widget Component par son nom (les scénarios touchent ceux du viewport) : à ajouter en V7.43 si une étape le demande.

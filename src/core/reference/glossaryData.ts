@@ -573,6 +573,14 @@ export const GLOSSARY: GlossaryEntry[] = [
     pattern: 'BeginPlay → Create Widget (Owning Player = Self) → Set HUD → Add to Viewport (HUD)',
   },
   {
+    title: 'Widget Component',
+    names: ['Widget Component', 'Get User Widget Object', 'Draw Size'],
+    what: 'Un composant qui porte un Widget Blueprint sur un acteur : chaque acteur a son propre exemplaire du widget. En Space Screen, il est dessiné par-dessus la vue, toujours lisible, et suit l’acteur ; en World, c’est un panneau posé dans la scène. Get User Widget Object donne le widget de cet acteur.',
+    when: 'Une barre de vie au-dessus de chaque ennemi, une invite au-dessus d’un objet, une étiquette qui suit un personnage : tout ce qui appartient à un acteur plutôt qu’à l’écran.',
+    trap: 'Get User Widget Object rend un User Widget : sans Cast To vers ton Widget Blueprint, ni ses variables ni ses widgets ne sont accessibles. Widget Class laissé à None : il rend None (Accessed None plus loin). Et la Draw Size part de 500 × 500 : à réduire.',
+    pattern: 'BeginPlay → Get User Widget Object (Barre) → Cast To WBP_BarreVie → Set Percent (PB_Vie)',
+  },
+  {
     title: 'Boutons d’un widget',
     names: ['On Clicked', 'On Pressed', 'On Released', 'Button'],
     what: 'Un Button (coché Is Variable d’office) a ses événements dans les Details › Events : le + à côté d’On Clicked ajoute l’événement au Graph du widget. On Pressed quand le doigt se pose, On Released quand il se lève, puis On Clicked s’il est encore sur le bouton.',

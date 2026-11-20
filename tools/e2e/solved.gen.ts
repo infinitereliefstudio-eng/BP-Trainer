@@ -20,3 +20,28 @@ it('generates solved lesson projects', () => {
     writeFileSync(new URL(`${id}.json`, OUT), serializeProject(p));
   }
 });
+
+/** V7.42: a free-play project with two enemies, each carrying its own bar (a Widget Component). */
+it('generates a Widget Component project', async () => {
+  const { ProjectBuilder } = await import('../../src/core/lessons/builder');
+  const { addWidget } = await import('../../src/core/operations/widgetOps');
+  const pb = new ProjectBuilder('Barres au-dessus');
+  const w = pb.blueprint('WBP_Barre', 'UserWidget');
+  const canvas = addWidget(pb.project, w.cls, 'CanvasPanel');
+  if (!canvas.ok) throw new Error(canvas.reason);
+  const bar = addWidget(pb.project, w.cls, 'ProgressBar', canvas.value.id);
+  if (!bar.ok) throw new Error(bar.reason);
+  bar.value.name = 'PB_Vie';
+  bar.value.props.percent = 0.6;
+  bar.value.props.fillColor = '#e5484d';
+  // Anchored to fill the whole Draw Size.
+  bar.value.slot.anchors = { minX: 0, minY: 0, maxX: 1, maxY: 1 };
+  bar.value.slot.offsets = [0, 0, 0, 0];
+  const enemy = pb.blueprint('BP_Ennemi');
+  enemy.component('StaticMesh', 'Corps', { shape: 'cylinder', sizeX: 70, sizeY: 70, color: '#a855f7' });
+  enemy.widgetComponent('Barre', w, { y: -70, sizeX: 150, sizeY: 18 });
+  pb.place(enemy, 260, -60);
+  pb.place(enemy, 480, 120);
+  pb.playerStart(0, 0);
+  writeFileSync(new URL('widget-component.json', OUT), serializeProject(pb.project));
+});

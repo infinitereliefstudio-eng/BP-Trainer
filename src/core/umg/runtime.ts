@@ -42,12 +42,24 @@ export interface UmgHost {
   evaluate(obj: ActorRT, graphId: string): Record<string, RValue>;
   /** The Widget Blueprint of an object, as written (widgets are not inherited). */
   classOf(obj: ActorRT): BlueprintClass | undefined;
+  /** The actor carrying a Widget Component: still there (not destroyed), and the component shown (visible, actor not hidden). */
+  carrier(ref: { actor: string; id: string }): { alive: boolean; visible: boolean };
+  /** A Widget Component's Draw Size, in screen pixels. */
+  drawSize(ref: { actor: string; id: string }): { w: number; h: number };
 }
 
 /** One widget added to the viewport, laid out on a screen 720 units high. */
 export interface ScreenWidget {
   obj: ActorRT;
   laid: LaidOutWidget[];
+}
+
+/** The widget of a Widget Component, laid out on its Draw Size: the UI draws it over its actor. */
+export interface ComponentWidget extends ScreenWidget {
+  actor: string;
+  component: string;
+  w: number;
+  h: number;
 }
 
 type Target = { obj: ActorRT; id: string } | { obj: ActorRT; self: true };
@@ -88,6 +100,11 @@ export class Umg {
   /** Widget objects, the ones placed inside others included (not the Is Variable widgets). */
   widgetObjects(): ActorRT[] {
     return this.host.objects.filter((o) => o.widget);
+  }
+
+  /** The widgets of Widget Components (V7.42), in the order they were made. */
+  componentWidgets(): ActorRT[] {
+    return this.widgetObjects().filter((o) => o.widget!.component);
   }
 
   /** The viewport, back to front: Z-Order, then the order of Add to Viewport. */
@@ -141,6 +158,24 @@ export class Umg {
     }
     events.push({ obj, def: 'event.onInitialized', outputs: {} });
     return obj;
+  }
+
+  /**
+   * A Widget Component's widget (V7.42), made when the component begins play,
+   * as UE's InitWidget: the object (On Initialized runs there), owned by the
+   * player. It comes on the screen at the next frame (Pre Construct, Construct),
+   * and leaves it with its actor (Destruct).
+   */
+  attach(classId: string, owner: string | null, carrier: { actor: string; id: string }): { obj: ActorRT; events: UmgEvent[] } | null {
+    const made = this.create(classId, owner);
+    if (made) made.obj.widget!.component = carrier;
+    return made;
+  }
+
+  /** The widgets of Widget Components whose actor came or went: Construct, or Destruct. */
+  syncComponents(): UmgEvent[] {
+    const list = this.componentWidgets();
+    return list.length ? this.sync(list) : [];
   }
 
   /** What a reference points at for a widget function: a widget of a Designer, or a widget object itself. */
@@ -198,6 +233,7 @@ export class Umg {
     const w = o.widget;
     if (!w || guard > 16) return false;
     if (w.inViewport) return true;
+    if (w.component) return this.host.carrier(w.component).alive;
     if (w.parent) {
       const p = this.get(w.parent.obj);
       return !!p && this.shown(p, guard + 1);
@@ -275,7 +311,7 @@ export class Umg {
       this.host.warning(`The widget '${o.objectName}' was already added to the screen.`);
       return [];
     }
-    if (w.parent || w.placedIn) {
+    if (w.parent || w.placedIn || w.component) {
       this.host.warning(`The widget '${o.objectName}' already has a parent widget. It can't also be added to the viewport!`);
       return [];
     }
@@ -400,9 +436,9 @@ export class Umg {
 
   // ------------------------------------------------------------ frame
 
-  /** Widget objects on the screen now, outer widgets first. */
+  /** Widget objects on the screen now, outer widgets first: the Widget Components' (under the viewport), then the viewport's. */
   onScreen(): ActorRT[] {
-    return this.viewport().flatMap((o) => this.subtree(o)).filter((o) => o.widget!.onScreen);
+    return [...this.componentWidgets(), ...this.viewport()].flatMap((o) => this.subtree(o)).filter((o) => o.widget!.onScreen);
   }
 
   /** The Visibility a widget of a Designer has now: set by the game, else the Designer's (a placed User Widget: its object's own). */
@@ -437,6 +473,8 @@ export class Umg {
     const root = widgetRoot(this.tree(o));
     if (root && !this.nodeDrawn(o, root.id)) return false;
     if (w.inViewport) return true;
+    // A Widget Component's widget: shown with its component (Set Visibility) and its actor (Set Actor Hidden In Game).
+    if (w.component) return this.host.carrier(w.component).visible;
     const host = this.get(w.parent?.obj ?? w.placedIn?.obj);
     return !!host && this.drawn(host, guard + 1) && this.nodeDrawn(host, w.parent?.panel ?? w.placedIn?.id);
   }
@@ -538,7 +576,16 @@ export class Umg {
 
   /** What a touch at (x, y) of a screen `width` × 720 reaches. */
   hit(x: number, y: number, width: number): WidgetHit {
-    const layers = this.layer(width);
+    return this.hitIn(this.layer(width), x, y);
+  }
+
+  /** What a touch at (x, y) inside a Widget Component's widget reaches (x, y on its Draw Size). */
+  hitComponent(objId: string, x: number, y: number): WidgetHit {
+    const s = this.componentLayer().find((c) => c.obj.id === objId);
+    return s ? this.hitIn([s], x, y) : { kind: 'none' };
+  }
+
+  private hitIn(layers: ScreenWidget[], x: number, y: number): WidgetHit {
     // A button under the touch, whatever covers it: to say which one the touch missed.
     let under: string | undefined;
     for (let i = layers.length - 1; i >= 0 && !under; i--) {
@@ -571,6 +618,24 @@ export class Umg {
     if (this.pressed?.path === p?.path) return;
     this.pressed = p;
     this.version++;
+  }
+
+  /**
+   * The widgets of Widget Components shown now, each laid out on its Draw
+   * Size (screen pixels, like the 720-high screen): the UI places each one
+   * centred on its component, over the view, under the viewport's widgets.
+   */
+  componentLayer(): ComponentWidget[] {
+    const out: ComponentWidget[] = [];
+    for (const o of this.componentWidgets()) {
+      const cls = this.host.classOf(o);
+      const at = o.widget!.component!;
+      if (!cls || !widgetRoot(cls.widgets ?? []) || !this.drawn(o)) continue;
+      const size = this.host.drawSize(at);
+      const laid = layoutWidgets(cls, size.w, size.h, this.host.project, (p) => this.override(p), `@${o.id}/`, (p, w) => this.extra(p, w));
+      out.push({ obj: o, laid, actor: at.actor, component: at.id, w: size.w, h: size.h });
+    }
+    return out;
   }
 
   /**

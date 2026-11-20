@@ -14,6 +14,7 @@ import { DESIGN_H } from '@core/umg/layout';
 import type { PlaySession } from '@editor/world/playSession';
 import { rememberPlayAspect } from '../designer/screenSize';
 import { WidgetSurface } from '../umg/WidgetSurface';
+import { ComponentWidgets } from './ComponentWidgets';
 
 type Ignored = Extract<TouchOutcome, { kind: 'ignored' }>;
 
@@ -78,9 +79,20 @@ export function WidgetLayer({ session }: { session: PlaySession }) {
     session.sim.touchUp(x, y, width);
     session.notifyUi();
   };
+  // The widget of a Widget Component: the touch on its own Draw Size.
+  const downOn = (obj: string, x: number, y: number) => {
+    const out = session.sim.touchDownOn(obj, x, y);
+    if (out.kind === 'ignored') setNotice({ o: out, open: false, id: Date.now() });
+    session.notifyUi();
+  };
+  const upOn = (obj: string, x: number, y: number) => {
+    session.sim.touchUpOn(obj, x, y);
+    session.notifyUi();
+  };
 
   return (
-    <div class="umg-layer" ref={ref} aria-hidden={layer.length === 0}>
+    <div class="umg-layer" ref={ref} aria-hidden={layer.length === 0 && session.sim.umg.componentWidgets().length === 0}>
+      <ComponentWidgets session={session} scale={scale} onDown={downOn} onUp={upOn} />
       {layer.map((s) => (
         <div
           key={s.obj.id}

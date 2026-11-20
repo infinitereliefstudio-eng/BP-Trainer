@@ -158,6 +158,7 @@ export const BUILTIN_HIERARCHY: Record<string, string | undefined> = {
   BoxComponent: 'PrimitiveComponent',
   PointLightComponent: 'SceneComponent',
   TextRenderComponent: 'PrimitiveComponent',
+  WidgetComponent: 'PrimitiveComponent',
   // UMG: a Widget Blueprint is a UserWidget; the widgets of its Designer have UE's classes.
   Visual: 'Object',
   Widget: 'Visual',

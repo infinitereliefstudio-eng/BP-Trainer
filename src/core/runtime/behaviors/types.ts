@@ -8,7 +8,7 @@ import type { BlueprintClass, NodeInstance, Project } from '../../model/project'
 import type { NodeContext } from '../../nodes/definition';
 import type { NoteCode } from '../runRecord';
 import type { DebugLine, TraceHit } from '../trace';
-import type { Umg } from '../../umg/runtime';
+import type { Umg, UmgEvent } from '../../umg/runtime';
 import type { ActorRT, ComponentRT, ObjRef, RValue, TimelineRT, TimerRT } from '../world';
 
 /** Entry pin used when a node asked to be resumed (loops). */
@@ -44,6 +44,8 @@ export interface WorldApi {
   ownerOf(c: ComponentRT): ActorRT | undefined;
   /** The objects of an actor's Actor Components made in Blueprint, alive, in Components order. */
   componentsOf(actor: ActorRT): ActorRT[];
+  /** The actor's Widget Components make their widget (UE's InitWidget): the events On Initialized to run, before its BeginPlay. */
+  initWidgetComponents(actor: ActorRT): UmgEvent[];
   /** The actor carrying an Actor Component's object (Get Owner), or null. */
   ownerActor(obj: ActorRT): ActorRT | null;
   /** Get Components by Class: the actor's components of that class (a Blueprint id or a native class name). */

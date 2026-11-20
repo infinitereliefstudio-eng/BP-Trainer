@@ -3,7 +3,7 @@
  * for Play (hidden components and editor-only icons are not rendered, like in game).
  */
 import { componentShape } from '@core/runtime/physics';
-import { componentTransform, PLAYER_RADIUS, type ActorRT } from '@core/runtime/world';
+import { componentTransform, PLAYER_RADIUS, type ActorRT, type ComponentRT } from '@core/runtime/world';
 import type { DebugLine } from '@core/runtime/trace';
 import type { Camera } from '../camera';
 
@@ -23,6 +23,13 @@ export const WORLD = {
   reference: 'rgba(125, 211, 252, 0.8)',
 };
 
+/** The Widget Blueprints' names by id, for the frames of Widget Components. */
+export function widgetNames(p: { classes: { id: string; name: string; parent: string }[] }): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const c of p.classes) if (c.parent === 'UserWidget') out[c.id] = c.name;
+  return out;
+}
+
 export interface WorldScene {
   actors: ActorRT[];
   player?: ActorRT;
@@ -38,6 +45,8 @@ export interface WorldScene {
   references?: { from: string; to: string; label: string }[];
   /** The Blueprint editor's Viewport: one actor at the origin, its components selectable. */
   viewport?: { selectedComponent?: string };
+  /** Names of the Widget Blueprints, by id: the label of a Widget Component's frame (editor only). */
+  widgetNames?: Record<string, string>;
 }
 
 const DEG = Math.PI / 180;
@@ -304,6 +313,10 @@ function drawActor(c: CanvasRenderingContext2D, a: ActorRT, s: WorldScene): void
       c.lineWidth = 1.5 / z;
       c.strokeStyle = on ? '#fff3c4' : '#6b7280';
       c.stroke();
+    } else if (comp.kind === 'Widget') {
+      // In Play, the UI draws the widget itself over the level (core/umg Umg.componentLayer).
+      if (s.playing) continue;
+      drawWidgetFrame(c, a, comp, s);
     } else if (comp.kind === 'TextRender') {
       if (hidden && s.playing) continue;
       const t = componentTransform(a, comp);
@@ -337,6 +350,34 @@ function drawActor(c: CanvasRenderingContext2D, a: ActorRT, s: WorldScene): void
     c.textBaseline = 'top';
     c.fillText(a.label, a.x, a.y + r + 6 / z);
   }
+}
+
+/**
+ * A Widget Component in the editor: the frame of its Draw Size, centred on
+ * the component, at the size it will have on the screen in Play (Space
+ * Screen: the same whatever the zoom), with its Widget Class.
+ */
+function drawWidgetFrame(c: CanvasRenderingContext2D, a: ActorRT, comp: ComponentRT, s: WorldScene): void {
+  const z = s.camera.zoom;
+  const k = s.height / 720 / z;
+  const t = componentTransform(a, comp);
+  const w = comp.props.sizeX * k;
+  const h = comp.props.sizeY * k;
+  c.save();
+  c.globalAlpha = comp.props.visible ? 1 : 0.4;
+  c.fillStyle = 'rgba(125, 211, 252, 0.10)';
+  c.fillRect(t.x - w / 2, t.y - h / 2, w, h);
+  c.setLineDash([6 / z, 4 / z]);
+  c.lineWidth = 1.5 / z;
+  c.strokeStyle = 'rgba(125, 211, 252, 0.85)';
+  c.strokeRect(t.x - w / 2, t.y - h / 2, w, h);
+  c.fillStyle = '#bde7fb';
+  c.font = `${11 / z}px system-ui, sans-serif`;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  const name = comp.classId ? (s.widgetNames?.[comp.classId] ?? comp.name) : `${comp.name} (Widget Class : None)`;
+  c.fillText(name, t.x, t.y, Math.max(w - 6 / z, 30 / z));
+  c.restore();
 }
 
 function drawPlayer(c: CanvasRenderingContext2D, p: ActorRT): void {

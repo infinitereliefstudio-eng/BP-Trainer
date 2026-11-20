@@ -19,7 +19,7 @@ import { BOTTOM_BAR, FAB_RAIL } from '../framing';
 import { GestureController, type GestureHost } from '../gestures';
 import type { Hit } from '../hit';
 import { haptic } from '../haptics';
-import { renderWorld } from '../world/worldRender';
+import { renderWorld, widgetNames } from '../world/worldRender';
 
 export interface ViewportRequests {
   openDetails(): void;
@@ -106,6 +106,7 @@ export const ViewportCanvas = forwardRef<ViewportHandle, Props>(function Viewpor
         height: l.size.h,
         playing: false,
         viewport: { selectedComponent: f.kind === 'component' ? f.id : undefined },
+        widgetNames: widgetNames(store.project),
       },
       l.size.dpr,
     );

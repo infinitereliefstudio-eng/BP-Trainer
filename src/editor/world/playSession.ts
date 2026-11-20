@@ -4,6 +4,7 @@
  */
 import type { Project } from '@core/model/project';
 import { type ActorOrder, Simulation, STEP } from '@core/runtime/simulation';
+import type { Camera } from '../camera';
 import { ExecHeat } from '../debug/execHeat';
 
 export type Speed = 0.25 | 1 | 4;
@@ -22,6 +23,8 @@ export class PlaySession {
    * the live Details, highlighted, and used as the debugged object.
    */
   selected?: string;
+  /** The level view's camera, set by the view each frame: the widgets of Widget Components follow their actor with it. */
+  camera?: Camera;
   private wasPaused = false;
   private frameListeners = new Set<() => void>();
   private uiListeners = new Set<() => void>();

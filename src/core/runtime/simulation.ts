@@ -25,7 +25,7 @@ import { movePlayer, type BlockingHit } from './movement';
 import { endOverlapsWith, updateOverlaps, type Broadcast, type Fire } from './overlaps';
 import { TimerSet } from './timers';
 import { lineTrace, type DebugLine, type TraceHit } from './trace';
-import { Umg } from '../umg/runtime';
+import { Umg, type UmgEvent } from '../umg/runtime';
 import { type InputMode, TouchInput, type TouchOutcome } from '../umg/touchInput';
 import { isRef, type ActorRT, type ComponentRT, type ObjRef, type RValue, type TimerRT } from './world';
 
@@ -164,6 +164,16 @@ export class Simulation implements InterpreterHost {
       warning: (text) => this.journal.warning(this.time, text),
       evaluate: (obj, graphId) => this.interp.evaluate(obj, graphId),
       classOf: (obj) => (obj.classId ? findClass(project, obj.classId) : undefined),
+      carrier: (ref) => {
+        const a = this.findActor(ref.actor);
+        const alive = !!a && !a.destroyed;
+        const c = alive ? a.components.find((k) => k.id === ref.id) : undefined;
+        return { alive, visible: alive && !a.hidden && !!c?.props.visible };
+      },
+      drawSize: (ref) => {
+        const c = this.findActor(ref.actor)?.components.find((k) => k.id === ref.id);
+        return { w: Math.max(1, c?.props.sizeX ?? 500), h: Math.max(1, c?.props.sizeY ?? 500) };
+      },
     });
     this.touch = new TouchInput({
       umg: this.umg,
@@ -268,6 +278,24 @@ export class Simulation implements InterpreterHost {
     }
   }
 
+  /**
+   * The actor's Widget Components make their widget (V7.42), as UE's
+   * UWidgetComponent::BeginPlay calls InitWidget: one object per actor,
+   * owned by the player. Returns the events On Initialized to run. The
+   * widget comes on the screen at the next frame.
+   */
+  initWidgetComponents(a: ActorRT): UmgEvent[] {
+    const events: UmgEvent[] = [];
+    for (const c of a.components) {
+      if (c.kind !== 'Widget' || !c.classId || c.widget) continue;
+      const made = this.umg.attach(c.classId, this.controller.id, { actor: a.id, id: c.id });
+      if (!made) continue;
+      c.widget = made.obj.id;
+      events.push(...made.events);
+    }
+    return events;
+  }
+
   /** The objects of the actor's Actor Components, still alive, in the order of its Components panel. */
   componentsOf(actor: ActorRT): ActorRT[] {
     const out: ActorRT[] = [];
@@ -328,7 +356,11 @@ export class Simulation implements InterpreterHost {
       );
     }
     for (const a of this.scripted()) this.interp.autoPlayTimelines(a);
-    this.fireAll(isBeginPlay, 'then');
+    for (const a of this.scripted()) {
+      // An actor's Widget Components make their widget as they begin play, before the actor's own Event BeginPlay.
+      if (!a.owner) for (const e of this.initWidgetComponents(a)) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
+      this.fire(a, isBeginPlay, 'then');
+    }
     this.runPhases();
   }
 
@@ -404,6 +436,10 @@ export class Simulation implements InterpreterHost {
    */
   private widgetPhases(dt: number): (() => void)[] {
     return [
+      // Widget Components: the widget of an actor that began play comes on the screen; the one of a destroyed actor leaves it.
+      () => {
+        for (const e of this.umg.syncComponents()) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
+      },
       () => {
         // Only painted widgets tick: a Collapsed or Hidden one stops, as in UE.
         for (const o of this.umg.ticking()) this.fire(o, (n) => n.def === 'event.widgetTick', 'then', { delta: dt });
@@ -605,12 +641,21 @@ export class Simulation implements InterpreterHost {
 
   /** A finger goes down on the widgets (x, y on a screen `width` wide and 720 high): see core/umg/touchInput. */
   touchDown(x: number, y: number, width: number): TouchOutcome {
-    return this.touch.down(x, y, width);
+    return this.touch.down({ x, y, width });
   }
 
   /** The finger goes up: On Released, then On Clicked if it is still on the same Button. */
   touchUp(x: number, y: number, width: number): void {
-    this.touch.up(x, y, width);
+    this.touch.up({ x, y, width });
+  }
+
+  /** A finger goes down inside a Widget Component's widget (its object id; x, y on its Draw Size). */
+  touchDownOn(component: string, x: number, y: number): TouchOutcome {
+    return this.touch.down({ x, y, component });
+  }
+
+  touchUpOn(component: string, x: number, y: number): void {
+    this.touch.up({ x, y, component });
   }
 
   /** A lesson's scenario taps a Button by name (the nth of that name, top to bottom, with `nth`). */

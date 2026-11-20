@@ -51,6 +51,8 @@ export function removeClass(p: Project, id: string): OpResult {
   if (user) return { ok: false, reason: `${user.name} utilise ce Blueprint comme composant : retire-le d’abord de ses Components.` };
   const screen = widgetUsers(p, id)[0];
   if (screen) return { ok: false, reason: `${screen.name} place ce Widget Blueprint dans son Designer : retire-le d’abord de sa Hierarchy.` };
+  const carrier = p.classes.find((c) => c.components.some((k) => k.kind === 'Widget' && k.classId === id));
+  if (carrier) return { ok: false, reason: `${carrier.name} affiche ce Widget Blueprint dans un Widget Component : change d’abord son Widget Class.` };
   p.classes = p.classes.filter((c) => c.id !== id);
   p.level.actors = p.level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;

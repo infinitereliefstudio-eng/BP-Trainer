@@ -4,7 +4,9 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_ANNEXE_WIDGET_PROJETS.md](REVUE_ANNEXE_WIDGET_PROJETS.md) (la dernière revue, celle du chantier annexe Widget Component et projets), [REVUE_UMG.md](REVUE_UMG.md) et [REVUE_V7.md](REVUE_V7.md). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-20, après la V7.43)
+## Reprise rapide (2026-11-20, après la V7.46)
+
+**Reprise par un autre agent : lire d'abord la section « Reprise par un autre agent » de [BACKLOG.md](BACKLOG.md)** (état exact, ce qui reste au chantier n° 4 version par version, plan technique de la V7.47, piège du déploiement). Les puces ci-dessous sont l'historique de la journée du 20 novembre ; la plus récente est celle du chantier n° 4.
 
 ### Où on en est
 
@@ -33,7 +35,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (fait, V7.27 à V7.30), UMG (fait, V7.33 à V7.37), puis niveaux et GameInstance, puis le projet Expert final. Chacun attend son feu vert.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (fait, V7.27 à V7.30), UMG (fait, V7.33 à V7.37), puis niveaux et GameInstance (**en cours** : V7.46 faite, V7.47 à V7.51 à faire, [PLAN_NIVEAUX.md](PLAN_NIVEAUX.md)), puis le projet Expert final. Chaque version attend son feu vert.
 
 Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 

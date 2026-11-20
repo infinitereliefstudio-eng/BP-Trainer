@@ -1118,6 +1118,17 @@ async def main():
         if await page.locator('.designer .umg-text', has_text='Aperçu du Designer').count() == 0:
             errs.append('Designer : Event Pre Construct ne change pas l’aperçu')
         await shot('90_widget_pre_construct')
+        # V7.39: the Designer's Screen Size: the phone's format of Play, wider than 1280 × 720; then back to the reference.
+        await page.locator('.designer-size').tap()
+        await page.wait_for_timeout(300)
+        phone = await page.locator('.designer-size').inner_text()
+        if 'Téléphone' not in phone or '1280 ×' in phone:
+            errs.append(f'Designer : le format Téléphone ne s’affiche pas ({phone})')
+        await shot('99_designer_phone_screen')
+        await page.locator('.designer-size').tap()
+        await page.wait_for_timeout(300)
+        if '1280 × 720' not in await page.locator('.designer-size').inner_text():
+            errs.append('Designer : retour à 1280 × 720 impossible')
         await page.locator('.tab', has_text='Niveau').tap()
         await page.locator('.tb.play').tap()
         await page.wait_for_timeout(800)
@@ -1216,8 +1227,10 @@ async def main():
         await page.locator('.keys .key', has_text='Espace').tap()
         await page.wait_for_timeout(600)
         await shot('96_play_real_pause_menu')
-        if await page.locator('.game-paused').count() != 1 or await page.locator('.umg-layer .umg-Button.hit').count() != 1:
+        if await page.locator('.umg-layer .umg-Button.hit').count() != 1:
             errs.append('Vrai menu pause : Espace n’affiche pas le menu et son bouton')
+        elif await page.locator('.game-paused').count() != 0:
+            errs.append('Vrai menu pause : PAUSED est dessiné par-dessus le menu (V7.39 : caché quand un widget est à l’écran)')
         else:
             await page.locator('.umg-layer .umg-Button.hit').first.tap()
             await page.wait_for_timeout(500)
@@ -1247,6 +1260,14 @@ async def main():
             if await page.locator('.umg-layer', has_text='En lecture : Brume').count() == 0:
                 errs.append('Playlist : Lire sur la 2e ligne ne joue pas Brume')
         await shot('98_play_playlist')
+        # V7.39: in UI Only the joystick and the keys take no touch: what is under them (a widget's button) gets it.
+        through = await page.evaluate("""() => [document.querySelector('.joystick'), document.querySelector('.keys .key')].map((el) => {
+          const r = el.getBoundingClientRect();
+          const e = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+          return !!e && !e.closest('.joystick') && !e.closest('.keys');
+        })""")
+        if through != [True, True]:
+            errs.append(f'Playlist (UI Only) : le joystick ou les touches prennent encore le doigt ({through})')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

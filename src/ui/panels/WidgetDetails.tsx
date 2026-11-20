@@ -34,7 +34,8 @@ import {
   updateWidgetProps,
   updateWidgetSlot,
 } from '@core/operations/widgetOps';
-import { DESIGN_H, DESIGN_W, layoutWidgets } from '@core/umg/layout';
+import { DESIGN_H, layoutWidgets } from '@core/umg/layout';
+import { currentDesignerWidth } from '../designer/screenSize';
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { AppHelp, Check, Field, Group, NumberField } from './fields';
@@ -349,8 +350,8 @@ function CanvasSlot({ w, setSlot }: { w: WidgetNode; setSlot: (patch: Partial<Wi
     setSlot({ offsets: next });
   };
   const pick = (a: WidgetSlot['anchors']) => {
-    // Kept in place on the 1280 × 720 screen, as UE's Designer does.
-    const laid = layoutWidgets(store.cls, DESIGN_W, DESIGN_H, store.project);
+    // Kept in place on the Designer's screen (its Screen Size), as UE's Designer does.
+    const laid = layoutWidgets(store.cls, currentDesignerWidth(), DESIGN_H, store.project);
     const rect = laid.find((l) => l.widget.id === w.id)?.rect;
     const panel = laid.find((l) => l.widget.id === w.parent)?.rect;
     store.apply(`Anchors de ${w.name}`, (c) => setWidgetAnchors(c, w.id, a, rect, panel));

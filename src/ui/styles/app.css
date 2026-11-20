@@ -769,7 +769,8 @@ select.field { padding-right: 4px; }
   background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
   background-size: 16px 16px; }
 .designer-screen { position: absolute; outline: 1px dashed #6a6f78; background: rgba(0, 0, 0, 0.25); }
-.designer-size { position: absolute; right: 0; bottom: -18px; font-size: 11px; white-space: nowrap; padding: 0 2px; }
+.designer-size { position: absolute; right: 0; bottom: -20px; font: inherit; font-size: 11px; white-space: nowrap; padding: 1px 4px; min-height: 0; height: auto; background: none; border: 0; border-radius: 4px; color: inherit; cursor: pointer; }
+.designer-size:active { background: rgba(255, 255, 255, 0.08); }
 .designer-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 16px 24px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .designer-empty strong { color: var(--text); font-size: 14px; }
 .umg { position: absolute; box-sizing: border-box; }
@@ -813,5 +814,9 @@ select.field { padding-right: 4px; }
 .umg-notice > p.umg-why { flex-basis: 100%; margin: 0; font-size: 12.5px; line-height: 1.35; color: #c9ced6; }
 .play-badges { position: absolute; top: 8px; right: max(12px, env(safe-area-inset-right)); display: flex; gap: 6px; pointer-events: none; }
 .play-badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: rgba(20, 22, 26, 0.85); border: 1px solid var(--line-2); color: #e8ecf2; }
-.play-overlay.ui-only .joystick, .play-overlay.ui-only .keys { opacity: 0.35; }
+/* V7.39 — Who has the finger: Game Only, the joystick and keys stay over the widgets (the touch goes to the game);
+   Game and UI, the widgets' buttons first; UI Only, the joystick and keys take nothing. */
+.play-overlay.game-and-ui > .umg-layer, .play-overlay.ui-only > .umg-layer { z-index: 2; }
+.play-overlay.ui-only .joystick, .play-overlay.ui-only .keys { opacity: 0.35; pointer-events: none; }
+.play-overlay.ui-only .joystick *, .play-overlay.ui-only .keys * { pointer-events: none; }
 .umg-screen.disabled { opacity: 0.45; }

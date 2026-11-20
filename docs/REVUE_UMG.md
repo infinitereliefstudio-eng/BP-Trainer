@@ -32,7 +32,7 @@ Manque noté (G1, lot 3, au backlog seulement) : valeurs par instance d'un User 
 | Lot | Contenu | Version | État |
 | --- | --- | --- | --- |
 | 1 | F1 à F4, R1 : le moteur au plus près d'UE (Owning Player vide = premier joueur, avec un conseil de construction ; ni Tick ni Binding pour un widget non dessiné ; ordre des frères ; parent oublié au retrait ; limite de profondeur et objets indexés) | V7.38 | fait |
-| 2 | I1 à I3 : Play et Designer au téléphone (boutons des widgets devant les contrôles virtuels, contrôles inertes en UI Only ; PAUSED et aperçu selon les questions) | V7.39 | proposé |
+| 2 | I1 à I3 : Play et Designer au téléphone (boutons des widgets devant les contrôles virtuels, contrôles inertes en UI Only ; PAUSED et aperçu selon les questions) | V7.39 | fait |
 | 3 | C1 à C3, D1, G1 : rangement du code, docs, backlog | V7.40 | proposé |
 
 ## Questions à trancher

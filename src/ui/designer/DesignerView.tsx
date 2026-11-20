@@ -7,16 +7,17 @@
  * finger on the background, or on a widget that cannot move, moves the view.
  */
 import { forwardRef } from 'preact/compat';
-import { useEffect, useImperativeHandle, useReducer, useRef } from 'preact/hooks';
+import { useEffect, useImperativeHandle, useReducer, useRef, useState } from 'preact/hooks';
 import { widgetRoot } from '@core/model/widgets';
 import { moveWidgetBy, roundWidgetOffsets } from '@core/operations/widgetOps';
-import { DESIGN_H, DESIGN_W, layoutWidgets } from '@core/umg/layout';
+import { DESIGN_H, layoutWidgets } from '@core/umg/layout';
 import { previewOverride, type DesignPreview } from '@core/umg/preview';
 import type { Project } from '@core/model/project';
 import { BOTTOM_BAR, FAB_RAIL } from '@editor/framing';
 import { haptic } from '@editor/haptics';
 import { useStore } from '../hooks';
 import { WidgetSurface } from '../umg/WidgetSurface';
+import { screenChoice, screenWidth, setDesignerWidth, setScreenChoice, type ScreenChoice } from './screenSize';
 
 interface Props {
   onOpenDetails: () => void;
@@ -51,19 +52,30 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
   const lastTap = useRef<{ id: string; at: number } | null>(null);
   const cb = useRef({ onOpenDetails, onOpenPalette });
   cb.current = { onOpenDetails, onOpenPalette };
+  // UE's Screen Size: the 1280 × 720 reference, or the phone's format of Play.
+  const [choice, setChoice] = useState<ScreenChoice>(screenChoice);
+  const areaAspect = () => {
+    const v = view.current;
+    return v.h > BOTTOM_BAR ? v.w / (v.h - BOTTOM_BAR) : undefined;
+  };
+  const W = screenWidth(choice, areaAspect());
+  setDesignerWidth(W);
+  // Gestures and the resize observer were made at the first render: they read the width through this.
+  const width = useRef(W);
+  width.current = W;
 
   const fitScale = () => {
     const v = view.current;
     const availW = Math.max(0, v.w - FAB_RAIL - 2 * PAD);
     const availH = Math.max(0, v.h - BOTTOM_BAR - 2 * PAD);
-    return { s: Math.min(availW / DESIGN_W, availH / DESIGN_H) || 0, availW, availH };
+    return { s: Math.min(availW / width.current, availH / DESIGN_H) || 0, availW, availH };
   };
   const scale = () => fitScale().s * view.current.zoom;
   const recenter = () => {
     const v = view.current;
     const { s, availW, availH } = fitScale();
     v.zoom = 1;
-    v.tx = PAD + (availW - DESIGN_W * s) / 2;
+    v.tx = PAD + (availW - width.current * s) / 2;
     v.ty = PAD + (availH - DESIGN_H * s) / 2;
     v.fitted = true;
   };
@@ -74,6 +86,12 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
       redraw(0);
     },
   }));
+
+  // A new Screen Size is framed again, as a new size of the area is.
+  useEffect(() => {
+    recenter();
+    redraw(0);
+  }, [choice]);
 
   useEffect(() => {
     const el = wrap.current;
@@ -228,7 +246,7 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
 
   const cls = store.cls;
   const preview = designPreview(store.project, cls.id);
-  const laid = layoutWidgets(cls, DESIGN_W, DESIGN_H, store.project, preview?.override, '', preview?.extra);
+  const laid = layoutWidgets(cls, W, DESIGN_H, store.project, preview?.override, '', preview?.extra);
   const v = view.current;
   const s = scale();
   const f = store.focus;
@@ -238,7 +256,7 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
   return (
     <div class="designer" ref={wrap} onPointerDownCapture={onDownCapture} onPointerDown={onDownBackground}>
       {s > 0 && (
-        <div class="designer-screen" style={{ left: `${v.tx}px`, top: `${v.ty}px`, width: `${DESIGN_W * s}px`, height: `${DESIGN_H * s}px` }}>
+        <div class="designer-screen" style={{ left: `${v.tx}px`, top: `${v.ty}px`, width: `${W * s}px`, height: `${DESIGN_H * s}px` }}>
           <WidgetSurface laid={laid} scale={s} designer={{ selected, onPointerDown: onWidgetDown }} />
           {empty && (
             <button class="designer-empty" onPointerDown={(e) => e.stopPropagation()} onClick={() => cb.current.onOpenPalette()}>
@@ -246,11 +264,22 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
               <span>Ouvre la Palette (à gauche) et touche un widget : le premier devient la racine. Pour placer librement, commence par un Canvas Panel.</span>
             </button>
           )}
-          <span class="designer-size app-only" title="Taille d’écran de référence de BP Trainer">
-            {DESIGN_W} × {DESIGN_H} · aperçu ×{s.toFixed(2).replace('.', ',')}
+          <button
+            type="button"
+            class="designer-size app-only"
+            title="Screen Size : l’écran de référence de BP Trainer, ou le format du téléphone pendant Play (les ancres y placent les widgets autrement)"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              const next = choice === 'reference' ? 'phone' : 'reference';
+              setScreenChoice(next);
+              setChoice(next);
+            }}
+          >
+            {choice === 'phone' ? 'Téléphone · ' : ''}
+            {W} × {DESIGN_H} ▾ · aperçu ×{s.toFixed(2).replace('.', ',')}
             {preview && ' · Pre Construct'}
             {preview && preview.errors.length > 0 && <span class="designer-errors"> · {preview.errors.length} erreur{preview.errors.length > 1 ? 's' : ''}</span>}
-          </span>
+          </button>
         </div>
       )}
     </div>

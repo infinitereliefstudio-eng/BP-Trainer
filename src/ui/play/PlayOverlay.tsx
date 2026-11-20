@@ -51,6 +51,8 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
   );
 }
 
+const MODE_CLASS = { GameOnly: 'game-only', GameAndUI: 'game-and-ui', UIOnly: 'ui-only' } as const;
+
 /** What Play draws over the level: PAUSED, Print String messages, joystick and keys. */
 export function PlayOverlay({ session }: Pick<Props, 'session'>) {
   const [, force] = useReducer((n: number) => n + 1, 0);
@@ -58,7 +60,9 @@ export function PlayOverlay({ session }: Pick<Props, 'session'>) {
   const sim = session.sim;
 
   return (
-    <div class={`play-overlay${sim.inputMode === 'UIOnly' ? ' ui-only' : ''}`}>
+    // The input mode decides who has the finger first, as in UE: Game Only, the game (joystick and keys
+    // over the widgets); Game and UI, the widgets' buttons first; UI Only, the widgets alone.
+    <div class={`play-overlay ${MODE_CLASS[sim.inputMode]}`}>
       <WidgetLayer session={session} />
       {(sim.inputMode !== 'GameOnly' || sim.showMouseCursor) && (
         <div class="play-badges" title="Le mode d’entrée du Player Controller (Set Input Mode) et son curseur">
@@ -66,7 +70,8 @@ export function PlayOverlay({ session }: Pick<Props, 'session'>) {
           {sim.showMouseCursor && <span class="play-badge">Curseur</span>}
         </div>
       )}
-      {sim.gamePaused && (
+      {/* PAUSED says the game is paused; a widget on the screen (a pause menu…) says it itself, and PAUSED would cross it. */}
+      {sim.gamePaused && !sim.umg.viewport().some((o) => sim.umg.drawn(o)) && (
         <div class="game-paused" title="Set Game Paused : le temps de jeu est arrêté">
           PAUSED
         </div>

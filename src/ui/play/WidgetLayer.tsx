@@ -12,6 +12,7 @@ import type { TouchOutcome } from '@core/runtime/simulation';
 import { touchWhy } from '@core/umg/touch';
 import { DESIGN_H } from '@core/umg/layout';
 import type { PlaySession } from '@editor/world/playSession';
+import { rememberPlayAspect } from '../designer/screenSize';
 import { WidgetSurface } from '../umg/WidgetSurface';
 
 type Ignored = Extract<TouchOutcome, { kind: 'ignored' }>;
@@ -26,7 +27,11 @@ export function WidgetLayer({ session }: { session: PlaySession }) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const measure = () => setSize({ w: el.clientWidth, h: el.clientHeight });
+    const measure = () => {
+      setSize({ w: el.clientWidth, h: el.clientHeight });
+      // The Designer's « Téléphone » Screen Size uses this format.
+      rememberPlayAspect(el.clientWidth, el.clientHeight);
+    };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);

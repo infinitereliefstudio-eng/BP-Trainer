@@ -1,7 +1,7 @@
 /**
  * The second row: the toolbar of the editor shown, as in UE. The Blueprint
  * editor has Compile, Save, Find, Class Settings, Class Defaults and Play, then
- * the Viewport tab and its graph tabs (Construction Script, Event Graph, the function opened).
+ * the Viewport tab (a Widget Blueprint: its Designer) and its graph tabs (Construction Script, Event Graph, the function opened).
  * The level editor has Save, Place Actors and Play.
  */
 import type { ComponentChildren } from 'preact';
@@ -80,6 +80,11 @@ export function BlueprintToolbar(
       <PlayButton {...p} />
       <span class="tb-sep" />
       <div class="tabs graph-tabs" role="tablist">
+        {familyOf(cls.parent) === 'widget' && (
+          <button role="tab" class={`tab${p.viewport ? ' active' : ''}`} disabled={p.playing} onClick={p.onViewport}>
+            Designer
+          </button>
+        )}
         {familyOf(cls.parent) === 'actor' && (
           <button role="tab" class={`tab${p.viewport ? ' active' : ''}`} disabled={p.playing} onClick={p.onViewport}>
             Viewport

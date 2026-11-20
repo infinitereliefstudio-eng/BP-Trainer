@@ -213,7 +213,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
       )}
 
       <Section title="Variables" onAdd={addVar}>
-        {cls.variables.length === 0 && <p class="hint">Touche + pour créer une variable.</p>}
+        {cls.variables.length === 0 && !(cls.widgets ?? []).some((w) => w.isVariable) && <p class="hint">Touche + pour créer une variable.</p>}
         {cls.variables.map((v) => (
           <Row
             key={v.id}
@@ -230,6 +230,18 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
             ]}
           />
         ))}
+        {(cls.widgets ?? [])
+          .filter((w) => w.isVariable)
+          .map((w) => (
+            <Row
+              key={w.id}
+              dot={PIN_COLOR.object}
+              label={w.name}
+              sub="widget · Designer"
+              onClick={() => store.info(`${w.name} est un widget du Designer coché Is Variable : on le règle dans le Designer (Details).`)}
+              actions={[{ label: 'Get', onClick: () => placeNode('var.widget', { widget: w.id }) }]}
+            />
+          ))}
         {inherited.variables.map((v) => (
           <Row
             key={v.id}

@@ -31,6 +31,8 @@ import { LessonSheet, type LessonCheck } from './lesson/LessonSheet';
 import { actorMenu, linkMenu, moreMenu, nodeMenu, pinMenu, placeMenu } from './menus';
 import type { Overlay } from './overlayTypes';
 import { ContentDrawer } from './content/ContentDrawer';
+import { DesignerPanel } from './designer/DesignerPanel';
+import { DesignerView, type DesignerHandle } from './designer/DesignerView';
 import { ContextMenu } from './overlays/ContextMenu';
 import { AdviceDialog } from './overlays/AdviceDialog';
 import { AboutDialog, ConfirmDialog, PromptDialog, ValueDialog } from './overlays/Dialogs';
@@ -86,15 +88,23 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
   const [view, setView] = useState<'graph' | 'level'>(lesson && !alternative && !solution ? 'level' : 'graph');
-  // The Blueprint editor shows its Viewport (components) instead of a graph, as UE's Viewport tab.
-  const [viewport, setViewport] = useState(false);
+  // The Blueprint editor shows its Viewport (components) instead of a graph, as UE's Viewport tab;
+  // a Widget Blueprint shows its Designer there instead.
+  const [viewport, setViewport] = useState(familyOf(store.cls.parent) === 'widget');
+  const isWidget = familyOf(store.cls.parent) === 'widget';
+  const [designerTab, setDesignerTab] = useState<'palette' | 'hierarchy'>('palette');
+  /** Set when a node of another Blueprint is shown: it opens on that graph, even a Widget Blueprint. */
+  const wantGraph = useRef(false);
   /** The Blueprint editor on a graph (leaving the Viewport). */
   const showGraph = () => {
     setView('graph');
     setViewport(false);
   };
-  // Another Blueprint opens on its graph.
-  useEffect(() => setViewport(false), [store.classId]);
+  // Another Blueprint opens on its graph; a Widget Blueprint on its Designer, as in UE.
+  useEffect(() => {
+    setViewport(familyOf(store.cls.parent) === 'widget' && !wantGraph.current);
+    wantGraph.current = false;
+  }, [store.classId]);
   const [left, setLeft] = useState(false);
   // Blueprint editors open in tabs, as in UE; the one being edited is always among them.
   const [tabs, setTabs] = useState<string[]>(() => [store.classId]);
@@ -197,6 +207,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   );
 
   const viewportCanvas = useRef<ViewportHandle>(null);
+  const designerView = useRef<DesignerHandle>(null);
   const viewportRequests: ViewportRequests = useMemo(
     () => ({
       openDetails,
@@ -239,7 +250,10 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
   const focusNode = (graphId: string, nodeId: string, classId?: string, inset?: { top?: number; right?: number }) => {
     showGraph();
-    if (classId && classId !== store.classId) store.openClass(classId);
+    if (classId && classId !== store.classId) {
+      wantGraph.current = true;
+      store.openClass(classId);
+    }
     store.openGraph(graphId);
     requestAnimationFrame(() => canvas.current?.focusNode(nodeId, inset));
   };
@@ -299,6 +313,9 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
   };
 
   const close = () => setOverlay(null);
+  /** The Designer of a Widget Blueprint is shown (in place of the Viewport). */
+  const designer = isWidget && view === 'graph' && viewport && !session;
+  const leftTitle = designer ? 'Palette · Hierarchy' : familyOf(store.cls.parent) === 'actor' ? 'Components · My Blueprint' : 'My Blueprint';
   const lessonIndex = lesson ? LESSONS.indexOf(lesson) : -1;
   // A practice ends back at the queue, not on the next step of the path.
   const nextLesson = lessonIndex >= 0 && !practice ? LESSONS[lessonIndex + 1] : undefined;
@@ -445,9 +462,18 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         </div>
       )}
       <div class="editor-body">
-      <EdgeHandle side="left" label={familyOf(store.cls.parent) === 'actor' ? 'Components · My Blueprint' : 'My Blueprint'} aria="Ouvrir My Blueprint" hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
+      <EdgeHandle side="left" label={leftTitle} aria={designer ? "Ouvrir la Palette et la Hierarchy" : "Ouvrir My Blueprint"} hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
       <main class={`workspace${bottom ? ' bottom-open' : ''}`}>
-        {view === 'graph' && viewport && !playing ? (
+        {designer ? (
+          <DesignerView
+            ref={designerView}
+            onOpenDetails={openDetails}
+            onOpenPalette={() => {
+              setDesignerTab('palette');
+              setLeft(true);
+            }}
+          />
+        ) : view === 'graph' && viewport && !playing ? (
           <ViewportCanvas ref={viewportCanvas} store={store} requests={viewportRequests} />
         ) : view === 'graph' ? (
           <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
@@ -503,7 +529,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
               <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
                 ↷
               </button>
-              <button class="fab" onClick={() => viewportCanvas.current?.fitView()} aria-label="Recentrer la vue" title="Recentrer la vue">
+              <button
+                class="fab"
+                onClick={() => (isWidget ? designerView.current?.fitView() : viewportCanvas.current?.fitView())}
+                aria-label="Recentrer la vue"
+                title="Recentrer la vue"
+              >
                 ⌖
               </button>
             </div>
@@ -559,12 +590,16 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
         <aside class={`drawer left${left ? ' open' : ''}`} aria-hidden={!left}>
           <div class="drawer-head">
-            <strong>{familyOf(store.cls.parent) === 'actor' ? 'Components · My Blueprint' : 'My Blueprint'}</strong>
+            <strong>{leftTitle}</strong>
             <button class="btn" onClick={() => setLeft(false)}>
               ✕
             </button>
           </div>
-          <MyBlueprint openOverlay={setOverlay} placeNode={placeNode} onOpenDetails={openDetails} />
+          {designer ? (
+            <DesignerPanel openOverlay={setOverlay} onOpenDetails={openDetails} onPlaced={() => setLeft(false)} tab={designerTab} onTab={setDesignerTab} />
+          ) : (
+            <MyBlueprint openOverlay={setOverlay} placeNode={placeNode} onOpenDetails={openDetails} />
+          )}
         </aside>
 
         <aside class={`drawer right${details ? ' open' : ''}`} aria-hidden={!details}>

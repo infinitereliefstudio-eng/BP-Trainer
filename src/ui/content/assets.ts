@@ -37,6 +37,13 @@ export const ASSET_STYLE: Record<AssetKind, { glyph: string; color: string }> = 
   mappingContext: { glyph: '⌨', color: '#d4537e' },
 };
 
+/** A Widget Blueprint has UE's own thumbnail colour, apart from the other Blueprints. */
+const WIDGET_STYLE = { glyph: '▣', color: '#2fa36b' };
+
+export function assetStyle(a: Asset): { glyph: string; color: string } {
+  return a.type === 'Widget Blueprint' ? WIDGET_STYLE : ASSET_STYLE[a.kind];
+}
+
 export function projectAssets(p: Project): Asset[] {
   const parentName = (id?: string) => p.classes.find((c) => c.id === id)?.name;
   const out: Asset[] = [
@@ -44,7 +51,7 @@ export function projectAssets(p: Project): Asset[] {
       kind: 'blueprint' as const,
       id: c.id,
       name: c.name,
-      type: 'Blueprint Class',
+      type: c.parent === 'UserWidget' ? 'Widget Blueprint' : 'Blueprint Class',
       parent: parentName(c.parentClassId) ?? c.parent,
       placeable: isPlaceableParent(c.parent),
     })),

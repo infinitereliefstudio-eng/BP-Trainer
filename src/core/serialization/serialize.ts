@@ -124,6 +124,10 @@ function migrate(p: Project, from: number): Project {
     // Nothing to convert: the number keeps an older app from opening these projects.
     cur = 11;
   }
+  if (cur === 11) {
+    // v12: Widget Blueprints (parent UserWidget, their widget tree). Nothing to convert.
+    cur = 12;
+  }
   p.format = cur;
   return p;
 }

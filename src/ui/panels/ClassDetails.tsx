@@ -3,6 +3,7 @@ import { implementInterface, removeImplementedInterface } from '@core/operations
 import { isA, rootParent } from '@core/model/inheritance';
 import { removeClass, renameClass, setParentClass, setPlayerClass, setPlayerControllerClass } from '@core/operations/projectOps';
 import { familyOf } from '@core/model/project';
+import { widgetUsers } from '@core/operations/widgetOps';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
@@ -109,6 +110,46 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             <b>Parent ou composant ?</b> Un parent dit « est un » (une pompe est une machine) ; un composant dit « a un » (une caisse, une tourelle et le joueur
             ont une santé).
           </p>
+        </AppHelp>
+      </>
+    );
+  }
+
+  if (root === 'UserWidget') {
+    const users = widgetUsers(project, cls.id);
+    return (
+      <>
+        <Group title="Class Options">
+          <Field label="Parent Class">
+            <span>UserWidget</span>
+          </Field>
+        </Group>
+        <Group title="Interfaces">
+          <Field label="Implemented Interfaces">
+            <span class="muted small">{implemented.length ? implemented.map((i) => i.name).join(', ') : 'aucune'}</span>
+          </Field>
+          <button class="btn" onClick={addInterface}>
+            + Add
+          </button>
+        </Group>
+        {users.length > 0 && (
+          <Group title="Placé dans" app>
+            {users.map((u) => (
+              <p key={u.id}>{u.name}</p>
+            ))}
+          </Group>
+        )}
+        {blueprint}
+        <AppHelp>
+          <p>
+            Un <b>Widget Blueprint</b> est une interface dessinée par-dessus le jeu : un HUD, un menu, une barre de vie. Il n’est pas dans le niveau et n’a pas de
+            composants : on le compose dans le <b>Designer</b> (Palette, Hierarchy, Details), on écrit sa logique dans le <b>Graph</b>.
+          </p>
+          <p>
+            Pendant le jeu, un autre Blueprint (souvent le Player Controller) le crée avec <b>Create Widget</b>, garde la référence dans une variable, puis l’affiche
+            avec <b>Add to Viewport</b>. Dans le Graph, <b>Event Construct</b> joue le rôle de BeginPlay.
+          </p>
+          <p class="app-only-text">Simplification de l’appli : un Widget Blueprint garde UserWidget pour parent (pas d’héritage entre Widget Blueprints).</p>
         </AppHelp>
       </>
     );

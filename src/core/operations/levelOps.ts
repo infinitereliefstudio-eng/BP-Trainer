@@ -18,6 +18,9 @@ export function placeActor(p: Project, classId: string, x: number, y: number): O
   if (cls.parent === 'ActorComponent') {
     return { ok: false, reason: `${cls.name} est un Actor Component : il ne se pose pas dans le niveau, on l’ajoute dans les Components d’un acteur (+ Add).` };
   }
+  if (cls.parent === 'UserWidget') {
+    return { ok: false, reason: `${cls.name} est un Widget Blueprint : une interface à l’écran, pas un acteur. On l’affiche pendant le jeu avec Create Widget puis Add to Viewport.` };
+  }
   if (!isPlaceableParent(cls.parent)) return { ok: false, reason: `${cls.name} est un Player Controller : le jeu le crée lui-même (Player Controller Class), il ne se pose pas dans le niveau.` };
   const a: LevelActor = {
     id: newId('a'),

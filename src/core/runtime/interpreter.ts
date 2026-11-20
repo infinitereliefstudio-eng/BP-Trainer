@@ -123,7 +123,7 @@ const MAX_PURE_DEPTH = 64;
 /** Nodes run by the interpreter itself rather than by a behaviour. */
 export const CONSTRUCTION_ENTRY = 'cs.entry';
 
-export const INTERPRETER_NODES = new Set(['var.get', 'var.getLocal', 'var.component', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
+export const INTERPRETER_NODES = new Set(['var.get', 'var.getLocal', 'var.component', 'var.widget', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
 
 /** Events and function entries: where a chain starts. */
 function isEntry(node: NodeInstance | undefined): boolean {
@@ -744,6 +744,9 @@ export class Interpreter {
         const obj = actor.logic?.[id];
         return obj ? { ref: 'actor', id: obj } : { ref: 'component', actor: actor.id, id };
       }
+      case 'var.widget':
+        // A widget of the Designer, on the screen of a running game (UMG runtime: Create Widget).
+        return actor.widgetRefs?.[String(src.config.widget)] ?? null;
       case 'actor.self':
         return { ref: 'actor', id: actor.id };
       case 'util.reroute':

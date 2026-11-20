@@ -20,7 +20,7 @@ import type { Focus } from '@core/store/editorStore';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
-import { ASSET_STYLE, type Asset, assetFocus, projectAssets, removeAsset } from './assets';
+import { assetStyle, type Asset, assetFocus, projectAssets, removeAsset } from './assets';
 
 interface Props {
   onClose: () => void;
@@ -106,8 +106,16 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
   const createBlueprint = (parent: string, parentName: string) => {
     const isNative = (NATIVE_PARENTS as string[]).includes(parent);
     create(
-      `Nouveau Blueprint (parent : ${parentName})`,
-      parent === 'SaveGame' ? 'BP_Sauvegarde' : parent === 'PlayerController' ? 'BP_PlayerController' : parent === 'ActorComponent' ? 'BP_NewComponent' : 'BP_NewBlueprint',
+      parent === 'UserWidget' ? 'Nouveau Widget Blueprint' : `Nouveau Blueprint (parent : ${parentName})`,
+      parent === 'SaveGame'
+        ? 'BP_Sauvegarde'
+        : parent === 'PlayerController'
+          ? 'BP_PlayerController'
+          : parent === 'ActorComponent'
+            ? 'BP_NewComponent'
+            : parent === 'UserWidget'
+              ? 'WBP_NewWidget'
+              : 'BP_NewBlueprint',
       'Créer un Blueprint',
       (p, name) => {
         // A child starts from its parent's native class: the families (actor, SaveGame, Actor Component) never mix.
@@ -150,6 +158,15 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
         {
           label: 'Structure',
           run: () => create('Nouvelle Structure', 'S_Objet', 'Créer une structure', (p, name) => addStruct(p, name), (id) => showDetails({ kind: 'struct', id })),
+        },
+      ],
+    },
+    {
+      group: 'User Interface',
+      items: [
+        {
+          label: 'Widget Blueprint',
+          run: () => createBlueprint('UserWidget', 'User Widget'),
         },
       ],
     },
@@ -229,7 +246,7 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
               <div class="cd-grid">
                 {shown.map((a) => {
                   const key = `${a.kind}:${a.id}`;
-                  const st = ASSET_STYLE[a.kind];
+                  const st = assetStyle(a);
                   return (
                     <button key={key} class={`cd-tile${selected === key ? ' selected' : ''}`} onClick={() => tapAsset(a)} title={a.parent ? `Parent : ${a.parent}` : a.type}>
                       <span class="cd-thumb" style={{ color: st.color }} aria-hidden="true">
@@ -359,7 +376,8 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
                 <span class="pi-title">SaveGame</span>
                 <span class="pi-desc">Un objet qui ne contient que des variables, écrit dans un slot par Save Game to Slot.</span>
               </button>
-              {store.project.classes.map((c) => (
+              {/* A Widget Blueprint is made from + Add › User Interface; the app has no inheritance between them. */}
+              {store.project.classes.filter((c) => c.parent !== 'UserWidget').map((c) => (
                 <button key={c.id} class="palette-item" onClick={() => createBlueprint(c.id, c.name)}>
                   <span class="pi-title">{c.name}</span>
                   <span class="pi-desc">Blueprint enfant : il hérite de tout ce qu’a {c.name}.</span>

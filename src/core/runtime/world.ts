@@ -89,6 +89,8 @@ export interface ActorRT {
    * class) → id of the object that runs its logic.
    */
   logic?: Record<string, string>;
+  /** A widget object (UMG): its widgets ticked Is Variable, by widget id → their reference on the screen. */
+  widgetRefs?: Record<string, RValue>;
   /** For the object of an Actor Component: the actor that carries it (Get Owner), and its component id there. */
   owner?: string;
   componentId?: string;

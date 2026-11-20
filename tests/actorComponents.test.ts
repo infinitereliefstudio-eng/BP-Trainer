@@ -295,7 +295,7 @@ describe('Actor Components', () => {
     const a = pb.place(caisse, 0, 0);
     setComponentOverride(pb.project, a, comp, vie, 7);
     const back = parseProject(serializeProject(pb.project));
-    expect(PROJECT_FORMAT).toBe(11);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(11);
     expect(back.classes.find((c) => c.name === 'BP_Caisse')!.components.find((c) => c.id === comp)?.values?.[vie]).toBe(50);
     expect(back.level.actors[0].componentOverrides?.[comp]?.[vie]).toBe(7);
     const s = new Simulation(back);

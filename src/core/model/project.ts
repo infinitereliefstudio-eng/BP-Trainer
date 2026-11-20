@@ -9,6 +9,7 @@ import type { PinType } from '../types/pins';
 import type { Value } from '../types/values';
 import { newId } from './ids';
 import { RULES_VERSION } from './rules';
+import type { WidgetNode } from './widgets';
 
 export interface PinRef {
   node: string;
@@ -167,18 +168,22 @@ export interface ComponentProps {
  * written to a slot by Save Game to Slot. PlayerController is an actor that
  * the game makes by itself for the player (never placed): it sits on the
  * input stack and owns the Enhanced Input Local Player Subsystem.
+ * UserWidget is a Widget Blueprint (UMG): an interface drawn over the game,
+ * made of a widget tree (its Designer) and a graph; created by Create Widget.
  */
-export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent';
+export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent' | 'UserWidget';
 
 /** Native parents a Blueprint can be created from. */
-export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent'];
+export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent', 'UserWidget'];
 
 /**
- * Three families that never mix: actors (Actor, Pawn, PlayerController),
- * SaveGame objects, and Actor Components (added to actors, never placed).
+ * Four families that never mix: actors (Actor, Pawn, PlayerController),
+ * SaveGame objects, Actor Components (added to actors, never placed) and
+ * Widget Blueprints (on the screen, never in the level).
  */
-export type ClassFamily = 'actor' | 'save' | 'component';
-export const familyOf = (parent: ParentClass): ClassFamily => (parent === 'SaveGame' ? 'save' : parent === 'ActorComponent' ? 'component' : 'actor');
+export type ClassFamily = 'actor' | 'save' | 'component' | 'widget';
+export const familyOf = (parent: ParentClass): ClassFamily =>
+  parent === 'SaveGame' ? 'save' : parent === 'ActorComponent' ? 'component' : parent === 'UserWidget' ? 'widget' : 'actor';
 
 /** Can instances of this native class be placed in the level or spawned? */
 export const isPlaceableParent = (parent: ParentClass): boolean => parent === 'Actor' || parent === 'Pawn';
@@ -230,6 +235,8 @@ export interface BlueprintClass {
   dispatchers: Dispatcher[];
   /** Ids of the Blueprint Interfaces this class implements (Class Settings). */
   interfaces: string[];
+  /** A Widget Blueprint: its widget tree (Designer), in tree order. */
+  widgets?: WidgetNode[];
 }
 
 /** An instance of a Blueprint class placed in the level. */
@@ -378,7 +385,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 11;
+export const PROJECT_FORMAT = 12;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},
@@ -445,12 +452,14 @@ export function createClass(name: string, parent: ParentClass = 'Actor'): Bluepr
     name,
     parent,
     autoReceiveInput: false,
-    // A SaveGame is an object and an Actor Component has no place in the world: no components at all.
+    // A SaveGame is an object, an Actor Component and a widget have no place in the world: no components at all.
     components: familyOf(parent) !== 'actor' ? [] : [{ id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene', props: componentDefaults('Scene') }],
     variables: [],
     graphs: [createGraph('EventGraph', 'event')],
     dispatchers: [],
     interfaces: [],
+    // As in UE5, a new Widget Blueprint has no root: the first widget placed becomes it.
+    ...(parent === 'UserWidget' ? { widgets: [] } : {}),
   };
 }
 

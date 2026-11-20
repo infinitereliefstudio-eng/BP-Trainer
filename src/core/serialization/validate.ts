@@ -8,6 +8,7 @@
  * of a deleted class, a pawn class that is not there any more.
  */
 import { NATIVE_PARENTS, type Project } from '../model/project';
+import { slotDefaults, widgetPropsDefaults, WIDGET_KINDS, type WidgetKind } from '../model/widgets';
 
 export class ProjectFileError extends Error {
   /** 'newer': written by a newer version of the app; 'invalid': not a readable project. */
@@ -106,6 +107,35 @@ function checkClass(c: unknown): void {
   for (const g of graphs) checkGraph(g, String(cls.name));
   for (const d of list(cls, 'dispatchers', where)) named(d, `Un Event Dispatcher de « ${cls.name} »`);
   need(list(cls, 'interfaces', where).every(isStr), `${where} : liste d’interfaces mal formée.`);
+  if (cls.parent === 'UserWidget') checkWidgets(cls, where);
+  else delete cls.widgets;
+}
+
+/**
+ * The widget tree of a Widget Blueprint. A widget of an unknown kind is
+ * refused; one whose parent is gone, or a second root, is dropped with what
+ * hangs under it; missing properties take their default.
+ */
+function checkWidgets(cls: Obj, where: string): void {
+  cls.widgets ??= [];
+  const widgets = list(cls, 'widgets', where) as Obj[];
+  for (const w of widgets) {
+    named(w, `Un widget de « ${cls.name} »`);
+    need(WIDGET_KINDS.includes(w.kind as WidgetKind), `${where} : widget « ${w.name} » d’un type inconnu.`);
+    w.isVariable = w.isVariable === true;
+    w.props = { ...widgetPropsDefaults(w.kind as WidgetKind), ...(isObj(w.props) ? w.props : {}) };
+    w.slot = { ...slotDefaults(), ...(isObj(w.slot) ? w.slot : {}) };
+  }
+  const ids = new Set<string>();
+  let root = false;
+  cls.widgets = widgets.filter((w) => {
+    const keep = w.parent === undefined ? !root : ids.has(w.parent as string);
+    if (keep) {
+      if (w.parent === undefined) root = true;
+      ids.add(w.id as string);
+    }
+    return keep;
+  });
 }
 
 function checkAssets(p: Obj): void {
@@ -175,6 +205,20 @@ export function validateProject(value: unknown): asserts value is Project {
   const componentClasses = new Set((classes as Obj[]).filter((c) => c.parent === 'ActorComponent').map((c) => c.id as string));
   for (const c of classes as Obj[]) {
     c.components = (c.components as Obj[]).filter((k) => k.kind !== 'ActorComponent' || componentClasses.has(k.classId as string));
+  }
+  // A User Widget whose Widget Blueprint is gone: dropped from the tree.
+  const widgetClasses = new Set((classes as Obj[]).filter((c) => c.parent === 'UserWidget').map((c) => c.id as string));
+  for (const c of classes as Obj[]) {
+    if (!Array.isArray(c.widgets)) continue;
+    const gone = new Set((c.widgets as Obj[]).filter((w) => w.kind === 'UserWidget' && !widgetClasses.has(w.classId as string)).map((w) => w.id as string));
+    c.widgets = (c.widgets as Obj[]).filter((w) => {
+      if (gone.has(w.id as string)) return false;
+      if (w.parent !== undefined && gone.has(w.parent as string)) {
+        gone.add(w.id as string);
+        return false;
+      }
+      return true;
+    });
   }
   checkAssets(p);
   checkLevel(p, classIds);

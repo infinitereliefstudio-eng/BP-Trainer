@@ -33,10 +33,12 @@ export function validateName(name: string, taken: string[]): string | null {
   return null;
 }
 
-function namesInUse(cls: BlueprintClass, exceptId?: string): string[] {
+/** Names a new member may not take: variables, components and, in a Widget Blueprint, its widgets (each may be a variable). */
+export function namesInUse(cls: BlueprintClass, exceptId?: string): string[] {
   return [
     ...cls.variables.filter((v) => v.id !== exceptId).map((v) => v.name),
     ...cls.components.filter((c) => c.id !== exceptId).map((c) => c.name),
+    ...(cls.widgets ?? []).filter((w) => w.id !== exceptId).map((w) => w.name),
   ];
 }
 
@@ -148,7 +150,7 @@ export function addComponent(cls: BlueprintClass, kind: ComponentKind): Componen
 export function addActorComponent(p: Project, cls: BlueprintClass, classId: string, taken: string[] = []): OpResult<Component> {
   const comp = findClass(p, classId);
   if (comp?.parent !== 'ActorComponent') return { ok: false, reason: 'Ce Blueprint n’est pas un Actor Component.' };
-  if (cls.parent === 'ActorComponent' || cls.parent === 'SaveGame') return { ok: false, reason: `${cls.name} n’est pas un acteur : il ne peut pas porter de composants.` };
+  if (cls.parent === 'ActorComponent' || cls.parent === 'SaveGame' || cls.parent === 'UserWidget') return { ok: false, reason: `${cls.name} n’est pas un acteur : il ne peut pas porter de composants.` };
   const c: Component = {
     id: newId('cmp'),
     name: uniqueName(comp.name, [...namesInUse(cls), ...taken]),

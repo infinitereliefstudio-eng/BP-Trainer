@@ -20,6 +20,7 @@ import { saveGameBehaviors } from './saveGame';
 import { enhancedInputBehaviors } from './enhancedInput';
 import { controllerBehaviors } from './controller';
 import { actorComponentBehaviors } from './actorComponents';
+import { widgetBehaviors } from './widgets';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
@@ -28,6 +29,7 @@ const ALL: Record<string, Behavior> = {
   ...saveGameBehaviors,
   ...enhancedInputBehaviors,
   ...controllerBehaviors,
+  ...widgetBehaviors,
   ...actionBehaviors,
   ...actorBehaviors,
   ...actorComponentBehaviors,

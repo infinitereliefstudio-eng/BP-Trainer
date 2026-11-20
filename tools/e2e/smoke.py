@@ -979,6 +979,87 @@ async def main():
         await page.wait_for_timeout(200)
         await shot('82_advice_copied_across')
 
+
+        # V7.33: Widget Blueprint (UMG). + Add › User Interface › Widget Blueprint, the Designer, Palette, Hierarchy, Details, a drag, the Graph.
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await page.wait_for_timeout(600)
+        await page.locator('.content-drawer-btn').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.btn', has_text='+ Add').first.tap()
+        await page.locator('.palette-item', has_text='User Interface').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.palette-item', has_text='Widget Blueprint').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('input.field').last.fill('WBP_HUD')
+        await page.locator('.btn', has_text='Créer').last.tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.graph-tabs .tab.active', has_text='Designer').count() == 0:
+            errs.append('Widget Blueprint : il ne s’ouvre pas sur le Designer')
+        await shot('83_widget_designer_empty')
+        palette = page.locator('button[aria-label="Ouvrir la Palette et la Hierarchy"]')
+        async def place(label):
+            await palette.tap()
+            await page.wait_for_timeout(250)
+            await page.locator('.designer-panel .drawer-tab', has_text='Palette').tap()
+            await page.locator('.designer-panel .palette-item .pi-title', has_text=label).first.tap()
+            await page.wait_for_timeout(250)
+        await place('Canvas Panel')
+        root = "() => { const s = window.bpStore; const r = s.cls.widgets.find(w => !w.parent); s.setFocus({ kind: 'widget', id: r.id }); }"
+        for label in ['Text', 'Progress Bar', 'Button']:
+            await page.evaluate(root)
+            await place(label)
+        kinds = await page.evaluate("() => window.bpStore.cls.widgets.map(w => w.kind + ':' + (w.parent ? 'child' : 'root'))")
+        if kinds != ['CanvasPanel:root', 'TextBlock:child', 'ProgressBar:child', 'Button:child']:
+            errs.append(f'Designer : arbre inattendu {kinds}')
+        if await page.locator('.designer .umg-TextBlock').count() != 1:
+            errs.append('Designer : le Text ne s’affiche pas')
+        await shot('84_widget_designer')
+        await palette.tap()
+        await page.wait_for_timeout(250)
+        await page.locator('.designer-panel .drawer-tab', has_text='Hierarchy').tap()
+        await page.wait_for_timeout(250)
+        await shot('85_widget_hierarchy')
+        await page.locator('.drawer.left .drawer-head .btn').tap()
+        await page.wait_for_timeout(200)
+        # Drag the Progress Bar in the Canvas Panel.
+        bar = await page.locator('.designer .umg-ProgressBar').bounding_box()
+        before = await page.evaluate("() => window.bpStore.cls.widgets.find(w => w.kind === 'ProgressBar').slot.offsets.slice(0, 2)")
+        cdp = await ctx.new_cdp_session(page)
+        x, y = bar['x'] + bar['width'] / 2, bar['y'] + bar['height'] / 2
+        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x, 'y': y}]})
+        for i in range(1, 9):
+            await cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x + i * 12, 'y': y + i * 6}]})
+            await page.wait_for_timeout(16)
+        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+        await page.wait_for_timeout(300)
+        after = await page.evaluate("() => window.bpStore.cls.widgets.find(w => w.kind === 'ProgressBar').slot.offsets.slice(0, 2)")
+        if not (after[0] > before[0] + 100 and after[1] > before[1] + 50):
+            errs.append(f'Designer : le glisser ne déplace pas la Progress Bar ({before} → {after})')
+        # The Text's Details: Is Variable, then the Slot with the anchors.
+        await page.evaluate("() => { const s = window.bpStore; s.setFocus({ kind: 'widget', id: s.cls.widgets.find(w => w.kind === 'TextBlock').id }); }")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.drawer.right .d-field', has_text='Is Variable').locator('input').check()
+        await page.wait_for_timeout(200)
+        await shot('86_widget_details')
+        await page.locator('.drawer.right .anchor-grid').scroll_into_view_if_needed()
+        await page.wait_for_timeout(200)
+        await shot('87_widget_anchors')
+        await page.locator('.drawer.right .drawer-head .btn').tap()
+        # The Graph: Event Construct in the palette, no BeginPlay; the Text is a variable in My Blueprint.
+        await page.locator('.graph-tabs .tab', has_text='Event Graph').tap()
+        await page.wait_for_timeout(300)
+        defs = await page.evaluate("""() => { const s = window.bpStore; return s.cls.widgets.filter(w => w.isVariable).map(w => w.name); }""")
+        if 'TextBlock' not in defs:
+            errs.append(f'Designer : Is Variable n’a pas pris sur le Text ({defs})')
+        await page.locator('button[aria-label="Ouvrir My Blueprint"]').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.drawer.left .mb-row', has_text='TextBlock').count() == 0:
+            errs.append('My Blueprint : le Text coché Is Variable manque aux Variables')
+        await shot('88_widget_my_blueprint')
+
         print('errors', errs)
         await b.close()
         return errs

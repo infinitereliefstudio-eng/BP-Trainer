@@ -133,6 +133,22 @@ const COMPILE: Record<CompileCode, Explanation> = {
       'Pour animer : un timer (Set Timer by Event), ou un Timeline dans l’acteur.',
     ],
   },
+  notInWidget: {
+    why: 'Un widget est une interface dessinée par-dessus le jeu, pas un acteur : il n’est pas dans le niveau, n’a ni overlap ni composants, et n’a pas d’Event BeginPlay.',
+    fixes: [
+      'Pour démarrer : Event Construct (à chaque ajout à l’écran) ou Event On Initialized (une fois, à la création).',
+      'Pour une touche : le Player Controller reçoit l’Input Action et appelle une fonction ou un Custom Event du widget.',
+      'Pour suivre une valeur du jeu : l’acteur appelle un Event Dispatcher, le widget s’y abonne dans Event Construct.',
+    ],
+  },
+  widgetOnly: {
+    why: 'Event Construct, Pre Construct, Destruct et On Initialized appartiennent aux Widget Blueprints : un acteur ne les reçoit jamais.',
+    fixes: ['Dans un acteur : Event BeginPlay.', 'Pour une interface : crée un Widget Blueprint (Content Drawer › + Add › User Interface › Widget Blueprint).'],
+  },
+  widgetGone: {
+    why: 'Le nœud lit un widget du Designer qui a été supprimé, ou dont Is Variable a été décoché : il n’existe plus comme variable du Graph.',
+    fixes: ['Dans le Designer, coche Is Variable en haut des Details du widget.', 'Ou supprime le nœud et prends le bon widget dans My Blueprint (Variables).'],
+  },
   duplicateCustomEvent: {
     why: 'Un Custom Event est appelé par son nom : deux du même nom dans un Blueprint seraient ambigus.',
     fixes: ['Renomme l’un des deux dans Details.'],

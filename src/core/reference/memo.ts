@@ -168,7 +168,8 @@ export const MEMO: MemoCard[] = [
       '- **Piloté par événement** : le jeu annonce un changement (Event Dispatcher « OnSanteChange »), le widget s’y abonne et appelle Set Text ou Set Percent. Rien ne tourne quand rien ne change.\n\n' +
       'Un bouton expose ses événements (On Clicked) dans le graphe du widget.\n\n' +
       'Pour un menu : **Set Input Mode UI Only** (ou Game and UI) et **Show Mouse Cursor** sur le PlayerController ; **Set Input Mode Game Only** en revenant au jeu.\n\n' +
-      'Le widget lit le jeu, il ne le contient pas : la santé vit dans le personnage, pas dans la barre de vie.',
+      'Le widget lit le jeu, il ne le contient pas : la santé vit dans le personnage, pas dans la barre de vie.\n\n' +
+      'Dans BP Trainer : Content Drawer › + Add › User Interface › Widget Blueprint. Il s’ouvre sur son Designer (Palette, Hierarchy, Details) ; son Graph a Event Construct au lieu de BeginPlay.',
   },
   {
     id: 'm-niveaux-sauvegarde',

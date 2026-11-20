@@ -10,6 +10,7 @@ import type { Value } from '../types/values';
 import type { NodeContext, PinSpec } from './definition';
 import { classById, NATIVE_CASTS } from './library/communication';
 import { NOT_IN_COMPONENT, selfIs } from './library/actorComponents';
+import { NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from './library/widgets';
 import { NATIVE_DISPATCHERS, NATIVE_SIGNATURE_OWNER } from './library/nativeDispatchers';
 import { allDefinitions, getDefinition, resolvePins } from './registry';
 
@@ -32,6 +33,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
   const graphKind = graph.kind;
   const out: PaletteEntry[] = [];
   const inComponent = selfIs(ctx, 'ActorComponent');
+  const inWidget = selfIs(ctx, 'UserWidget');
   // Each Get Owner shows where it means something; the other one when searching or dragging a wire.
   const elsewhere = (id: string) => (id === 'component.getOwner' && !inComponent) || (id === 'actor.getOwner' && inComponent);
   for (const d of allDefinitions()) {
@@ -39,6 +41,8 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
     if (d.allowedIn && !d.allowedIn.includes(graphKind)) continue;
     // An Actor Component has no shape, no input, no Timeline (UE leaves them out of its palette).
     if (inComponent && NOT_IN_COMPONENT[d.id]) continue;
+    // A widget is not an actor (no BeginPlay, overlap, Timeline…); its own events exist only there.
+    if (inWidget ? NOT_IN_WIDGET[d.id] : WIDGET_ONLY.has(d.id)) continue;
     const config = { ...(d.defaultConfig ?? {}) };
     if (d.id === 'fn.return') config.graph = graph.id;
     const title =
@@ -52,6 +56,20 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       config,
       keywords: d.keywords ?? [],
       ...(elsewhere(d.id) ? { contextOnly: true } : {}),
+    });
+  }
+  // The widgets of the Designer ticked Is Variable read like variables (Get only, as in UE).
+  for (const w of ctx.cls.widgets ?? []) {
+    const v = w.isVariable ? widgetVariable(ctx, w.id) : undefined;
+    if (!v) continue;
+    out.push({
+      key: `widget:${w.id}`,
+      title: `Get ${w.name}`,
+      category: 'Variables|Widgets',
+      description: `Le widget ${w.name} (${v.type}) du Designer, pour l’utiliser comme Target.`,
+      def: 'var.widget',
+      config: { widget: w.id },
+      keywords: ['get', 'variable', 'widget', w.name.toLowerCase()],
     });
   }
   for (const v of ctx.cls.variables) {

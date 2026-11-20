@@ -17,6 +17,7 @@ import {
 } from '../model/project';
 import { castClassName, classById, findCustomEvent } from '../nodes/library/communication';
 import { componentDispatcher, NOT_IN_COMPONENT, selfIs } from '../nodes/library/actorComponents';
+import { NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from '../nodes/library/widgets';
 import { interfaceMatch } from '../operations/interfaceOps';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
@@ -29,6 +30,9 @@ export type Severity = 'error' | 'warning' | 'info';
 
 export type CompileCode =
   | 'unknownNode'
+  | 'notInWidget'
+  | 'widgetOnly'
+  | 'widgetGone'
   | 'variableGone'
   | 'componentGone'
   | 'ownerGone'
@@ -138,6 +142,13 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     if (n.def === 'var.component' && !findComponent(cls, String(n.config.component))) {
       out.push({ severity: 'error', code: 'componentGone', text: `${title} : le composant n'existe plus.`, ...at });
     }
+    if (n.def === 'var.widget') {
+      const v = widgetVariable(ctx, String(n.config.widget));
+      if (!v) out.push({ severity: 'error', code: 'widgetGone', text: `${title} : le widget n'existe plus dans le Designer.`, ...at });
+      else if (!v.isVariable) {
+        out.push({ severity: 'error', code: 'widgetGone', text: `${v.name} n'est plus une variable : coche Is Variable sur ${v.name} dans le Designer (Details), ou retire ce nœud.`, ...at });
+      }
+    }
     const broken = brokenReference(n, cls, ctx);
     if (broken) out.push({ severity: 'error', code: broken[0], text: `${title} : ${broken[1]}`, ...at });
     if (def.unique) {
@@ -156,6 +167,12 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
       });
     }
     for (const [code, msg] of nodeChecks(n, g, ctx)) out.push({ severity: 'error', code, text: `${title} : ${msg}`, ...at });
+    if (NOT_IN_WIDGET[n.def] && selfIs(ctx, 'UserWidget')) {
+      out.push({ severity: 'error', code: 'notInWidget', text: `${title} n’est pas permis dans un Widget Blueprint : ${NOT_IN_WIDGET[n.def]}`, ...at });
+    }
+    if (WIDGET_ONLY.has(n.def) && !selfIs(ctx, 'UserWidget')) {
+      out.push({ severity: 'error', code: 'widgetOnly', text: `${title} n’existe que dans un Widget Blueprint.`, ...at });
+    }
     if (NOT_IN_COMPONENT[n.def] && selfIs(ctx, 'ActorComponent')) {
       out.push({ severity: 'error', code: 'notInComponent', text: `${title} n’est pas permis dans un Actor Component : ${NOT_IN_COMPONENT[n.def]}`, ...at });
     }
@@ -166,7 +183,7 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
         out.push({
           severity: 'error',
           code: 'selfType',
-          text: `${title} : Self n’est pas un ${sub} ici (${cls.name} est ${selfIs(ctx, 'ActorComponent') ? 'un Actor Component' : `un ${cls.parent}`}) : relie la pin ${p.name}${selfIs(ctx, 'ActorComponent') && sub === 'Actor' ? ', par exemple à Get Owner' : ''}. (« This blueprint (self) is not a ${sub}, therefore '${p.name}' must have a connection. »)`,
+          text: `${title} : Self n’est pas un ${sub} ici (${cls.name} est ${selfIs(ctx, 'ActorComponent') ? 'un Actor Component' : selfIs(ctx, 'UserWidget') ? 'un Widget Blueprint' : `un ${cls.parent}`}) : relie la pin ${p.name}${selfIs(ctx, 'ActorComponent') && sub === 'Actor' ? ', par exemple à Get Owner' : ''}. (« This blueprint (self) is not a ${sub}, therefore '${p.name}' must have a connection. »)`,
           ...at,
         });
       }

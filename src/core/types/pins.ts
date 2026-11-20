@@ -158,6 +158,22 @@ export const BUILTIN_HIERARCHY: Record<string, string | undefined> = {
   BoxComponent: 'PrimitiveComponent',
   PointLightComponent: 'SceneComponent',
   TextRenderComponent: 'PrimitiveComponent',
+  // UMG: a Widget Blueprint is a UserWidget; the widgets of its Designer have UE's classes.
+  Visual: 'Object',
+  Widget: 'Visual',
+  UserWidget: 'Widget',
+  PanelWidget: 'Widget',
+  CanvasPanel: 'PanelWidget',
+  VerticalBox: 'PanelWidget',
+  HorizontalBox: 'PanelWidget',
+  Overlay: 'PanelWidget',
+  ContentWidget: 'PanelWidget',
+  Button: 'ContentWidget',
+  TextLayoutWidget: 'Widget',
+  TextBlock: 'TextLayoutWidget',
+  ProgressBar: 'Widget',
+  Image: 'Widget',
+  Spacer: 'Widget',
 };
 
 export function makeHierarchy(extra: Record<string, string> = {}): ClassHierarchy {

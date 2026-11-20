@@ -6,13 +6,14 @@ import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { renameTypeRefs } from './enumOps';
 import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
+import { widgetUsers } from './widgetOps';
 
 /** Drop links that no longer fit after a signature or type change, everywhere. */
 export function pruneProject(p: Project): void {
   for (const c of p.classes) pruneAllGraphs(c, contextFor(c, p));
 }
 
-const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self'];
+const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self', 'UserWidget', 'Widget'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
   const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
@@ -45,6 +46,8 @@ export function removeClass(p: Project, id: string): OpResult {
   if (child) return { ok: false, reason: `${child.name} hérite de ce Blueprint : change d’abord sa classe parente (Class Settings).` };
   const user = p.classes.find((c) => c.components.some((k) => k.kind === 'ActorComponent' && k.classId === id));
   if (user) return { ok: false, reason: `${user.name} utilise ce Blueprint comme composant : retire-le d’abord de ses Components.` };
+  const screen = widgetUsers(p, id)[0];
+  if (screen) return { ok: false, reason: `${screen.name} place ce Widget Blueprint dans son Designer : retire-le d’abord de sa Hierarchy.` };
   p.classes = p.classes.filter((c) => c.id !== id);
   p.level.actors = p.level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;
@@ -55,7 +58,8 @@ export function removeClass(p: Project, id: string): OpResult {
 const FAMILY_REFUSAL: Record<ClassFamily, string> = {
   save: 'Un SaveGame ne peut hériter que de SaveGame ou d’un autre SaveGame.',
   component: 'Un Actor Component ne peut hériter que d’ActorComponent ou d’un autre Actor Component.',
-  actor: 'Un acteur ne peut hériter ni d’un SaveGame ni d’un Actor Component : crée un Blueprint à part (Content Drawer › + Add › Blueprint Class).',
+  actor: 'Un acteur ne peut hériter ni d’un SaveGame, ni d’un Actor Component, ni d’un Widget Blueprint : crée un Blueprint à part (Content Drawer › + Add › Blueprint Class).',
+  widget: 'Un Widget Blueprint garde UserWidget pour parent : l’appli ne gère pas l’héritage entre Widget Blueprints.',
 };
 
 /**
@@ -70,6 +74,8 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   const base = p.classes.find((c) => c.id === parent);
   const wanted: ClassFamily = base ? familyOf(rootParent(p, base)) : familyOf(parent as ParentClass);
   if (family !== wanted) return { ok: false, reason: FAMILY_REFUSAL[family] };
+  // Simplification of the app: a Widget Blueprint stays a direct child of UserWidget.
+  if (family === 'widget') return parent === 'UserWidget' ? { ok: true, value: undefined } : { ok: false, reason: FAMILY_REFUSAL.widget };
   const saveFamily = family === 'save';
   if (parent === 'SaveGame' || parent === 'ActorComponent') {
     delete cls.parentClassId;

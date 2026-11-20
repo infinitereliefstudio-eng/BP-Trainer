@@ -28,6 +28,8 @@ export type Focus =
   /** A Local Variable of the function graph `graph`. */
   | { kind: 'local'; graph: string; id: string }
   | { kind: 'component'; id: string }
+  /** A widget of the Widget Blueprint's Designer. */
+  | { kind: 'widget'; id: string }
   | { kind: 'class' }
   /** Class Defaults: the default value of each variable of the class. */
   | { kind: 'classDefaults' }
@@ -226,6 +228,7 @@ export class EditorStore {
     if (f.kind === 'variable' && !this.cls.variables.some((v) => v.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'local' && !findGraph(this.cls, f.graph)?.fn?.locals?.some((l) => l.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'component' && !this.cls.components.some((c) => c.id === f.id)) this.focus = { kind: 'none' };
+    if (f.kind === 'widget' && !(this.cls.widgets ?? []).some((w) => w.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'nodes' && this.selection.size === 0) this.focus = { kind: 'none' };
     if (f.kind === 'actor' && !this.project.level.actors.some((a) => a.id === f.id)) this.focus = { kind: 'none' };
     if (f.kind === 'function' && !this.cls.graphs.some((g) => g.id === f.id)) this.focus = { kind: 'none' };

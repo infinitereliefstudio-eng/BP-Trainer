@@ -36,6 +36,7 @@ import { saveGameNodes } from './library/saveGame';
 import { enhancedInputNodes } from './library/enhancedInput';
 import { controllerNodes } from './library/controller';
 import { actorComponentNodes } from './library/actorComponents';
+import { widgetNodes } from './library/widgets';
 
 const ALL: NodeDefinition[] = [
   ...controllerNodes,
@@ -51,6 +52,7 @@ const ALL: NodeDefinition[] = [
   ...variableNodes,
   ...actorNodes,
   ...actorComponentNodes,
+  ...widgetNodes,
   ...componentNodes,
   ...communicationNodes,
   ...functionNodes,

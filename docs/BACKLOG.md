@@ -37,13 +37,13 @@ Après l'étude de `docs/ANALYSE_COUVERTURE_UNREAL.md`, Tristan a validé cet or
 |---|---|---|---|---|
 | 1 | ~~Actor Components~~ **fait** (V7.19 à V7.22) | Blueprints de composant créés par l'apprenant, ajoutés à plusieurs acteurs ; Get Owner, Get Component by Class, BeginPlay et Tick du composant ; neuf étapes (santé, interaction réutilisable, inventaire, énergie) et le conseil « Chaîne copiée entre Blueprints » | ★★★ | L |
 | 2 | ~~Révisions de graphes espacées~~ **fait** (V7.27 à V7.30) | Journal des tentatives, file « À retravailler en Blueprint » programmée en jours, trois familles de mini-exercices à variantes, hypothèse avant l'indice dans les Débogue. Détail juste en dessous | ★★★ | L |
-| 3 | **UMG minimal** (lot 7) — **le prochain** | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
+| 3 | **UMG** (lot 7) — **le prochain, analyse proposée le 20 novembre** ([PLAN_UMG.md](PLAN_UMG.md), en attente des réponses de Tristan) | Quelques widgets prêts (texte, jauge, bouton), Create Widget et Add to Viewport, mis à jour par événement (pas de Binding à chaque image) ; le menu pause et une barre de vie deviennent visibles. Un éditeur de widgets complet reste à réévaluer ensuite | ★★★ | M |
 | 4 | **Niveaux et GameInstance** (lot 6) | Plusieurs niveaux, Open Level, GameInstance (et un GameMode léger) ; trois durées de vie : dans le niveau, pendant la session, après la fermeture (SaveGame) | ★★★ | L |
 | 5 | **Projet Expert final** | Le « mini-jeu solo » de l'analyse, à la place du troisième projet Expert : inventaire en composant (BP_Inventaire de « Le sac et le coffre » existe), interface, changement de niveau, sauvegarde | ★★★ | L |
 
 ### Chantier annexe (fait) : retouches de l'interface
 
-Demandé par Tristan le 19 novembre au soir, avant l'UMG : améliorer l'interface et l'aspect général sans refonte. [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). **Terminé le même soir** : V7.31 (place pour le graphe, boutons flottants en colonne, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, menu, Timeline, couleurs). Tristan ne les a pas encore essayées sur son téléphone. L'UMG minimal reste le prochain chantier. Laissé de côté ou remarqué en chemin :
+Demandé par Tristan le 19 novembre au soir, avant l'UMG : améliorer l'interface et l'aspect général sans refonte. [PLAN_RETOUCHES_UI.md](PLAN_RETOUCHES_UI.md). **Terminé le même soir** : V7.31 (place pour le graphe, boutons flottants en colonne, zoom plancher 0,7, messages) et V7.32 (barre du bas en onglets, contrôles de Play dans la barre d'outils, accueil en paysage, menu, Timeline, couleurs). Tristan les a essayées : « les points sont ok » (20 novembre). L'UMG minimal reste le prochain chantier. Laissé de côté ou remarqué en chemin :
 
 | Point | Où on en est | Pertinence | Difficulté |
 |---|---|---|---|
@@ -56,7 +56,7 @@ Demandé par Tristan le 19 novembre au soir, avant l'UMG : améliorer l'interfac
 
 ### Chantier n° 2 (fait) : révisions de graphes espacées
 
-Tiré de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, étudiée le 19 novembre ; Tristan a validé l'intégration et l'ordre. Le constat : les questions de révision reviennent dans le temps (`core/review/schedule.ts`), les graphes jamais. Reconnaître ce que fait un nœud une semaine plus tard n'est pas savoir le recâbler. **Terminé le 19 novembre**, une étape par version ; Tristan n'a encore essayé aucune des quatre.
+Tiré de `docs/ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md`, étudiée le 19 novembre ; Tristan a validé l'intégration et l'ordre. Le constat : les questions de révision reviennent dans le temps (`core/review/schedule.ts`), les graphes jamais. Reconnaître ce que fait un nœud une semaine plus tard n'est pas savoir le recâbler. **Terminé le 19 novembre**, une étape par version ; Tristan les a essayées : « les points sont ok » (20 novembre).
 
 | Étape | Livré | Version |
 |---|---|---|
@@ -110,7 +110,7 @@ Décision de Tristan du 19 novembre, après la V7.18 : le plan du parcours (lots
 | Troisième projet Expert | Deux projets (X2, X1) | Remplacé par le chantier n° 5 (projet Expert final) |
 | ~~« S'adapter à l'apprenant »~~ | Repris par le chantier n° 2 (révisions de graphes espacées) | — |
 | Déclencheur Tap | Absent ; T2 utilise Hold + Canceled | L'ajouter à Enhanced Input, et voir si une étape en a besoin |
-| Menu pause | Fait sans widget, sur Espace (choix par défaut, question sans réponse) | À confirmer ; à revoir avec le chantier n° 3 (UMG) |
+| Menu pause | Fait sans widget, sur Espace ; choix confirmé par Tristan le 20 novembre | Le chantier UMG propose une étape de plus, « Le vrai menu pause » ([PLAN_UMG.md](PLAN_UMG.md)) |
 
 ## Cadre : ce qu'il faut garder
 

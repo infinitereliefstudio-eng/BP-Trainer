@@ -44,7 +44,7 @@ Une notion nouvelle par étape ; une échelle par notion (découvrir, guidé, mo
 - **Débogue D21 « Qui a éteint la lumière ? »** (`library/whoTurnedOff.ts`, après D12) : huit Blueprints, l'appel de trop est dans BP_Ventilation ; se trouve par Find References sur Event Eteindre. Notion `find`.
 - **Refactor R4 « Interagir comme dans UE5 »** (`library/interactUe5.ts`, après P8) : les objets écoutaient IA_Interagir (Auto Receive Input, bProche) ; le joueur reçoit l'action et prévient par BPI_Interactif ; un coffre de plus réagit sans toucher au joueur.
 - **Le menu pause** (`library/pauseMenu.ts`, après D11) : IA_Pause créée par l'apprenant, Trigger when Paused, Set Game Paused et Is Game Paused dans BP_PlayerController ; le « menu » est un message (pas de widgets). Notion `pause`.
-- Décision prise sans réponse de Tristan (question posée le 2026-11-19) : menu pause sans widget, sur Espace.
+- Décision prise sans réponse de Tristan (question posée le 2026-11-19) : menu pause sans widget, sur Espace. Confirmée par Tristan le 2026-11-20.
 
 ### Lot 3b — fait en V7.16
 

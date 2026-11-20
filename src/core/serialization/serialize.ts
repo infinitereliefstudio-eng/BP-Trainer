@@ -147,6 +147,11 @@ function migrate(p: Project, from: number): Project {
     p.mapsModes = { gameDefaultMap: main.id };
     cur = 14;
   }
+  if (cur === 14) {
+    // v15: Open Level (by Name) and Get Current Level Name. Nothing to convert: the number keeps an older app
+    // from opening a project whose graphs use them.
+    cur = 15;
+  }
   p.format = cur;
   return p;
 }

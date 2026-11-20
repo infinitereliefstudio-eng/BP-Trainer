@@ -38,6 +38,9 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
           ×{s === 0.25 ? '¼' : s}
         </button>
       ))}
+      <span class="pb-level" title="Le niveau en cours (Get Current Level Name) : Open Level en change">
+        {sim.level.name}
+      </span>
       <span class="pb-time">{sim.time.toFixed(2)} s</span>
       {sim.runtimeErrors > 0 && (
         <button class="pb-err" onClick={onShowLog}>
@@ -84,7 +87,8 @@ export function PlayOverlay({ session }: Pick<Props, 'session'>) {
         ))}
       </div>
 
-      <Joystick onMove={(x, y) => (sim.move = { x, y })} />
+      {/* The game's joystick, not the world's: it still holds after an Open Level. */}
+      <Joystick onMove={(x, y) => (session.game.move = { x, y })} />
 
       <div class="keys">
         <Key label="E" k="E" session={session} />

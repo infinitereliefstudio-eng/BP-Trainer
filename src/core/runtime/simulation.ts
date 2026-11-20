@@ -61,6 +61,29 @@ export interface TraceEntry {
 
 const TRACE_MAX = 400;
 
+/** EEndPlayReason::LevelTransition (the order of the enum in core/types/enums.ts). */
+const LEVEL_TRANSITION = 1;
+
+export interface SimulationOptions {
+  seed?: number;
+  breakpoints?: Set<string>;
+  order?: ActorOrder;
+  slots?: Record<string, SavedGame>;
+  /** Told each time a node writes or deletes a slot, so that it can be kept at once. */
+  onSlotsChanged?: () => void;
+  /** The level to play (a level id): the one open in the editor if unset, as UE's Play In Editor. */
+  levelId?: string;
+  /** The Output Log and on-screen messages: a Game passes its own, kept from one level to the next. */
+  journal?: Journal;
+}
+
+/** What Open Level asked for: done by the Game at the start of the next frame (core/runtime/game.ts). */
+export interface TravelRequest {
+  level: string;
+  absolute: boolean;
+  options: string;
+}
+
 export class Simulation implements InterpreterHost {
   time = 0;
   frame = 0;
@@ -114,7 +137,13 @@ export class Simulation implements InterpreterHost {
   private readonly touch: TouchInput;
   private readonly onSlotsChanged?: () => void;
 
-  private readonly journal = new Journal();
+  private readonly journal: Journal;
+  /** Open Level was called: the level asked for (the last call wins, as UE's SetClientTravel). */
+  travel?: TravelRequest;
+  /** The world is ending for Open Level (Destruct, End Play): no new frame, no new travel. */
+  private ending = false;
+  /** End Play has run everywhere: the Game can make the next world. */
+  ended = false;
   private interp: Interpreter;
   private site: NodeSite | undefined;
   private rng: number;
@@ -145,17 +174,9 @@ export class Simulation implements InterpreterHost {
 
   constructor(
     readonly project: Project,
-    opts: {
-      seed?: number;
-      breakpoints?: Set<string>;
-      order?: ActorOrder;
-      slots?: Record<string, SavedGame>;
-      /** Told each time a node writes or deletes a slot, so that it can be kept at once. */
-      onSlotsChanged?: () => void;
-      /** The level to play (a level id): the one open in the editor if unset, as UE's Play In Editor. */
-      levelId?: string;
-    } = {},
+    opts: SimulationOptions = {},
   ) {
+    this.journal = opts.journal ?? new Journal();
     this.level = project.levels.find((l) => l.id === opts.levelId) ?? levelOf(project);
     this.rng = opts.seed ?? 12345;
     this.slots = opts.slots ?? {};
@@ -373,7 +394,8 @@ export class Simulation implements InterpreterHost {
   advance(seconds: number): void {
     if (this.paused) return;
     this.accumulator += Math.min(seconds, 0.25);
-    while (this.accumulator >= STEP && !this.paused) {
+    // After Open Level, no more frame of this world: the Game travels first.
+    while (this.accumulator >= STEP && !this.paused && !this.travel && !this.ending) {
       this.accumulator -= STEP;
       this.step();
     }
@@ -382,7 +404,7 @@ export class Simulation implements InterpreterHost {
   /** One frame: move, overlaps, Tick, latent actions and timers, cleanup. */
   step(dt = STEP): void {
     if (!this.started) this.start();
-    if (this.paused) return;
+    if (this.paused || this.ending) return;
     this.deltaSeconds = dt;
     if (this.gamePaused) {
       // UE's paused world: only input is processed, game time stands still.
@@ -520,6 +542,61 @@ export class Simulation implements InterpreterHost {
       this.timers.dropOwner(g.id);
       endOverlapsWith(g, remaining, this.fire, this.broadcast);
     }
+  }
+
+  // -------------------------------------------------------------- travel
+
+  /** Open Level (by Name): remembered until the next frame, when the Game travels. */
+  openLevel(level: string, absolute: boolean, options: string): void {
+    if (this.ending) return;
+    this.travel = { level, absolute, options };
+  }
+
+  /** Get Current Level Name. */
+  currentLevelName(): string {
+    return this.level.name;
+  }
+
+  /** No level of that name: the travel fails, as UE logs it, and the game goes on in this level. */
+  travelFailed(name: string): void {
+    this.travel = undefined;
+    this.journal.error(
+      this.time,
+      `Travel Failure: PackageMissing, Failed to load package '/Game/${name}'. Open Level : aucun niveau ne s’appelle « ${name} » dans ce projet (Content Drawer). La partie reste dans ${this.level.name}.`,
+    );
+  }
+
+  /**
+   * The world ends for Open Level: the widgets leave the screen (Event
+   * Destruct), then each actor gets Event End Play with Level Transition,
+   * then its Actor Components, the Player Controller and the player
+   * included. A breakpoint may stop it: `ended` is set once all has run.
+   * Timers, Delays and Timelines go with the world.
+   */
+  endForTravel(): void {
+    if (this.ending) return;
+    this.ending = true;
+    const isEndPlay = (n: NodeInstance) => n.def === 'event.endPlay';
+    this.phases.push(
+      () => {
+        for (const e of this.umg.tearDown()) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
+      },
+      () => {
+        for (const a of this.scripted().filter((o) => !o.owner)) {
+          this.fire(a, isEndPlay, 'then', { reason: LEVEL_TRANSITION });
+          for (const c of this.componentsOf(a)) this.fire(c, isEndPlay, 'then', { reason: LEVEL_TRANSITION });
+        }
+      },
+      () => {
+        this.ended = true;
+      },
+    );
+    this.runPhases();
+  }
+
+  /** A line of the engine in the Output Log (LoadMap…). */
+  engineLog(text: string): void {
+    this.journal.engine(this.time, text);
   }
 
   // ------------------------------------------------------------- debugger

@@ -411,7 +411,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 14;
+export const PROJECT_FORMAT = 15;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

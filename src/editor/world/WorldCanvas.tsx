@@ -104,7 +104,8 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       {
         actors: actors(),
         player: s?.sim.player,
-        playerStart: levelOf(store.project).playerStart,
+        // During Play, the level being played (Open Level may have changed it).
+        playerStart: (s?.sim.level ?? levelOf(store.project)).playerStart,
         camera: camera(),
         width: l.size.w,
         height: l.size.h,

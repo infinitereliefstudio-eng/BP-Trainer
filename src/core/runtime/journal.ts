@@ -65,6 +65,19 @@ export class Journal {
     this.log.push({ id: nextId(), time, level: 'log', text: `LogBlueprintTrainer: ${text}` });
   }
 
+  /** A line of the engine itself, as UE writes it (LogLoad: LoadMap…). */
+  engine(time: number, text: string): void {
+    this.log.push({ id: nextId(), time, level: 'log', text });
+  }
+
+  /**
+   * A new world starts at time 0 (Open Level): the messages still on screen
+   * keep the time they had left.
+   */
+  rebase(elapsed: number): void {
+    for (const m of this.screen) m.until -= elapsed;
+  }
+
   /** Drop on-screen messages whose time is up. */
   expire(time: number): void {
     this.screen = this.screen.filter((m) => m.until > time);

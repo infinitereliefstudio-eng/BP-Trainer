@@ -45,3 +45,32 @@ it('generates a Widget Component project', async () => {
   pb.playerStart(0, 0);
   writeFileSync(new URL('widget-component.json', OUT), serializeProject(pb.project));
 });
+
+/** V7.47: two levels. The player starts on a door of Lvl_Principal, whose overlap opens Lvl_Atelier; there, a Print of Get Current Level Name. */
+it('generates an Open Level project', async () => {
+  const { ProjectBuilder } = await import('../../src/core/lessons/builder');
+  const { addLevel } = await import('../../src/core/operations/levelAssetOps');
+  const pb = new ProjectBuilder('Deux niveaux');
+  const porte = pb.blueprint('BP_Porte');
+  porte.component('StaticMesh', 'Cadre', { sizeX: 60, sizeY: 120, blocks: false, color: '#c08a3e' });
+  porte.component('BoxCollision', 'Zone', { sizeX: 140, sizeY: 140 });
+  const overlap = porte.node('event.actorBeginOverlap', {}, {}, [0, 0]);
+  const say = porte.node('debug.printString', {}, { text: 'Porte franchie : Open Level' }, [260, 0]);
+  const open = porte.node('level.open', {}, { level: 'Lvl_Atelier' }, [560, 0]);
+  porte.link(overlap, 'then', say, 'exec').link(say, 'then', open, 'exec');
+  pb.place(porte, 0, 0);
+  pb.playerStart(0, 0);
+  const b = addLevel(pb.project, 'Lvl_Atelier');
+  if (!b.ok) throw new Error(b.reason);
+  const atelier = pb.blueprint('BP_Atelier');
+  atelier.component('StaticMesh', 'Etabli', { sizeX: 160, sizeY: 80, color: '#4a8fd6' });
+  const begin = atelier.node('event.beginPlay', {}, {}, [0, 0]);
+  const name = atelier.node('level.currentName', {}, {}, [0, 160]);
+  const print = atelier.node('debug.printString', {}, {}, [300, 0]);
+  atelier.link(begin, 'then', print, 'exec').link(name, 'result', print, 'text');
+  pb.project.editorLevelId = b.value.id;
+  pb.place(atelier, 200, 0);
+  b.value.playerStart = { x: -150, y: 0, yaw: 0 };
+  pb.project.editorLevelId = pb.project.levels[0].id;
+  writeFileSync(new URL('open-level.json', OUT), serializeProject(pb.project));
+});

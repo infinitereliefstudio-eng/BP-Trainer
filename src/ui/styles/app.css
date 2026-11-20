@@ -253,6 +253,7 @@ select.field { padding-right: 4px; }
 .pb-btn.on { background: var(--accent-soft); border-color: var(--accent); }
 .pb-btn.stop { color: var(--err-text-soft); border-color: var(--err-line-dim); }
 .pb-time { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+.pb-level { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; }
 .pb-err { height: 30px; padding: 0 10px; border-radius: 15px; background: var(--error); color: #fff; font-size: 12px; font-weight: 700; }
 .toolbar .play-bar .pb-btn { height: var(--tb-btn); }
 .toolbar .play-bar .pb-err { height: var(--tb-btn); }

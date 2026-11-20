@@ -1461,6 +1461,30 @@ async def main():
         await page.locator('.sheet .btn', has_text='Fermer').first.tap()
         await page.wait_for_timeout(200)
 
+        # V7.47: Open Level. The player starts on a door of Lvl_Principal; its overlap opens Lvl_Atelier, the Play bar says so.
+        await page.evaluate(PUT, ['project:sandbox:sb_e2e_levels', (HERE / 'out' / 'open-level.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await page.wait_for_timeout(400)
+        await page.locator('.project-open', has_text='Deux niveaux').tap()
+        await page.wait_for_timeout(700)
+        if await page.locator('.doc-tab.level').count():
+            await page.locator('.doc-tab.level').first.tap()
+            await page.wait_for_timeout(300)
+        await shot('114_open_level_before')
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1200)
+        lvl = (await page.locator('.pb-level').inner_text()).strip() if await page.locator('.pb-level').count() else ''
+        if lvl != 'Lvl_Atelier':
+            errs.append(f'Open Level : la barre de Play dit « {lvl} » au lieu de Lvl_Atelier')
+        msgs = await page.locator('.screen-msg').all_inner_texts()
+        if 'Lvl_Atelier' not in msgs:
+            errs.append(f'Open Level : messages à l’écran {msgs}')
+        await shot('115_open_level_after')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
         print('errors', errs)
         await b.close()
         return errs

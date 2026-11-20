@@ -308,7 +308,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
     if (!session) return;
     setLastRun(session.sim);
     session.dispose();
-    if (session.sim.slotsChanged) store.saveSlotsChanged();
+    if (session.game.slotsChanged) store.saveSlotsChanged();
     setSession(null);
     if (session.sim.runtimeErrors) {
       store.warn(`Session terminée avec ${session.sim.runtimeErrors} erreur(s) d’exécution : voir l’Output Log.`);

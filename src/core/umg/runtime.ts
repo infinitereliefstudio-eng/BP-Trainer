@@ -359,6 +359,33 @@ export class Umg {
     return this.sync([o]);
   }
 
+  /**
+   * The world ends (Open Level): every widget leaves the screen, outer
+   * widgets first, as UE removes all viewport widgets when the world goes
+   * (since UE 4.8). Returns the Event Destruct to run.
+   */
+  tearDown(): UmgEvent[] {
+    const events: UmgEvent[] = [];
+    const seen = new Set<string>();
+    for (const root of [...this.viewport(), ...this.componentWidgets()]) {
+      for (const o of this.subtree(root)) {
+        if (seen.has(o.id) || !o.widget!.onScreen) continue;
+        seen.add(o.id);
+        o.widget!.onScreen = false;
+        events.push({ obj: o, def: 'event.destruct', outputs: {} });
+      }
+    }
+    for (const o of this.widgetObjects()) {
+      if (o.widget!.onScreen) {
+        o.widget!.onScreen = false;
+        events.push({ obj: o, def: 'event.destruct', outputs: {} });
+      }
+      o.widget!.inViewport = false;
+    }
+    this.version++;
+    return events;
+  }
+
   isInViewport(o: ActorRT): boolean {
     return !!o.widget?.inViewport;
   }

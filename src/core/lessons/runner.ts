@@ -10,6 +10,7 @@
  */
 import { compileClass, type CompileMessage } from '../compiler/validate';
 import { defaultLevel, type Project } from '../model/project';
+import { Game } from '../runtime/game';
 import { type ActorOrder, Simulation, STEP } from '../runtime/simulation';
 import type { Check, CheckContext, Lesson, RobustnessCase, ScenarioStep } from './types';
 
@@ -96,21 +97,24 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
   const slots = lesson.slots?.() ?? {};
   // The game starts in the Game Default Map, whatever level the editor shows (a packaged game, not Play In Editor).
   const levelId = defaultLevel(project).id;
-  let sim = new Simulation(project, { order, slots, levelId });
+  // A game, as Play makes one: Open Level replaces its world (`game.world`), the Output Log stays.
+  let game = new Game(project, { order, slots, levelId });
   // Prints and errors of the games before a restart.
   const earlier: { prints: string[]; errors: string[] } = { prints: [], errors: [] };
   const cx: CheckContext = {
     get sim() {
-      return sim;
+      return game.world;
     },
+    level: () => game.level.name,
+    levels: () => [...game.visited],
     project,
-    actor: (label) => sim.actors.find((a) => a.label === label),
-    component: (label, name) => sim.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),
-    prints: () => [...earlier.prints, ...sim.log.filter((l) => l.message !== undefined).map((l) => l.message!)],
-    errors: () => [...earlier.errors, ...sim.log.filter((l) => l.level === 'error').map((l) => l.text)],
+    actor: (label) => game.world.actors.find((a) => a.label === label),
+    component: (label, name) => game.world.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),
+    prints: () => [...earlier.prints, ...game.world.log.filter((l) => l.message !== undefined).map((l) => l.message!)],
+    errors: () => [...earlier.errors, ...game.world.log.filter((l) => l.level === 'error').map((l) => l.text)],
     variable: (label, name) => {
-      const a = label === 'Joueur' ? sim.player : sim.actors.find((x) => x.label === label);
-      const cls = a ? sim.classOf(a) : undefined;
+      const a = label === 'Joueur' ? game.world.player : game.world.actors.find((x) => x.label === label);
+      const cls = a ? game.world.classOf(a) : undefined;
       const v = cls?.variables.find((x) => x.name === name);
       return a && v ? a.vars[v.id] : undefined;
     },
@@ -137,17 +141,19 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
   };
 
   const notes: string[] = [];
-  sim.start();
+  game.start();
   let dt = STEP;
   // After "Infinite loop detected" (or an infinite recursion) the rest of the scenario is not played: every further event
   // would run to the step limit again, seconds each on a phone. Checkpoints are still evaluated.
   let seen = 0;
   let runaway = false;
   const ranAway = () => {
-    for (; seen < sim.log.length; seen++) if (sim.log[seen].level === 'error' && (sim.log[seen].text.includes('Infinite loop detected') || sim.log[seen].text.includes('Infinite script recursion'))) return true;
+    for (; seen < game.world.log.length; seen++) if (game.world.log[seen].level === 'error' && (game.world.log[seen].text.includes('Infinite loop detected') || game.world.log[seen].text.includes('Infinite script recursion'))) return true;
     return false;
   };
   for (const step of lesson.scenario) {
+    // An Open Level of the last frame travels before anything else happens, as at the start of UE's next frame.
+    game.settle();
     if ('checkpoint' in step) {
       evaluate(step.checkpoint);
       continue;
@@ -155,27 +161,27 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     if (runaway) continue;
     if ('restart' in step) {
       earlier.prints = cx.prints();
-      earlier.errors.push(...sim.log.filter((l) => l.level === 'error').map((l) => l.text));
-      sim = new Simulation(project, { order, slots, levelId });
-      sim.start();
+      earlier.errors.push(...game.world.log.filter((l) => l.level === 'error').map((l) => l.text));
+      game = new Game(project, { order, slots, levelId });
+      game.start();
       seen = 0;
     } else if ('fps' in step) dt = 1 / step.fps;
-    else if ('look' in step) sim.player.yaw = step.look;
-    else if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += dt) sim.step(dt);
+    else if ('look' in step) game.world.player.yaw = step.look;
+    else if ('wait' in step) for (let t = 0; t < step.wait - 1e-9; t += dt) game.step(dt);
     else if ('teleport' in step) {
-      sim.teleportPlayer(step.teleport[0], step.teleport[1]);
-      sim.step(dt);
+      game.world.teleportPlayer(step.teleport[0], step.teleport[1]);
+      game.step(dt);
     } else if ('walk' in step) {
-      sim.move = { x: step.walk[0], y: step.walk[1] };
-      for (let t = 0; t < step.seconds - 1e-9; t += dt) sim.step(dt);
-      sim.move = { x: 0, y: 0 };
+      game.move = { x: step.walk[0], y: step.walk[1] };
+      for (let t = 0; t < step.seconds - 1e-9; t += dt) game.step(dt);
+      game.move = { x: 0, y: 0 };
     } else if ('press' in step) {
-      if (sim.deafActors(step.press).length && !notes.length) {
+      if (game.world.deafActors(step.press).length && !notes.length) {
         notes.push(
           'Un Blueprint a un événement de touche mais ne reçoit pas les entrées : active « Auto Receive Input » dans Class Settings.',
         );
       }
-      const kept = lesson.kind === 'debug' ? undefined : sim.keyKeptFrom(step.press);
+      const kept = lesson.kind === 'debug' ? undefined : game.world.keyKeptFrom(step.press);
       const keyNote = 'Consume Input';
       if (kept && !notes.some((n) => n.includes(keyNote))) {
         const name = step.press === 'SpaceBar' ? 'Espace' : step.press;
@@ -183,22 +189,23 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
           `${kept.by.label} garde la touche ${name} (${keyNote} coché dans le Details de son événement) : ${kept.missed.map((a) => a.label).join(', ')} ne la ${kept.missed.length > 1 ? 'reçoivent' : 'reçoit'} pas. Si plusieurs acteurs doivent l’entendre, décoche ${keyNote}.`,
         );
       }
-      sim.pressKey(step.press);
-      sim.step(dt);
+      game.world.pressKey(step.press);
+      game.step(dt);
     } else if ('release' in step) {
-      sim.releaseKey(step.release);
-      sim.step(dt);
+      game.world.releaseKey(step.release);
+      game.step(dt);
     } else if ('click' in step) {
       const [widget, button] = step.click.split('/');
-      sim.tapButton(widget, button, step.nth);
-      sim.step(dt);
+      game.world.tapButton(widget, button, step.nth);
+      game.step(dt);
     }
     runaway = ranAway();
   }
+  game.settle();
   evaluate(undefined);
 
   const ordered = lesson.checks.map((c) => results.get(c.id) ?? { check: c, ok: false, reason: 'Non vérifié.' });
-  const runtimeErrors = [...earlier.errors, ...sim.log.filter((l) => l.level === 'error').map((l) => l.text)];
+  const runtimeErrors = [...earlier.errors, ...game.world.log.filter((l) => l.level === 'error').map((l) => l.text)];
   return {
     compileErrors: [],
     results: ordered,
@@ -207,7 +214,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     runtimeErrors,
     notes,
     prints: cx.prints(),
-    sim,
+    sim: game.world,
   };
 }
 

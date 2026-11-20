@@ -34,9 +34,13 @@ export type ScenarioStep =
   | { restart: true };
 
 export interface CheckContext {
-  /** The game being played: the latest one after a restart step. */
+  /** The world being played: the latest one after a restart step, the new level's after an Open Level. */
   sim: Simulation;
   project: Project;
+  /** The name of the level being played. */
+  level(): string;
+  /** The levels played in this game, in order (the first, then one per Open Level). A restart starts the list again. */
+  levels(): string[];
   actor(label: string): ActorRT | undefined;
   component(actorLabel: string, componentName: string): ComponentRT | undefined;
   /** Texts printed with Print String so far (every game of the scenario, after a restart too). */

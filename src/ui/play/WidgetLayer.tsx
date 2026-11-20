@@ -23,6 +23,7 @@ export function WidgetLayer({ session }: { session: PlaySession }) {
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [, force] = useReducer((n: number) => n + 1, 0);
   const seen = useRef(-1);
+  const seenUmg = useRef<unknown>(null);
   const [notice, setNotice] = useState<{ o: Ignored; open: boolean; id: number } | undefined>();
 
   useLayoutEffect(() => {
@@ -43,8 +44,11 @@ export function WidgetLayer({ session }: { session: PlaySession }) {
   useEffect(
     () =>
       session.onFrame(() => {
-        if (session.sim.umg.version !== seen.current) {
-          seen.current = session.sim.umg.version;
+        // A new world (Open Level) has its own UMG, whose count starts again.
+        const umg = session.sim.umg;
+        if (umg.version !== seen.current || umg !== seenUmg.current) {
+          seen.current = umg.version;
+          seenUmg.current = umg;
           force(0);
         }
       }),

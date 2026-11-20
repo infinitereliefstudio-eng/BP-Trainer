@@ -32,7 +32,7 @@ function asFormat13(p: Project): string {
 describe('format 14: a project has levels', () => {
   it('starts with Lvl_Principal, the Game Default Map', () => {
     const p = createProject();
-    expect(PROJECT_FORMAT).toBe(14);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(14);
     expect(p.levels.map((l) => l.name)).toEqual([MAIN_LEVEL_NAME]);
     expect(defaultLevel(p)).toBe(p.levels[0]);
     expect(levelOf(p)).toBe(p.levels[0]);
@@ -43,7 +43,7 @@ describe('format 14: a project has levels', () => {
     placeActor(p, lamp, 120, -40);
     levelOf(p).playerStart = { x: -300, y: 10, yaw: 90 };
     const back = parseProject(asFormat13(p));
-    expect(back.format).toBe(14);
+    expect(back.format).toBe(PROJECT_FORMAT);
     expect(back.levels).toHaveLength(1);
     expect(back.levels[0].name).toBe('Lvl_Principal');
     expect(back.levels[0].actors.map((a) => [a.name, a.x, a.y])).toEqual([['BP_Lampe', 120, -40]]);

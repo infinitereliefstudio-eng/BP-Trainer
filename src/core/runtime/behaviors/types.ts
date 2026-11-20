@@ -95,6 +95,10 @@ export interface WorldApi {
   setInputMode(mode: 'GameOnly' | 'UIOnly' | 'GameAndUI', flush?: boolean): void;
   /** The Player Controller's Show Mouse Cursor. */
   showMouseCursor: boolean;
+  /** Open Level (by Name): the travel is done at the start of the next frame (core/runtime/game.ts). */
+  openLevel(level: string, absolute: boolean, options: string): void;
+  /** The name of the level being played (Get Current Level Name, without prefix). */
+  currentLevelName(): string;
 }
 
 export interface ValueCx {

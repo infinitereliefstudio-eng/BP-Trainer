@@ -1,16 +1,18 @@
 /**
- * Drives a Simulation in real time for Play: pause, speed, single frame,
+ * Drives a Game in real time for Play: pause, speed, single frame,
  * and a light notification channel for the overlay (≈10 updates/s).
+ * `sim` is the world being played: Open Level replaces it.
  */
 import type { Project } from '@core/model/project';
-import { type ActorOrder, Simulation, STEP } from '@core/runtime/simulation';
+import { Game } from '@core/runtime/game';
+import { type ActorOrder, type Simulation, STEP } from '@core/runtime/simulation';
 import type { Camera } from '../camera';
 import { ExecHeat } from '../debug/execHeat';
 
 export type Speed = 0.25 | 1 | 4;
 
 export class PlaySession {
-  readonly sim: Simulation;
+  readonly game: Game;
   running = true;
   speed: Speed = 1;
   private raf = 0;
@@ -39,21 +41,31 @@ export class PlaySession {
     // slots are the project's own object, so what the game saves outlives Stop;
     // `onSlotsChanged` lets the app keep them at once, without waiting for Stop.
     project.saveSlots ??= {};
-    this.sim = new Simulation(structuredClone(project), {
+    this.game = new Game(structuredClone(project), {
       seed: Date.now() & 0xffff,
       breakpoints,
       order,
       slots: project.saveSlots,
       onSlotsChanged,
     });
-    this.sim.start();
+    // A new level: what was picked in the Outliner is gone with the old world.
+    this.game.onTravel = () => {
+      this.selected = undefined;
+      this.notifyUi();
+    };
+    this.game.start();
     this.raf = requestAnimationFrame(this.loop);
+  }
+
+  /** The world being played (a new one after each Open Level). */
+  get sim(): Simulation {
+    return this.game.world;
   }
 
   private loop = (t: number): void => {
     const dt = this.last ? (t - this.last) / 1000 : 0;
     this.last = t;
-    if (this.running) this.sim.advance(dt * this.speed);
+    if (this.running) this.game.advance(dt * this.speed);
     this.afterRun(t);
     for (const fn of this.frameListeners) fn();
     if (t - this.lastNotify > 100) {
@@ -82,14 +94,14 @@ export class PlaySession {
 
   /** Leave the breakpoint. */
   resume(): void {
-    this.sim.resume();
+    this.game.resume();
     this.afterRun();
     this.notifyUi();
   }
 
   /** Run the paused node only, and stop before the next one. */
   stepNode(): void {
-    this.sim.stepNode();
+    this.game.stepNode();
     this.wasPaused = false;
     this.afterRun();
     this.notifyUi();
@@ -126,7 +138,7 @@ export class PlaySession {
   /** Advance exactly one frame while paused. */
   stepFrame(): void {
     this.running = false;
-    this.sim.step(STEP);
+    this.game.step(STEP);
     this.afterRun();
     this.notifyUi();
   }

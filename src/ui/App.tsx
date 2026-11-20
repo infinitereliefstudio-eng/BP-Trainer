@@ -74,6 +74,8 @@ interface Props {
   practice?: boolean;
   /** Vérifier was pressed: what it found, for the attempt log. */
   onChecked?: (outcome: CheckOutcome) => void;
+  /** Free play: back home, to the list of projects. */
+  onProjects?: () => void;
 }
 
 export function App(props: Props) {
@@ -84,7 +86,7 @@ export function App(props: Props) {
   );
 }
 
-function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset, onChecked, practice }: Props) {
+function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, onLessonPassed, onOpen, help, onHelp, onHelpReset, onChecked, practice, onProjects }: Props) {
   const store = useStore();
   const canvas = useRef<GraphCanvasHandle>(null);
   const [view, setView] = useState<'graph' | 'level'>(lesson && !alternative && !solution ? 'level' : 'graph');
@@ -352,7 +354,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             sx,
             sy,
             items: moreMenu(store, setOverlay, {
-              sandbox: workspace.ref.kind === 'sandbox',
+              sandboxKey: workspace.ref.kind === 'sandbox' ? workspace.key : undefined,
+              onOpenProject: (id) => {
+                stop();
+                onOpen({ kind: 'sandbox', projectId: id });
+              },
+              onProjects: () => {
+                stop();
+                onProjects?.();
+              },
               onClassSettings: () => {
                 store.setFocus({ kind: 'class' });
                 openDetails();

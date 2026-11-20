@@ -14,9 +14,10 @@ const roughMeasure = (text: string, font: string) => text.length * (font.include
 import { isPlaceableParent, type PinRef } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import type { EditorStore } from '@core/store/editorStore';
-import { createStarterProject } from '@core/templates/starterProject';
 import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
+import { checkProjectName } from '@core/projects/list';
 import { exportProject, pickProjectFile } from '@storage/persistence';
+import { createProject, importProject, listProjects, nextProjectName } from '@storage/projects';
 import { referenceQuery } from '@core/search/find';
 import { RULES_VERSION, rulesChangedSince, rulesNotice } from '@core/model/rules';
 import type { MenuItem, OpenOverlay } from './overlayTypes';
@@ -175,43 +176,107 @@ export function linkMenu(store: EditorStore, linkId: string): MenuItem[] {
 }
 
 export interface MoreMenuOptions {
-  sandbox: boolean;
+  /** Free play: the key of the open project (V7.41, several projects). */
+  sandboxKey?: string;
   onClassSettings: () => void;
+  /** Free play: open another project of the list. */
+  onOpenProject?: (id: string) => void;
+  /** Free play: back to the list of projects. */
+  onProjects?: () => void;
+}
+
+function importInto(store: EditorStore): void {
+  pickProjectFile()
+    .then((p) => {
+      if (!p) return;
+      const notice = rulesNotice(rulesChangedSince(p));
+      p.rules = RULES_VERSION;
+      store.replaceProject(p);
+      store.info(`Projet « ${p.name} » importé.`);
+      if (notice) store.warn(notice);
+    })
+    .catch((e: Error) => store.error(e.message));
+}
+
+/** Free play: « Importer » adds the file to the list of projects and opens it; nothing is replaced. */
+function importAsNew(store: EditorStore, open: (id: string) => void): void {
+  pickProjectFile()
+    .then(async (p) => {
+      if (!p) return;
+      p.rules = RULES_VERSION;
+      const { id } = await importProject(p, await listProjects());
+      open(id);
+    })
+    .catch((e: Error) => store.error(e.message));
+}
+
+/** The other free-play projects' names (a name is used once). */
+const otherNames = (key: string) => listProjects().then((list) => list.filter((e) => e.key !== key).map((e) => e.name));
+
+function sandboxItems(store: EditorStore, openOverlay: OpenOverlay, key: string, opts: MoreMenuOptions): MenuItem[] {
+  const fail = (e: Error) => store.error(`Liste des projets illisible : ${e.message}`);
+  return [
+    { label: 'Mes projets', hint: 'ouvrir, renommer, copier, supprimer', action: () => opts.onProjects?.() },
+    {
+      label: 'Nouveau projet',
+      hint: 'à côté de celui-ci, qui reste enregistré',
+      action: () =>
+        listProjects()
+          .then((list) =>
+            openOverlay({
+              kind: 'prompt',
+              title: 'Nouveau projet',
+              initial: nextProjectName(list),
+              confirmLabel: 'Créer',
+              onSubmit: (v) => {
+                const checked = checkProjectName(
+                  v,
+                  list.map((e) => e.name),
+                );
+                if ('error' in checked) return checked.error;
+                createProject(checked.name).then((id) => opts.onOpenProject?.(id), fail);
+                return null;
+              },
+            }),
+          )
+          .catch(fail),
+    },
+    {
+      label: 'Renommer le projet',
+      action: () =>
+        otherNames(key)
+          .then((taken) =>
+            openOverlay({
+              kind: 'prompt',
+              title: 'Renommer le projet',
+              initial: store.project.name,
+              confirmLabel: 'Renommer',
+              onSubmit: (v) => {
+                const checked = checkProjectName(v, taken);
+                if ('error' in checked) return checked.error;
+                store.applyProject('Renommer le projet', (p) => {
+                  p.name = checked.name;
+                });
+                store.info(`Projet renommé « ${checked.name} ».`);
+                return null;
+              },
+            }),
+          )
+          .catch(fail),
+    },
+  ];
 }
 
 export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: MoreMenuOptions): MenuItem[] {
+  const key = opts.sandboxKey;
   const items: MenuItem[] = [
     { label: 'Class Settings', action: opts.onClassSettings },
+    ...(key ? sandboxItems(store, openOverlay, key, opts) : []),
     { label: 'Exporter le projet', hint: 'fichier .json', action: () => exportProject(store.project) },
-    {
-      label: 'Importer un projet',
-      action: () =>
-        pickProjectFile()
-          .then((p) => {
-            if (!p) return;
-            const notice = rulesNotice(rulesChangedSince(p));
-            p.rules = RULES_VERSION;
-            store.replaceProject(p);
-            store.info(`Projet « ${p.name} » importé.`);
-            if (notice) store.warn(notice);
-          })
-          .catch((e: Error) => store.error(e.message)),
-    },
+    key && opts.onOpenProject
+      ? { label: 'Importer un projet', hint: 'ajouté à ta liste de projets', action: () => importAsNew(store, opts.onOpenProject!) }
+      : { label: 'Importer un projet', action: () => importInto(store) },
   ];
-  if (opts.sandbox) {
-    items.push({
-      label: 'Nouveau projet',
-      danger: true,
-      action: () =>
-        openOverlay({
-          kind: 'confirm',
-          title: 'Repartir d’un projet neuf ?',
-          text: 'Le projet actuel sera remplacé. Exporte-le d’abord si tu veux le garder.',
-          confirmLabel: 'Remplacer',
-          onConfirm: () => store.replaceProject(createStarterProject()),
-        }),
-    });
-  }
   items.push({ label: 'Conseils de construction', action: () => openOverlay({ kind: 'advice' }) });
   const fixed = playOrder() === 'level';
   items.push({

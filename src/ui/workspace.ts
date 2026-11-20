@@ -12,7 +12,8 @@ import type { Project } from '@core/model/project';
 import { emptyProgress, sanitizeProgress, type Progress } from '@core/progress/progress';
 import { EditorStore } from '@core/store/editorStore';
 import { createStarterProject } from '@core/templates/starterProject';
-import { loadSavedProject, rescueText, saveProject, SANDBOX_KEY } from '@storage/persistence';
+import { loadSavedProject, rescueText, saveProject } from '@storage/persistence';
+import { sandboxKey } from '@storage/projects';
 import { readStored, writeStored } from '@storage/storage';
 
 export {
@@ -38,7 +39,8 @@ type ScratchRef =
   | { kind: 'solution'; lessonId: string };
 
 export type WorkspaceRef =
-  | { kind: 'sandbox' }
+  /** A free-play project (V7.41: several; no id is the project saved before them). */
+  | { kind: 'sandbox'; projectId?: string }
   | { kind: 'lesson'; lessonId: string }
   /** A passed step redone from scratch (« À retravailler en Blueprint »), apart from the lesson's own project. */
   | { kind: 'practice'; lessonId: string }
@@ -75,7 +77,7 @@ export function workspaceKey(ref: WorkspaceRef): string {
   if (ref.kind === 'alternative') return `scratch:alternative:${ref.lessonId}:${ref.index}`;
   if (ref.kind === 'solution') return `scratch:solution:${ref.lessonId}`;
   if (ref.kind === 'practice') return `project:practice:${ref.lessonId}`;
-  return ref.kind === 'sandbox' ? SANDBOX_KEY : `project:lesson:${ref.lessonId}`;
+  return ref.kind === 'sandbox' ? sandboxKey(ref.projectId) : `project:lesson:${ref.lessonId}`;
 }
 
 /** Workspaces that are thrown away when closed. */

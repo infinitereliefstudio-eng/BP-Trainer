@@ -1,6 +1,6 @@
 # Chantier annexe : Widget Component et projets de la simulation libre
 
-Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé, **pas lancé** : chaque version attend son feu vert.
+Demandé par Tristan le 20 novembre au soir, avant le chantier n° 4 (niveaux et GameInstance) : le Widget Component (noté au BACKLOG, « Fonctions et fidélité à UE », jugé **moyen** à la fin de la V7.35), et, dans le même chantier, **plusieurs projets en simulation libre** (enregistrer, nommer, supprimer…). Proposé le 20 novembre ; **Tristan a pris les recommandations et lancé le chantier** (« Ok pour tes recos, tu peux lancer »). **V7.41 faite le même soir.** V7.42 et V7.43 attendent chacune son feu vert.
 
 ## En bref
 
@@ -52,3 +52,14 @@ Plus : notions, question de révision, mémo UMG complété, mini-exercice « In
 1. **Supprimer un projet** : définitif après confirmation (recommandé : simple, et l'export reste possible avant) ; ou une corbeille d'où on peut le récupérer.
 2. **Space World** : expliqué dans la fiche seulement, le mode Screen étant le seul simulé (recommandé : la vue de dessus ne peut pas montrer une surface en 3D) ; ou simulé comme un panneau posé à plat dans le niveau.
 3. **Boutons dans un Widget Component** en Screen : cliquables comme ceux d'un widget d'écran, selon le mode d'entrée (recommandé, à vérifier dans UE) ; ou affichage seulement.
+
+## Décisions du 20 novembre
+
+Les trois recommandations : suppression définitive après confirmation (pas de corbeille) ; mode World expliqué seulement, Screen seul simulé ; boutons d'un Widget Component en Screen cliquables selon le mode d'entrée (à vérifier dans UE).
+
+## Ce que la V7.41 a fait autrement que prévu
+
+- La liste n'a pas d'index : elle est lue dans les clés stockées, pour ne jamais se désaccorder des projets. Le projet ouvert en dernier est en tête (marqué « ouvert en dernier ») ; il n'y a pas de bouton « Reprendre » sur l'accueil pour la simulation libre.
+- Un projet illisible reste dans la liste (marqué « Illisible ») : il s'ouvre sur le dialogue de récupération habituel, s'exporte tel quel ou se supprime ; il ne se renomme ni ne se duplique.
+- Deux projets ne peuvent pas porter le même nom (majuscules comprises) ; à la création, à l'import et à la copie, un nom libre est proposé (« Projet 3 », « Mon projet 2 », « … (copie) »).
+- Le premier usage, sans aucun projet, montre une liste vide et « Nouveau projet ».

@@ -13,11 +13,13 @@ import type { HelpLevel } from '@core/progress/progress';
 import { QUIZ } from '@core/review';
 import { dueQuestions, streak } from '@core/review/schedule';
 import { reworkCards } from '@core/rework/suggest';
+import { MAIN_ID } from '@storage/projects';
 import { APP_VERSION } from '../version';
 import { BackupDialog } from './home/BackupDialog';
 import { Memo } from './home/Memo';
 import { NodeIndex } from './home/NodeIndex';
 import { Notebook } from './home/Notebook';
+import { ProjectsDialog } from './home/ProjectsDialog';
 import { Review } from './home/Review';
 import { withoutLog, withRead, type Progress, type WorkspaceRef } from './workspace';
 
@@ -29,6 +31,9 @@ interface Props {
   onReload: () => void;
   /** The tab shown first (Révision when coming back from a practice). */
   initialTab?: Tab;
+  /** « Mes projets » is open (Simulation libre, or « Mes projets » in the editor's menu). */
+  projects: boolean;
+  onProjects: (open: boolean) => void;
 }
 
 const KIND_LABEL: Record<Exclude<LessonKind, 'build'>, string> = {
@@ -62,7 +67,7 @@ const dateLabel = (t: number) => new Date(t).toLocaleDateString('fr-FR', { weekd
 
 export type Tab = 'path' | 'review' | 'notebook' | 'nodes' | 'memo';
 
-export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'path' }: Props) {
+export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'path', projects, onProjects }: Props) {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [memoId, setMemoId] = useState<string | undefined>(undefined);
   const [backup, setBackup] = useState(false);
@@ -116,7 +121,7 @@ export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'pat
               Reprendre : {resume.title}
             </button>
           )}
-          <button class="btn big" onClick={() => onOpen({ kind: 'sandbox' })}>
+          <button class="btn big" onClick={() => onProjects(true)}>
             Simulation libre
           </button>
         </div>
@@ -227,6 +232,16 @@ export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'pat
       )}
 
       {backup && <BackupDialog onClose={() => setBackup(false)} onRestored={onReload} />}
+      {projects && (
+        <ProjectsDialog
+          lastId={last?.kind === 'sandbox' ? (last.projectId ?? MAIN_ID) : undefined}
+          onOpen={(id) => {
+            onProjects(false);
+            onOpen({ kind: 'sandbox', projectId: id === MAIN_ID ? undefined : id });
+          }}
+          onClose={() => onProjects(false)}
+        />
+      )}
     </div>
   );
 }

@@ -176,6 +176,18 @@ export function writeStored(key: string, text: string): Promise<'idb' | 'local'>
 }
 
 /**
+ * Deletes what is saved under `key`, in both stores (a project the learner
+ * chose to delete). Goes through the key's write queue like any write.
+ * Rejects when IndexedDB refuses: the entry is then still there.
+ */
+export function removeStored(key: string): Promise<void> {
+  return enqueue(key, async () => {
+    if (hasIdb()) await kv.del(key);
+    dropLocal(key);
+  });
+}
+
+/**
  * Saves several entries at once: all of them or none (one IndexedDB
  * transaction; in localStorage, the entries already written are put back
  * if one is refused). It goes through the write queues of its keys like any

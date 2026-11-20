@@ -39,6 +39,7 @@ export function Root() {
   const [saveFailed, setSaveFailed] = useState(false);
   const [ws, setWs] = useState<OpenedWorkspace | null>(null);
   const [homeTab, setHomeTab] = useState<HomeTab>('path');
+  const [projects, setProjects] = useState(false);
   const [blocked, setBlocked] = useState<BlockedWorkspace | null>(null);
   const [notices, setNotices] = useState<string[]>([]);
   const [newer, setNewer] = useState<string | null>(null);
@@ -159,7 +160,15 @@ export function Root() {
   if (!ws) {
     return (
       <>
-        <Home progress={progress} onOpen={open} onProgress={changeProgress} onReload={reload} initialTab={homeTab} />
+        <Home
+          progress={progress}
+          onOpen={open}
+          onProgress={changeProgress}
+          onReload={reload}
+          initialTab={homeTab}
+          projects={projects}
+          onProjects={setProjects}
+        />
         {overlays}
       </>
     );
@@ -203,6 +212,11 @@ export function Root() {
           if (l) changeProgress((p) => withCheck(p, { lesson: l.id, rev: l.revision ?? 1, practice: !!practiceId }, outcome));
         }}
         onOpen={open}
+        onProjects={() => {
+          setHomeTab('path');
+          setProjects(true);
+          setWs(null);
+        }}
       />
       {overlays}
     </>

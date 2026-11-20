@@ -12,7 +12,7 @@ import { type AttemptLog, type CheckOutcome, checkLog, closeAttempt, logCheck, s
 import { HELP_LEVELS, HELP_RANK, type HelpLevel } from './helpLevel';
 
 /** What "Reprendre" reopens: free play or a lesson. */
-export type ResumeRef = { kind: 'sandbox' } | { kind: 'lesson'; lessonId: string };
+export type ResumeRef = { kind: 'sandbox'; projectId?: string } | { kind: 'lesson'; lessonId: string };
 
 /**
  * The help used on a lesson since it was started (or started again):
@@ -198,7 +198,8 @@ const reworkChoices = (v: unknown) =>
   (v.postponed === undefined || (isObj(v.postponed) && Object.values(v.postponed).every((x) => isObj(x) && isNum(x.at) && isNum(x.until)))) &&
   (v.open === undefined || strings(v.open));
 const resumeRef = (v: unknown) =>
-  isObj(v) && (v.kind === 'sandbox' || (v.kind === 'lesson' && typeof v.lessonId === 'string'));
+  isObj(v) &&
+  ((v.kind === 'sandbox' && (v.projectId === undefined || typeof v.projectId === 'string')) || (v.kind === 'lesson' && typeof v.lessonId === 'string'));
 
 /** Each optional field, and how to tell it is well formed. */
 const FIELDS: [keyof Progress, (v: unknown) => boolean][] = [

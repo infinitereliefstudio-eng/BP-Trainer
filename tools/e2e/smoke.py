@@ -29,6 +29,18 @@ async def graph(page):
     await page.locator('.graph-tabs .tab', has_text='Event Graph').tap()
 
 
+async def free_play(page):
+    """Simulation libre › Mes projets (V7.41): opens the first project of the list, or creates one when there is none."""
+    await page.locator('.btn.big', has_text='Simulation libre').tap()
+    await page.wait_for_timeout(400)
+    if await page.locator('.project-open').count():
+        await page.locator('.project-open').first.tap()
+    else:
+        await page.locator('.projects-btn', has_text='Nouveau projet').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.dialog .btn.primary', has_text='Créer').tap()
+
+
 async def main():
     OUT.mkdir(parents=True, exist_ok=True)
     async with async_playwright() as p:
@@ -838,7 +850,7 @@ async def main():
         # V7.19: Actor Components. Pick Parent Class › Actor Component, + Add in an actor, its Details, the level, Play and Debug.
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await free_play(page)
         await page.wait_for_timeout(600)
         await page.locator('.content-drawer-btn').tap()
         await page.wait_for_timeout(300)
@@ -983,7 +995,7 @@ async def main():
         # V7.33: Widget Blueprint (UMG). + Add › User Interface › Widget Blueprint, the Designer, Palette, Hierarchy, Details, a drag, the Graph.
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await free_play(page)
         await page.wait_for_timeout(600)
         await page.locator('.content-drawer-btn').tap()
         await page.wait_for_timeout(300)
@@ -1270,6 +1282,69 @@ async def main():
             errs.append(f'Playlist (UI Only) : le joystick ou les touches prennent encore le doigt ({through})')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
+
+        # V7.41: Mes projets. The list, a second project from the editor's menu, rename, copy, delete.
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await page.wait_for_timeout(400)
+        first = await page.locator('.project-open').count()
+        await shot('100_projects_list')
+        await page.locator('.project-open').first.tap()
+        await page.wait_for_timeout(600)
+        await page.locator('button[aria-label^="Plus d"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Nouveau projet').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('input.field').last.fill('Ma porte')
+        await page.locator('.dialog .btn.primary', has_text='Créer').tap()
+        await page.wait_for_timeout(700)
+        name = await page.evaluate('() => window.bpStore.project.name')
+        if name != 'Ma porte':
+            errs.append(f'Mes projets : le nouveau projet ouvert s’appelle « {name} »')
+        await page.locator('button[aria-label^="Plus d"]').tap()
+        await page.wait_for_timeout(200)
+        await shot('101_projects_editor_menu')
+        await page.locator('.menu-item', has_text='Mes projets').tap()
+        await page.wait_for_timeout(600)
+        if await page.locator('.project-open').count() != first + 1:
+            errs.append('Mes projets : le nouveau projet n’est pas dans la liste')
+        if await page.locator('.project-item').first.locator('.project-name').inner_text() != 'Ma porte':
+            errs.append('Mes projets : le projet ouvert en dernier n’est pas en tête')
+        await page.locator('.project-more').first.tap()
+        await page.wait_for_timeout(200)
+        await shot('102_projects_actions')
+        await page.locator('.project-tool', has_text='Dupliquer').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.project-name', has_text='Ma porte (copie)').count() != 1:
+            errs.append('Mes projets : la copie n’apparaît pas')
+        copy = page.locator('.project-item', has_text='Ma porte (copie)')
+        await copy.locator('.project-more').tap()
+        await page.wait_for_timeout(200)
+        await copy.locator('.project-tool', has_text='Renommer').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('input.field').last.fill('Ma porte')
+        await page.locator('.dialog .btn.primary', has_text='Renommer').tap()
+        await page.wait_for_timeout(200)
+        if await page.locator('.error-text', has_text='déjà').count() == 0:
+            errs.append('Mes projets : un nom déjà pris est accepté')
+        await page.locator('input.field').last.fill('Porte de secours')
+        await page.locator('.dialog .btn.primary', has_text='Renommer').tap()
+        await page.wait_for_timeout(500)
+        secours = page.locator('.project-item', has_text='Porte de secours')
+        if await secours.count() != 1:
+            errs.append('Mes projets : le renommage ne se voit pas')
+        else:
+            await secours.locator('.project-more').tap()
+            await page.wait_for_timeout(200)
+            await secours.locator('.project-tool', has_text='Supprimer').tap()
+            await page.wait_for_timeout(200)
+            await shot('103_projects_delete')
+            await page.locator('.dialog .btn.danger', has_text='Supprimer').last.tap()
+            await page.wait_for_timeout(500)
+            if await page.locator('.project-item', has_text='Porte de secours').count():
+                errs.append('Mes projets : le projet supprimé est encore là')
+        await shot('104_projects_after')
 
         print('errors', errs)
         await b.close()

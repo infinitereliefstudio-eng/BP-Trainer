@@ -12,7 +12,7 @@ import { readStored, settled, StorageReadError, writeStored } from './storage';
 
 /** Key of the free-play project; step 1 saved it under 'current-project'. */
 export const SANDBOX_KEY = 'project:sandbox';
-const LEGACY_KEY = 'current-project';
+export const LEGACY_KEY = 'current-project';
 
 /** Where an unreadable saved text is copied before anything else is written. */
 export const RESCUE_PREFIX = 'rescue:';

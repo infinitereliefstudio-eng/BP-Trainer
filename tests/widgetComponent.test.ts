@@ -90,6 +90,20 @@ describe('the Widget Component (V7.42)', () => {
     expect(sim.umg.componentLayer()).toHaveLength(1);
   });
 
+  it('stays above its actor whatever the actor’s yaw: its Location never turns (V7.44)', async () => {
+    const { componentTransform } = await import('../src/core/runtime/world');
+    const t = setup();
+    const sim = new Simulation(t.p);
+    sim.start();
+    for (const yaw of [0, 90, 180, -45]) {
+      const actor = sim.actors.find((a) => a.id === t.a1)!;
+      actor.yaw = yaw;
+      const at = componentTransform(actor, actor.components.find((c) => c.kind === 'Widget')!);
+      expect(at.x - actor.x).toBeCloseTo(0);
+      expect(at.y - actor.y).toBeCloseTo(-80);
+    }
+  });
+
   it('gives None without a Widget Class: the Cast fails, nothing is drawn', () => {
     const t = setup({ widgetClass: false });
     const sim = new Simulation(t.p);

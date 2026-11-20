@@ -203,7 +203,7 @@ function importAsNew(store: EditorStore, open: (id: string) => void): void {
   pickProjectFile()
     .then(async (p) => {
       if (!p) return;
-      p.rules = RULES_VERSION;
+      // Saved as the file has it: opening it (just below) says if the simulation rules changed since (V7.44).
       const { id } = await importProject(p, await listProjects());
       open(id);
     })

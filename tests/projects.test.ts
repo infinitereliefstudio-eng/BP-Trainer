@@ -145,6 +145,18 @@ describe('the free-play projects', () => {
     expect(main.ok && main.workspace.store.project.name).toBe('Mon premier projet');
   });
 
+  it('keeps the rules of an imported file: opening it says what changed since (V7.44)', async () => {
+    const old = createStarterProject();
+    old.name = 'Vieux projet';
+    old.rules = 1;
+    const { id } = await importProject(old, await listProjects());
+    const opened = await openWorkspace({ kind: 'sandbox', projectId: id });
+    expect(opened.ok && opened.workspace.notices.some((n) => /Gate/.test(n))).toBe(true);
+    // Opened once under the new rules, it does not say it again.
+    const again = await openWorkspace({ kind: 'sandbox', projectId: id });
+    expect(again.ok && again.workspace.notices).toEqual([]);
+  });
+
   it('lists a damaged project instead of hiding it', async () => {
     await writeStored(sandboxKey('sb_x'), '{abîmé');
     const [entry] = await listProjects();

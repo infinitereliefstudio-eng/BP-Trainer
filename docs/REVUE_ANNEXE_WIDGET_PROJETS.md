@@ -1,6 +1,6 @@
 # Revue du chantier annexe Widget Component et projets, V7.41 à V7.43 (20 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Revue du chantier annexe (V7.41 à V7.43) » : https://claude.ai/artifact/138H1RP5QSDFRbmznHPFyu. Demandée par Tristan le 20 novembre au soir (« je veux faire une phase de review du dernier chantier »). **En attente de ses réponses aux deux questions et de son feu vert pour les corrections.**
+Copie du Claude Doc « BP Trainer — Revue du chantier annexe (V7.41 à V7.43) » : https://claude.ai/artifact/138H1RP5QSDFRbmznHPFyu. Demandée par Tristan le 20 novembre au soir (« je veux faire une phase de review du dernier chantier »). Tristan a pris les recommandations et lancé les corrections le même soir (« Ok pour tes recos, lance les corrections ») : les deux lots s'enchaînent, une version chacun. **Lot 1 fait (V7.44)**, lot 2 en cours.
 
 État de départ : lint, types et build sans erreur, 1 735 tests, smoke test sans erreur (captures 100 à 109 relues), CI verte sur les quatre pushs. Rien ne casse une sauvegarde ni une progression. Chaque constat a été reproduit par un test jetable (non versionné) ou se lit dans le code.
 
@@ -26,10 +26,10 @@ Juste et à garder : Mes projets (un projet par clé, liste lue dans le stockage
 
 | Lot | Contenu | Version | État |
 | --- | --- | --- | --- |
-| 1 | W1, P1 : widget au-dessus de son acteur quelle que soit sa rotation (Play et cadre de l'éditeur) ; avis de règles à l'ouverture d'un projet importé ; un test chacun | V7.44 | proposé |
+| 1 | W1, P1 : widget au-dessus de son acteur quelle que soit sa rotation (Play et cadre de l'éditeur) ; avis de règles à l'ouverture d'un projet importé ; un test chacun | V7.44 | fait |
 | 2 | P2, P3, L1, L2, D1 : un seul export (partage), accents gardés dans le nom du fichier, noms coupés à 60 et uniques à l'import et à la restauration, autre façon de faire « caster une fois au BeginPlay », taille alignée, docs | V7.45 | proposé |
 
 ## Questions à trancher
 
-1. W1 : la Location du Widget Component devient un décalage à l'écran qui ne tourne jamais avec l'acteur, Y négatif = au-dessus (recommandé, c'est ce que disent les fiches) ; ou garder la rotation et l'expliquer.
-2. L1 : ajouter l'autre façon de faire « caster une fois au BeginPlay » à « Une barre par ennemi » (recommandé) ; ou la laisser au backlog.
+1. W1 : la Location du Widget Component devient un décalage à l'écran qui ne tourne jamais avec l'acteur, Y négatif = au-dessus (recommandé, c'est ce que disent les fiches) ; ou garder la rotation et l'expliquer. **Réponse : ne tourne jamais.**
+2. L1 : ajouter l'autre façon de faire « caster une fois au BeginPlay » à « Une barre par ennemi » (recommandé) ; ou la laisser au backlog. **Réponse : l'ajouter.**

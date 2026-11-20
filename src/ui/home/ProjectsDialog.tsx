@@ -17,7 +17,6 @@ import {
   type ProjectEntry,
   renameProject,
 } from '@storage/projects';
-import { RULES_VERSION } from '@core/model/rules';
 import { ConfirmDialog, PromptDialog } from '../overlays/Dialogs';
 import { useOwnTap } from '../widgets/useOwnTap';
 
@@ -61,8 +60,8 @@ export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
   const importOne = () =>
     pickProjectFile()
       .then(async (p) => {
+        // Saved as the file has it: opening it will say if the simulation rules changed since (V7.44).
         if (!p || !list) return;
-        p.rules = RULES_VERSION;
         const { name } = await importProject(p, list);
         setMessage({ text: `Projet « ${name} » ajouté à la liste.` });
         await refresh();

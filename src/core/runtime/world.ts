@@ -174,7 +174,9 @@ export function componentTransform(actor: ActorRT, comp: ComponentRT): Transform
   }
   let t: Transform2D = { x: actor.x, y: actor.y, yaw: actor.yaw };
   for (const c of chain) {
-    const r = t.yaw * DEG;
+    // A Widget Component (Space Screen) stands where its parent is, offset on the screen: its Location never turns
+    // with the actor, as UE's Location Z stays up whatever the yaw (V7.44: Location Y negative = above).
+    const r = c.kind === 'Widget' ? 0 : t.yaw * DEG;
     t = {
       x: t.x + c.props.x * Math.cos(r) - c.props.y * Math.sin(r),
       y: t.y + c.props.x * Math.sin(r) + c.props.y * Math.cos(r),

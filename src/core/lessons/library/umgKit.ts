@@ -133,3 +133,31 @@ export function ignoredTouch(cx: CheckContext, button: string): string | undefin
 
 /** Is the cursor shown and are the buttons reachable? « Game and UI », « UI Only ». */
 export const modeLabel = (cx: CheckContext) => (cx.sim.inputMode === 'UIOnly' ? 'UI Only' : cx.sim.inputMode === 'GameAndUI' ? 'Game and UI' : 'Game Only');
+
+/** A property of a widget of the Designer as the screen draws it now (the first one of that name on the screen). */
+export function drawnProp(cx: CheckContext, widgetName: string): (WidgetProps & { drawn: boolean }) | undefined {
+  for (const s of cx.sim.umg.layer(1280)) {
+    const l = s.laid.find((x) => x.widget.name === widgetName);
+    if (l) return { ...(l.props as WidgetProps), drawn: l.drawn };
+  }
+  return undefined;
+}
+
+/** « 60 % » for a Percent of 0.6. */
+export const pct = (v: number | undefined) => (v === undefined ? '?' : `${Math.round(v * 100)} %`);
+
+/** Does a Widget Blueprint update itself the UE way: no Binding, no Event Tick? Why not, if it does not. */
+export function eventDriven(cx: CheckContext, className: string): true | string {
+  const cls = cx.project.classes.find((c) => c.name === className);
+  if (!cls) return `${className} a disparu.`;
+  const bound = (cls.widgets ?? []).filter((w) => w.bindings && Object.keys(w.bindings).length);
+  if (bound.length) {
+    const calls = Object.entries(cx.sim.umg.bindingCalls)
+      .filter(([k]) => bound.some((w) => k.includes(`:${w.id}:`)))
+      .reduce((a, [, n]) => a + n, 0);
+    return `${bound.map((w) => w.name).join(', ')} ${bound.length > 1 ? 'ont' : 'a'} encore un Binding : sa fonction a été appelée ${calls} fois pendant le test, à chaque image. Retire-le (menu Bind › Remove Binding) et mets à jour sur l’événement.`;
+  }
+  if (cls.graphs.some((g) => Object.values(g.nodes).some((n) => n.def === 'event.widgetTick')))
+    return `${className} utilise Event Tick : la mise à jour tourne à chaque image, même quand rien ne change. Abonne-toi plutôt à l’Event Dispatcher.`;
+  return true;
+}

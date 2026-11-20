@@ -581,6 +581,22 @@ export const GLOSSARY: GlossaryEntry[] = [
     pattern: 'On Clicked (Btn_Fermer) → Remove from Parent → Set Input Mode Game Only (Get Owning Player)',
   },
   {
+    title: 'Binding ou événement',
+    names: ['Binding', 'Piloté par événement'],
+    what: 'Deux façons de tenir un widget à jour. Le Binding (menu Bind à côté d’une propriété) lie la propriété à une fonction qu’UE appelle à chaque image. Piloté par événement, le jeu annonce le changement (un Event Dispatcher) et le widget, abonné dans Event Construct, se met à jour à ce moment-là.',
+    when: 'Le Binding pour essayer vite ; l’événement dès que l’interface grossit, et dans tout vrai projet : rien ne tourne quand rien ne change.',
+    trap: 'S’abonner ne dessine rien : sans une mise à jour tout de suite, le widget montre sa valeur du Designer jusqu’au premier changement. Et un Set Text sur une propriété liée casse son Binding.',
+    pattern: 'Event Construct → Cast To BP_Joueur (Get Owning Player Pawn) → Bind Event to OnSanteChange → Set Percent (Sante ÷ 100)',
+  },
+  {
+    title: 'Visibility d’un widget',
+    names: ['Collapsed', 'Visibility (widget)', 'ESlateVisibility'],
+    what: 'Set Visibility sur un widget prend une valeur d’ESlateVisibility. Visible : dessiné, il reçoit les touchers. Collapsed : caché, il ne prend plus de place. Hidden : caché, sa place reste vide. Not Hit-Testable : dessiné, mais les touchers le traversent.',
+    when: 'Collapsed pour cacher une invite, un panneau, une ligne de liste : le reste se resserre. Hidden quand la mise en page ne doit pas bouger.',
+    trap: 'Un widget Visible posé par-dessus un bouton lui prend ses touchers. Et un widget repassé Visible par Set Visibility couvre ce qu’il recouvre.',
+    pattern: 'OnPortee (APortee) → Branch → Set Visibility (Visible) / Set Visibility (Collapsed)',
+  },
+  {
     title: 'Modes d’entrée',
     names: ['Set Input Mode Game Only', 'Set Input Mode UI Only', 'Set Input Mode Game and UI', 'Modes d’entrée'],
     what: 'Trois nœuds, appelés sur le Player Controller, décident qui reçoit les entrées. Game Only : tout va au jeu (le mode du lancement). UI Only : tout va à l’interface, le jeu ne reçoit plus ni touche, ni Input Action, ni joystick. Game and UI : l’interface d’abord, le reste au jeu.',

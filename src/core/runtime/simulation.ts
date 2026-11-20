@@ -634,8 +634,24 @@ export class Simulation implements InterpreterHost {
    * centre, on the reference screen: what a lesson's scenario does.
    * Whatever covers it there takes the touch, as for a finger.
    */
-  tapButton(widgetClass: string, button: string): TouchOutcome {
+  tapButton(widgetClass: string, button: string, nth?: number): TouchOutcome {
     const width = 1280;
+    if (nth !== undefined) {
+      // The nth of these buttons on the screen, top to bottom (a list of rows: « Lire » of the 2nd row).
+      const all = this.umg
+        .layer(width)
+        .flatMap((s) => s.laid)
+        .filter((x) => x.widget.kind === 'Button' && x.widget.name === button && x.drawn && this.findActor(this.objectOfPath(x.path))?.className === widgetClass)
+        .sort((a, b) => a.rect.y - b.rect.y || a.rect.x - b.rect.x);
+      const l = all[nth];
+      if (!l) return { kind: 'none' };
+      const cx = l.rect.x + l.rect.w / 2;
+      const cy = l.rect.y + l.rect.h / 2;
+      const out = this.touchDown(cx, cy, width);
+      this.step();
+      this.touchUp(cx, cy, width);
+      return out;
+    }
     for (const s of [...this.umg.layer(width)].reverse()) {
       const l = s.laid.find((x) => x.widget.kind === 'Button' && x.widget.name === button && x.drawn && this.findActor(this.objectOfPath(x.path))?.className === widgetClass);
       if (!l) continue;

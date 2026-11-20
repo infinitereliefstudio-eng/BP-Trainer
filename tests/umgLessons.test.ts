@@ -140,3 +140,79 @@ describe('Le bouton qui ne répond pas (D25)', () => {
     expect(reason(r, 'closes').reason).toContain('UI Only');
   });
 });
+
+// ------------------------------------------------------------------ V7.37
+
+/** Remove the nodes of `def` that a `pred` accepts from a class, with their wires. */
+function drop(p: Project, cls: string, pred: (n: { def: string; x: number; y: number; defaults: Record<string, unknown> }) => boolean) {
+  const c = p.classes.find((x) => x.name === cls)!;
+  for (const g of c.graphs) removeNodes(g, Object.values(g.nodes).filter(pred).map((n) => n.id));
+}
+
+describe('V7.37: the widget follows the game', () => {
+  it('sit in the Confirmé after D25, A3 and C7 before S3, T4 in the Avancé after M2', () => {
+    const ids = LESSONS.map((l) => l.id);
+    const at = ids.indexOf('d25-bouton-muet');
+    expect(ids.slice(at + 1, at + 4)).toEqual(['l-barre-vie', 'r6-oxygene', 'l-appuie-sur-e']);
+    const s3 = ids.indexOf('s3-poste-garde');
+    expect(ids.slice(s3 - 2, s3)).toEqual(['a3-terminal', 'c7-playlist']);
+    expect(ids[ids.indexOf('m2-distributeur') + 1]).toBe('t4-energie');
+    expect(LESSONS.filter((l) => l.chain?.notion === 'umg').map((l) => l.chain!.step)).toEqual(['discover', 'guided', 'modify', 'transfer']);
+    expect(LESSONS.filter((l) => l.chain?.notion === 'ui-input').map((l) => l.chain!.step)).toEqual(['guided', 'autonomy']);
+    for (const id of ['l-barre-vie', 'r6-oxygene', 'l-appuie-sur-e', 'c7-playlist', 'a3-terminal', 't4-energie'])
+      for (const n of lesson(id).notions) expect(notionHelp(n), `${id}: ${n}`).toBeDefined();
+  });
+
+  it('La barre de vie without the first update: full at the start, and said why', () => {
+    const r = solved(lesson('l-barre-vie'), (p) => drop(p, 'WBP_Sante', (n) => n.def === 'widget.setPercent' && n.y < 300));
+    expect(reason(r, 'start').reason).toContain('Event Construct');
+    expect(reason(r, 'first').ok).toBe(true);
+  });
+
+  it('La barre de vie with the health as Percent (0 to 100): said that Percent goes from 0 to 1', () => {
+    const r = solved(lesson('l-barre-vie'), (p) => drop(p, 'WBP_Sante', (n) => n.def === 'math.divideFloat'));
+    expect(r.passed).toBe(false);
+  });
+
+  it('R6 as given: it works, but its Binding is called every frame, and the count is said', () => {
+    const l = lesson('r6-oxygene');
+    const r = runLesson(l, l.setup());
+    expect(reason(r, 'two').ok).toBe(true);
+    expect(reason(r, 'no-binding').reason).toMatch(/appelée \d+ fois/);
+  });
+
+  it('Appuie sur E hidden with Hidden: it passes, the Collapsed notion says why not', () => {
+    const r = solved(lesson('l-appuie-sur-e'), (p) => {
+      for (const n of nodes(p, 'WBP_Invite', 'widget.setVisibility')) if (n.defaults.visibility === 1) n.defaults.visibility = 2;
+    });
+    expect(r.passed).toBe(true);
+    expect(reason(r, 'collapsed').ok).toBe(false);
+  });
+
+  it('La playlist without Remove Item: Retirer rebuilds the same rows', () => {
+    const r = solved(lesson('c7-playlist'), (p) => drop(p, 'WBP_Playlist', (n) => n.def === 'array.removeItem'));
+    expect(reason(r, 'removed').reason).toContain('Morceaux');
+  });
+
+  it('La playlist: the nth click reaches the right row (rows are read top to bottom)', () => {
+    const l = lesson('c7-playlist');
+    const p = l.setup();
+    l.solve(p);
+    const r = runLesson({ ...l, scenario: [{ wait: 0.3 }, { click: 'WBP_Ligne/Btn_Lire', nth: 4 }, { wait: 0.1 }] }, p);
+    expect(r.prints).toContain('Lecture : Écho');
+  });
+
+  it('A3 in Game and UI: the character walks with the terminal open', () => {
+    const r = solved(lesson('a3-terminal'), (p) => {
+      for (const n of nodes(p, 'BP_Joueur', 'input.setModeUIOnly')) n.def = 'input.setModeGameAndUI';
+    });
+    expect(reason(r, 'still').reason).toContain('Game and UI');
+    expect(reason(r, 'north').ok).toBe(true);
+  });
+
+  it('T4 without the first update: empty at the start, and said why', () => {
+    const r = solved(lesson('t4-energie'), (p) => drop(p, 'WBP_Energie', (n) => n.def === 'widget.setPercent' && n.y < 300));
+    expect(reason(r, 'start').reason).toContain('70');
+    expect(reason(r, 'one').ok).toBe(true);
+  });
+});

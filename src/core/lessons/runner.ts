@@ -188,7 +188,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
       sim.step(dt);
     } else if ('click' in step) {
       const [widget, button] = step.click.split('/');
-      sim.tapButton(widget, button);
+      sim.tapButton(widget, button, step.nth);
       sim.step(dt);
     }
     runaway = ranAway();

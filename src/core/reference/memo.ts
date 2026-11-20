@@ -160,7 +160,7 @@ export const MEMO: MemoCard[] = [
     title: 'Interfaces à l’écran (UMG)',
     summary: 'Widget Blueprint, Create Widget, Add to Viewport, et comment le mettre à jour.',
     keywords: ['widget', 'umg', 'hud', 'add to viewport', 'binding', 'bouton', 'texte', 'menu', 'input mode'],
-    lessons: ['l-compteur-ecran', 'p16-construct', 'l-menu-controle', 'd24-menu-reste', 'l-vrai-menu-pause', 'd25-bouton-muet'],
+    lessons: ['l-compteur-ecran', 'p16-construct', 'l-menu-controle', 'd24-menu-reste', 'l-vrai-menu-pause', 'd25-bouton-muet', 'l-barre-vie', 'r6-oxygene', 'l-appuie-sur-e', 'a3-terminal', 'c7-playlist', 't4-energie'],
     body:
       'Une interface (barre de vie, menu, dialogue) est un **Widget Blueprint** : un onglet Designer pour placer textes, images et boutons, un onglet Graph pour la logique.\n\n' +
       'Pour l’afficher : **Create Widget** (choisir la classe, Owning Player), garder le résultat dans une variable, puis **Add to Viewport**. Pour l’enlever : **Remove from Parent**.\n\n' +
@@ -169,6 +169,8 @@ export const MEMO: MemoCard[] = [
       '- **Binding** d’une propriété : simple, mais la fonction est rappelée à chaque image, pour chaque widget. À éviter dès que l’interface grossit.\n' +
       '- **Piloté par événement** : le jeu annonce un changement (Event Dispatcher « OnSanteChange »), le widget s’y abonne et appelle Set Text ou Set Percent. Rien ne tourne quand rien ne change.\n\n' +
       'Un bouton expose ses événements (On Clicked) dans le graphe du widget.\n\n' +
+      'Une liste (Vertical Box) se remplit en jeu : Clear Children, puis pour chaque élément Create Widget (Expose on Spawn pour lui donner son élément) et Add Child to Vertical Box. Chaque ligne annonce, avec ce qui identifie son élément (pas sa position) ; le parent s’abonne à chaque ligne qu’il crée, décide, et reconstruit.\n\n' +
+      'Pour cacher un widget, **Collapsed** (il ne prend plus de place) ; Hidden garde sa place.\n\n' +
       'Pour un menu : **Set Input Mode UI Only** (ou Game and UI) et **Show Mouse Cursor** sur le PlayerController ; **Set Input Mode Game Only** en revenant au jeu. En Game Only, le mode du début, les boutons ne reçoivent rien ; en UI Only, le jeu ne reçoit plus rien, pas même la touche qui a ouvert le menu.\n\n' +
       'Ce qui prend un clic : un widget Visible. Un Canvas Panel et un Text sont Not Hit-Testable (Self Only) par défaut, le clic les traverse ; une Image restée Visible par-dessus un bouton lui prend ses clics. Les widgets continuent pendant Set Game Paused (Event Tick, boutons), mais leurs Delay attendent.\n\n' +
       'Le widget lit le jeu, il ne le contient pas : la santé vit dans le personnage, pas dans la barre de vie.\n\n' +

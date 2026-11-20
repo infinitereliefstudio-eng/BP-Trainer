@@ -7,10 +7,11 @@ import type { Lesson } from '../lessons/types';
 import { CAST } from './families/cast';
 import { OVERLAP_EVENTS } from './families/overlap';
 import { VARIABLES_BRANCH } from './families/varBranch';
+import { WIDGET } from './families/widget';
 import { DRILL_PREFIX, drillId, makeDrill, parseDrillId, seedOf } from './make';
 import { DRILL_FORMATS, type DrillFormat, type Family } from './types';
 
-export const FAMILIES: readonly Family[] = [VARIABLES_BRANCH, OVERLAP_EVENTS, CAST];
+export const FAMILIES: readonly Family[] = [VARIABLES_BRANCH, OVERLAP_EVENTS, CAST, WIDGET];
 
 export const getFamily = (id: string) => FAMILIES.find((f) => f.id === id);
 

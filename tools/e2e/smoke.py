@@ -282,8 +282,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 130:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 130")
+        if await page.locator('.lesson-item').count() != 136:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 136")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -335,7 +335,7 @@ async def main():
             errs.append('Details : la variable locale ne s’affiche pas')
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text=re.compile(r'Le terminal(?! muet| à badge)')).tap()
+        await page.locator('.lesson-item', has_text=re.compile(r'Le terminal(?! muet| à badge| de la station)')).tap()
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -1224,6 +1224,29 @@ async def main():
             if await page.locator('.game-paused').count() != 0 or await page.locator('.umg-layer .umg-Button').count() != 0:
                 errs.append('Vrai menu pause : Reprendre ne ferme pas le menu ou ne relance pas le jeu')
             await shot('97_play_real_pause_resumed')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
+        # V7.37: « La playlist » solved. One row per song, built in Play; Lire on the 2nd row plays Brume.
+        await page.evaluate(PUT, ['project:lesson:c7-playlist', (HERE / 'out' / 'c7-playlist.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='La playlist').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='La playlist').tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(800)
+        # Twelve buttons that take touches, in layout order: Lire and Retirer of each row, then Rafraîchir and Inverser.
+        btns = page.locator('.umg-layer .umg-Button.hit')
+        if await btns.count() != 12:
+            errs.append(f'Playlist : {await btns.count()} boutons touchables au lieu de 12')
+        else:
+            await btns.nth(2).tap()
+            await page.wait_for_timeout(400)
+            if await page.locator('.umg-layer', has_text='En lecture : Brume').count() == 0:
+                errs.append('Playlist : Lire sur la 2e ligne ne joue pas Brume')
+        await shot('98_play_playlist')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

@@ -62,6 +62,10 @@ import { lessonPauseMenu } from './library/pauseMenu';
 import { lessonScreenCounter, predictConstruct } from './library/umgCounter';
 import { debug24, lessonMenuControl } from './library/umgMenu';
 import { debug25, lessonRealPauseMenu } from './library/umgPause';
+import { lessonHealthBar, refactor6 } from './library/umgHealth';
+import { lessonPressE } from './library/umgPrompt';
+import { complete7 } from './library/umgPlaylist';
+import { autonomyTerminal, transferEnergy } from './library/umgTerminal';
 import { synthesis3 } from './library/synthesis3';
 import { predictSpawnOrder } from './library/predicts3';
 import { lessonUniversalLever } from './library/universalLever';
@@ -172,6 +176,10 @@ export const LESSONS: Lesson[] = [
   debug24,
   lessonRealPauseMenu,
   debug25,
+  // UMG (V7.37): the widget follows the game (dispatchers), then the invite of « Interagir comme dans UE5 ».
+  lessonHealthBar,
+  refactor6,
+  lessonPressE,
   lessonFence,
   predictSpawnOrder,
   debug3,
@@ -180,6 +188,9 @@ export const LESSONS: Lesson[] = [
   debug17,
   predict11,
   debug18,
+  // UMG (V7.37): the delayed autonomy on menus, then a list of child widgets.
+  autonomyTerminal,
+  complete7,
   synthesis3,
   // Avancé
   lessonPureFunctions,
@@ -213,6 +224,8 @@ export const LESSONS: Lesson[] = [
   complete5,
   lessonComponentInventory,
   mixedDispenser,
+  // UMG (V7.37): the HUD method, on an Actor Component (after M2: placed earlier, it would stretch input or events past 15).
+  transferEnergy,
   lessonTalk,
   lessonDialogueTable,
   lessonCheckpoint,

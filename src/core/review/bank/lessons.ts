@@ -361,6 +361,42 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Game Only est le mode du lancement, et Set Show Mouse Cursor ne le change pas. Game and UI ou UI Only laissent les boutons recevoir le toucher.',
   ),
   q(
+    'l-barre-vie',
+    'Dans Event Construct, la barre s’abonne à OnSanteChange. Le joueur commence à 60. Que montre la barre au lancement ?',
+    ['Sa valeur du Designer (pleine) : rien n’a encore été annoncé', '60 %', 'Rien : elle est vide', 'Une erreur Accessed None'],
+    'S’abonner ne dessine rien. Juste après le Bind, il faut une mise à jour avec la valeur actuelle, lue sur le joueur.',
+  ),
+  q(
+    'r6-oxygene',
+    'Un Text est lié par un Binding à une fonction qui lit le joueur. La valeur change deux fois par seconde. Combien de fois la fonction est-elle appelée ?',
+    ['À chaque image, environ 60 fois par seconde', 'Deux fois par seconde', 'Une fois, au Construct', 'Seulement quand on la compile'],
+    'Un Binding est rappelé à chaque image, qu’il y ait du nouveau ou non. Piloté par événement, le widget ne travaille qu’au changement.',
+  ),
+  q(
+    'l-appuie-sur-e',
+    'Pour cacher l’invite « Appuie sur E » sans laisser de trou dans la mise en page, quelle Visibility ?',
+    ['Collapsed', 'Hidden', 'Not Hit-Testable (Self Only)', 'Visible avec une opacité à 0'],
+    'Collapsed cache le widget et lui retire sa place. Hidden le cache mais garde sa place vide.',
+  ),
+  q(
+    'c7-playlist',
+    'Chaque ligne d’une liste annonce sa position (0, 1, 2…) quand on touche Lire. On retire la 1re ligne de la liste sans reconstruire les autres. Que lit alors la ligne qui affiche le 2e morceau ?',
+    ['Le 3e morceau : sa position a changé, pas la ligne', 'Le bon morceau', 'Rien : la ligne est détruite', 'Le 1er morceau, retiré'],
+    'Une position change dès qu’on retire ou réordonne. La ligne doit annoncer ce qui identifie son élément (son Titre), et le parent reconstruire l’affichage depuis ses données.',
+  ),
+  q(
+    'a3-terminal',
+    'Un terminal ouvert en UI Only. Dans quel ordre le refermer depuis son bouton Quitter ?',
+    ['Remove from Parent, Set Input Mode Game Only, Set Show Mouse Cursor décoché', 'Set Show Mouse Cursor décoché suffit', 'Set Input Mode Game Only suffit : il cache le curseur', 'Destroy Actor sur le widget'],
+    'Retirer le widget ne rend pas le contrôle, et Game Only ne cache pas le curseur : les trois sont nécessaires.',
+  ),
+  q(
+    't4-energie',
+    'La Charge vit dans BP_Batterie, un Actor Component porté par le joueur. Comment le HUD le trouve-t-il sans connaître BP_Joueur ?',
+    ['Get Owning Player Pawn → Get Component by Class (BP_Batterie)', 'Cast To BP_Batterie sur Get Owning Player', 'Get Actor Of Class (BP_Batterie)', 'Une variable Instance Editable dans le widget'],
+    'Get Component by Class trouve le composant sur n’importe quel acteur. Un composant n’est pas un acteur du niveau : Get Actor Of Class ne le trouve pas.',
+  ),
+  q(
     'l09-generateur',
     'Une variable de type BP_Lampe (Object Reference) n’a jamais été réglée. Que contient-elle ?',
     ['None : elle ne désigne aucun acteur', 'La première lampe du niveau', 'Une lampe créée automatiquement', 'Le Blueprint lui-même'],

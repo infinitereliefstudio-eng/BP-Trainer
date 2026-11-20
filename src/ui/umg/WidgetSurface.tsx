@@ -10,6 +10,8 @@ import { fontPx, type LaidOutWidget } from '@core/umg/layout';
 interface Props {
   laid: LaidOutWidget[];
   scale: number;
+  /** Play: the Button held by a finger, drawn pressed. */
+  pressed?: string;
   /** The Designer: outlines of panels, selection, touch to pick a widget. */
   designer?: {
     selected?: string;
@@ -47,7 +49,7 @@ function boxStyle(l: LaidOutWidget, scale: number): Record<string, string> {
   return style;
 }
 
-export function WidgetSurface({ laid, scale, designer }: Props) {
+export function WidgetSurface({ laid, scale, designer, pressed }: Props) {
   return (
     <>
       {laid.map((l) => {
@@ -55,7 +57,9 @@ export function WidgetSurface({ laid, scale, designer }: Props) {
         if (!l.drawn) return null;
         const selected = designer?.selected === l.path;
         const kind = l.widget.kind;
-        const cls = `umg umg-${kind}${designer ? ' design' : ''}${selected ? ' selected' : ''}`;
+        // In Play, a Button that takes touches gets them from the page (the rest lets them through to the level).
+        const play = !designer && kind === 'Button' ? `${l.hit ? ' hit' : ''}${pressed === l.path ? ' pressed' : ''}` : '';
+        const cls = `umg umg-${kind}${designer ? ' design' : ''}${selected ? ' selected' : ''}${l.enabled ? '' : ' disabled'}${play}`;
         return (
           <div
             key={l.path}

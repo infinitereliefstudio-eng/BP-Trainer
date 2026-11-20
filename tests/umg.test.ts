@@ -310,12 +310,12 @@ describe('a Widget Blueprint in a game', () => {
 });
 
 describe('saving a Widget Blueprint', () => {
-  it('survives a save and a load (format 12)', () => {
+  it('survives a save and a load (format 12, then 13)', () => {
     const t = hud();
     const canvas = add(t, 'CanvasPanel');
     add(t, 'TextBlock', canvas.id);
     const back = parseProject(serializeProject(t.p));
-    expect(PROJECT_FORMAT).toBe(12);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(12);
     expect(back.classes.find((c) => c.name === 'WBP_HUD')!.widgets).toEqual(t.cls.widgets);
   });
 
@@ -339,6 +339,6 @@ describe('saving a Widget Blueprint', () => {
     file.format = 11;
     file.project.format = 11;
     file.project.classes = file.project.classes.filter((c: { parent: string }) => c.parent !== 'UserWidget');
-    expect(parseProject(JSON.stringify(file)).format).toBe(12);
+    expect(parseProject(JSON.stringify(file)).format).toBe(PROJECT_FORMAT);
   });
 });

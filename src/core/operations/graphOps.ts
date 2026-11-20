@@ -40,6 +40,10 @@ export function addNode(
     const dup = Object.values(graph.nodes).some((n) => n.def === defId && n.config.interface === config.interface && n.config.fn === config.fn);
     if (dup) return fail('Cette fonction d’interface est déjà implémentée dans le graphe.');
   }
+  if (defId === 'event.widgetButton') {
+    const dup = Object.values(graph.nodes).some((n) => n.def === defId && n.config.widget === config.widget && n.config.event === config.event);
+    if (dup) return fail('Cet événement existe déjà pour ce bouton.');
+  }
   if (defId === 'event.componentBeginOverlap' || defId === 'event.componentEndOverlap') {
     const dup = Object.values(graph.nodes).some((n) => n.def === defId && n.config.component === config.component);
     if (dup) return fail('Cet événement existe déjà pour ce composant.');

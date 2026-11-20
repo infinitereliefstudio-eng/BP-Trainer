@@ -37,6 +37,7 @@ import { enhancedInputNodes } from './library/enhancedInput';
 import { controllerNodes } from './library/controller';
 import { actorComponentNodes } from './library/actorComponents';
 import { widgetNodes } from './library/widgets';
+import { inputModeNodes } from './library/inputMode';
 
 const ALL: NodeDefinition[] = [
   ...controllerNodes,
@@ -53,6 +54,7 @@ const ALL: NodeDefinition[] = [
   ...actorNodes,
   ...actorComponentNodes,
   ...widgetNodes,
+  ...inputModeNodes,
   ...componentNodes,
   ...communicationNodes,
   ...functionNodes,

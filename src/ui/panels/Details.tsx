@@ -67,7 +67,7 @@ export function Details({ openOverlay, onOpenClass, onOpenGraph, run, onFocusNod
   else if (f.kind === 'variable') body = <VariableDetails id={f.id} openOverlay={openOverlay} onFind={onFind} />;
   else if (f.kind === 'local') body = <LocalDetails graphId={f.graph} id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'component') body = <ComponentDetails id={f.id} placeNode={placeNode} onOpenClass={onOpenClass} />;
-  else if (f.kind === 'widget') body = <WidgetDetails id={f.id} onOpenClass={onOpenClass} onOpenGraph={onOpenGraph} />;
+  else if (f.kind === 'widget') body = <WidgetDetails id={f.id} onOpenClass={onOpenClass} onOpenGraph={onOpenGraph} onFocusNode={onFocusNode} />;
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
   else if (f.kind === 'classDefaults') body = <ClassDefaults />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;

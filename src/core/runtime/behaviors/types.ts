@@ -89,6 +89,10 @@ export interface WorldApi {
   setGamePaused(paused: boolean): void;
   /** UMG: widget objects, the viewport, their properties. */
   readonly umg: Umg;
+  /** Set Input Mode … on the Player Controller (Flush Input releases every key). */
+  setInputMode(mode: 'GameOnly' | 'UIOnly' | 'GameAndUI', flush?: boolean): void;
+  /** The Player Controller's Show Mouse Cursor. */
+  showMouseCursor: boolean;
 }
 
 export interface ValueCx {

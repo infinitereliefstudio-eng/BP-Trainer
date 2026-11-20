@@ -53,6 +53,11 @@ export class RunRecord {
   readonly keys = new Set<string>();
   /** Input Actions that triggered while the game was paused and did not reach the graphs (no Trigger when Paused). */
   readonly pausedActions = new Set<string>();
+  /** Input Actions and keys that did not reach the game because the input mode was UI Only. */
+  readonly uiOnlyBlocked = new Set<string>();
+  /** Buttons that answered a touch ("WBP_Pause/Btn_Reprendre"), and touches on a button that were ignored (why). */
+  readonly buttons: string[] = [];
+  readonly ignoredTouches: { button: string; reason: string }[] = [];
   /** Actor ids clicked, and destroyed. */
   readonly clicked = new Set<string>();
   readonly destroyed = new Set<string>();

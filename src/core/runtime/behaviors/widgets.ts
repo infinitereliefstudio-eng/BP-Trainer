@@ -133,6 +133,8 @@ export const widgetBehaviors: Record<string, Behavior> = {
   'widget.setVisibility': setter((cx) => ({ visibility: Math.trunc(cx.num('visibility')) })),
   'widget.getVisibility': getter('visibility'),
   'widget.isVisible': getter('visibility', (v) => v !== VIS_COLLAPSED && v !== VIS_HIDDEN),
+  'widget.setIsEnabled': setter((cx) => ({ enabled: cx.bool('enabled') })),
+  'widget.getIsEnabled': getter('enabled', (v) => v !== false),
   'widget.setText': setter((cx) => ({ text: cx.str('text') })),
   'widget.getText': getter('text'),
   'widget.setTextColor': setter((cx) => ({ color: String(cx.in('color') ?? '#ffffff') })),

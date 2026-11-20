@@ -96,6 +96,7 @@ export function compileClass(cls: BlueprintClass, project?: Project): CompileRes
 
 function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: CompileMessage[]): void {
   const seenUnique = new Map<string, string>();
+  const seenButtons = new Set<string>();
   const linkedInputs = new Set<string>();
   for (const l of Object.values(g.links)) linkedInputs.add(`${l.to.node}:${l.to.pin}`);
 
@@ -141,6 +142,14 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     }
     if (n.def === 'var.component' && !findComponent(cls, String(n.config.component))) {
       out.push({ severity: 'error', code: 'componentGone', text: `${title} : le composant n'existe plus.`, ...at });
+    }
+    if (n.def === 'event.widgetButton') {
+      const v = widgetVariable(ctx, String(n.config.widget));
+      const key = `${n.config.widget}:${n.config.event}`;
+      if (!v) out.push({ severity: 'error', code: 'widgetGone', text: `${title} : le bouton n'existe plus dans le Designer.`, ...at });
+      else if (!v.isVariable) out.push({ severity: 'error', code: 'widgetGone', text: `${v.name} n'est plus une variable : coche Is Variable sur ${v.name} dans le Designer pour garder ses événements.`, ...at });
+      else if (seenButtons.has(key)) out.push({ severity: 'error', code: 'duplicateEvent', text: `${title} est présent deux fois.`, ...at });
+      seenButtons.add(key);
     }
     if (n.def === 'var.widget') {
       const v = widgetVariable(ctx, String(n.config.widget));

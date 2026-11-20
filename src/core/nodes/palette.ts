@@ -10,7 +10,7 @@ import type { Value } from '../types/values';
 import type { NodeContext, PinSpec } from './definition';
 import { classById, NATIVE_CASTS } from './library/communication';
 import { NOT_IN_COMPONENT, selfIs } from './library/actorComponents';
-import { NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from './library/widgets';
+import { BUTTON_EVENTS, NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from './library/widgets';
 import { NATIVE_DISPATCHERS, NATIVE_SIGNATURE_OWNER } from './library/nativeDispatchers';
 import { allDefinitions, getDefinition, resolvePins } from './registry';
 
@@ -71,6 +71,20 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
       config: { widget: w.id },
       keywords: ['get', 'variable', 'widget', w.name.toLowerCase()],
     });
+    // A Button's events, as UE's context menu offers them under its variable ("Add On Clicked").
+    if (w.kind === 'Button' && graphKind === 'event') {
+      for (const e of BUTTON_EVENTS) {
+        out.push({
+          key: `button:${w.id}:${e.id}`,
+          title: `${e.label} (${w.name})`,
+          category: `Add Event|${w.name}`,
+          description: `${e.help} Événement du bouton ${w.name}.`,
+          def: 'event.widgetButton',
+          config: { widget: w.id, event: e.id },
+          keywords: ['on clicked', 'bouton', 'button', 'clic', e.label.toLowerCase(), w.name.toLowerCase()],
+        });
+      }
+    }
   }
   for (const v of ctx.cls.variables) {
     const cat = `Variables${v.category && v.category !== 'Default' ? `|${v.category}` : ''}`;

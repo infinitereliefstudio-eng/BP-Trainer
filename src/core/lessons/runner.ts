@@ -186,6 +186,10 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     } else if ('release' in step) {
       sim.releaseKey(step.release);
       sim.step(dt);
+    } else if ('click' in step) {
+      const [widget, button] = step.click.split('/');
+      sim.tapButton(widget, button);
+      sim.step(dt);
     }
     runaway = ranAway();
   }

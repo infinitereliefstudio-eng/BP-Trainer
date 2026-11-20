@@ -25,7 +25,7 @@ import {
 } from '../model/widgets';
 import { namesInUse, validateName } from './classOps';
 import { addFunction, addFunctionParam } from './functionOps';
-import { removeNodes, type OpResult } from './graphOps';
+import { addNode, removeNodes, type OpResult } from './graphOps';
 
 const ok = <T>(value: T): OpResult<T> => ({ ok: true, value });
 const fail = (reason: string): OpResult<never> => ({ ok: false, reason });
@@ -131,7 +131,7 @@ export function removeWidget(cls: BlueprintClass, id: string): OpResult {
     removeNodes(
       g,
       Object.values(g.nodes)
-        .filter((n) => n.def === 'var.widget' && gone.has(String(n.config.widget)))
+        .filter((n) => (n.def === 'var.widget' || n.def === 'event.widgetButton') && gone.has(String(n.config.widget)))
         .map((n) => n.id),
     );
   }
@@ -347,4 +347,22 @@ export function createWidgetBinding(p: Project, cls: BlueprintClass, id: string,
   if (ret && param) ret.defaults[param.id] = prop === 'visibility' ? w.props.visibility : (w.props[prop] as string | number);
   w.bindings = { ...w.bindings, [prop]: g.id };
   return { ok: true, value: g };
+}
+
+/**
+ * The + of a Button's event in Details (On Clicked…): the event node in the
+ * Event Graph, made below the others if it is not there yet, as UE does.
+ */
+export function addButtonEvent(cls: BlueprintClass, id: string, event: 'clicked' | 'pressed' | 'released'): OpResult<{ graphId: string; nodeId: string }> {
+  const w = widgetsOf(cls).find((x) => x.id === id);
+  if (w?.kind !== 'Button') return { ok: false, reason: 'Ce widget n’est pas un Button.' };
+  if (!w.isVariable) return { ok: false, reason: `Coche d’abord Is Variable sur ${w.name} : ses événements en dépendent.` };
+  const g = cls.graphs.find((x) => x.kind === 'event');
+  if (!g) return { ok: false, reason: 'Pas d’Event Graph.' };
+  const found = Object.values(g.nodes).find((n) => n.def === 'event.widgetButton' && n.config.widget === id && n.config.event === event);
+  if (found) return { ok: true, value: { graphId: g.id, nodeId: found.id } };
+  const bottom = Math.max(0, ...Object.values(g.nodes).map((n) => n.y + 200));
+  const r = addNode(g, 'event.widgetButton', 64, bottom, { widget: id, event });
+  if (!r.ok) return r;
+  return { ok: true, value: { graphId: g.id, nodeId: r.value.id } };
 }

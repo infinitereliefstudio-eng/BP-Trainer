@@ -128,6 +128,16 @@ function migrate(p: Project, from: number): Project {
     // v12: Widget Blueprints (parent UserWidget, their widget tree). Nothing to convert.
     cur = 12;
   }
+  if (cur === 12) {
+    // v13: Canvas Panels, Text Blocks and placed User Widgets are Not Hit-Testable (Self Only) by default, as in UE
+    // (the touch reaches the buttons below them). Those still at Visible, the old default, take the new one.
+    for (const c of p.classes ?? []) {
+      for (const w of c.widgets ?? []) {
+        if ((w.kind === 'CanvasPanel' || w.kind === 'TextBlock' || w.kind === 'UserWidget') && w.props?.visibility === 0) w.props.visibility = 4;
+      }
+    }
+    cur = 13;
+  }
   p.format = cur;
   return p;
 }

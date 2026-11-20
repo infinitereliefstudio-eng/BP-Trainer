@@ -34,6 +34,15 @@ export const STEP = 1 / 60;
 
 export type InputKey = 'E' | 'F' | 'SpaceBar';
 
+/** The Player Controller's input mode (Set Input Mode …): who gets the player's input, the game, the widgets, or both. */
+export type InputMode = 'GameOnly' | 'UIOnly' | 'GameAndUI';
+
+/** What a touch on the widgets did: a Button answered, or it was ignored, and why. */
+export type TouchOutcome =
+  | { kind: 'none' }
+  | { kind: 'button'; button: string }
+  | { kind: 'ignored'; reason: 'gameOnly' | 'disabled' | 'blocked'; button: string; by?: string };
+
 /**
  * The order actors run their events in (BeginPlay, Tick, input). UE does not
  * guarantee it, so Play shuffles it; lesson checks run 'level' then
@@ -97,6 +106,14 @@ export class Simulation implements InterpreterHost {
   gamePaused = false;
   /** UMG: the widget objects, the viewport, their life cycle and Bindings. */
   readonly umg: Umg;
+  /**
+   * Set Input Mode: Game Only (UE's start: touches on widgets are not
+   * theirs), UI Only (the game gets nothing: no key, no action, no
+   * joystick), Game and UI (both).
+   */
+  inputMode: InputMode = 'GameOnly';
+  /** The Player Controller's Show Mouse Cursor. */
+  showMouseCursor = false;
   private readonly onSlotsChanged?: () => void;
 
   private readonly journal = new Journal();
@@ -339,7 +356,9 @@ export class Simulation implements InterpreterHost {
       // The player's input first, as UE's PlayerController ticks before the pawn moves.
       () => this.fireActions(dt),
       () => {
-        for (const h of movePlayer(this.player, this.move, this.actors, dt)) this.fireHit(h);
+        // UI Only: the joystick is input too, and the game gets none.
+        const move = this.inputMode === 'UIOnly' ? { x: 0, y: 0 } : this.move;
+        for (const h of movePlayer(this.player, move, this.actors, dt)) this.fireHit(h);
       },
       () => {
         updateOverlaps([this.player, ...this.actors.filter((a) => !a.destroyed)], this.fire, this.broadcast);
@@ -350,6 +369,8 @@ export class Simulation implements InterpreterHost {
           this.interp.tickLatents(a, dt);
           this.interp.tickTimelines(a, dt);
         }
+        // A widget's Delay runs on the world's time too: it waits while the game is paused.
+        for (const o of this.umg.widgetObjects()) this.interp.tickLatents(o, dt);
         this.timers.tick(dt, (t) => {
           const owner = this.findActor(t.actor);
           if (owner && !owner.destroyed) this.fire(owner, (n) => n.id === t.node, 'then');
@@ -501,6 +522,11 @@ export class Simulation implements InterpreterHost {
    */
   private fireActions(dt: number): void {
     for (const f of this.enhancedInput.process(this.project, dt)) {
+      // In UI Only, the Player Controller gets no input at all: the widgets have it.
+      if (this.inputMode === 'UIOnly') {
+        this.record.uiOnlyBlocked.add(f.action);
+        continue;
+      }
       // While paused, only the actions marked Trigger when Paused reach the graphs (UE's bTriggerWhenPaused).
       if (this.gamePaused && !this.project.inputActions?.find((a) => a.id === f.action)?.triggerWhenPaused) {
         this.record.pausedActions.add(f.action);
@@ -524,6 +550,10 @@ export class Simulation implements InterpreterHost {
     this.record.keys.add(key);
     // Key events do not execute while the game is paused (their Execute when Paused is off, UE's default).
     if (this.gamePaused) return;
+    if (this.inputMode === 'UIOnly') {
+      this.record.uiOnlyBlocked.add(key);
+      return;
+    }
     sendKey(this.inputStack(), this.interp, key, pin);
     this.runPhases();
   }
@@ -553,6 +583,90 @@ export class Simulation implements InterpreterHost {
     this.record.clicked.add(a.id);
     this.fire(a, (n) => n.def === 'event.actorOnClicked', 'then');
     this.runPhases();
+  }
+
+  // ------------------------------------------------------------- widgets
+
+  /** Set Input Mode …; Flush Input releases every key. */
+  setInputMode(mode: InputMode, flush = false): void {
+    this.inputMode = mode;
+    if (flush) this.enhancedInput.flush();
+  }
+
+  /**
+   * A finger goes down on the screen of widgets (x, y on a screen `width`
+   * wide and 720 high). On a Button, when the input mode lets widgets have
+   * it: On Pressed. As in UE, Game Only keeps the touch from the widgets.
+   */
+  touchDown(x: number, y: number, width: number): TouchOutcome {
+    if (!this.started) this.start();
+    if (this.paused) return { kind: 'none' };
+    const hit = this.umg.hit(x, y, width);
+    if (hit.kind === 'none') return hit;
+    if (hit.kind === 'blocked') return this.ignored({ kind: 'ignored', reason: 'blocked', button: hit.under, by: hit.by });
+    const label = `${hit.obj.className}/${hit.name}`;
+    if (this.inputMode === 'GameOnly') return this.ignored({ kind: 'ignored', reason: 'gameOnly', button: label });
+    if (!hit.enabled) return this.ignored({ kind: 'ignored', reason: 'disabled', button: label });
+    this.umg.setPressed({ obj: hit.obj.id, id: hit.id, path: hit.path });
+    this.fireButton(hit.obj, hit.id, 'pressed');
+    this.runPhases();
+    return { kind: 'button', button: label };
+  }
+
+  /** The finger goes up: On Released, then On Clicked if it is still on the same Button. */
+  touchUp(x: number, y: number, width: number): void {
+    const p = this.umg.pressed;
+    this.umg.setPressed(undefined);
+    if (!p || this.paused) return;
+    const obj = this.findActor(p.obj);
+    if (!obj) return;
+    this.fireButton(obj, p.id, 'released');
+    const hit = this.umg.hit(x, y, width);
+    if (hit.kind === 'button' && hit.path === p.path && hit.enabled && this.inputMode !== 'GameOnly') {
+      this.record.buttons.push(`${obj.className}/${hit.name}`);
+      this.fireButton(obj, p.id, 'clicked');
+    }
+    this.runPhases();
+  }
+
+  /**
+   * A tap on a Button found by name ("WBP_Pause", "Btn_Reprendre"), at its
+   * centre, on the reference screen: what a lesson's scenario does.
+   * Whatever covers it there takes the touch, as for a finger.
+   */
+  tapButton(widgetClass: string, button: string): TouchOutcome {
+    const width = 1280;
+    for (const s of [...this.umg.layer(width)].reverse()) {
+      const l = s.laid.find((x) => x.widget.kind === 'Button' && x.widget.name === button && x.drawn && this.findActor(this.objectOfPath(x.path))?.className === widgetClass);
+      if (!l) continue;
+      const cx = l.rect.x + l.rect.w / 2;
+      const cy = l.rect.y + l.rect.h / 2;
+      const out = this.touchDown(cx, cy, width);
+      this.step();
+      this.touchUp(cx, cy, width);
+      return out;
+    }
+    return { kind: 'none' };
+  }
+
+  /** The widget object a layout path ends in ("@a/u/@b/w" → b). */
+  private objectOfPath(path: string): string {
+    const segs = path.split('/');
+    let id = segs[0].slice(1);
+    for (let i = 1; i < segs.length - 1; i++) {
+      const seg = segs[i];
+      id = seg.startsWith('@') ? seg.slice(1) : (this.findActor(id)?.widget?.nested[seg] ?? id);
+    }
+    return id;
+  }
+
+  private ignored(o: Extract<TouchOutcome, { kind: 'ignored' }>): TouchOutcome {
+    this.record.ignoredTouches.push({ button: o.button, reason: o.reason });
+    return o;
+  }
+
+  private fireButton(obj: ActorRT, id: string, event: 'pressed' | 'released' | 'clicked'): void {
+    this.fire(obj, (n) => n.def === 'event.widgetButton' && n.config.widget === id && n.config.event === event, 'then');
   }
 
   teleportPlayer(x: number, y: number): void {

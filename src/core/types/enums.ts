@@ -17,6 +17,8 @@ export const BUILTIN_ENUMS: Record<string, string[]> = {
   EEndPlayReason: ['Destroyed', 'Level Transition', 'End Play In Editor', 'Removed From World', 'Quit'],
   /** Visibility of a widget (UMG), in UE's order: Set Visibility, Bindings. */
   ESlateVisibility: SLATE_VISIBILITY_LABEL,
+  /** Set Input Mode UI Only / Game and UI: how the mouse is kept in the window (nothing to lock on a phone). */
+  EMouseLockMode: ['Do Not Lock', 'Lock On Capture', 'Lock Always', 'Lock in Fullscreen'],
 };
 
 /** Entries of an enum by name, or undefined if it does not exist. */

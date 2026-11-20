@@ -37,7 +37,7 @@ export const controllerNodes: NodeDefinition[] = [
     category: 'Game',
     kind: 'function',
     description:
-      'Met le jeu en pause (Paused coché) ou le relance. En pause, le temps de jeu s’arrête : plus de Tick, les Delay, timers et Timelines attendent, le joueur ne bouge plus. Les entrées n’arrivent plus, sauf les Input Actions dont **Trigger when Paused** est coché : sans elles, on ne peut plus sortir de la pause.',
+      'Met le jeu en pause (Paused coché) ou le relance. En pause, le temps de jeu s’arrête : plus de Tick, les Delay, timers et Timelines attendent, le joueur ne bouge plus. Les entrées n’arrivent plus, sauf les Input Actions dont **Trigger when Paused** est coché : sans elles, on ne peut plus sortir de la pause. Les widgets, eux, continuent : leur Event Tick et leurs boutons marchent en pause.',
     keywords: ['pause', 'paused', 'set game paused', 'menu', 'pauser', 'reprendre'],
     pins: [execIn(), execOut(), dataIn('paused', 'Paused', T.bool, { default: false }), dataOut('result', 'Return Value', T.bool)],
   },

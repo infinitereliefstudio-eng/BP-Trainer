@@ -21,7 +21,9 @@ import {
   type WidgetProps,
   type WidgetSlot,
 } from '@core/model/widgets';
+import { BUTTON_EVENTS } from '@core/nodes/library/widgets';
 import {
+  addButtonEvent,
   bindingCandidates,
   createWidgetBinding,
   removeWidget,
@@ -109,7 +111,17 @@ function Bindable({ w, prop, onOpenGraph, children }: { w: WidgetNode; prop: Bin
   );
 }
 
-export function WidgetDetails({ id, onOpenClass, onOpenGraph }: { id: string; onOpenClass?: (classId: string) => void; onOpenGraph?: (graphId: string) => void }) {
+export function WidgetDetails({
+  id,
+  onOpenClass,
+  onOpenGraph,
+  onFocusNode,
+}: {
+  id: string;
+  onOpenClass?: (classId: string) => void;
+  onOpenGraph?: (graphId: string) => void;
+  onFocusNode?: (graphId: string, nodeId: string) => void;
+}) {
   const store = useStore();
   const cls = store.cls;
   const w = (cls.widgets ?? []).find((x) => x.id === id);
@@ -259,7 +271,35 @@ export function WidgetDetails({ id, onOpenClass, onOpenGraph }: { id: string; on
             </select>
           </Bindable>
         </Field>
+        <Field label="Is Enabled">
+          <Check checked={p.enabled !== false} onChange={(enabled) => setProps({ enabled })} />
+        </Field>
       </Group>
+
+      {w.kind === 'Button' && (
+        <Group title="Events">
+          {!w.isVariable && <p class="hint">Coche Is Variable pour ajouter les événements de ce bouton.</p>}
+          {BUTTON_EVENTS.map((e) => {
+            const placed = store.cls.graphs.some((g) => Object.values(g.nodes).some((n) => n.def === 'event.widgetButton' && n.config.widget === w.id && n.config.event === e.id));
+            return (
+              <Field key={e.id} label={e.label}>
+                <button
+                  class={`btn${placed ? '' : ' primary'}`}
+                  disabled={!w.isVariable}
+                  title={e.help}
+                  onClick={() => {
+                    const r = store.apply(`Ajouter ${e.label}`, (c) => addButtonEvent(c, w.id, e.id));
+                    if (r.ok) onFocusNode?.(r.value.graphId, r.value.nodeId);
+                    else store.warn(r.reason);
+                  }}
+                >
+                  {placed ? 'Voir' : '+'}
+                </button>
+              </Field>
+            );
+          })}
+        </Group>
+      )}
 
       <Group title="Widget" app>
         <button
@@ -291,7 +331,7 @@ export function WidgetDetails({ id, onOpenClass, onOpenGraph }: { id: string; on
           </p>
         )}
         <p>
-          <b>Visibility</b> : Collapsed ne prend plus de place, Hidden garde sa place. Les deux Not Hit-Testable restent visibles mais ne reçoivent pas les touchers.
+          <b>Visibility</b> : Collapsed ne prend plus de place, Hidden garde sa place. Les deux Not Hit-Testable restent visibles mais le toucher les traverse (c'est le défaut d'un Canvas Panel et d'un Text) ; une Image restée Visible par-dessus un bouton lui prend ses touchers. <b>Is Enabled</b> décoché : le widget et son contenu sont grisés et ne répondent plus.
         </p>
       </AppHelp>
     </>

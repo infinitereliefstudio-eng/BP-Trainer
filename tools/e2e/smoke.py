@@ -1074,8 +1074,8 @@ async def main():
         if await page.locator('.graph-tabs .tab.active', has_text='GetPercent_0').count() == 0:
             errs.append('Create Binding : la fonction GetPercent_0 ne s’ouvre pas')
         await shot('89_widget_create_binding')
-        if await page.locator('.drawer.right .drawer-head .btn').count():
-            await page.locator('.drawer.right .drawer-head .btn').tap()
+        if await page.locator('.drawer.right.open .drawer-head .btn').count():
+            await page.locator('.drawer.right.open .drawer-head .btn').first.tap()
             await page.wait_for_timeout(200)
         # Wire by hand what a learner would: Pre Construct and Construct set the Text; the binding returns 0.6.
         await page.evaluate("""() => {
@@ -1134,6 +1134,72 @@ async def main():
         if await page.locator('.outliner .d-field', has_text='GetPercent_0').count() == 0:
             errs.append('Outliner : le widget ne montre pas sa Binding')
         await shot('92_play_widget_outliner')
+        if await page.locator('.drawer.right.open .drawer-head .btn').count():
+            await page.locator('.drawer.right.open .drawer-head .btn').first.tap()
+            await page.wait_for_timeout(200)
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
+        # V7.35: the Button's On Clicked from its Details (+), then Play: in Game Only the touch is ignored and says why;
+        # with Set Input Mode Game and UI and the cursor shown, the button answers.
+        await page.locator('.doc-tab.bp .doc-open', has_text='WBP_HUD').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.graph-tabs .tab', has_text='Designer').tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate("() => { const s = window.bpStore; s.setFocus({ kind: 'widget', id: s.cls.widgets.find(w => w.kind === 'Button').id }); }")
+        await page.locator('button[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.drawer.right .d-field', has_text='On Clicked').locator('button').tap()
+        await page.wait_for_timeout(400)
+        clicked = await page.evaluate("() => { const s = window.bpStore; return Object.values(s.graph.nodes).filter(n => n.def === 'event.widgetButton').map(n => n.config.event); }")
+        if clicked != ['clicked']:
+            errs.append(f'Button : le + de On Clicked n’a pas posé l’événement ({clicked})')
+        await shot('93_button_on_clicked')
+        if await page.locator('.drawer.right.open .drawer-head .btn').count():
+            await page.locator('.drawer.right.open .drawer-head .btn').first.tap()
+            await page.wait_for_timeout(200)
+        await page.evaluate("""() => {
+          const s = window.bpStore;
+          s.apply('e2e clic', (c, g) => {
+            const ev = Object.values(g.nodes).find(n => n.def === 'event.widgetButton');
+            g.nodes.e2e_clic = { id: 'e2e_clic', def: 'debug.printString', x: ev.x + 320, y: ev.y, config: {}, defaults: { text: 'clic' } };
+            g.links.e2e_c1 = { id: 'e2e_c1', from: { node: ev.id, pin: 'then' }, to: { node: 'e2e_clic', pin: 'exec' } };
+          });
+        }""")
+        await page.locator('.tab', has_text='Niveau').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(800)
+        await page.locator('.umg-layer .umg-Button.hit').first.tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.umg-notice', has_text='Game Only').count() == 0:
+            errs.append('Play : le toucher ignoré en Game Only ne le dit pas')
+        else:
+            await page.locator('.umg-notice .btn', has_text='Pourquoi').tap()
+            await page.wait_for_timeout(200)
+        await shot('94_play_touch_game_only')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate("""() => {
+          const s = window.bpStore;
+          s.applyProject('e2e mode', (p) => {
+            const g = p.classes.find(c => c.name === 'BP_Lampe').graphs[0];
+            g.nodes.e2e_gu = { id: 'e2e_gu', def: 'input.setModeGameAndUI', x: 940, y: 300, config: {}, defaults: {} };
+            g.nodes.e2e_cur = { id: 'e2e_cur', def: 'input.setShowMouseCursor', x: 1260, y: 300, config: {}, defaults: { show: true } };
+            g.links.e2e_g1 = { id: 'e2e_g1', from: { node: 'e2e_av', pin: 'then' }, to: { node: 'e2e_gu', pin: 'exec' } };
+            g.links.e2e_g2 = { id: 'e2e_g2', from: { node: 'e2e_pc', pin: 'result' }, to: { node: 'e2e_gu', pin: 'controller' } };
+            g.links.e2e_g3 = { id: 'e2e_g3', from: { node: 'e2e_gu', pin: 'then' }, to: { node: 'e2e_cur', pin: 'exec' } };
+            g.links.e2e_g4 = { id: 'e2e_g4', from: { node: 'e2e_pc', pin: 'result' }, to: { node: 'e2e_cur', pin: 'target' } };
+          });
+        }""")
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(800)
+        await page.locator('.umg-layer .umg-Button.hit').first.tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.screen-msg', has_text='clic').count() == 0:
+            errs.append('Play : en Game and UI, le bouton ne répond pas (pas de « clic »)')
+        if await page.locator('.play-badge', has_text='Game and UI').count() == 0 or await page.locator('.play-badge', has_text='Curseur').count() == 0:
+            errs.append('Play : le mode Game and UI et le curseur ne sont pas signalés')
+        await shot('95_play_button_game_and_ui')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

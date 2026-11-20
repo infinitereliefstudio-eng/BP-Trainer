@@ -33,6 +33,17 @@ function pickedWidget(n: NodeInstance, ctx: NodeContext) {
   return cls?.parent === 'UserWidget' ? cls : undefined;
 }
 
+/** A Button's events, as UE lists them in its Details (Events). */
+export const BUTTON_EVENTS = [
+  { id: 'clicked', label: 'On Clicked', help: 'Le doigt se lève sur le bouton après l’avoir enfoncé : le « clic ».' },
+  { id: 'pressed', label: 'On Pressed', help: 'Le doigt se pose sur le bouton.' },
+  { id: 'released', label: 'On Released', help: 'Le doigt se lève, sur le bouton ou ailleurs (avant On Clicked).' },
+] as const;
+
+export type ButtonEvent = (typeof BUTTON_EVENTS)[number]['id'];
+
+export const buttonEventLabel = (id: unknown): string => BUTTON_EVENTS.find((e) => e.id === id)?.label ?? 'On Clicked';
+
 const VIEWPORT = `${CAT}|Viewport`;
 const WIDGET = `${CAT}|Widget`;
 const PANEL = `${CAT}|Panel`;
@@ -105,6 +116,18 @@ export const widgetNodes: NodeDefinition[] = [
       'À chaque image, tant que le widget est à l’écran, même quand le jeu est en pause. Dans UE il donne aussi My Geometry (la place du widget), absent ici. À éviter pour suivre une valeur : préfère un événement.',
     keywords: ['tick', 'frame', 'image', 'update'],
     pins: [execOut(), dataOut('delta', 'In Delta Time', T.float)],
+  },
+  {
+    id: 'event.widgetButton',
+    title: (n, ctx) => `${buttonEventLabel(n.config.event)} (${widgetVariable(ctx, String(n.config.widget))?.name ?? 'widget supprimé'})`,
+    category: CAT,
+    kind: 'event',
+    allowedIn: ['event'],
+    hiddenFromPalette: true,
+    description:
+      'Un événement d’un Button du Designer coché Is Variable : On Clicked quand on le touche puis relâche dessus, On Pressed au toucher, On Released au relâcher. Il ne vient que si le mode d’entrée laisse les widgets recevoir les touchers (UI Only, ou Game and UI) ; en Game Only, le toucher est ignoré.',
+    keywords: ['on clicked', 'clic', 'bouton', 'button', 'pressed', 'released'],
+    pins: [execOut()],
   },
   {
     id: 'var.widget',
@@ -219,6 +242,24 @@ export const widgetNodes: NodeDefinition[] = [
     pins: (_n, ctx) => [widgetTarget(ctx), dataOut('result', 'Return Value', T.bool)],
   },
   {
+    id: 'widget.setIsEnabled',
+    title: 'Set Is Enabled',
+    category: WIDGET,
+    kind: 'function',
+    description: 'Active ou désactive le widget et ce qu’il contient. Un bouton désactivé reste visible (grisé) mais ne répond plus : il prend le toucher sans rien faire.',
+    keywords: ['enabled', 'activer', 'desactiver', 'griser', 'bouton'],
+    pins: (_n, ctx) => [execIn(), widgetTarget(ctx), dataIn('enabled', 'In Is Enabled', T.bool, { default: true }), execOut()],
+  },
+  {
+    id: 'widget.getIsEnabled',
+    title: 'Get Is Enabled',
+    category: WIDGET,
+    kind: 'pure',
+    description: 'Vrai si le widget est activé (sa propre case Is Enabled).',
+    keywords: ['enabled', 'active'],
+    pins: (_n, ctx) => [widgetTarget(ctx), dataOut('result', 'Return Value', T.bool)],
+  },
+  {
     id: 'widget.setText',
     title: 'SetText (Text)',
     category: TEXT,
@@ -323,7 +364,7 @@ export const widgetNodes: NodeDefinition[] = [
 ];
 
 /** Events that only exist in a Widget Blueprint. */
-export const WIDGET_ONLY = new Set(['event.preConstruct', 'event.construct', 'event.destruct', 'event.onInitialized', 'event.widgetTick']);
+export const WIDGET_ONLY = new Set(['event.preConstruct', 'event.construct', 'event.destruct', 'event.onInitialized', 'event.widgetTick', 'event.widgetButton']);
 
 /**
  * What a Widget Blueprint's graph may not contain, as in UE: a widget is

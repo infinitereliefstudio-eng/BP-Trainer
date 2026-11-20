@@ -9,7 +9,7 @@
  * fonts in points (1 point = 4/3 pixel, Slate's 96 DPI).
  */
 import { findClass, type BlueprintClass, type Project } from '../model/project';
-import { stretchedX, stretchedY, VIS_COLLAPSED, VIS_HIDDEN, widgetChildren, widgetRoot, type WidgetNode, type WidgetProps } from '../model/widgets';
+import { stretchedX, stretchedY, VIS_COLLAPSED, VIS_HIDDEN, VIS_HIT_TEST_INVISIBLE, VIS_VISIBLE, widgetChildren, widgetRoot, type WidgetNode, type WidgetProps } from '../model/widgets';
 import type { Rect } from '../operations/widgetOps';
 
 /** The Designer's screen size (an app choice: readable on a phone; UE projects often use 1920 × 1080). */
@@ -34,6 +34,21 @@ export interface LaidOutWidget {
   depth: number;
   /** Its properties, with what the game changed (Set Text…) applied. */
   props: WidgetProps;
+  /** Can a touch stop on it: drawn, Visible, and no parent Not Hit-Testable (Self & All Children). */
+  hit: boolean;
+  /** Is Enabled, and so is every parent. */
+  enabled: boolean;
+  /** Index of its parent in the list (a User Widget's root: the User Widget), for a touch going up to a Button. */
+  parent?: number;
+}
+
+/** What a widget passes down to its children. */
+interface Up {
+  drawn: boolean;
+  /** Children may take touches (no Not Hit-Testable (Self & All Children) above). */
+  hit: boolean;
+  enabled: boolean;
+  parent?: number;
 }
 
 /** What a running game changed on a widget, by path (Set Text, Set Percent…); `removed`: Remove from Parent. */
@@ -152,17 +167,20 @@ function align(start: number, space: number, size: number, how: string): [number
   return [start, s];
 }
 
-function arrange(w: WidgetNode, list: WidgetNode[], classId: string, path: string, rect: Rect, depth: number, parentDrawn: boolean, cx: Ctx, out: LaidOutWidget[]): void {
+function arrange(w: WidgetNode, list: WidgetNode[], classId: string, path: string, rect: Rect, depth: number, up: Up, cx: Ctx, out: LaidOutWidget[]): void {
   const props = propsOf(w, path, cx);
-  const drawn = parentDrawn && props.visibility !== VIS_COLLAPSED && props.visibility !== VIS_HIDDEN;
-  out.push({ path, widget: w, classId, rect, drawn, depth, props });
+  const drawn = up.drawn && props.visibility !== VIS_COLLAPSED && props.visibility !== VIS_HIDDEN;
+  const enabled = up.enabled && props.enabled !== false;
+  const index = out.length;
+  out.push({ path, widget: w, classId, rect, drawn, depth, props, hit: drawn && up.hit && props.visibility === VIS_VISIBLE, enabled, parent: up.parent });
+  const down: Up = { drawn, hit: up.hit && props.visibility !== VIS_HIT_TEST_INVISIBLE, enabled, parent: index };
   const pre = prefix(path);
   const all = childrenOf(list, w, path, cx);
   const kids = all.filter((c) => propsOf(c, `${pre}${c.id}`, cx).visibility !== VIS_COLLAPSED);
-  const place = (c: WidgetNode, r: Rect) => arrange(c, list, classId, `${pre}${c.id}`, r, depth + 1, drawn, cx, out);
+  const place = (c: WidgetNode, r: Rect) => arrange(c, list, classId, `${pre}${c.id}`, r, depth + 1, down, cx, out);
   const size = (c: WidgetNode): Size => desired(c, list, `${pre}${c.id}`, cx);
   // A collapsed child takes no space: listed with an empty rectangle, never drawn.
-  const collapsed = (c: WidgetNode) => arrange(c, list, classId, `${pre}${c.id}`, { x: rect.x, y: rect.y, w: 0, h: 0 }, depth + 1, false, cx, out);
+  const collapsed = (c: WidgetNode) => arrange(c, list, classId, `${pre}${c.id}`, { x: rect.x, y: rect.y, w: 0, h: 0 }, depth + 1, { ...down, drawn: false }, cx, out);
   switch (w.kind) {
     case 'CanvasPanel': {
       // Drawing order: ZOrder, then the Hierarchy's order.
@@ -251,7 +269,7 @@ function arrange(w: WidgetNode, list: WidgetNode[], classId: string, path: strin
     case 'UserWidget': {
       const t = cx.guard < 8 ? treeOf(cx, w.classId) : undefined;
       const root = t && widgetRoot(t.list);
-      if (t && root) arrange(root, t.list, t.cls.id, `${path}/${root.id}`, rect, depth + 1, drawn, { ...cx, guard: cx.guard + 1 }, out);
+      if (t && root) arrange(root, t.list, t.cls.id, `${path}/${root.id}`, rect, depth + 1, down, { ...cx, guard: cx.guard + 1 }, out);
       return;
     }
     default:
@@ -276,6 +294,6 @@ export function layoutWidgets(
   const list = cls.widgets ?? [];
   const root = widgetRoot(list);
   const out: LaidOutWidget[] = [];
-  if (root) arrange(root, list, cls.id, `${prefixPath}${root.id}`, { x: 0, y: 0, w: width, h: height }, 0, true, { project, override, extra, guard: 0 }, out);
+  if (root) arrange(root, list, cls.id, `${prefixPath}${root.id}`, { x: 0, y: 0, w: width, h: height }, 0, { drawn: true, hit: true, enabled: true }, { project, override, extra, guard: 0 }, out);
   return out;
 }

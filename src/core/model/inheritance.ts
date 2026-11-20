@@ -88,6 +88,8 @@ export function eventKey(n: NodeInstance): string {
       return `${n.def}:${c.action}`;
     case 'event.interface':
       return `${n.def}:${c.interface}:${c.fn}`;
+    case 'event.widgetButton':
+      return `${n.def}:${c.widget}:${c.event}`;
     default:
       return n.def;
   }

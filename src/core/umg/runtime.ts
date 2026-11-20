@@ -16,7 +16,7 @@
  * draws `layer()` with the layout of core/umg/layout.
  */
 import { findClass, type BlueprintClass, type Project } from '../model/project';
-import { bindableProps, isPanel, slotDefaults, VIS_COLLAPSED, VIS_HIDDEN, WIDGET_CLASS, widgetChildren, widgetPropsDefaults, widgetRoot, type WidgetNode, type WidgetProps } from '../model/widgets';
+import { bindableProps, isPanel, slotDefaults, VIS_COLLAPSED, VIS_HIDDEN, VIS_HIT_TEST_INVISIBLE, VIS_SELF_HIT_TEST_INVISIBLE, VIS_VISIBLE, WIDGET_CLASS, widgetChildren, widgetPropsDefaults, widgetRoot, type WidgetNode, type WidgetProps } from '../model/widgets';
 import { blank, createActor } from '../runtime/actorFactory';
 import { nextId } from '../runtime/journal';
 import { isRef, type ActorRT, type RValue } from '../runtime/world';
@@ -52,6 +52,24 @@ export interface ScreenWidget {
 
 type Target = { obj: ActorRT; id: string } | { obj: ActorRT; self: true };
 
+/**
+ * What is under a touch, as Slate finds it: the top widget that takes touches
+ * (Visible), then up its parents to a Button. Not a Button: the touch stops
+ * there all the same (an Image over a button takes its touch).
+ */
+export type WidgetHit =
+  | { kind: 'none' }
+  | { kind: 'button'; obj: ActorRT; id: string; name: string; path: string; enabled: boolean }
+  /** Taken by a widget that is not a button, over a button (`under`). */
+  | { kind: 'blocked'; by: string; under: string };
+
+function lastIndex<T>(list: T[], ok: (x: T) => boolean): number {
+  for (let i = list.length - 1; i >= 0; i--) if (ok(list[i])) return i;
+  return -1;
+}
+
+const inside = (r: { x: number; y: number; w: number; h: number }, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+
 const ref = (o: ActorRT): RValue => ({ ref: 'actor', id: o.id });
 
 export class Umg {
@@ -60,6 +78,8 @@ export class Umg {
   /** Calls of each Binding: "object:widget:prop" → count (shown by the debugger). */
   readonly bindingCalls: Record<string, number> = {};
   private added = 0;
+  /** The Button held down by a finger: its widget object and id, and its layout path (drawn pressed). */
+  pressed?: { obj: string; id: string; path: string };
 
   constructor(private readonly host: UmgHost) {}
 
@@ -428,6 +448,55 @@ export class Umg {
         slot: slotDefaults(panel.kind),
         classId: o.classId,
       }));
+  }
+
+  /** A widget of a Designer from its layout path ("@obj/…/id"). */
+  private resolve(path: string): { obj: ActorRT; id: string } | undefined {
+    const segs = path.split('/');
+    let cur = segs[0].startsWith('@') ? this.get(segs[0].slice(1)) : undefined;
+    for (let i = 1; cur && i < segs.length - 1; i++) {
+      const seg = segs[i];
+      cur = seg.startsWith('@') ? this.get(seg.slice(1)) : this.get(cur.widget?.nested[seg]);
+    }
+    const last = segs[segs.length - 1];
+    return cur && !last.startsWith('@') ? { obj: cur, id: last } : undefined;
+  }
+
+  /** What a touch at (x, y) of a screen `width` × 720 reaches. */
+  hit(x: number, y: number, width: number): WidgetHit {
+    const layers = this.layer(width);
+    // A button under the touch, whatever covers it: to say which one the touch missed.
+    let under: string | undefined;
+    for (let i = layers.length - 1; i >= 0 && !under; i--) {
+      const k = lastIndex(layers[i].laid, (l) => l.drawn && l.widget.kind === 'Button' && inside(l.rect, x, y));
+      if (k >= 0) under = layers[i].laid[k].widget.name;
+    }
+    for (let i = layers.length - 1; i >= 0; i--) {
+      const { obj, laid } = layers[i];
+      // A User Widget is Not Hit-Testable (Self Only) unless the game set it Visible: then all of it takes touches.
+      const self = obj.widget!.state['']?.visibility ?? VIS_SELF_HIT_TEST_INVISIBLE;
+      if (self === VIS_HIT_TEST_INVISIBLE) continue;
+      const top = lastIndex(laid, (l) => l.hit && inside(l.rect, x, y));
+      if (top >= 0) {
+        for (let j: number | undefined = top; j !== undefined; j = laid[j].parent) {
+          const l = laid[j];
+          if (l.widget.kind !== 'Button') continue;
+          const t = this.resolve(l.path);
+          // Set Is Enabled on the widget object itself disables all of it.
+          const enabled = l.enabled && obj.widget!.state['']?.enabled !== false;
+          if (t) return { kind: 'button', obj: t.obj, id: t.id, name: l.widget.name, path: l.path, enabled };
+        }
+        return under ? { kind: 'blocked', by: laid[top].widget.name, under } : { kind: 'none' };
+      }
+      if (self === VIS_VISIBLE) return under ? { kind: 'blocked', by: obj.objectName, under } : { kind: 'none' };
+    }
+    return { kind: 'none' };
+  }
+
+  setPressed(p: Umg['pressed']): void {
+    if (this.pressed?.path === p?.path) return;
+    this.pressed = p;
+    this.version++;
   }
 
   /**

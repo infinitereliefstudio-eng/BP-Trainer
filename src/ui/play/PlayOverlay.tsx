@@ -58,8 +58,14 @@ export function PlayOverlay({ session }: Pick<Props, 'session'>) {
   const sim = session.sim;
 
   return (
-    <div class="play-overlay">
+    <div class={`play-overlay${sim.inputMode === 'UIOnly' ? ' ui-only' : ''}`}>
       <WidgetLayer session={session} />
+      {(sim.inputMode !== 'GameOnly' || sim.showMouseCursor) && (
+        <div class="play-badges" title="Le mode d’entrée du Player Controller (Set Input Mode) et son curseur">
+          {sim.inputMode !== 'GameOnly' && <span class="play-badge">{sim.inputMode === 'UIOnly' ? 'UI Only : le jeu ne reçoit rien' : 'Game and UI'}</span>}
+          {sim.showMouseCursor && <span class="play-badge">Curseur</span>}
+        </div>
+      )}
       {sim.gamePaused && (
         <div class="game-paused" title="Set Game Paused : le temps de jeu est arrêté">
           PAUSED

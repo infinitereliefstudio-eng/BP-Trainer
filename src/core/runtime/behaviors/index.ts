@@ -21,6 +21,7 @@ import { enhancedInputBehaviors } from './enhancedInput';
 import { controllerBehaviors } from './controller';
 import { actorComponentBehaviors } from './actorComponents';
 import { widgetBehaviors } from './widgets';
+import { inputModeBehaviors } from './inputMode';
 import type { Behavior } from './types';
 
 const ALL: Record<string, Behavior> = {
@@ -30,6 +31,7 @@ const ALL: Record<string, Behavior> = {
   ...enhancedInputBehaviors,
   ...controllerBehaviors,
   ...widgetBehaviors,
+  ...inputModeBehaviors,
   ...actionBehaviors,
   ...actorBehaviors,
   ...actorComponentBehaviors,

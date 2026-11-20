@@ -98,6 +98,12 @@ export class EnhancedInput {
     this.held.delete(key);
   }
 
+  /** Flush Input (Set Input Mode): every key counts as released. */
+  flush(): void {
+    this.held.clear();
+    this.tapped.clear();
+  }
+
   /**
    * Add Mapping Context: added again, it only takes its new priority. With
    * `ignorePressed` (UE's default), its mappings whose key is already down

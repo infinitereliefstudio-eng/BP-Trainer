@@ -18,6 +18,17 @@ export const SLATE_VISIBILITY_LABEL = ['Visible', 'Collapsed', 'Hidden', 'Not Hi
 export const VIS_VISIBLE = 0;
 export const VIS_COLLAPSED = 1;
 export const VIS_HIDDEN = 2;
+export const VIS_HIT_TEST_INVISIBLE = 3;
+export const VIS_SELF_HIT_TEST_INVISIBLE = 4;
+
+/**
+ * UE's default Visibility: a Canvas Panel, a Text Block and a User Widget are
+ * Not Hit-Testable (Self Only), so they never take a touch meant for a button;
+ * the others are Visible (an Image on top of a button takes its touch).
+ */
+export function defaultVisibility(kind: WidgetKind): number {
+  return kind === 'CanvasPanel' || kind === 'TextBlock' || kind === 'UserWidget' ? VIS_SELF_HIT_TEST_INVISIBLE : VIS_VISIBLE;
+}
 
 export type HAlign = 'Fill' | 'Left' | 'Center' | 'Right';
 export type VAlign = 'Fill' | 'Top' | 'Center' | 'Bottom';
@@ -46,6 +57,8 @@ export interface WidgetProps {
   /** Image: Brush › Image Size. Spacer: Size. */
   sizeX: number;
   sizeY: number;
+  /** Behavior › Is Enabled: a disabled widget (and what it contains) takes touches but answers none. */
+  enabled: boolean;
 }
 
 /**
@@ -203,7 +216,7 @@ export const WIDGET_HELP: Record<WidgetKind, string> = {
 
 export function widgetPropsDefaults(kind: WidgetKind): WidgetProps {
   return {
-    visibility: VIS_VISIBLE,
+    visibility: defaultVisibility(kind),
     text: kind === 'TextBlock' ? 'Text Block' : '',
     fontSize: 24,
     color: '#ffffff',
@@ -213,6 +226,7 @@ export function widgetPropsDefaults(kind: WidgetKind): WidgetProps {
     background: '#e6e6e6',
     sizeX: kind === 'Spacer' ? 1 : 32,
     sizeY: kind === 'Spacer' ? 1 : 32,
+    enabled: true,
   };
 }
 

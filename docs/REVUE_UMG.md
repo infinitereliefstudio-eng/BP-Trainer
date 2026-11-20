@@ -1,6 +1,6 @@
 # Revue du chantier UMG, V7.33 à V7.37 (20 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Revue du chantier UMG (V7.33 à V7.37) » : https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy. Demandée par Tristan le 20 novembre (« fait une phase de review sur le chantier umg »), après lui avoir donné l'accès en écriture au dépôt. Tristan a pris les recommandations et lancé les corrections le même jour (« ok pour tes recos, tu peux passer aux corrections ») : les trois lots s'enchaînent, une version chacun.
+Copie du Claude Doc « BP Trainer — Revue du chantier UMG (V7.33 à V7.37) » : https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy. Demandée par Tristan le 20 novembre (« fait une phase de review sur le chantier umg »), après lui avoir donné l'accès en écriture au dépôt. Tristan a pris les recommandations et lancé les corrections le même jour (« ok pour tes recos, tu peux passer aux corrections ») : les trois lots s'enchaînent, une version chacun. **Tous faits** (V7.38 à V7.40).
 
 État de départ : lint, types et build sans erreur, 1 690 tests, smoke test sans erreur (captures 83 à 98 relues). Rien ne casse une sauvegarde ni une progression. Chaque constat a été reproduit par un test jetable (non versionné) ou se lit dans le code ou une capture.
 
@@ -33,7 +33,7 @@ Manque noté (G1, lot 3, au backlog seulement) : valeurs par instance d'un User 
 | --- | --- | --- | --- |
 | 1 | F1 à F4, R1 : le moteur au plus près d'UE (Owning Player vide = premier joueur, avec un conseil de construction ; ni Tick ni Binding pour un widget non dessiné ; ordre des frères ; parent oublié au retrait ; limite de profondeur et objets indexés) | V7.38 | fait |
 | 2 | I1 à I3 : Play et Designer au téléphone (boutons des widgets devant les contrôles virtuels, contrôles inertes en UI Only ; PAUSED et aperçu selon les questions) | V7.39 | fait |
-| 3 | C1 à C3, D1, G1 : rangement du code, docs, backlog | V7.40 | proposé |
+| 3 | C1 à C3, D1, G1 : rangement du code, docs, backlog | V7.40 | fait |
 
 ## Questions à trancher
 

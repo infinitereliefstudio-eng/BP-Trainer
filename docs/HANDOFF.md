@@ -4,12 +4,12 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_UMG.md](REVUE_UMG.md) (la dernière revue, celle du chantier UMG) et [REVUE_V7.md](REVUE_V7.md). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-20, après la V7.39)
+## Reprise rapide (2026-11-20, après la V7.40)
 
 ### Où on en est
 
-- **Version en ligne : 7.39.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
-- **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **V7.38 et V7.39 faites** (voir leurs sections) ; la V7.40 suit. La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
+- **Version en ligne : 7.40.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **Les trois lots sont faits** (V7.38 à V7.40, voir leurs sections). À la reprise : ses essais sur téléphone des V7.33 à V7.40 (rien n'a encore été essayé, dont le Screen Size et les boutons sous le joystick), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite, avant toute version. La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
 - **Faits avant la revue** : le plan du parcours ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), copie du Claude Doc https://claude.ai/artifact/3raFiT4Sfcj627iPZR56iK ; lots 0 à 4, V7.10 à V7.18) et le chantier Actor Components ([PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), V7.19 à V7.22).
 - **Retours de Tristan du 20 novembre** : « les points sont ok » pour ce qu'on lui avait fait essayer (interface des V7.31 et V7.32, file « À retravailler en Blueprint » et mini-exercices, étapes Actor Components) ; il confirme aussi le menu pause sans widget, sur Espace. Aucun retour détaillé étape par étape.
 - **Chantier n° 2 terminé : les révisions de graphes espacées** (BACKLOG.md, « Chantier n° 2 », tiré de [ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md](ANALYSE_APPRENTISSAGE_ADAPTATIF_ET_EXERCICES_PROCEDURAUX.md)), lancé par Tristan le 19 novembre (« tu peux lancer »). **Étape A faite en V7.27** (journal des essais), **B en V7.28** (file « À retravailler en Blueprint », lancée par « tu peux lancer l'étape b »), **C en V7.29** (mini-exercices à variantes, « tu peux lancer c »), **D en V7.30** (hypothèse avant l'indice ; Tristan a écrit « lancer l'étape c » une seconde fois, puis confirmé D quand on le lui a demandé). **Le prochain chantier est l'UMG minimal** (n° 3) : il attend son feu vert explicite (règle du CLAUDE.md : une étape à la fois), après ses essais des V7.27 à V7.30.
@@ -924,6 +924,18 @@ Suite des corrections lancées par Tristan. Réponses aux deux questions de la r
 - **Smoke** : capture 99 (Designer en Téléphone), le vrai menu pause sans PAUSED (96), joystick et touches traversables en UI Only (après 98).
 
 Version 7.39.0.
+
+## V7.40 (2026-11-20) : revue du chantier UMG, lot 3 (code et docs)
+
+Dernier lot des corrections de la revue ([REVUE_UMG.md](REVUE_UMG.md)) : rien ne change pour l'apprenant.
+
+- **C1** : les touchers quittent `simulation.ts` (991 → 924 lignes) pour `core/umg/touchInput.ts` (classe `TouchInput` avec son `TouchHost`, types `InputMode` et `TouchOutcome`, réexportés par `simulation.ts`) ; `tap` n'a plus qu'une recherche, avec ou sans `nth`. `Simulation.touchDown`, `touchUp`, `tapButton` délèguent.
+- **C2** : un seul résolveur des chemins `@objet/…` (`Umg.holder`), utilisé par `override`, `extra`, `resolve` et `objectOf` (qui remplace `Simulation.objectOfPath`).
+- **C3** : `WidgetDetails.tsx` (405 → 79 lignes) compose des rubriques rangées dans `ui/panels/widgetDetails/` : `controls.tsx` (Select, Color, Pair, menu Bind), `slots.tsx` (CanvasSlot, BoxSlot), `sections.tsx` (KindSections, BehaviorSection, ButtonEvents, WidgetHelp).
+- **D1** : « Reprise rapide » remise à jour ; liste « Déjà fait » du BACKLOG dans l'ordre (fait dès la V7.38). **G1** au BACKLOG (valeurs par instance d'un User Widget placé, dans « Restes du moteur UMG »).
+- La revue du chantier UMG est entièrement corrigée (V7.38 à V7.40).
+
+Version 7.40.0.
 
 ## Méthode de travail
 

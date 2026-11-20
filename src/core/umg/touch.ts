@@ -1,5 +1,5 @@
 /** Why a touch on a widget did nothing, said the way UE would explain it. */
-import type { TouchOutcome } from '../runtime/simulation';
+import type { TouchOutcome } from './touchInput';
 
 export function touchWhy(o: Extract<TouchOutcome, { kind: 'ignored' }>): { short: string; why: string } {
   const name = o.button.split('/').pop();

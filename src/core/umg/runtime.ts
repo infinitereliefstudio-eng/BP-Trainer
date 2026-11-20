@@ -477,36 +477,44 @@ export class Umg {
 
   // ------------------------------------------------------------ drawing
 
-  /** What a running game changed on the widget at a layout path ("@obj/w1/w2…"). */
-  override(path: string): (Partial<WidgetProps> & { removed?: boolean }) | undefined {
+  /**
+   * A layout path read back: "@a/u/@b/w" is widget w of the object b, which
+   * was added to a panel of the User Widget u placed in a. Each "@" segment is
+   * a widget object, each other segment a widget of the current object's
+   * Designer (a placed User Widget leads to its own object). Gives the object
+   * holding the last segment, and that segment.
+   */
+  private holder(path: string): { obj: ActorRT | undefined; last: string } {
     const segs = path.split('/');
-    let cur = segs[0].startsWith('@') ? this.get(segs[0].slice(1)) : undefined;
-    for (let i = 1; cur && i < segs.length; i++) {
-      const seg = segs[i];
-      const last = i === segs.length - 1;
-      if (seg.startsWith('@')) {
-        cur = this.get(seg.slice(1));
-        if (last) return cur?.widget?.state[''];
-        continue;
-      }
-      const st = cur.widget?.state[seg];
-      const inner = this.get(cur.widget?.nested[seg]);
-      if (last) return inner?.widget?.state[''] ? { ...st, ...inner.widget.state[''] } : st;
-      cur = inner;
-    }
-    return undefined;
-  }
-
-  /** Widgets added to a panel at a layout path, as extra children for the layout. */
-  extra(path: string, panel: WidgetNode): WidgetNode[] {
-    const segs = path.split('/');
-    // The widget object holding the panel: the last "@" segment, through placed User Widgets.
-    let cur = segs[0].startsWith('@') ? this.get(segs[0].slice(1)) : undefined;
+    const last = segs[segs.length - 1];
+    if (segs.length < 2 || !segs[0].startsWith('@')) return { obj: undefined, last };
+    let cur = this.get(segs[0].slice(1));
     for (let i = 1; cur && i < segs.length - 1; i++) {
       const seg = segs[i];
       cur = seg.startsWith('@') ? this.get(seg.slice(1)) : this.get(cur.widget?.nested[seg]);
     }
-    const ids = cur?.widget?.children[panel.id] ?? [];
+    return { obj: cur, last };
+  }
+
+  /** The widget object a layout path is drawn in ("@a/u/@b/w" → b). */
+  objectOf(path: string): ActorRT | undefined {
+    return this.holder(path).obj;
+  }
+
+  /** What a running game changed on the widget at a layout path ("@obj/w1/w2…"). */
+  override(path: string): (Partial<WidgetProps> & { removed?: boolean }) | undefined {
+    const { obj, last } = this.holder(path);
+    if (!obj) return undefined;
+    if (last.startsWith('@')) return this.get(last.slice(1))?.widget?.state[''];
+    const st = obj.widget?.state[last];
+    // A placed User Widget: its object's own Visibility… over what its parent's Designer says.
+    const inner = this.get(obj.widget?.nested[last]);
+    return inner?.widget?.state[''] ? { ...st, ...inner.widget.state[''] } : st;
+  }
+
+  /** Widgets added to a panel at a layout path, as extra children for the layout. */
+  extra(path: string, panel: WidgetNode): WidgetNode[] {
+    const ids = this.holder(path).obj?.widget?.children[panel.id] ?? [];
     return ids
       .map((id) => this.get(id))
       .filter((o): o is ActorRT => !!o?.classId)
@@ -524,14 +532,8 @@ export class Umg {
 
   /** A widget of a Designer from its layout path ("@obj/…/id"). */
   private resolve(path: string): { obj: ActorRT; id: string } | undefined {
-    const segs = path.split('/');
-    let cur = segs[0].startsWith('@') ? this.get(segs[0].slice(1)) : undefined;
-    for (let i = 1; cur && i < segs.length - 1; i++) {
-      const seg = segs[i];
-      cur = seg.startsWith('@') ? this.get(seg.slice(1)) : this.get(cur.widget?.nested[seg]);
-    }
-    const last = segs[segs.length - 1];
-    return cur && !last.startsWith('@') ? { obj: cur, id: last } : undefined;
+    const { obj, last } = this.holder(path);
+    return obj && !last.startsWith('@') ? { obj, id: last } : undefined;
   }
 
   /** What a touch at (x, y) of a screen `width` × 720 reaches. */

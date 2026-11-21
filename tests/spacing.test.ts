@@ -44,6 +44,9 @@ const KNOWN_GAPS: Record<string, number> = {
   // came under 15, destroy, functions and save-game came down.
   // V7.57: the widget nodes now count (umg, ui-input). Their gaps were there, unseen: the Intermédiaire's end and the
   // Confirmé's start (umg, L23 → « Le menu qui rend le contrôle »), and nothing after A3 for menus and input modes.
+  // V7.63: M4 no longer hides its board with E (a feature added only to keep these two under 15): accepted.
+  input: 16,
+  'enhanced-input': 16,
   umg: 31,
   'ui-input': 55,
   arrays: 29, // lot 3 added Confirmé steps inside this gap: lot 4

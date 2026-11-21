@@ -147,7 +147,7 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   'c5-sac': N(['arrays', 'structs', 'copies'], ['locals', 'loops']),
   'l-sac-coffre': N(['actor-components'], ['actor-components', 'arrays', 'loops', 'functions', 'overlap']),
   'm3-monte-charge': N(['mixed'], ['enhanced-input', 'arrays', 'timeline', 'branch', 'math', 'input']),
-  'm4-stand-tir': N(['mixed'], ['dispatchers', 'umg', 'save-game', 'loops', 'cast', 'destroy', 'overlap', 'other-bp', 'functions', 'input', 'enhanced-input', 'flow-memory', 'player-controller']),
+  'm4-stand-tir': N(['mixed'], ['dispatchers', 'umg', 'save-game', 'loops', 'cast', 'destroy', 'overlap', 'other-bp', 'functions', 'player-controller']),
   'm5-marche': N(['mixed'], ['actor-components', 'game-instance', 'widget-component', 'levels', 'cast', 'destroy', 'functions', 'other-bp', 'dispatchers']),
   'm2-distributeur': N(['mixed'], ['random', 'arrays', 'spawn', 'maps', 'interfaces', 'trace', 'enhanced-input', 'input', 'cast', 'functions', 'player-controller', 'other-bp']),
   'l-interrogatoire': N(['maps', 'structs', 'sets'], ['maps', 'structs', 'player-controller']),

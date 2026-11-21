@@ -194,7 +194,7 @@ function standProject(): Project {
   const points = editable(target, 'Points', T.int, 10);
   for (const [x, y, v] of TARGETS) override(pb, pb.place(target, x, y), points, v);
   pb.playerStart(...OUT);
-  ensurePlayerInput(pb.project, ['E'], { E: 'IA_Score' });
+  ensurePlayerInput(pb.project, []);
   return pb.project;
 }
 
@@ -215,12 +215,14 @@ function targetKnowsCounter(cx: CheckContext): string | undefined {
 
 export const mixedStand: Lesson = {
   id: 'm4-stand-tir',
+  // 2: E no longer hides the board (V7.63, review: a feature added only for a spacing figure).
+  revision: 2,
   code: 'M4',
   module: MODULE,
   level: 'confirme',
   number: 0,
   title: 'Le stand de tir',
-  recalls: ['dispatchers', 'umg', 'save-game', 'loops', 'destroy', 'overlap', 'enhanced-input', 'flow-memory'],
+  recalls: ['dispatchers', 'umg', 'save-game', 'loops', 'destroy', 'overlap'],
   situation:
     'Trois cibles valent 10, 20 et 30 points. Le joueur les touche pour marquer ; son score s’affiche à l’écran, avec le meilleur score jamais fait, qui reste d’une partie à l’autre.',
   notions: ['Entraînement mélangé'],
@@ -230,12 +232,11 @@ export const mixedStand: Lesson = {
     {
       title: 'Cahier des charges',
       body:
-        'Déjà là : trois **BP_Cible** (un Disque, une Zone, et **Points**, réglé dans le niveau : 10, 20, 30) au graphe vide ; **BP_PlayerController**, le Player Controller du jeu ; **IA_Score** (E). Aucun Widget Blueprint, aucune sauvegarde.\n\n' +
+        'Déjà là : trois **BP_Cible** (un Disque, une Zone, et **Points**, réglé dans le niveau : 10, 20, 30) au graphe vide ; **BP_PlayerController**, le Player Controller du jeu. Aucun Widget Blueprint, aucune sauvegarde.\n\n' +
         '1. Une cible touchée par le joueur **disparaît** et ajoute ses **Points** au score.\n' +
         '2. À l’**écran**, en permanence : `Score : 40` et `Record : 40`, par exemple.\n' +
         '3. Le **record** est le meilleur score jamais fait : il **reste** d’une partie à l’autre (Stop, puis Play), et s’affiche dès le lancement.\n' +
-        '4. Une cible ne sait **pas** qui compte les points : on doit pouvoir en ajouter sans rien changer ailleurs.\n' +
-        '5. **E** cache le tableau des scores ; E de nouveau le remontre.',
+        '4. Une cible ne sait **pas** qui compte les points : on doit pouvoir en ajouter sans rien changer ailleurs.',
     },
     MIXED,
   ],
@@ -244,12 +245,11 @@ export const mixedStand: Lesson = {
     'Le record s’affiche à l’écran, et suit le score quand il le dépasse.',
     'Après Stop et Play : le score repart de 0, le record est toujours là.',
     'Les cibles ne connaissent pas celui qui compte.',
-    'E cache le tableau, E le remontre.',
   ],
   hints: [
-    'Quatre questions : qui compte (un seul objet, pour toute la partie à l’écran) ? Comment une cible prévient-elle sans savoir qui l’écoute ? Où vit ce qui doit survivre à Stop ? Et qui montre les deux nombres, et les cache sur E ?',
-    'Un Event Dispatcher sur BP_Cible, avec Points ; dans BP_PlayerController : Get All Actors Of Class, For Each Loop, Bind Event, Score et Record, Create Widget, Add to Viewport ; un Widget Blueprint avec deux Text ; un SaveGame, Create Save Game Object, Save Game to Slot, Load Game from Slot, Cast To ; IA_Score, Flip Flop, Remove from Parent, Add to Viewport.',
-    'Solution. BP_Cible : Event Dispatcher OnTouchee (Points) ; ActorBeginOverlap → Cast To BP_Joueur → Call OnTouchee (Points) → Destroy Actor. WBP_Stand : Txt_Score, Txt_Record (Is Variable), Custom Event Montrer (Score, Record) → deux SetText. BP_Sauvegarde (SaveGame) : Record. BP_PlayerController, après Add Mapping Context : Create WBP_Stand (Self) → Set Hud → Add to Viewport → Load Game from Slot (Stand) → Cast To BP_Sauvegarde → Set Record ; puis Get All Actors Of Class (BP_Cible) → For Each Loop → Bind Event to OnTouchee ← Custom Event Marquer (Points) ; puis Montrer. Marquer : Score + Points → Branch (Score > Record) : True → Set Record → Create Save Game Object → Set Record (sur l’objet) → Save Game to Slot (Stand) ; puis Montrer (Score, Record). IA_Score (Started) → Flip Flop : A → Remove from Parent (Hud), B → Add to Viewport (Hud).',
+    'Quatre questions : qui compte (un seul objet, pour toute la partie à l’écran) ? Comment une cible prévient-elle sans savoir qui l’écoute ? Où vit ce qui doit survivre à Stop ? Et qui montre les deux nombres ?',
+    'Un Event Dispatcher sur BP_Cible, avec Points ; dans BP_PlayerController : Get All Actors Of Class, For Each Loop, Bind Event, Score et Record, Create Widget, Add to Viewport ; un Widget Blueprint avec deux Text ; un SaveGame, Create Save Game Object, Save Game to Slot, Load Game from Slot, Cast To.',
+    'Solution. BP_Cible : Event Dispatcher OnTouchee (Points) ; ActorBeginOverlap → Cast To BP_Joueur → Call OnTouchee (Points) → Destroy Actor. WBP_Stand : Txt_Score, Txt_Record (Is Variable), Custom Event Montrer (Score, Record) → deux SetText. BP_Sauvegarde (SaveGame) : Record. BP_PlayerController, après Add Mapping Context : Create WBP_Stand (Self) → Set Hud → Add to Viewport → Load Game from Slot (Stand) → Cast To BP_Sauvegarde → Set Record ; puis Get All Actors Of Class (BP_Cible) → For Each Loop → Bind Event to OnTouchee ← Custom Event Marquer (Points) ; puis Montrer. Marquer : Score + Points → Branch (Score > Record) : True → Set Record → Create Save Game Object → Set Record (sur l’objet) → Save Game to Slot (Stand) ; puis Montrer (Score, Record).',
   ],
   challenge: 'Ajoute une quatrième cible de 50 points : que faut-il changer en dehors du niveau ? (Rien.)',
   setup: standProject,
@@ -267,12 +267,6 @@ export const mixedStand: Lesson = {
     ...goTo(TARGETS[1][0], TARGETS[1][1]),
     ...goTo(...OUT),
     { checkpoint: 'vingt' },
-    ...tap('E'),
-    { wait: 0.1 },
-    { checkpoint: 'cache' },
-    ...tap('E'),
-    { wait: 0.1 },
-    { checkpoint: 'montre' },
   ],
   checks: [
     {
@@ -316,18 +310,6 @@ export const mixedStand: Lesson = {
       label: 'Un score plus petit ne touche pas au record',
       at: 'vingt',
       test: (cx) => (scoreIs(cx, 20) && recordIs(cx, 40) ? true : 'Après la cible de 20, l’écran doit montrer « Score : 20 » et toujours « Record : 40 ».'),
-    },
-    {
-      id: 'toggle',
-      label: 'E cache le tableau des scores, E le remontre',
-      at: 'cache',
-      test: (cx) => (scoreIs(cx, 20) ? 'E n’a pas caché le tableau des scores : IA_Score doit le retirer de l’écran (Remove from Parent).' : true),
-    },
-    {
-      id: 'toggle-back',
-      label: 'E de nouveau : le tableau revient, toujours à 20 et 40',
-      at: 'montre',
-      test: (cx) => (scoreIs(cx, 20) && recordIs(cx, 40) ? true : 'Le second E doit remonter le même tableau (Add to Viewport), avec « Score : 20 » et « Record : 40 ».'),
     },
     notion({ id: 'blind', label: 'Les cibles ne connaissent pas celui qui compte', test: (cx) => targetKnowsCounter(cx) ?? true }),
     noRuntimeErrors(),
@@ -414,11 +396,6 @@ export const mixedStand: Lesson = {
     pc.link(fill, 'then', write, 'exec').link(createS, 'result', write, 'object');
     const after = montrer([2200, 900]);
     pc.link(write, 'then', after, 'exec').link(br, 'false', after, 'exec');
-    const key = pc.node('input.action', { action: actionId(p, 'IA_Score') }, {}, [64, 1500]);
-    const flip = pc.node('flow.flipFlop', {}, {}, [360, 1500]);
-    const hide = pc.node('widget.removeFromParent', {}, {}, [700, 1400]);
-    const back = pc.node('widget.addToViewport', {}, {}, [700, 1600]);
-    pc.link(key, 'started', flip, 'exec').link(flip, 'a', hide, 'exec').link(flip, 'b', back, 'exec').link(get(hud, [500, 1700]), 'value', hide, 'target').link(get(hud, [500, 1800]), 'value', back, 'target');
   },
 };
 

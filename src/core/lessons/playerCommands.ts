@@ -31,6 +31,11 @@ export interface CommandSpec {
   events?: Record<string, string>;
   /** Actions whose Player Controller line the learner writes: it is not in the starting project. */
   learnerWrites?: string[];
+  /**
+   * Actions whose object may be gone when the key comes again (it destroys itself): the line checks the
+   * reference with Is Valid before calling it, else Get Actor Of Class gives None and the call an Accessed None (V7.62).
+   */
+  guard?: string[];
 }
 
 /** One command: an Input Action, the object class that reacts to it, the Custom Event called on it. */
@@ -89,7 +94,7 @@ function hasLine(p: Project, pc: BlueprintClass, cmd: Command): boolean {
   return pc.graphs.some((g) => Object.values(g.nodes).some((n) => n.def === 'call.custom' && n.config.owner === owner && n.config.event === cmd.event));
 }
 
-function addLine(p: Project, pc: BlueprintClass, cmd: Command): void {
+function addLine(p: Project, pc: BlueprintClass, cmd: Command, spec: CommandSpec): void {
   const g = pc.graphs[0];
   const ctx = contextFor(pc, p);
   const { action, cls } = ids(p, cmd);
@@ -114,7 +119,12 @@ function addLine(p: Project, pc: BlueprintClass, cmd: Command): void {
   } else {
     const one = node('actor.getOfClass', 380, 0, {}, { class: classId });
     link(ev, 'started', one, 'exec');
-    link(one, 'then', call, 'exec');
+    if (spec.guard?.includes(cmd.actionName)) {
+      const valid = node('flow.isValid', 700, 0);
+      link(one, 'then', valid, 'exec');
+      link(one, 'result', valid, 'object');
+      link(valid, 'valid', call, 'exec');
+    } else link(one, 'then', call, 'exec');
     link(one, 'result', call, 'target');
   }
 }
@@ -142,7 +152,7 @@ function toCommands(p: Project, spec: CommandSpec, omit: Set<string>): void {
   }
   const pc = p.classes.find((c) => c.name === PLAYER_CONTROLLER);
   if (!pc) throw new Error(`${PLAYER_CONTROLLER} manque : asEnhancedInput d’abord`);
-  for (const cmd of cmds) if (!omit.has(cmd.actionName) && !hasLine(p, pc, cmd)) addLine(p, pc, cmd);
+  for (const cmd of cmds) if (!omit.has(cmd.actionName) && !hasLine(p, pc, cmd)) addLine(p, pc, cmd, spec);
 }
 
 /**
@@ -190,21 +200,54 @@ function retext(text: string, cmds: Command[]): string {
 }
 
 /** How the Player Controller reaches the objects of a command. */
-const reach = (p: Project, c: Command) =>
-  instances(p, ids(p, c).cls!.id) > 1 ? `Get All Actors Of Class (${c.className}) → For Each Loop → ${c.event}` : `Get Actor Of Class (${c.className}) → ${c.event}`;
+const reach = (p: Project, c: Command, spec: CommandSpec) =>
+  instances(p, ids(p, c).cls!.id) > 1
+    ? `Get All Actors Of Class (${c.className}) → For Each Loop → ${c.event}`
+    : `Get Actor Of Class (${c.className}) → ${spec.guard?.includes(c.actionName) ? 'Is Valid → ' : ''}${c.event}`;
 
 const LIST = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} et ${xs.at(-1)}`);
 
-function commandsCard(p: Project, cmds: Command[], writes: Command[]): LessonCard {
-  const line = (c: Command) => `- **${c.actionName}** → ${reach(p, c)}${writes.includes(c) ? ' : **à écrire**' : ''}`;
+function commandsCard(p: Project, cmds: Command[], writes: Command[], spec: CommandSpec): LessonCard {
+  const line = (c: Command) => `- **${c.actionName}** → ${reach(p, c, spec)}${writes.includes(c) ? ' : **à écrire**' : ''}`;
   return {
     title: 'Les commandes, comme dans UE5',
     body:
       `Le projet est réglé comme le template Third Person d’UE5 : **${PLAYER_CONTROLLER}** (Player Controller Class) ajoute **${PLAYER_CONTEXT}** au BeginPlay. Dans l’événement d’une action, **Started** sort une fois quand on appuie.\n\n` +
       `Aucun objet du niveau n’écoute de touche (comme dans « Interagir comme dans UE5 ») : c’est ${PLAYER_CONTROLLER} qui reçoit les actions et prévient l’objet en appelant un de ses **Custom Events**.\n\n` +
       `${cmds.map(line).join('\n')}\n\n` +
-      'Chercher l’objet au moment de l’appui suffit ici (Get Actor Of Class, ou Get All Actors Of Class quand le niveau en a plusieurs, qui entendaient tous la touche). Dans un vrai jeu, le Player Controller garderait plutôt une référence, ou passerait par l’objet que le joueur vise.',
+      'Chercher l’objet au moment de l’appui suffit ici (Get Actor Of Class, ou Get All Actors Of Class quand le niveau en a plusieurs, qui entendaient tous la touche). Dans un vrai jeu, le Player Controller garderait plutôt une référence, ou passerait par l’objet que le joueur vise.' +
+      (cmds.some((c) => spec.guard?.includes(c.actionName))
+        ? '\n\nQuand l’objet peut avoir disparu (détruit) avant l’appui suivant, Get Actor Of Class renvoie None : **Is Valid** avant l’appel, sinon Accessed None.'
+        : ''),
   };
+}
+
+/** Is the event of `w` called from its action's event, in a Player Controller (anything in between)? */
+function reachesCall(p: Project, w: Command): 'none' | 'heard' | 'calls' {
+  const owner = p.classes.find((c) => c.name === w.className)?.id;
+  let best: 'none' | 'heard' | 'calls' = 'none';
+  for (const c of p.classes.filter((x) => x.parent === 'PlayerController')) {
+    for (const g of c.graphs) {
+      const starts = Object.values(g.nodes).filter((n) => n.def === 'input.action' && p.inputActions?.find((a) => a.id === n.config.action)?.name === w.actionName);
+      for (const st of starts) {
+        if (!Object.values(g.links).some((l) => l.from.node === st.id)) continue;
+        best = 'heard';
+        const seen = new Set([st.id]);
+        const todo = [st.id];
+        while (todo.length) {
+          const id = todo.pop()!;
+          const n = g.nodes[id];
+          if (n?.def === 'call.custom' && n.config.owner === owner && n.config.event === w.event) return 'calls';
+          for (const l of Object.values(g.links)) {
+            if (l.from.node !== id || seen.has(l.to.node)) continue;
+            seen.add(l.to.node);
+            todo.push(l.to.node);
+          }
+        }
+      }
+    }
+  }
+  return best;
 }
 
 /** The learner writes the Player Controller line of these commands: a blocking check names the place. */
@@ -213,17 +256,10 @@ function lineCheck(w: Command, how: string): Check {
     id: `pc-${w.actionName}`,
     label: `${PLAYER_CONTROLLER} reçoit ${w.actionName}`,
     test: (cx) => {
-      const pcs = cx.project.classes.filter((c) => c.parent === 'PlayerController');
-      const heard = pcs.some((c) =>
-        c.graphs.some((g) =>
-          Object.values(g.nodes).some(
-            (n) => n.def === 'input.action' && cx.project.inputActions?.find((a) => a.id === n.config.action)?.name === w.actionName && Object.values(g.links).some((l) => l.from.node === n.id),
-          ),
-        ),
-      );
-      return heard
-        ? true
-        : `Dans ${PLAYER_CONTROLLER}, ${w.actionName} (Started) doit prévenir ${w.className} : ${how}. Le joueur reçoit les commandes ; ${w.className} n’écoute aucune touche.`;
+      const r = reachesCall(cx.project, w);
+      if (r === 'calls') return true;
+      if (r === 'heard') return `${w.actionName} arrive dans ${PLAYER_CONTROLLER}, mais n’appelle pas ${w.event} sur ${w.className} : ${how}. Tant que ${w.className} n’est pas prévenu, il ne fait rien, même si sa logique est juste.`;
+      return `Dans ${PLAYER_CONTROLLER}, ${w.actionName} (Started) doit prévenir ${w.className} : ${how}. Le joueur reçoit les commandes ; ${w.className} n’écoute aucune touche.`;
     },
   };
 }
@@ -252,7 +288,7 @@ export function asPlayerCommands(lesson: Lesson, spec: CommandSpec = {}): Lesson
     toCommands(p, spec, new Set());
   };
   const solution = writes.length
-    ? ` ${PLAYER_CONTROLLER} : ${writes.map((w) => `${w.actionName} (Started) → ${reach(start, w)}`).join(' ; ')}.`
+    ? ` ${PLAYER_CONTROLLER} : ${writes.map((w) => `${w.actionName} (Started) → ${reach(start, w, spec)}`).join(' ; ')}.`
     : '';
   const cards = lesson.cards.filter((c) => c.title !== 'Les touches, comme dans UE5').map((c) => ({ ...c, body: retext(c.body, cmds) }));
   return {
@@ -270,7 +306,7 @@ export function asPlayerCommands(lesson: Lesson, spec: CommandSpec = {}): Lesson
         must(addNode(g, 'event.custom', 64, lowestY(g) + 260, { name: c.event }));
       }
       const pc = p.classes.find((c) => c.name === PLAYER_CONTROLLER)!;
-      for (const c of added) if (!omit.has(c.actionName) && !hasLine(p, pc, c)) addLine(p, pc, c);
+      for (const c of added) if (!omit.has(c.actionName) && !hasLine(p, pc, c)) addLine(p, pc, c, spec);
       return p;
     },
     situation: retext(lesson.situation, cmds),
@@ -278,11 +314,11 @@ export function asPlayerCommands(lesson: Lesson, spec: CommandSpec = {}): Lesson
       ...lesson.objectives.map((o) => retext(o, cmds)),
       ...writes.map((w) => `${PLAYER_CONTROLLER} reçoit ${w.actionName} et appelle ${w.event} sur ${w.className}.`),
     ],
-    hints: [retext(lesson.hints[0], cmds), retext(lesson.hints[1], cmds) + (writes.length ? ` ${PLAYER_CONTROLLER} : ${LIST([...new Set(writes.flatMap((w) => [w.actionName, ...(reach(start, w).includes('For Each') ? ['Get All Actors Of Class', 'For Each Loop'] : ['Get Actor Of Class']), w.event]))])}.` : ''), retext(lesson.hints[2], cmds) + solution],
+    hints: [retext(lesson.hints[0], cmds), retext(lesson.hints[1], cmds) + (writes.length ? ` ${PLAYER_CONTROLLER} : ${LIST([...new Set(writes.flatMap((w) => [w.actionName, ...(reach(start, w, spec).includes('For Each') ? ['Get All Actors Of Class', 'For Each Loop'] : ['Get Actor Of Class']), w.event]))])}.` : ''), retext(lesson.hints[2], cmds) + solution],
     remember: retext(lesson.remember, cmds),
     challenge: lesson.challenge,
-    cards: [...cards, commandsCard(start, cmds, writes)],
-    checks: [...writes.map((w) => lineCheck(w, reach(start, w))), ...lesson.checks],
+    cards: [...cards, commandsCard(start, cmds, writes, spec)],
+    checks: [...writes.map((w) => lineCheck(w, reach(start, w, spec))), ...lesson.checks],
     solve: (p) => onActions(p, (q) => lesson.solve(q)),
     alternatives: lesson.alternatives?.map((alt) => ({ ...alt, build: (p: Project) => onActions(p, (q) => alt.build(q)) })),
     robustness: lesson.robustness?.map((r) => (r.mutate ? { ...r, mutate: (p: Project) => onActions(p, (q) => r.mutate?.(q)) } : r)),

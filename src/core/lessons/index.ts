@@ -331,7 +331,7 @@ const PLAYER_COMMANDS: Record<string, CommandSpec> = {
   'l-cartes': { learnerWrites: ['IA_Tirer'] },
   'l-meme-donne': {},
   'd11-four': {},
-  'd3-tourelle': { events: { IA_Interagir: 'Abattre' } },
+  'd3-tourelle': { events: { IA_Interagir: 'Abattre' }, guard: ['IA_Interagir'] },
   'l-tirelire': { events: { IA_Interagir: 'AjouterPiece' } },
   'd17-premiere-partie': { events: { IA_Interagir: 'AjouterPiece' } },
   'd18-record': {},

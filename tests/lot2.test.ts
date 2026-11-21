@@ -14,6 +14,7 @@ import { isChainExercise, lessonLabel } from '../src/core/lessons/types';
 import type { Project } from '../src/core/model/project';
 import { acquiredNotions, missingNotions, NOTIONS, stepNotions } from '../src/core/notions';
 import { LESSON_NOTIONS } from '../src/core/notions/lessonNotions';
+import { writtenNotions } from '../src/core/notions/practice';
 import { disconnectPin } from '../src/core/operations/graphOps';
 import { checkProgress, helpLevel, type Progress, withHelp, withHelpReset, withPassed } from '../src/core/progress/progress';
 
@@ -40,6 +41,21 @@ describe('notions of the path', () => {
       for (const t of stepNotions(l.id).teaches) taught.add(t);
     }
     expect(late).toEqual([]);
+  });
+
+  it('a synthesis or a mixed practice declares what its solution writes (V7.62: the home screen warns from it)', () => {
+    // Notions every step uses from the Débutant on: not worth listing.
+    const everywhere = new Set(['variables', 'math', 'branch', 'events', 'print', 'components']);
+    const missing: string[] = [];
+    for (const l of LESSONS) {
+      const n = stepNotions(l.id);
+      if (l.kind !== 'synthesis' && !n.teaches.includes('mixed')) continue;
+      const start = l.setup();
+      const solved = l.setup();
+      l.solve(solved);
+      for (const w of writtenNotions(start, solved)) if (!everywhere.has(w) && !n.teaches.includes(w) && !n.requires.includes(w)) missing.push(`${l.id} → ${w}`);
+    }
+    expect(missing).toEqual([]);
   });
 
   it('every notion of the catalogue is taught somewhere', () => {

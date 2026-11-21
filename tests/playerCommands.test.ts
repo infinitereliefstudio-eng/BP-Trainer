@@ -9,6 +9,8 @@ import { describe, expect, it } from 'vitest';
 import { LESSONS } from '../src/core/lessons';
 import { runLesson } from '../src/core/lessons/runner';
 import type { Project } from '../src/core/model/project';
+import { addNode, connect } from '../src/core/operations/graphOps';
+import { contextFor } from '../src/core/nodes/registry';
 
 const after = LESSONS.slice(LESSONS.findIndex((l) => l.id === 'r4-interagir-ue5') + 1);
 
@@ -57,5 +59,33 @@ describe('commands through the Player Controller (V7.58)', () => {
     const p = l.setup();
     l.solve(p);
     expect(runLesson(l, p).passed).toBe(true);
+  });
+
+  it('V7.62: a line that hears the action but does not tell the object is named as such', () => {
+    for (const id of ['l-cartes', 'l-miroirs', 'c6-annuler']) {
+      const l = LESSONS.find((x) => x.id === id)!;
+      const p = l.setup();
+      l.solve(p);
+      const pc = p.classes.find((c) => c.name === 'BP_PlayerController')!;
+      const g = pc.graphs[0];
+      const act = Object.values(g.nodes).filter((n) => n.def === 'input.action').at(-1)!;
+      for (const k of Object.values(g.links)) if (k.from.node === act.id) delete g.links[k.id];
+      const print = addNode(g, 'debug.printString', 400, 2000, {});
+      if (!print.ok) throw new Error(print.reason);
+      connect(g, { node: act.id, pin: 'started' }, { node: print.value.id, pin: 'exec' }, contextFor(pc, p));
+      const line = runLesson(l, p).results.find((r) => r.check.id.startsWith('pc-'));
+      expect(line?.ok, id).toBe(false);
+      expect(String(line?.reason), id).toContain('mais n’appelle pas');
+    }
+  });
+
+  it('V7.62: in « La tourelle », the given line checks the target, so a second E after its destruction gives no error', () => {
+    const l = LESSONS.find((x) => x.id === 'd3-tourelle')!;
+    const pc = l.setup().classes.find((c) => c.name === 'BP_PlayerController')!;
+    expect(Object.values(pc.graphs[0].nodes).some((n) => n.def === 'flow.isValid')).toBe(true);
+    const p = l.setup();
+    l.solve(p);
+    const twice = { ...l, scenario: [...l.scenario, { press: 'E' as const }, { release: 'E' as const }, { wait: 0.5 }], checks: [{ id: 'err', label: 'aucune erreur', test: (cx: Parameters<(typeof l.checks)[0]['test']>[0]) => (cx.errors().length ? cx.errors()[0] : true) }] };
+    expect(runLesson(twice, p).results[0].reason).toBeUndefined();
   });
 });

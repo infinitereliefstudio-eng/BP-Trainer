@@ -74,3 +74,7 @@ Sur téléphone, 57 nœuds en Confirmé, c'est beaucoup. M4 a reçu en plus « E
 2. M4 : retirer le masquage du tableau (recommandé) ou le garder ?
 3. Menus dans l'Avancé : dans le projet Expert final (recommandé), ou maintenant dans S4 ou M5 ?
 4. Journal des textes : rempli seulement pendant Vérifier (recommandé), ou plafonné ?
+
+## Suite donnée (21 novembre 2026)
+
+Tristan a lancé les corrections à 21 h 14 (« Ok passe aux corrections ») : les recommandations sont prises. **V7.62 faite** (lot 1). Écart : A4, S2 garde Sequence (Finished → Delay → Reverse relancerait l'attente quand la porte a fini de se refermer) ; l'indice renvoie au Prédis P1 « Sequence et Delay ».

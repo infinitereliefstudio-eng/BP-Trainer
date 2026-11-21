@@ -309,6 +309,8 @@ function turretProject() {
 
 export const debug3: Lesson = {
   id: 'd3-tourelle',
+  // 2: the Player Controller's line checks the target with Is Valid (V7.62); asPlayerCommands adds one more.
+  revision: 2,
   kind: 'debug',
   code: 'D3',
   module: 'Communication',

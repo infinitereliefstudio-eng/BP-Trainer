@@ -413,6 +413,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 ## Déjà fait, noté ici auparavant
 
 - V7.61 (21 novembre 2026), revue de la progression, trois entraînements mélangés : M3 Le monte-charge (Intermédiaire), M4 Le stand de tir (Confirmé), M5 Le marché de la station (Avancé). 152 étapes. La revue est entièrement faite.
+- V7.62 (21 novembre 2026), revue du chantier « progression » ([REVUE_PROGRESSION_V7_61.md](REVUE_PROGRESSION_V7_61.md)), lot 1 : Is Valid dans la ligne fournie de D3, vérification du Player Controller qui suit les fils jusqu'à l'objet, notions déclarées des synthèses et entraînements à jour (avec un test), S2 renvoie au Prédis P1 pour Sequence.
 - V7.60 (21 novembre 2026), revue de la progression, les synthèses : S2 (porte en Timeline, la clé à l'écran), S3 (fin d'alerte par un bouton à l'écran, modes d'entrée), S4 refaite pour l'Avancé (deux niveaux et GameInstance, Line Trace, Actor Component, écran, sauvegarde).
 - V7.59 (21 novembre 2026), revue de la progression, les messages à l'écran : WBP_Messages dans « Le terminal » et M2 (écran en notion visée), vraie boîte de dialogue dans « Le dialogue en Data Table » ; les vérifications lisent ce que Set Text a écrit (CheckContext.shown).
 - V7.58 (21 novembre 2026), revue de la progression, les commandes : dans les 16 étapes après « Interagir comme dans UE5 » où un objet écoutait une touche, BP_PlayerController reçoit l'action et appelle un Custom Event de l'objet ; l'apprenant écrit cette ligne dans six d'entre elles.

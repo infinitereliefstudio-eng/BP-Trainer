@@ -38,6 +38,10 @@ const KNOWN_GAPS: Record<string, number> = {
   // and actor-components, enhanced-input, input and widget-component went just over 15. V7.54: T6 writes Get Player Controller and
   // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45. V7.56 inserted C8 after T6:
   // the gaps that cross it grew by one.
+  // V7.57: the widget nodes now count (umg, ui-input). Their gaps were there, unseen: the Intermédiaire's end and the
+  // Confirmé's start (umg, L23 → « Le menu qui rend le contrôle »), and nothing after A3 for menus and input modes.
+  umg: 40,
+  'ui-input': 56,
   'actor-components': 18, // V7.51: the eight level steps sit in its gap
   arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4

@@ -102,6 +102,22 @@ const widgetOwnerRule: Rule = (v, add) => {
   }
 };
 
+/**
+ * An object of the level that listens to an Input Action (or a key) itself: UE4's reflex, undone by « Interagir
+ * comme dans UE5 ». In UE5 the pawn or the Player Controller receives the action and tells the object. Once per graph.
+ */
+const decorInputRule: Rule = (v, add) => {
+  if (v.cls.parent !== 'Actor') return;
+  const n = Object.values(v.graph.nodes).find((x) => x.def === 'input.action' || x.def === 'event.inputKey');
+  if (!n) return;
+  add(
+    'decor-input',
+    n,
+    'Un objet du décor écoute les touches',
+    `${v.cls.name} reçoit lui-même une action du joueur (Auto Receive Input) : c’est un réflexe d’UE4. Dans un projet UE5, c’est le pion ou le Player Controller qui reçoit l’action, puis prévient l’objet : un message d’interface (« Interagir comme dans UE5 »), un Custom Event appelé sur lui, ou un Actor Component d’interaction. L’objet ne dépend plus des touches, et un autre objet peut réagir à la même action sans rien recopier.`,
+  );
+};
+
 /** What makes two nodes "the same" for a copied chain: definition, settings and typed values. */
 const signature = (n: NodeInstance) => `${n.def}|${JSON.stringify(n.config)}|${JSON.stringify(n.defaults)}`;
 const CHAIN = 3;
@@ -137,6 +153,7 @@ const RULES: { from: Level; run: Rule }[] = [
   { from: 'confirme', run: copiedChainRule },
   { from: 'intermediaire', run: widgetOwnerRule },
   { from: 'avance', run: widgetComponentClassRule },
+  { from: 'confirme', run: decorInputRule },
   ...HYGIENE_RULES,
 ];
 

@@ -16,7 +16,12 @@ const NODE_NOTIONS: [RegExp, string][] = [
   [/Overlap$/, 'overlap'],
   // Receiving input on an actor (Auto Receive Input, Consume Input): with a key event, or an action event since UE5.
   [/^(event\.inputKey|input\.action)$/, 'input'],
-  [/^input\./, 'enhanced-input'],
+  // Set Input Mode and the mouse cursor belong to menus (ui-input, below), not to Enhanced Input (V7.57).
+  [/^input\.(?!setMode|setShowMouseCursor|getShowMouseCursor)/, 'enhanced-input'],
+  // Widgets on the screen (UMG, V7.57): their nodes, the widget's own variables and events. Get Owning Player stays « player-controller ».
+  [/^(widget\.(?!getOwningPlayer$)|var\.widget$|event\.(construct|destruct|preConstruct|onInitialized|widgetTick|widgetButton)$)/, 'umg'],
+  // Menus: a button pressed, the input mode, the mouse cursor (V7.57).
+  [/^(input\.(setMode|setShowMouseCursor)|event\.widgetButton$)/, 'ui-input'],
   // Get Owning Player, in a widget, is the way back to the Player Controller (V7.36).
   [/^((player|pawn)\.getController|widget\.getOwningPlayer)$/, 'player-controller'],
   [/^var\.(get|set)$/, 'variables'],

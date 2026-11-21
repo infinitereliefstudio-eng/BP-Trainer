@@ -111,9 +111,10 @@ describe('robustness cases', () => {
 });
 
 describe('construction advice', () => {
-  const rules = (build: (b: ReturnType<ProjectBuilder['blueprint']>) => void) => {
+  // A Pawn by default: the key events of these cases are then where UE5 wants them (no « decor-input »).
+  const rules = (build: (b: ReturnType<ProjectBuilder['blueprint']>) => void, parent: 'Pawn' | 'Actor' = 'Pawn') => {
     const pb = new ProjectBuilder('t');
-    const b = pb.blueprint('BP');
+    const b = pb.blueprint('BP', parent);
     b.component('PointLight', 'Lumiere');
     build(b);
     return adviceFor(pb.project).map((a) => a.rule);
@@ -165,6 +166,12 @@ describe('construction advice', () => {
       });
     expect(overlap(false)).toEqual(['overlap-anyone']);
     expect(overlap(true)).toEqual([]);
+  });
+
+  it('an object of the level that listens to the keys itself (V7.57)', () => {
+    expect(rules((b) => void b.node('event.inputKey', { key: 'E' }), 'Actor')).toEqual(['decor-input']);
+    // The pawn (and the Player Controller) is the right place.
+    expect(rules((b) => void b.node('event.inputKey', { key: 'E' }))).toEqual([]);
   });
 
   it('the same chain of three nodes twice', () => {

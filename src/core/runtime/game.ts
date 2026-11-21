@@ -228,7 +228,9 @@ export class Game {
     const saves = this.forgetOldWorld(old);
     this.world = this.make(this.target);
     this.world.move = move;
-    this.world.umg.textLog.push(...old.umg.textLog);
+    // What the screen said: the texts that reached it (a widget of the old world is gone, it will not be painted now).
+    old.umg.markSeen();
+    this.world.umg.textLog.push(...old.umg.textLog.filter((e) => e.seen));
     // A SaveGame object is not in the level: kept by the GameInstance, it survives the travel.
     this.world.objects.push(...saves);
     this.world.engineLog(

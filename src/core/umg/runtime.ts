@@ -33,6 +33,8 @@ export interface UmgEvent {
 export interface UmgHost {
   readonly project: Project;
   readonly objects: ActorRT[];
+  /** Keep the texts Set Text writes (textLog), for a lesson's checks. */
+  readonly logTexts?: boolean;
   objectById(id: string): ActorRT | undefined;
   /** The next UE-style object name for a class (WBP_HUD_C_0…). */
   newObjectName(cls: BlueprintClass): string;
@@ -90,11 +92,14 @@ export class Umg {
   /** Calls of each Binding: "object:widget:prop" → count (shown by the debugger). */
   readonly bindingCalls: Record<string, number> = {};
   /**
-   * Every text a Set Text wrote, in order (not Bindings): what the screen said
-   * during the game, read by the checks of lessons that show messages (V7.59).
-   * The game carries it over an Open Level, like the Output Log.
+   * Every text a Set Text wrote, in order (not Bindings), with the widget
+   * object that got it and whether that object was painted since (V7.64):
+   * what the screen said during the game, read by the checks of lessons that
+   * show messages (V7.59). Kept only when the host asks (a lesson's checks,
+   * not free Play: a Tick that sets a text would fill it every frame). The
+   * game carries the painted ones over an Open Level, like the Output Log.
    */
-  readonly textLog: string[] = [];
+  readonly textLog: { text: string; obj: string; seen: boolean }[] = [];
   private added = 0;
   /** The Button held down by a finger: its widget object and id, and its layout path (drawn pressed). */
   pressed?: { obj: string; id: string; path: string };
@@ -224,7 +229,7 @@ export class Umg {
     const key = 'id' in t ? t.id : '';
     t.obj.widget!.state[key] ??= {};
     const st = t.obj.widget!.state[key];
-    if (!fromBinding && patch.text !== undefined) this.textLog.push(String(patch.text));
+    if (this.host.logTexts && !fromBinding && patch.text !== undefined) this.textLog.push({ text: String(patch.text), obj: t.obj.id, seen: false });
     for (const [k, v] of Object.entries(patch) as [keyof WidgetProps, WidgetProps[keyof WidgetProps]][]) {
       if (!fromBinding) t.obj.widget!.broken[`${key}:${k}`] = true;
       if (st[k] === v) continue;
@@ -511,6 +516,21 @@ export class Umg {
     if (w.component) return this.host.carrier(w.component).visible;
     const host = this.get(w.parent?.obj ?? w.placedIn?.obj);
     return !!host && this.drawn(host, guard + 1) && this.nodeDrawn(host, w.parent?.panel ?? w.placedIn?.id);
+  }
+
+  /** After each frame: the texts written to a widget painted now were seen (textLog). */
+  markSeen(): void {
+    for (const e of this.textLog) {
+      if (e.seen) continue;
+      const o = this.get(e.obj);
+      if (o && this.drawn(o)) e.seen = true;
+    }
+  }
+
+  /** The texts of textLog that reached the screen: their widget was painted then, or is now. */
+  shownTexts(): string[] {
+    this.markSeen();
+    return this.textLog.filter((e) => e.seen).map((e) => e.text);
   }
 
   /** Widget objects whose Event Tick runs this frame: the ones painted. */

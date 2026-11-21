@@ -20,8 +20,8 @@ const NODE_NOTIONS: [RegExp, string][] = [
   [/^input\.(?!setMode|setShowMouseCursor|getShowMouseCursor)/, 'enhanced-input'],
   // Widgets on the screen (UMG, V7.57): their nodes, the widget's own variables and events. Get Owning Player stays « player-controller ».
   [/^(widget\.(?!getOwningPlayer$)|var\.widget$|event\.(construct|destruct|preConstruct|onInitialized|widgetTick|widgetButton)$)/, 'umg'],
-  // Menus: a button pressed, the input mode, the mouse cursor (V7.57).
-  [/^(input\.(setMode|setShowMouseCursor)|event\.widgetButton$)/, 'ui-input'],
+  // Menus: a button pressed, the input mode, the mouse cursor, set or read (V7.57, V7.64).
+  [/^(input\.(setMode|setShowMouseCursor|getShowMouseCursor)|event\.widgetButton$)/, 'ui-input'],
   // Get Owning Player, in a widget, is the way back to the Player Controller (V7.36).
   [/^((player|pawn)\.getController|widget\.getOwningPlayer)$/, 'player-controller'],
   [/^var\.(get|set)$/, 'variables'],

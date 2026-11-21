@@ -529,9 +529,10 @@ export const mixedMarket: Lesson = {
       at: 'comptoir',
       test: (cx) => {
         if (cx.level() !== COUNTER_LEVEL) return `La partie est restée dans ${cx.level()} : la porte (déjà écrite) fait Open Level vers ${COUNTER_LEVEL}. L’as-tu modifiée ?`;
-        const above = cx.sim.umg.componentLayer().filter((l) => l.obj.className === 'WBP_Total').length;
-        if (!above) return 'Rien au-dessus du comptoir : ajoute-lui un Widget Component dont la Widget Class est WBP_Total.';
-        const said = cx.shown().map(normText);
+        const above = cx.sim.umg.componentLayer().filter((l) => l.obj.className === 'WBP_Total');
+        if (!above.length) return 'Rien au-dessus du comptoir : ajoute-lui un Widget Component dont la Widget Class est WBP_Total.';
+        // What the label above the counter says now (V7.64: not a text written anywhere else).
+        const said = above.flatMap((l) => Object.values(l.obj.widget!.state).map((st) => normText(String(st.text ?? ''))));
         if (said.some((t) => /(^|\D)17(\D|$)/.test(t))) return true;
         if (said.some((t) => /(^|\D)0(\D|$)/.test(t))) return 'Le comptoir affiche 0 : les crédits sont restés dans un objet du marché, refait à neuf derrière la porte. Garde-les dans le GameInstance.';
         return 'Le comptoir ne dit pas 17 : appelle Afficher sur son WBP_Total (Get User Widget Object, puis Cast To WBP_Total) avec les crédits du joueur.';

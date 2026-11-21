@@ -188,7 +188,7 @@ function retext(text: string, cmds: Command[]): string {
   for (const cmd of cmds) {
     const a = cmd.actionName;
     const e = cmd.event;
-    const by = `que ${PLAYER_CONTROLLER} appelle sur ${kept(a)}`;
+    const by = `que ${PLAYER_CONTROLLER} appelle quand on appuie sur ${kept(a)}`;
     t = t
       .replace(new RegExp(`entend (\\*\\*)?${a}(\\*\\*)?`, 'g'), `a un Custom Event **${e}**, ${by}`)
       .replace(new RegExp(`\\*\\*${a}\\*\\* \\(Started, `, 'g'), `**Event ${e}** (${kept(a)}, `)

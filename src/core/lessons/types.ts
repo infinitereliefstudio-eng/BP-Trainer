@@ -50,7 +50,7 @@ export interface CheckContext {
   component(actorLabel: string, componentName: string): ComponentRT | undefined;
   /** Texts printed with Print String so far (every game of the scenario, after a restart too). */
   prints(): string[];
-  /** Texts Set Text wrote on widgets so far (every game of the scenario): what the screen said (V7.59). */
+  /** Texts Set Text wrote on widgets so far (every game of the scenario) that reached the screen: their widget was painted (V7.59, V7.64). */
   shown(): string[];
   /** Runtime errors so far, every game of the scenario. */
   errors(): string[];

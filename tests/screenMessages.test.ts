@@ -9,6 +9,8 @@ import { getLesson } from '../src/core/lessons';
 import { solveDialogue } from '../src/core/lessons/library/tables';
 import { runLesson } from '../src/core/lessons/runner';
 import type { Graph, Project } from '../src/core/model/project';
+import { Simulation } from '../src/core/runtime/simulation';
+import { removeNodes } from '../src/core/operations/graphOps';
 
 const reasons = (r: ReturnType<typeof runLesson>) => r.results.filter((x) => !x.ok).map((x) => `${x.check.id}: ${x.reason}`).join(' | ');
 
@@ -73,5 +75,35 @@ describe('messages on the screen (V7.59)', () => {
     const r = runLesson(l, p);
     expect(r.passed, reasons(r)).toBe(true);
     expect(r.results.find((x) => x.check.id === 'ecran')?.ok).toBe(false);
+  });
+
+  it('V7.64: a text set on a widget never added to the screen is not « on the screen »', () => {
+    const l = getLesson('l-terminal')!;
+    const p = l.setup();
+    l.solve(p);
+    const g = p.classes.find((c) => c.name === 'BP_Joueur')!.graphs[0];
+    const add = Object.values(g.nodes).find((n) => n.def === 'widget.addToViewport')!;
+    // Unplug Add to Viewport: the widget is made and written, never painted.
+    const into = Object.values(g.links).find((k) => k.to.node === add.id && k.to.pin === 'exec')!;
+    const next = Object.values(g.links).find((k) => k.from.node === add.id && k.from.pin === 'then');
+    if (next) into.to = next.to;
+    else delete g.links[into.id];
+    removeNodes(g, [add.id]);
+    const r = runLesson(l, p);
+    expect(r.compileErrors).toEqual([]);
+    expect(r.results.find((x) => x.check.id === 'ecran')?.ok).toBe(false);
+  });
+
+  it('V7.64: free Play keeps no text log (only a lesson’s checks ask for it)', () => {
+    // Le stand de tir writes its score and record at BeginPlay.
+    const l = getLesson('m4-stand-tir')!;
+    const p = l.setup();
+    l.solve(p);
+    const free = new Simulation(structuredClone(p));
+    free.advance(0.5);
+    expect(free.umg.textLog).toEqual([]);
+    const checked = new Simulation(structuredClone(p), { logTexts: true });
+    checked.advance(0.5);
+    expect(checked.umg.shownTexts().some((t) => t.includes('Score'))).toBe(true);
   });
 });

@@ -98,7 +98,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
   // The game starts in the Game Default Map, whatever level the editor shows (a packaged game, not Play In Editor).
   const levelId = defaultLevel(project).id;
   // A game, as Play makes one: Open Level replaces its world (`game.world`), the Output Log stays.
-  let game = new Game(project, { order, slots, levelId });
+  let game = new Game(project, { order, slots, levelId, logTexts: true });
   // Prints and errors of the games before a restart.
   const earlier: { prints: string[]; shown: string[]; errors: string[] } = { prints: [], shown: [], errors: [] };
   const cx: CheckContext = {
@@ -117,7 +117,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     actor: (label) => game.world.actors.find((a) => a.label === label),
     component: (label, name) => game.world.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),
     prints: () => [...earlier.prints, ...game.world.log.filter((l) => l.message !== undefined).map((l) => l.message!)],
-    shown: () => [...earlier.shown, ...game.world.umg.textLog],
+    shown: () => [...earlier.shown, ...game.world.umg.shownTexts()],
     errors: () => [...earlier.errors, ...game.world.log.filter((l) => l.level === 'error').map((l) => l.text)],
     variable: (label, name) => {
       const a = label === 'Joueur' ? game.world.player : game.world.actors.find((x) => x.label === label);
@@ -173,7 +173,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
       earlier.shown = cx.shown();
       earlier.errors.push(...game.world.log.filter((l) => l.level === 'error').map((l) => l.text));
       const into = step.level ? findLevelByName(project, step.level)?.id : undefined;
-      game = new Game(project, { order, slots, levelId: into ?? levelId });
+      game = new Game(project, { order, slots, levelId: into ?? levelId, logTexts: true });
       game.start();
       seen = 0;
     } else if ('fps' in step) dt = 1 / step.fps;

@@ -87,6 +87,8 @@ export interface SimulationOptions {
   trace?: TraceEntry[];
   /** The timers: a Game passes its own, as UE's Timer Manager belongs to the GameInstance. */
   timers?: TimerSet;
+  /** Keep every text Set Text writes (Umg.textLog): only the checks of a lesson read it (V7.64). */
+  logTexts?: boolean;
 }
 
 /** What Open Level asked for: done by the Game at the start of the next frame (core/runtime/game.ts). */
@@ -214,6 +216,7 @@ export class Simulation implements InterpreterHost {
     this.interp = new Interpreter(project, this, opts.breakpoints);
     this.umg = new Umg({
       project,
+      logTexts: !!opts.logTexts,
       objects: this.objects,
       objectById: (id) => this.findActor(id),
       newObjectName: (cls) => this.objectName(cls).name,
@@ -617,6 +620,7 @@ export class Simulation implements InterpreterHost {
         for (const o of this.umg.ticking()) this.fire(o, (n) => n.def === 'event.widgetTick', 'then', { delta: dt });
       },
       () => this.umg.pollBindings(),
+      () => this.umg.markSeen(),
     ];
   }
 

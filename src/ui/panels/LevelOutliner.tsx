@@ -20,8 +20,12 @@ export function LevelOutliner({ onCenter, onDetails }: Props) {
   const [search, setSearch] = useState('');
   const rows = outlinerRows(store.project, search);
   const f = store.focus;
-  const selected = f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : undefined;
+  const selected = f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : f.kind === 'worldSettings' ? 'worldSettings' : undefined;
   const pick = (id: string) => {
+    if (id === 'worldSettings') {
+      store.setFocus({ kind: 'worldSettings' });
+      return;
+    }
     store.setFocus(id === 'playerStart' ? { kind: 'playerStart' } : { kind: 'actor', id });
     onCenter(id);
   };

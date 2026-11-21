@@ -11,6 +11,7 @@ import type { NodeContext, PinSpec } from './definition';
 import { classById, NATIVE_CASTS } from './library/communication';
 import { NOT_IN_COMPONENT, selfIs } from './library/actorComponents';
 import { GAME_INSTANCE_ONLY, NOT_IN_GAME_INSTANCE } from './library/gameInstance';
+import { NOT_IN_GAME_MODE } from './library/gameMode';
 import { BUTTON_EVENTS, NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from './library/widgets';
 import { NATIVE_DISPATCHERS, NATIVE_SIGNATURE_OWNER } from './library/nativeDispatchers';
 import { allDefinitions, getDefinition, resolvePins } from './registry';
@@ -36,6 +37,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
   const inComponent = selfIs(ctx, 'ActorComponent');
   const inWidget = selfIs(ctx, 'UserWidget');
   const inGameInstance = selfIs(ctx, 'GameInstance');
+  const inGameMode = selfIs(ctx, 'GameModeBase');
   // Each Get Owner shows where it means something; the other one when searching or dragging a wire.
   const elsewhere = (id: string) => (id === 'component.getOwner' && !inComponent) || (id === 'actor.getOwner' && inComponent);
   for (const d of allDefinitions()) {
@@ -47,6 +49,7 @@ export function paletteEntries(ctx: NodeContext, graph: Pick<Graph, 'id' | 'kind
     if (inWidget ? NOT_IN_WIDGET[d.id] : WIDGET_ONLY.has(d.id)) continue;
     // The GameInstance is an object for the whole game: Event Init and Shutdown are its own, actor events are not.
     if (inGameInstance ? NOT_IN_GAME_INSTANCE[d.id] : GAME_INSTANCE_ONLY.has(d.id)) continue;
+    if (inGameMode && NOT_IN_GAME_MODE[d.id]) continue;
     const config = { ...(d.defaultConfig ?? {}) };
     if (d.id === 'fn.return') config.graph = graph.id;
     const title =

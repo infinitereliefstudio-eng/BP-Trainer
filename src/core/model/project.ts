@@ -180,19 +180,22 @@ export interface ComponentProps {
  * GameInstance is UE's UGameInstance: one object for the whole game, made
  * before the first level and kept through Open Level (Game Instance Class
  * in Maps & Modes); never placed, no components, no BeginPlay.
+ * GameModeBase is UE's AGameModeBase: the rules of a level. Each world makes
+ * one (Default GameMode, or the level's GameMode Override); its Class
+ * Defaults say which pawn and Player Controller the game makes for the player.
  */
-export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent' | 'UserWidget' | 'GameInstance';
+export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent' | 'UserWidget' | 'GameInstance' | 'GameModeBase';
 
 /** Native parents a Blueprint can be created from. */
-export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent', 'UserWidget', 'GameInstance'];
+export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent', 'UserWidget', 'GameInstance', 'GameModeBase'];
 
 /**
- * Five families that never mix: actors (Actor, Pawn, PlayerController),
+ * Six families that never mix: actors (Actor, Pawn, PlayerController),
  * SaveGame objects, Actor Components (added to actors, never placed),
- * Widget Blueprints (on the screen, never in the level) and the GameInstance
- * (one object for the whole game).
+ * Widget Blueprints (on the screen, never in the level), the GameInstance
+ * (one object for the whole game) and GameModes (made by each world, never placed).
  */
-export type ClassFamily = 'actor' | 'save' | 'component' | 'widget' | 'instance';
+export type ClassFamily = 'actor' | 'save' | 'component' | 'widget' | 'instance' | 'mode';
 export const familyOf = (parent: ParentClass): ClassFamily =>
   parent === 'SaveGame'
     ? 'save'
@@ -202,7 +205,9 @@ export const familyOf = (parent: ParentClass): ClassFamily =>
         ? 'widget'
         : parent === 'GameInstance'
           ? 'instance'
-          : 'actor';
+          : parent === 'GameModeBase'
+            ? 'mode'
+            : 'actor';
 
 /** Can instances of this native class be placed in the level or spawned? */
 export const isPlaceableParent = (parent: ParentClass): boolean => parent === 'Actor' || parent === 'Pawn';
@@ -256,6 +261,16 @@ export interface BlueprintClass {
   interfaces: string[];
   /** A Widget Blueprint: its widget tree (Designer), in tree order. */
   widgets?: WidgetNode[];
+  /** A GameMode's Class Defaults (unset: inherited from its parent Blueprint, else UE's DefaultPawn and PlayerController). */
+  gameMode?: GameModeDefaults;
+}
+
+/** The Class Defaults of a GameModeBase Blueprint that the app simulates: what the game makes for the player. */
+export interface GameModeDefaults {
+  /** Default Pawn Class: a Pawn Blueprint (class id). */
+  defaultPawnClass?: string;
+  /** Player Controller Class: a PlayerController Blueprint (class id). */
+  playerControllerClass?: string;
 }
 
 /** An instance of a Blueprint class placed in the level. */
@@ -283,6 +298,8 @@ export interface Level {
   name: string;
   actors: LevelActor[];
   playerStart: { x: number; y: number; yaw: number };
+  /** World Settings › GameMode Override: a GameModeBase Blueprint (class id) used in this level instead of the Default GameMode. */
+  gameModeOverride?: string;
 }
 
 /** Project Settings › Maps & Modes. */
@@ -291,6 +308,8 @@ export interface MapsModes {
   gameDefaultMap?: string;
   /** Game Instance Class: a Blueprint of parent GameInstance (a class id). Unset: UE's plain GameInstance, which no Cast To BP_… accepts. */
   gameInstanceClass?: string;
+  /** Default GameMode: a GameModeBase Blueprint (a class id), for every level without GameMode Override. Unset: UE's GameModeBase. */
+  defaultGameMode?: string;
 }
 
 /** A user Enum asset: named entries, stored as their index (Byte in UE). */
@@ -407,10 +426,6 @@ export interface Project {
    * disk do in UE; a lesson's check starts from its own (Lesson.slots).
    */
   saveSlots?: Record<string, SavedGame>;
-  /** Class used for the player (UE's Default Pawn Class); a plain pawn if unset. */
-  playerClassId?: string;
-  /** Class of the player's controller (UE's Player Controller Class); the native PlayerController if unset. */
-  playerControllerClassId?: string;
   /** Version of the simulation rules the project was last opened under (see rules.ts). */
   rules?: number;
   /** For a lesson's project: the revision of the lesson it was started from (Lesson.revision). */
@@ -425,7 +440,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 16;
+export const PROJECT_FORMAT = 17;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

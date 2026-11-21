@@ -252,9 +252,9 @@ describe('the GameInstance class in the editor', () => {
     expect(setGameInstanceClass(p, '').ok).toBe(true);
   });
 
-  it('format 16: saved and read back with its Game Instance Class; a lost class is dropped', () => {
+  it('saved and read back with its Game Instance Class; a lost class is dropped', () => {
     const { p, jeu } = setup();
-    expect(PROJECT_FORMAT).toBe(16);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(16);
     const back = parseProject(serializeProject(p));
     expect(back.mapsModes?.gameInstanceClass).toBe(jeu.cls.id);
     const broken = JSON.parse(serializeProject(p));

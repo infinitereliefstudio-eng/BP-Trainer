@@ -4,6 +4,7 @@
  * Dispatcher was called before its Bind, the interface message went to an
  * actor that does not implement it…
  */
+import { isPlayerPawnClass } from '../model/gameMode';
 import type { NodeRuns } from '../runtime/runRecord';
 import { collisionBlocks, collisionQueries } from '../types/enums';
 import { type DiagnoseCx, type DiagnosisStep, secs, stepAt, times, whyNot } from './diagnose';
@@ -21,7 +22,7 @@ export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], 
       return;
     case 'event.inputKey': {
       const key = String(node.config.key ?? 'E');
-      const isPlayer = cx.project.playerClassId === cls.id;
+      const isPlayer = isPlayerPawnClass(cx.project, cls.id);
       if (!isPlayer && !cls.autoReceiveInput) {
         say(`Auto Receive Input est sur Disabled dans Class Settings de ${cls.name} : ses événements de touche ne reçoivent rien. Règle-le sur Player 0.`);
       } else if (!cx.record.keys.has(key)) say(`La touche ${KEY_NAMES[key] ?? key} n’a pas été pressée pendant la partie.`);
@@ -64,7 +65,7 @@ export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], 
       return;
     case 'event.hit': {
       const solid = cls.components.some((c) => c.kind === 'StaticMesh' && c.props.blocks && collisionBlocks(c.props.collision));
-      if (cx.project.playerClassId === cls.id) say('Le joueur n’a buté contre aucun Static Mesh qui bloque pendant la partie.');
+      if (isPlayerPawnClass(cx.project, cls.id)) say('Le joueur n’a buté contre aucun Static Mesh qui bloque pendant la partie.');
       else if (!solid) say(`${cls.name} n’a aucun Static Mesh qui bloque le joueur : sans obstacle, rien ne peut le heurter. Traverser une Box Collision déclenche un overlap, pas un Hit.`);
       else say(`Le joueur n’a buté contre aucun ${cls.name} pendant la partie : Event Hit ne vient que d’un contact qui bloque.`);
       return;

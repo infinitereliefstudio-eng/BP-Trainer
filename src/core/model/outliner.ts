@@ -7,7 +7,7 @@ import { findClass, type Project } from './project';
 import { levelOf } from './project';
 
 export interface OutlinerRow {
-  /** A level actor's id, or « playerStart ». */
+  /** A level actor's id, « playerStart » or « worldSettings ». */
   id: string;
   label: string;
   /** UE's Type column: the Blueprint class, or PlayerStart. */
@@ -17,6 +17,8 @@ export interface OutlinerRow {
 export function outlinerRows(p: Project, search: string): OutlinerRow[] {
   const rows: OutlinerRow[] = [
     { id: 'playerStart', label: 'Player Start', type: 'PlayerStart' },
+    // As UE's Outliner: the level's World Settings, where its GameMode Override is.
+    { id: 'worldSettings', label: 'WorldSettings', type: 'WorldSettings' },
     ...levelOf(p).actors.map((a) => ({ id: a.id, label: a.name, type: findClass(p, a.classId)?.name ?? '?' })),
   ];
   const words = normalize(search).split(/\s+/).filter(Boolean);

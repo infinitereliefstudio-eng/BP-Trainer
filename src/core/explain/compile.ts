@@ -149,6 +149,13 @@ const COMPILE: Record<CompileCode, Explanation> = {
       'Pour agir dans le niveau : un acteur fait Get Game Instance, Cast To, puis lit ou change ses variables.',
     ],
   },
+  notInGameMode: {
+    why: 'Le GameMode est l’acteur des règles du niveau : le jeu le crée, sans forme ni place visible, et il ne reçoit pas les entrées (c’est le Player Controller).',
+    fixes: [
+      'Pour un overlap : c’est l’acteur touché (une porte, une zone) qui le reçoit, puis il appelle le GameMode (Get Game Mode, Cast To).',
+      'Pour une touche : le Player Controller reçoit l’Input Action, puis appelle le GameMode.',
+    ],
+  },
   gameInstanceOnly: {
     why: 'Event Init et Event Shutdown appartiennent au GameInstance : un acteur, un composant ou un widget ne les reçoit jamais.',
     fixes: ['Dans un acteur : Event BeginPlay et Event End Play.', 'Pour un GameInstance : crée un Blueprint de classe parente GameInstance, puis choisis-le dans Project Settings › Maps & Modes.'],

@@ -49,6 +49,7 @@ it('generates a Widget Component project', async () => {
 /**
  * V7.47: two levels. The player starts on a door of Lvl_Principal, whose overlap opens Lvl_Atelier; there, a Print of Get Current Level Name.
  * V7.48: BP_Jeu, the Game Instance Class, with Visites set to 1 by Event Init.
+ * V7.49: Lvl_Atelier has a GameMode Override, BP_ReglesAtelier, whose Default Pawn Class is BP_Robot.
  */
 it('generates an Open Level project', async () => {
   const { ProjectBuilder } = await import('../../src/core/lessons/builder');
@@ -79,6 +80,11 @@ it('generates an Open Level project', async () => {
   pb.project.editorLevelId = b.value.id;
   pb.place(atelier, 200, 0);
   b.value.playerStart = { x: -150, y: 0, yaw: 0 };
+  const { setGameModeDefault, setGameModeOverride } = await import('../../src/core/operations/gameModeOps');
+  const robot = pb.blueprint('BP_Robot', 'Pawn');
+  const regles = pb.blueprint('BP_ReglesAtelier', 'GameModeBase');
+  setGameModeDefault(pb.project, regles.cls.id, 'defaultPawnClass', robot.cls.id);
+  setGameModeOverride(pb.project, b.value.id, regles.cls.id);
   pb.project.editorLevelId = pb.project.levels[0].id;
   writeFileSync(new URL('open-level.json', OUT), serializeProject(pb.project));
 });

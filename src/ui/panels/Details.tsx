@@ -35,7 +35,7 @@ import { ClassDefaults } from './ClassDefaults';
 import { StructDetails } from './StructDetails';
 import { AppHelp, Check, DetailsFilter, Field, Group, TextCommit } from './fields';
 import { ClassDetails } from './ClassDetails';
-import { ActorDetails, PlayerStartDetails } from './LevelDetails';
+import { ActorDetails, PlayerStartDetails, WorldSettingsDetails } from './LevelDetails';
 import { NodeDiagnosis } from './NodeDiagnosis';
 import { DispatcherDetails, FunctionDetails } from './SignatureDetails';
 import { InterfaceDetails } from './InterfaceDetails';
@@ -72,6 +72,7 @@ export function Details({ openOverlay, onOpenClass, onOpenGraph, run, onFocusNod
   else if (f.kind === 'classDefaults') body = <ClassDefaults />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;
   else if (f.kind === 'playerStart') body = <PlayerStartDetails />;
+  else if (f.kind === 'worldSettings') body = <WorldSettingsDetails />;
   else if (f.kind === 'function') body = <FunctionDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'dispatcher') body = <DispatcherDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'interface') body = <InterfaceDetails id={f.id} openOverlay={openOverlay} />;

@@ -4,12 +4,13 @@
  * PlayerController, the subsystem and the Target of Add Mapping Context, the
  * format 10 migration, and the traps of the new lesson.
  */
+import { playerClassesFor } from '../src/core/model/gameMode';
 import { describe, expect, it } from 'vitest';
 import { compileClass } from '../src/core/compiler/validate';
 import { edit, ProjectBuilder } from '../src/core/lessons/builder';
 import { lessonInputController } from '../src/core/lessons/library/enhancedInput';
 import { runLesson } from '../src/core/lessons/runner';
-import { createProject, type Project, levelOf } from '../src/core/model/project';
+import { defaultLevel, type Project, levelOf } from '../src/core/model/project';
 import { contextFor } from '../src/core/nodes/registry';
 import { compatiblePin, paletteEntries } from '../src/core/nodes/palette';
 import { placeActor } from '../src/core/operations/levelOps';
@@ -42,6 +43,9 @@ function pressE(p: Project): Simulation {
   sim.step();
   return sim;
 }
+
+/** The Player Controller Class the game uses in the Game Default Map (by its GameMode). */
+const controllerOf = (p: Project) => playerClassesFor(p, defaultLevel(p)).controller?.id;
 
 describe('the Target of Add Mapping Context', () => {
   it('must be connected: UE’s « Target must have a connection »', () => {
@@ -166,11 +170,11 @@ describe('the Player Controller', () => {
     const { p, pawn, pc } = withController();
     expect(setPlayerControllerClass(p, pawn.cls.id).ok).toBe(false);
     expect(setParentClass(p, pc.id, 'Actor').ok).toBe(true);
-    expect(p.playerControllerClassId).toBeUndefined();
+    expect(controllerOf(p)).toBeUndefined();
     setParentClass(p, pc.id, 'PlayerController');
     setPlayerControllerClass(p, pc.id);
     expect(removeClass(p, pc.id).ok).toBe(true);
-    expect(p.playerControllerClassId).toBeUndefined();
+    expect(controllerOf(p)).toBeUndefined();
   });
 
   it('Get Controller gives None for a pawn nobody possesses', () => {
@@ -218,9 +222,13 @@ describe('format 10', () => {
     const b = edit(p, 'BP_Joueur');
     b.link(b.node('event.beginPlay'), 'then', b.node('input.addMappingContext', { context }), 'exec');
     b.link(b.node('input.action', { action }), 'started', b.node('debug.printString', {}, { text: 'action' }), 'exec');
+    // A real format 9 file: the pawn in Project.playerClassId (no GameMode before format 17), no Player Controller Class.
     const file = JSON.parse(serializeProject(p));
     file.format = 9;
-    delete file.project.playerControllerClassId;
+    const gm = file.project.mapsModes.defaultGameMode;
+    file.project.playerClassId = b.cls.id;
+    file.project.classes = file.project.classes.filter((c: { id: string }) => c.id !== gm);
+    delete file.project.mapsModes;
     const loaded = parseProject(JSON.stringify(file));
     const cls = loaded.classes.find((c) => c.name === 'BP_Joueur')!;
     const defs = Object.values(cls.graphs[0].nodes).map((n) => n.def);
@@ -230,10 +238,11 @@ describe('format 10', () => {
   });
 
   it('an unknown Player Controller Class is dropped on load', () => {
-    const p = createProject();
-    p.classes.push(...base().p.classes);
-    p.playerControllerClassId = 'nope';
-    expect(parseProject(serializeProject(p)).playerControllerClassId).toBeUndefined();
+    const { p } = base();
+    const gm = p.classes.find((c) => c.id === p.mapsModes?.defaultGameMode)!;
+    gm.gameMode = { ...gm.gameMode, playerControllerClass: 'nope' };
+    const back = parseProject(serializeProject(p));
+    expect(back.classes.find((c) => c.id === gm.id)!.gameMode?.playerControllerClass).toBeUndefined();
   });
 });
 
@@ -241,7 +250,7 @@ describe('lesson « Les contrôles au Player Controller »', () => {
   it('a Player Controller left out of Player Controller Class is pointed out', () => {
     const p = lessonInputController.setup();
     lessonInputController.solve(p);
-    delete p.playerControllerClassId;
+    setPlayerControllerClass(p, undefined);
     const run = runLesson(lessonInputController, p);
     const fail = (id: string) => run.results.find((r) => r.check.id === id);
     expect(fail('pc-class')?.ok).toBe(false);

@@ -15,7 +15,8 @@ import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
-import { createActor, createController, createGameInstance, createInputSubsystem, createPlayer } from './actorFactory';
+import { playerClassesFor } from '../model/gameMode';
+import { createActor, createController, createGameInstance, createGameMode, createInputSubsystem, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { EnhancedInput } from './enhancedInput';
 import { buildInputStack, keyKept, sendAction, sendKey } from './inputStack';
@@ -98,6 +99,8 @@ export class Simulation implements InterpreterHost {
   readonly level: Level;
   /** The player's PlayerController (a Blueprint when Player Controller Class is set), and its Enhanced Input subsystem. */
   readonly controller: ActorRT;
+  /** The world's GameMode (Get Game Mode): an instance of the level's GameMode Blueprint, or UE's GameModeBase. */
+  readonly gameMode: ActorRT;
   private readonly subsystem = createInputSubsystem();
   /** Last nodes run, oldest first (bounded). */
   trace: TraceEntry[] = [];
@@ -227,13 +230,15 @@ export class Simulation implements InterpreterHost {
       step: () => this.step(),
     });
     const ps = this.level.playerStart;
-    const pawn = project.playerClassId ? findClass(project, project.playerClassId) : undefined;
+    // The level's GameMode (GameMode Override, else Default GameMode) says which pawn and Player Controller to make.
+    const { gameMode, pawn, controller: pcClass } = playerClassesFor(project, this.level);
+    this.gameMode = createGameMode(gameMode && inheritedView(gameMode, project, true));
+    if (this.gameMode.classId) this.counters.set(this.gameMode.classId, 1);
     this.player = createPlayer(pawn && inheritedView(pawn, project, true));
     this.player.x = ps.x;
     this.player.y = ps.y;
     this.player.yaw = ps.yaw;
     if (this.player.classId) this.counters.set(this.player.classId, 1);
-    const pcClass = project.playerControllerClassId ? findClass(project, project.playerControllerClassId) : undefined;
     this.controller = createController(pcClass && inheritedView(pcClass, project, true));
     if (this.controller.classId) this.counters.set(this.controller.classId, 1);
     this.spawnLevel();
@@ -352,7 +357,8 @@ export class Simulation implements InterpreterHost {
 
   /** Fix the event order of the starting actors (the level, then the controller and the player). */
   private rankActors(order: ActorOrder): void {
-    const ids = [...this.actors.map((a) => a.id), this.controller.id, this.player.id];
+    // As in UE's actor list: the placed actors, then the GameMode, the Player Controller and the pawn the game spawns.
+    const ids = [...this.actors.map((a) => a.id), ...(this.gameMode.classId ? [this.gameMode.id] : []), this.controller.id, this.player.id];
     if (order === 'reversed') ids.reverse();
     if (order === 'shuffled') {
       for (let i = ids.length - 1; i > 0; i--) {
@@ -370,7 +376,7 @@ export class Simulation implements InterpreterHost {
    * components first, then the actor's own Event BeginPlay.
    */
   private scripted(): ActorRT[] {
-    const list = [...this.actors.filter((a) => !a.destroyed), ...[this.controller, this.player].filter((a) => a.classId)];
+    const list = [...this.actors.filter((a) => !a.destroyed), ...[this.gameMode, this.controller, this.player].filter((a) => a.classId)];
     const rank = (a: ActorRT) => this.rank.get(a.id) ?? Number.MAX_SAFE_INTEGER;
     return list.sort((a, b) => rank(a) - rank(b)).flatMap((a) => [...this.componentsOf(a), a]);
   }
@@ -827,6 +833,7 @@ export class Simulation implements InterpreterHost {
       ...this.actors,
       this.player,
       ...(this.controller.classId ? [this.controller] : []),
+      ...(this.gameMode.classId ? [this.gameMode] : []),
       ...this.objects.filter((o) => o.owner || o.widget),
       ...(this.gameInstance.classId ? [this.gameInstance] : []),
     ];
@@ -835,6 +842,7 @@ export class Simulation implements InterpreterHost {
 
   private findActor(id: string): ActorRT | undefined {
     if (id === this.gameInstance.id) return this.gameInstance;
+    if (id === this.gameMode.id) return this.gameMode;
     if (id === this.player.id) return this.player;
     if (id === this.controller.id) return this.controller;
     if (id === this.subsystem.id) return this.subsystem;
@@ -997,6 +1005,10 @@ export class Simulation implements InterpreterHost {
       this.runtimeError(`SpawnActor : ${cls.name} est un GameInstance, pas un acteur. Le jeu en crée un seul (Game Instance Class) : Get Game Instance le donne.`);
       return null;
     }
+    if (cls.parent === 'GameModeBase') {
+      this.runtimeError(`SpawnActor : ${cls.name} est un GameMode. Chaque niveau crée le sien (Default GameMode, ou GameMode Override) : Get Game Mode le donne.`);
+      return null;
+    }
     if (!isPlaceableParent(cls.parent)) {
       this.runtimeError(`SpawnActor : ${cls.name} est un Player Controller. Le jeu le crée lui-même (Player Controller Class) : on ne le fait pas apparaître.`);
       return null;
@@ -1040,6 +1052,10 @@ export class Simulation implements InterpreterHost {
     }
     if (actor.id === this.controller.id) {
       this.runtimeError('Destroy Actor : le Player Controller ne peut pas être détruit dans cette version.');
+      return;
+    }
+    if (actor.id === this.gameMode.id) {
+      this.runtimeError('Destroy Actor : le GameMode ne peut pas être détruit dans cette version. Il va avec le niveau.');
       return;
     }
     // Its Actor Components go with it, in the same chain of execution.

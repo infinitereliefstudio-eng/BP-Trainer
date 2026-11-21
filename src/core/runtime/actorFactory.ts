@@ -84,6 +84,11 @@ export function createGameInstance(cls: BlueprintClass | undefined): ActorRT {
 
 export const GAME_INSTANCE_ID = 'gameInstance';
 
+/** The world's GameMode: an instance of its GameMode Blueprint, or UE's GameModeBase. An actor the game spawns, never placed. */
+export function createGameMode(cls: BlueprintClass | undefined): ActorRT {
+  return cls ? createActor('gameMode', 'GameMode', `${cls.name}_C_0`, cls, {}) : blank('gameMode', 'GameMode', 'GameModeBase_0', 'GameModeBase');
+}
+
 /** The player's Enhanced Input Local Player Subsystem: an object, never in the level. */
 export function createInputSubsystem(): ActorRT {
   return blank('inputSubsystem', 'EnhancedInputLocalPlayerSubsystem', 'EnhancedInputLocalPlayerSubsystem_0', 'EnhancedInputLocalPlayerSubsystem');

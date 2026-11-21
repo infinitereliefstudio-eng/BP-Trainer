@@ -1,10 +1,12 @@
 /** Project-level mutators: Blueprint classes. */
+import { pruneGameModes } from '../model/gameMode';
 import { descendants, inheritedView, isA, rootParent } from '../model/inheritance';
 import { newId } from '../model/ids';
 import { componentDefaults, createClass, familyOf, isPlaceableParent, isSceneComponent, uniqueName, type BlueprintClass, type BlueprintInterface, type ClassFamily, type ParentClass, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import { validateName } from './classOps';
 import { renameTypeRefs } from './enumOps';
+import { setDefaultGameModeClass } from './gameModeOps';
 import { pruneAllGraphs, removeNodes, type OpResult } from './graphOps';
 import { pruneBindings, widgetUsers } from './widgetOps';
 
@@ -16,7 +18,7 @@ export function pruneProject(p: Project): void {
   }
 }
 
-const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self', 'UserWidget', 'Widget', 'GameInstance'];
+const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self', 'UserWidget', 'Widget', 'GameInstance', 'GameModeBase', 'GameMode'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
   const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
@@ -55,9 +57,8 @@ export function removeClass(p: Project, id: string): OpResult {
   if (carrier) return { ok: false, reason: `${carrier.name} affiche ce Widget Blueprint dans un Widget Component : change d’abord son Widget Class.` };
   p.classes = p.classes.filter((c) => c.id !== id);
   for (const level of p.levels) level.actors = level.actors.filter((a) => a.classId !== id);
-  if (p.playerClassId === id) delete p.playerClassId;
-  if (p.playerControllerClassId === id) delete p.playerControllerClassId;
   if (p.mapsModes?.gameInstanceClass === id) delete p.mapsModes.gameInstanceClass;
+  pruneGameModes(p);
   return { ok: true, value: undefined };
 }
 
@@ -67,6 +68,7 @@ const FAMILY_REFUSAL: Record<ClassFamily, string> = {
   actor: 'Un acteur ne peut hériter ni d’un SaveGame, ni d’un Actor Component, ni d’un Widget Blueprint : crée un Blueprint à part (Content Drawer › + Add › Blueprint Class).',
   widget: 'Un Widget Blueprint garde UserWidget pour parent : l’appli ne gère pas l’héritage entre Widget Blueprints.',
   instance: 'Un GameInstance ne peut hériter que de GameInstance ou d’un autre Blueprint GameInstance.',
+  mode: 'Un GameMode ne peut hériter que de GameModeBase ou d’un autre Blueprint GameMode.',
 };
 
 /**
@@ -84,7 +86,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   // Simplification of the app: a Widget Blueprint stays a direct child of UserWidget.
   if (family === 'widget') return parent === 'UserWidget' ? { ok: true, value: undefined } : { ok: false, reason: FAMILY_REFUSAL.widget };
   const saveFamily = family === 'save';
-  if (parent === 'SaveGame' || parent === 'ActorComponent' || parent === 'GameInstance') {
+  if (parent === 'SaveGame' || parent === 'ActorComponent' || parent === 'GameInstance' || parent === 'GameModeBase') {
     delete cls.parentClassId;
     cls.parent = parent;
     for (const c of descendants(p, cls)) c.parent = parent;
@@ -110,7 +112,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
       }
     }
   }
-  if (!saveFamily && family !== 'component' && family !== 'instance' && !cls.parentClassId && cls.components.filter(isSceneComponent).every((c) => !!c.parent)) {
+  if (!saveFamily && family !== 'component' && family !== 'instance' && family !== 'mode' && !cls.parentClassId && cls.components.filter(isSceneComponent).every((c) => !!c.parent)) {
     // Back to a native parent: a root of its own again.
     const root = { id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene' as const, props: componentDefaults('Scene') };
     for (const c of cls.components) if (isSceneComponent(c) && !cls.components.some((o) => o.id === c.parent)) c.parent = root.id;
@@ -118,9 +120,8 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   }
   // The native class at the top follows the new chain, for this class and its children.
   for (const c of [cls, ...descendants(p, cls)]) c.parent = rootParent(p, c);
-  if (p.playerClassId && rootParent(p, p.classes.find((c) => c.id === p.playerClassId) ?? cls) !== 'Pawn') delete p.playerClassId;
-  const pc = p.classes.find((c) => c.id === p.playerControllerClassId);
-  if (p.playerControllerClassId && (!pc || rootParent(p, pc) !== 'PlayerController')) delete p.playerControllerClassId;
+  // A class that is no longer a Pawn, a PlayerController or a GameMode leaves the GameModes that used it.
+  pruneGameModes(p);
   // A Player Controller is made by the game, never placed: its instances leave the level.
   for (const level of p.levels) {
     level.actors = level.actors.filter((a) => {
@@ -222,28 +223,25 @@ export function renameCustomEvent(p: Project, classId: string, nodeId: string, n
   return { ok: true, value: undefined };
 }
 
-/** UE's Default Pawn Class: which Blueprint the player is. */
+/**
+ * UE's Default Pawn Class: which Blueprint the player is. Set in the Class
+ * Defaults of the Default GameMode, made if needed (BP_GameMode), as in UE.
+ */
 export function setPlayerClass(p: Project, classId: string | undefined): OpResult {
-  if (classId === undefined) {
-    delete p.playerClassId;
-    return { ok: true, value: undefined };
+  if (classId !== undefined) {
+    const cls = p.classes.find((c) => c.id === classId);
+    if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
+    if (rootParent(p, cls) !== 'Pawn') return { ok: false, reason: 'Le joueur doit être un Blueprint de classe parente Pawn.' };
   }
-  const cls = p.classes.find((c) => c.id === classId);
-  if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
-  if (rootParent(p, cls) !== 'Pawn') return { ok: false, reason: 'Le joueur doit être un Blueprint de classe parente Pawn.' };
-  p.playerClassId = classId;
-  return { ok: true, value: undefined };
+  return setDefaultGameModeClass(p, 'defaultPawnClass', classId);
 }
 
-/** UE's Player Controller Class (Game Mode): which Blueprint the player's controller is. */
+/** UE's Player Controller Class: which Blueprint the player's controller is. Set in the Default GameMode, made if needed. */
 export function setPlayerControllerClass(p: Project, classId: string | undefined): OpResult {
-  if (classId === undefined) {
-    delete p.playerControllerClassId;
-    return { ok: true, value: undefined };
+  if (classId !== undefined) {
+    const cls = p.classes.find((c) => c.id === classId);
+    if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
+    if (rootParent(p, cls) !== 'PlayerController') return { ok: false, reason: 'Le Player Controller doit être un Blueprint de classe parente PlayerController.' };
   }
-  const cls = p.classes.find((c) => c.id === classId);
-  if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
-  if (rootParent(p, cls) !== 'PlayerController') return { ok: false, reason: 'Le Player Controller doit être un Blueprint de classe parente PlayerController.' };
-  p.playerControllerClassId = classId;
-  return { ok: true, value: undefined };
+  return setDefaultGameModeClass(p, 'playerControllerClass', classId);
 }

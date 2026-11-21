@@ -151,7 +151,7 @@ export const MEMO: MemoCard[] = [
       'Dans le graphe, l’événement de l’action a plusieurs sorties : **Started** (l’appui commence), **Triggered** (à chaque image tant que l’action est active), **Completed** (relâché), plus Ongoing et Canceled.\n\n' +
       'Pour « une fois à l’appui », utilise **Started**. Pour un déplacement continu, **Triggered** et sa pin Action Value.\n\n' +
       'L’intérêt : changer une touche ou ajouter la manette se fait dans le Mapping Context, sans toucher aux graphes.\n\n' +
-      'Le **Player Controller** représente le joueur pendant toute la partie et possède son pion. Un Blueprint Player Controller ne sert que s’il est choisi comme **Player Controller Class** (Game Mode).\n\n' +
+      'Le **Player Controller** représente le joueur pendant toute la partie et possède son pion. Un Blueprint Player Controller ne sert que s’il est choisi comme **Player Controller Class** dans les Class Defaults du GameMode.\n\n' +
       'Qui reçoit une touche ? Les acteurs abonnés aux entrées forment une pile : le dernier abonné en haut, puis le Player Controller, et le pion du joueur en bas. Un événement de touche avec **Consume Input** (coché par défaut) garde la touche : ceux d’en dessous ne la voient pas. D’où la règle des vrais projets : le joueur (ou son PlayerController) écoute les entrées, et parle aux objets.',
   },
   {

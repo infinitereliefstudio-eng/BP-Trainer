@@ -39,10 +39,11 @@ interface Props {
 type Mode = 'browse' | 'add' | 'parent' | 'rowStruct';
 
 /** Native parents offered first, with UE's descriptions. */
-const COMMON: { id: 'Actor' | 'Pawn' | 'PlayerController' | 'ActorComponent'; name: string; text: string }[] = [
+const COMMON: { id: 'Actor' | 'Pawn' | 'PlayerController' | 'GameModeBase' | 'ActorComponent'; name: string; text: string }[] = [
   { id: 'Actor', name: 'Actor', text: 'Un objet qui peut être posé ou créé (Spawn) dans le monde.' },
   { id: 'Pawn', name: 'Pawn', text: 'Un acteur qui peut être « possédé » et recevoir les entrées d’un contrôleur : le joueur.' },
   { id: 'PlayerController', name: 'Player Controller', text: 'Un acteur qui représente le joueur et le contrôle : il reçoit les entrées et possède le Pawn.' },
+  { id: 'GameModeBase', name: 'Game Mode Base', text: 'Les règles d’un niveau : il fait apparaître le joueur (son pion, son Player Controller). Choisi dans Maps & Modes ou les World Settings.' },
   { id: 'ActorComponent', name: 'Actor Component', text: 'De la logique réutilisable qu’on ajoute à n’importe quel acteur (santé, inventaire…). Il n’a pas de place dans le monde.' },
 ];
 
@@ -125,6 +126,8 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
         ? 'BP_Sauvegarde'
         : parent === 'GameInstance'
           ? 'BP_GameInstance'
+          : parent === 'GameModeBase'
+            ? 'BP_GameMode'
           : parent === 'PlayerController'
           ? 'BP_PlayerController'
           : parent === 'ActorComponent'

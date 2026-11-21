@@ -40,6 +40,7 @@ import { widgetNodes } from './library/widgets';
 import { widgetComponentNodes } from './library/widgetComponent';
 import { inputModeNodes } from './library/inputMode';
 import { gameInstanceNodes } from './library/gameInstance';
+import { gameModeNodes } from './library/gameMode';
 import { levelNodes } from './library/levels';
 
 const ALL: NodeDefinition[] = [
@@ -61,6 +62,7 @@ const ALL: NodeDefinition[] = [
   ...inputModeNodes,
   ...levelNodes,
   ...gameInstanceNodes,
+  ...gameModeNodes,
   ...componentNodes,
   ...communicationNodes,
   ...functionNodes,

@@ -184,12 +184,12 @@ describe('D3 — imports are checked completely before anything is written', () 
       const graph = p.classes[0].graphs[0];
       graph.links.l = { id: 'l', from: { node: 'nowhere', pin: 'then' }, to: { node: 'nowhere2', pin: 'exec' } };
       levelOf(p).actors.push({ id: 'a', classId: 'gone', name: 'Ghost', x: 0, y: 0, yaw: 0, overrides: {} });
-      p.playerClassId = 'gone';
+      (p as unknown as { playerClassId: string }).playerClassId = 'gone';
     });
     const p = parseProject(text);
     expect(p.classes[0].graphs[0].links.l).toBeUndefined();
     expect(levelOf(p).actors.some((a) => a.classId === 'gone')).toBe(false);
-    expect(p.playerClassId).toBeUndefined();
+    expect('playerClassId' in p).toBe(false);
   });
 
   it('every lesson, alternative and reference solution goes through the check unchanged', () => {

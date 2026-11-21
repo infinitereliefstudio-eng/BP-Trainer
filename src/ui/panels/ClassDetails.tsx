@@ -1,7 +1,7 @@
 /** Class Settings: name, parent, input, implemented interfaces, player pawn and controller. */
 import { implementInterface, removeImplementedInterface } from '@core/operations/classOps';
 import { isA, rootParent } from '@core/model/inheritance';
-import { removeClass, renameClass, setParentClass, setPlayerClass, setPlayerControllerClass } from '@core/operations/projectOps';
+import { removeClass, renameClass, setParentClass } from '@core/operations/projectOps';
 import { familyOf } from '@core/model/project';
 import { widgetUsers } from '@core/operations/widgetOps';
 import { useStore } from '../hooks';
@@ -13,7 +13,8 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
   const store = useStore();
   const cls = store.cls;
   const project = store.project;
-  const isPlayer = project.playerClassId === cls.id;
+  // The GameModes whose Class Defaults name this pawn or Player Controller.
+  const usedBy = project.classes.filter((g) => g.gameMode && (g.gameMode.defaultPawnClass === cls.id || g.gameMode.playerControllerClass === cls.id));
   const root = rootParent(project, cls);
   const implemented = project.interfaces.filter((i) => cls.interfaces.includes(i.id));
   const available = project.interfaces.filter((i) => !cls.interfaces.includes(i.id));
@@ -155,6 +156,48 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
     );
   }
 
+  if (root === 'GameModeBase') {
+    const isDefault = project.mapsModes?.defaultGameMode === cls.id;
+    const overrides = project.levels.filter((l) => l.gameModeOverride === cls.id).map((l) => l.name);
+    return (
+      <>
+        <Group title="Class Options">
+          <Field label="Parent Class">
+            <select class="field" value={cls.parentClassId ?? cls.parent} onChange={(e) => setParent((e.target as HTMLSelectElement).value)}>
+              <option value="GameModeBase">GameModeBase</option>
+              {project.classes
+                .filter((c) => c.id !== cls.id && c.parent === 'GameModeBase' && !isA(project, c.id, cls.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+          <Field label="Utilisé par">
+            <span class="dbg-val">
+              {[isDefault ? 'Default GameMode' : '', ...overrides.map((n) => `GameMode Override de ${n}`)].filter(Boolean).join(', ') || 'aucun niveau'}
+            </span>
+          </Field>
+          <button class="btn" onClick={() => openOverlay({ kind: 'projectSettings' })}>
+            Project Settings › Maps & Modes
+          </button>
+        </Group>
+        {blueprint}
+        <AppHelp>
+          <p>
+            Un GameMode fixe les règles d’un niveau. Chaque niveau en crée un au lancement : celui de ses World Settings (GameMode Override), sinon le Default
+            GameMode de Project Settings › Maps & Modes. Il fait apparaître le joueur : <b>Class Defaults</b> › Default Pawn Class et Player Controller Class.
+          </p>
+          <p>
+            C’est un acteur sans forme : Event BeginPlay et Tick, mais ni overlap ni entrées. Il disparaît avec son niveau (Open Level) : ce qui doit durer va
+            dans le GameInstance. On l’atteint par Get Game Mode, puis Cast To {cls.name}.
+          </p>
+        </AppHelp>
+      </>
+    );
+  }
+
   if (root === 'GameInstance') {
     const chosen = project.mapsModes?.gameInstanceClass === cls.id;
     return (
@@ -283,34 +326,16 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
         </button>
       </Group>
 
-      <Group title="Game Mode" app>
-        {root === 'PlayerController' ? (
-          <Field label="Player Controller Class">
-            <input
-              type="checkbox"
-              checked={project.playerControllerClassId === cls.id}
-              onChange={(e) => {
-                const on = (e.target as HTMLInputElement).checked;
-                const res = store.applyProject('Player Controller du joueur', (p) => setPlayerControllerClass(p, on ? cls.id : undefined));
-                if (!res.ok) store.warn(res.reason);
-              }}
-            />
+      {(root === 'Pawn' || root === 'PlayerController') && (
+        <Group title="GameMode" app>
+          <Field label={root === 'Pawn' ? 'Default Pawn Class de' : 'Player Controller Class de'}>
+            <span class="dbg-val">{usedBy.length ? usedBy.map((g) => g.name).join(', ') : 'aucun GameMode'}</span>
           </Field>
-        ) : (
-          <Field label="Default Pawn">
-            <input
-              type="checkbox"
-              checked={isPlayer}
-              disabled={root !== 'Pawn'}
-              onChange={(e) => {
-                const on = (e.target as HTMLInputElement).checked;
-                const res = store.applyProject('Pion du joueur', (p) => setPlayerClass(p, on ? cls.id : undefined));
-                if (!res.ok) store.warn(res.reason);
-              }}
-            />
-          </Field>
-        )}
-      </Group>
+          <button class="btn" onClick={() => openOverlay({ kind: 'projectSettings' })}>
+            Project Settings › Maps & Modes
+          </button>
+        </Group>
+      )}
 
       {blueprint}
 
@@ -330,16 +355,13 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
         <p>
           <b>Implemented Interfaces</b> : un Blueprint qui implémente une interface peut répondre à ses messages, sans que l’appelant connaisse son type.
         </p>
-        <p>
-          <b>Game Mode</b> :{' '}
-          {root === 'PlayerController'
-            ? 'coché, le jeu crée ce Blueprint comme Player Controller du joueur quand tu lances Play. Sinon, c’est le PlayerController natif, sans graphe.'
-            : root === 'Pawn'
-              ? 'coché, ce Blueprint devient le joueur quand tu lances Play.'
-              : 'seul un Blueprint de classe parente Pawn peut être le joueur.'}{' '}
-          Dans UE, ce réglage n’est pas dans Class Settings : il est dans le Game Mode (Default Pawn Class, Player Controller Class), choisi dans World Settings
-          ou Project Settings › Maps & Modes. BP Trainer n’a pas de Game Mode : il le règle ici.
-        </p>
+        {(root === 'Pawn' || root === 'PlayerController') && (
+          <p>
+            <b>GameMode</b> : {root === 'Pawn' ? 'ce pion' : 'ce Player Controller'} ne sert au joueur que si un GameMode le choisit dans ses Class Defaults (
+            {root === 'Pawn' ? 'Default Pawn Class' : 'Player Controller Class'}). Le jeu prend le GameMode du niveau (World Settings › GameMode Override),
+            sinon le Default GameMode de Project Settings › Maps & Modes, où l’on peut aussi régler ses classes.
+          </p>
+        )}
       </AppHelp>
     </>
   );

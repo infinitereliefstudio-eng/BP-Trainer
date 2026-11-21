@@ -42,13 +42,13 @@ describe('Viewport: moving a component', () => {
 });
 
 describe('level Outliner', () => {
-  it('lists the Player Start and the placed actors with their type, sorted by label as UE, and filters', () => {
+  it('lists the Player Start, the placed actors and the WorldSettings with their type, sorted by label as UE, and filters', () => {
     const { pb, b } = lamp();
     const lampe = pb.blueprint('BP_Lampe');
     pb.place(lampe, 0, 0);
     pb.place(b, 100, 0);
     const rows = outlinerRows(pb.project, '');
-    expect(rows.map((r) => `${r.label}:${r.type}`)).toEqual(['BP_Lampe:BP_Lampe', 'BP_Porte:BP_Porte', 'Player Start:PlayerStart']);
+    expect(rows.map((r) => `${r.label}:${r.type}`)).toEqual(['BP_Lampe:BP_Lampe', 'BP_Porte:BP_Porte', 'Player Start:PlayerStart', 'WorldSettings:WorldSettings']);
     expect(outlinerRows(pb.project, 'porte').map((r) => r.label)).toEqual(['BP_Porte']);
     expect(outlinerRows(pb.project, 'start')[0].id).toBe('playerStart');
   });

@@ -2,7 +2,7 @@
  * Saved-file format. `format` is bumped whenever the model changes shape;
  * `migrate` upgrades older files so projects survive app updates.
  */
-import { PROJECT_FORMAT, componentDefaults, createLevel, type Level, type Project } from '../model/project';
+import { PROJECT_FORMAT, componentDefaults, createClass, createLevel, uniqueName, type Level, type Project } from '../model/project';
 import { adoptFromLinks } from '../operations/wildcardOps';
 import { ProjectFileError, validateProject } from './validate';
 import { wireSubsystemTargets } from './wireSubsystem';
@@ -156,6 +156,24 @@ function migrate(p: Project, from: number): Project {
     // v16: the GameInstance (parent class, Game Instance Class in Maps & Modes, Event Init, Get Game Instance, Quit Game).
     // Nothing to convert: the number keeps an older app from opening a project that uses them.
     cur = 16;
+  }
+  if (cur === 16) {
+    // v17: the real GameMode. Default Pawn Class and Player Controller Class were two boxes of Class Settings
+    // (Project.playerClassId, playerControllerClassId); they move into a BP_GameMode made for them, the
+    // Default GameMode of Maps & Modes, as UE's templates have their BP_ThirdPersonGameMode.
+    const legacy = p as Project & { playerClassId?: string; playerControllerClassId?: string };
+    const pawn = legacy.playerClassId;
+    const controller = legacy.playerControllerClassId;
+    delete legacy.playerClassId;
+    delete legacy.playerControllerClassId;
+    if (pawn || controller) {
+      const taken = (p.classes ?? []).map((c) => c.name);
+      const gm = createClass(uniqueName('BP_GameMode', taken), 'GameModeBase');
+      gm.gameMode = { ...(pawn ? { defaultPawnClass: pawn } : {}), ...(controller ? { playerControllerClass: controller } : {}) };
+      p.classes = [...(p.classes ?? []), gm];
+      p.mapsModes = { ...p.mapsModes, defaultGameMode: gm.id };
+    }
+    cur = 17;
   }
   p.format = cur;
   return p;

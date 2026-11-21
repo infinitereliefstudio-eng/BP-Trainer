@@ -1485,6 +1485,10 @@ async def main():
         # V7.48: the GameInstance in the live Outliner, with its variable kept through Open Level.
         await page.locator('.pb-btn[aria-label="Outliner"]').tap()
         await page.wait_for_timeout(300)
+        # V7.49: Lvl_Atelier's GameMode Override made another pawn, and its GameMode is in the Outliner.
+        rows = ' '.join(await page.locator('.outliner-row').all_inner_texts())
+        if 'BP_Robot' not in rows or 'BP_ReglesAtelier' not in rows:
+            errs.append(f'GameMode Override : pion ou GameMode absent de l’Outliner ({rows[:120]})')
         gi_row = page.locator('.outliner-row', has_text='BP_Jeu_C_0')
         if not await gi_row.count():
             errs.append('GameInstance absent de l’Outliner en direct')
@@ -1496,6 +1500,35 @@ async def main():
         await shot('116_game_instance_outliner')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
+
+        # V7.49: World Settings of Lvl_Atelier (GameMode Override), then Maps & Modes › Default Modes.
+        await page.evaluate('() => { const s = window.bpStore; s.openLevel(s.project.levels.find(l => l.name === "Lvl_Atelier").id); s.setFocus({ kind: "none" }); }')
+        await page.wait_for_timeout(400)
+        await page.locator('.edge-handle[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        ws = page.locator('.outliner-pick', has_text='WorldSettings')
+        if not await ws.count():
+            errs.append('World Settings absent de l’Outliner du niveau')
+        else:
+            await ws.first.tap()
+            await page.wait_for_timeout(300)
+            await page.locator('.drawer-tab', has_text='Details').first.tap()
+            await page.wait_for_timeout(300)
+            override = page.locator('select[aria-label="GameMode Override"]')
+            if not await override.count():
+                errs.append('World Settings : pas de GameMode Override')
+            elif 'BP_ReglesAtelier' not in await override.evaluate('s => s.options[s.selectedIndex].text'):
+                errs.append('World Settings : GameMode Override n’est pas BP_ReglesAtelier')
+        await shot('117_world_settings')
+        await page.locator('button[aria-label^="Plus d"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Project Settings').tap()
+        await page.wait_for_timeout(300)
+        if not await page.locator('select[aria-label="Default GameMode"]').count():
+            errs.append('Maps & Modes : pas de Default GameMode')
+        await shot('118_maps_modes_gamemode')
+        await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(200)
 
         print('errors', errs)
         await b.close()

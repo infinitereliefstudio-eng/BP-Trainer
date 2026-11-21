@@ -64,7 +64,8 @@ export function LiveOutliner({ session }: Props) {
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.onUi(() => force(0)), [session]);
   const sim = session.sim;
-  const actors = [...sim.actors.filter((a) => !a.destroyed), sim.player];
+  // The GameMode is an actor the level spawns: listed when it is a Blueprint (its variables can then be read).
+  const actors = [...sim.actors.filter((a) => !a.destroyed), ...(sim.gameMode.classId ? [sim.gameMode] : []), sim.player];
   // Widget objects are not actors: UE lists them in its Widget Reflector, here under the actors.
   const widgets = sim.umg.widgetObjects().filter((o) => !o.widget!.placedIn);
   // The GameInstance is no actor either: one object for the whole game, kept through Open Level.

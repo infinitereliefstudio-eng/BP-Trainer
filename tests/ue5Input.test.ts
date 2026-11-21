@@ -1,8 +1,9 @@
 /** Lot 1 of the path plan: steps after « Les contrôles au Player Controller » are UE5 projects. */
+import { playerClassesFor } from '../src/core/model/gameMode';
 import { describe, expect, it } from 'vitest';
 import { LESSONS } from '../src/core/lessons';
 import { PLAYER_CONTEXT, PLAYER_CONTROLLER } from '../src/core/lessons/ue5Input';
-import type { Project } from '../src/core/model/project';
+import { defaultLevel, type Project } from '../src/core/model/project';
 
 const after = LESSONS.slice(LESSONS.findIndex((l) => l.id === 'l-ei-controleur') + 1);
 /** Every step after it, whatever its level (Expert projects included, when they come). */
@@ -28,7 +29,7 @@ describe('UE5 input after the Player Controller lesson', () => {
       const imc = p.mappingContexts.find((c) => c.name === PLAYER_CONTEXT);
       const pc = p.classes.find((c) => c.name === PLAYER_CONTROLLER);
       expect(imc, l.id).toBeDefined();
-      expect(p.playerControllerClassId, l.id).toBe(pc?.id);
+      expect(playerClassesFor(p, defaultLevel(p)).controller?.id, l.id).toBe(pc?.id);
       const defs = pc!.graphs[0] ? Object.values(pc!.graphs[0].nodes).map((n) => n.def) : [];
       expect(defs, l.id).toEqual(expect.arrayContaining(['event.beginPlay', 'actor.self', 'input.subsystem', 'input.addMappingContext']));
       // Every action event listens to an action mapped in IMC_Joueur, with no trigger: Started is the old Pressed.

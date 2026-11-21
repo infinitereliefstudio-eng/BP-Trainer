@@ -15,3 +15,10 @@ export const gameInstanceBehaviors: Record<string, Behavior> = {
     },
   },
 };
+
+/** Get Game Mode: the GameMode of the world being played. */
+export const gameModeBehaviors: Record<string, Behavior> = {
+  'game.getGameMode': {
+    pure: (cx) => ({ result: cx.world.gameMode ? { ref: 'actor', id: cx.world.gameMode.id } : null }),
+  },
+};

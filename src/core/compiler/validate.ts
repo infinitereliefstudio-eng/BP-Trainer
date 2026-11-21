@@ -19,6 +19,7 @@ import { castClassName, classById, findCustomEvent } from '../nodes/library/comm
 import { componentDispatcher, NOT_IN_COMPONENT, selfIs } from '../nodes/library/actorComponents';
 import { NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from '../nodes/library/widgets';
 import { GAME_INSTANCE_ONLY, NOT_IN_GAME_INSTANCE } from '../nodes/library/gameInstance';
+import { NOT_IN_GAME_MODE } from '../nodes/library/gameMode';
 import { interfaceMatch } from '../operations/interfaceOps';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
@@ -62,7 +63,8 @@ export type CompileCode =
   | 'selfType'
   | 'notInComponent'
   | 'notInGameInstance'
-  | 'gameInstanceOnly';
+  | 'gameInstanceOnly'
+  | 'notInGameMode';
 
 export interface CompileMessage {
   severity: Severity;
@@ -187,6 +189,9 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     }
     if (NOT_IN_GAME_INSTANCE[n.def] && selfIs(ctx, 'GameInstance')) {
       out.push({ severity: 'error', code: 'notInGameInstance', text: `${title} n’est pas permis dans un GameInstance : ${NOT_IN_GAME_INSTANCE[n.def]}`, ...at });
+    }
+    if (NOT_IN_GAME_MODE[n.def] && selfIs(ctx, 'GameModeBase')) {
+      out.push({ severity: 'error', code: 'notInGameMode', text: `${title} n’est pas permis dans un GameMode : ${NOT_IN_GAME_MODE[n.def]}`, ...at });
     }
     if (GAME_INSTANCE_ONLY.has(n.def) && !selfIs(ctx, 'GameInstance')) {
       out.push({ severity: 'error', code: 'gameInstanceOnly', text: `${title} n’existe que dans un Blueprint de classe parente GameInstance.`, ...at });

@@ -1,11 +1,14 @@
 /** Details of what is selected in the level: an actor instance or the Player Start. */
 import { inheritedView, isA, rootParent } from '@core/model/inheritance';
 import { findClass, type Variable, levelOf } from '@core/model/project';
+import { gameModeOf } from '@core/model/gameMode';
+import { setGameModeOverride } from '@core/operations/gameModeOps';
 import { actorRefValue, removeActor, setActorOverride, setComponentOverride, updateActor } from '@core/operations/levelOps';
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
 import { AppHelp, Field, Group, NumberField, TextCommit } from './fields';
+import { GameModeFields } from './GameModeFields';
 
 export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (classId: string) => void }) {
   const store = useStore();
@@ -152,6 +155,49 @@ export function PlayerStartDetails() {
     <AppHelp>
       <p>Player Start : l’endroit où le joueur apparaît quand tu lances Play.</p>
     </AppHelp>
+    </>
+  );
+}
+
+/**
+ * World Settings of the level open in the editor, as UE's: its GameMode
+ * Override, and the classes its GameMode makes for the player (Selected GameMode).
+ */
+export function WorldSettingsDetails() {
+  const store = useStore();
+  const p = store.project;
+  const level = levelOf(p);
+  const modes = p.classes.filter((c) => rootParent(p, c) === 'GameModeBase');
+  const used = gameModeOf(p, level);
+  const set = (id: string) => {
+    const res = store.applyProject('Régler GameMode Override', (q) => setGameModeOverride(q, level.id, id));
+    if (!res.ok) store.warn(res.reason);
+  };
+  const defaultName = (p.mapsModes?.defaultGameMode && findClass(p, p.mapsModes.defaultGameMode)?.name) || 'GameModeBase';
+  return (
+    <>
+      <Group title="Game Mode">
+        <Field label="GameMode Override">
+          <select class="field" aria-label="GameMode Override" value={level.gameModeOverride ?? ''} onChange={(e) => set((e.target as HTMLSelectElement).value)}>
+            <option value="">None</option>
+            {modes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </Group>
+      <Group title={`Selected GameMode · ${used?.name ?? 'GameModeBase'}`}>
+        <GameModeFields gameModeId={used?.id} />
+      </Group>
+      <AppHelp>
+        <p>
+          <b>World Settings</b> de {level.name} : les réglages du niveau lui-même. <b>GameMode Override</b> remplace, pour ce niveau seulement, le Default
+          GameMode du projet ({defaultName}, Project Settings › Maps & Modes). Sur None, le niveau prend le Default GameMode.
+        </p>
+        <p>Selected GameMode montre (et règle) les classes du GameMode qu’aura ce niveau : son pion et son Player Controller.</p>
+      </AppHelp>
     </>
   );
 }

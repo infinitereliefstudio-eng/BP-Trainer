@@ -5,6 +5,7 @@
  * opens only when E is held (Hold trigger, Triggered and Canceled), and the
  * context moved into a Player Controller Blueprint.
  */
+import { playerClassesFor } from '../../model/gameMode';
 import type { Project } from '../../model/project';
 import { addInputAction, addMapping, addMappingContext } from '../../operations/inputOps';
 import { removeNodes } from '../../operations/graphOps';
@@ -397,9 +398,9 @@ export const lessonInputHold: Lesson = {
 
 // ------------------------------------------------- the Player Controller
 
-/** Is a Player Controller Blueprint the game's Player Controller Class? */
+/** The Player Controller Class of the level the check plays (its GameMode's Class Defaults), if it is a Blueprint. */
 function controllerClass(cx: CheckContext) {
-  return cx.project.classes.find((c) => c.id === cx.project.playerControllerClassId);
+  return playerClassesFor(cx.project, cx.sim.level).controller;
 }
 
 const addsContext = (cls: { graphs: { nodes: Record<string, { def: string }> }[] } | undefined) =>
@@ -414,7 +415,7 @@ function lampWithController(id: string, expected: boolean, label: string, at: st
       const r = base.test(cx);
       if (r === true || controllerClass(cx)) return r;
       const made = cx.project.classes.find((c) => c.parent === 'PlayerController');
-      return made ? `${r} ${made.name} n’est pas utilisé par le jeu : coche Player Controller Class dans ses Class Settings.` : r;
+      return made ? `${r} ${made.name} n’est pas utilisé par le jeu : choisis-le comme Player Controller Class dans les Class Defaults de BP_GameMode.` : r;
     },
   };
 }
@@ -429,13 +430,14 @@ export const lessonInputController: Lesson = {
     'La lampe marche en Enhanced Input, mais c’est le pion qui ajoute le contexte. Si le joueur changeait de pion (réapparition, véhicule), il faudrait le refaire à chaque fois. Confie ce travail au Player Controller, qui représente le joueur pendant toute la partie.',
   notions: ['Player Controller', 'Player Controller Class', 'Enhanced Input Local Player Subsystem'],
   remember:
-    'Le Player Controller représente le joueur pendant toute la partie et possède son pion. Un Blueprint de classe parente PlayerController ne sert que s’il est choisi comme Player Controller Class (Game Mode). Dans son graphe, Self est le Player Controller : il se branche directement sur l’Enhanced Input Local Player Subsystem.',
+    'Le Player Controller représente le joueur pendant toute la partie et possède son pion. Un Blueprint de classe parente PlayerController ne sert que s’il est choisi comme Player Controller Class dans le GameMode (ses Class Defaults). Dans son graphe, Self est le Player Controller : il se branche directement sur l’Enhanced Input Local Player Subsystem.',
   cards: [
     {
       title: 'Ce qui est en place',
       body:
         '- **IA_Interagir**, **IMC_Joueur** (E → IA_Interagir) et **BP_Lampe**, qui bascule sur Started.\n' +
-        '- **BP_Joueur** : au BeginPlay, Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context (IMC_Joueur).\n\n' +
+        '- **BP_Joueur** : au BeginPlay, Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context (IMC_Joueur).\n' +
+        '- **BP_GameMode** : le GameMode du projet (Default GameMode de Project Settings › Maps & Modes). Ses Class Defaults font de BP_Joueur le pion du joueur (Default Pawn Class).\n\n' +
         'Le test appuie deux fois sur E : la lampe doit s’allumer, puis s’éteindre.',
     },
     {
@@ -448,8 +450,8 @@ export const lessonInputController: Lesson = {
       title: 'Créer le Player Controller',
       body:
         '1. **Content Drawer** › **+ Add** › **Blueprint Class** › **Player Controller**, nomme-le `BP_PlayerController`.\n' +
-        '2. Ouvre-le : dans **Class Settings**, coche **Player Controller Class**. Sans ça, le jeu garde le Player Controller par défaut et ton Blueprint ne sert à rien.\n\n' +
-        'Dans UE, ce réglage est dans le **Game Mode** (Player Controller Class), à côté de Default Pawn Class.',
+        '2. Ouvre **BP_GameMode** › **Class Defaults** › **Player Controller Class** : choisis `BP_PlayerController`. Sans ça, le jeu garde le Player Controller par défaut et ton Blueprint ne sert à rien.\n\n' +
+        'C’est le même réglage que dans UE : le GameMode dit quel pion (Default Pawn Class) et quel Player Controller le jeu crée. On le trouve aussi dans Project Settings › Maps & Modes › Selected GameMode.',
     },
     {
       title: 'Déplacer le contexte',
@@ -459,15 +461,15 @@ export const lessonInputController: Lesson = {
     },
   ],
   objectives: [
-    'Crée BP_PlayerController (classe parente Player Controller) et fais-en la Player Controller Class.',
+    'Crée BP_PlayerController (classe parente Player Controller) et fais-en la Player Controller Class de BP_GameMode.',
     'Ajoute IMC_Joueur au BeginPlay de BP_PlayerController.',
     'Retire Add Mapping Context de BP_Joueur.',
     'E allume la lampe, puis l’éteint.',
   ],
   hints: [
-    'Deux réglages comptent : la classe parente (Player Controller) et la case Player Controller Class. Puis la même chaîne qu’avant, dans le Player Controller.',
+    'Deux réglages comptent : la classe parente (Player Controller) et la Player Controller Class des Class Defaults de BP_GameMode. Puis la même chaîne qu’avant, dans le Player Controller.',
     'Nœuds dans BP_PlayerController : Event BeginPlay, Self (ou Get Player Controller), Enhanced Input Local Player Subsystem, Add Mapping Context (IMC_Joueur).',
-    'Solution : Content Drawer › + Add › Blueprint Class › Player Controller (BP_PlayerController), Class Settings › Player Controller Class coché. BeginPlay → Add Mapping Context (IMC_Joueur), Target = Self → Enhanced Input Local Player Subsystem. Dans BP_Joueur, supprime BeginPlay et la chaîne.',
+    'Solution : Content Drawer › + Add › Blueprint Class › Player Controller (BP_PlayerController), puis BP_GameMode › Class Defaults › Player Controller Class = BP_PlayerController. BeginPlay → Add Mapping Context (IMC_Joueur), Target = Self → Enhanced Input Local Player Subsystem. Dans BP_Joueur, supprime BeginPlay et la chaîne.',
   ],
   challenge: 'Dans BP_PlayerController, écoute aussi IA_Interagir (Started) pour afficher « Interaction » avec Print String : la lampe et le Player Controller l’entendent tous les deux. Un événement d’Input Action n’a pas de Consume Input : pour qu’une touche ne serve qu’à un mode, on passe par un Mapping Context de plus haute priorité.',
   setup() {
@@ -487,7 +489,7 @@ export const lessonInputController: Lesson = {
         if (controllerClass(cx)) return true;
         const made = cx.project.classes.find((c) => c.parent === 'PlayerController');
         return made
-          ? `${made.name} existe, mais le jeu ne l’utilise pas : coche Player Controller Class dans ses Class Settings.`
+          ? `${made.name} existe, mais le jeu ne l’utilise pas : choisis-le comme Player Controller Class dans les Class Defaults de BP_GameMode.`
           : 'Crée un Blueprint de classe parente Player Controller (Content Drawer › + Add › Blueprint Class).';
       },
     },

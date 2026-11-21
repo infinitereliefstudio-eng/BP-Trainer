@@ -1,10 +1,13 @@
 /**
- * Project Settings › Project › Maps & Modes (menu ⋮), as UE's: the Game
- * Default Map and the Game Instance Class. A later version adds the Default
- * GameMode here, where UE keeps it.
+ * Project Settings › Project › Maps & Modes (menu ⋮), as UE's: the Default
+ * GameMode and its Selected GameMode classes, the Game Default Map and the
+ * Game Instance Class.
  */
+import { rootParent } from '@core/model/inheritance';
 import { defaultLevel, levelOf } from '@core/model/project';
+import { ensureDefaultGameMode, setDefaultGameMode } from '@core/operations/gameModeOps';
 import { setGameDefaultMap, setGameInstanceClass } from '@core/operations/levelAssetOps';
+import { GameModeFields } from '../panels/GameModeFields';
 import { useStore } from '../hooks';
 import { AppHelp, Field, Group } from '../panels/fields';
 import { useOwnTap } from '../widgets/useOwnTap';
@@ -22,6 +25,18 @@ export function ProjectSettings({ onClose }: { onClose: () => void }) {
     if (!res.ok) store.warn(res.reason);
   };
   const instances = p.classes.filter((c) => c.parent === 'GameInstance');
+  const modes = p.classes.filter((c) => rootParent(p, c) === 'GameModeBase');
+  const setMode = (id: string) => {
+    const res = store.applyProject('Régler Default GameMode', (q) => setDefaultGameMode(q, id));
+    if (!res.ok) store.warn(res.reason);
+  };
+  const makeMode = () => {
+    const res = store.applyProject('Créer BP_GameMode', (q) => {
+      const r = ensureDefaultGameMode(q);
+      return r.ok ? { ok: true as const, value: undefined } : r;
+    });
+    if (!res.ok) store.warn(res.reason);
+  };
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
       <div class="sheet lesson project-settings" role="dialog" aria-label="Project Settings" onClick={(e) => e.stopPropagation()}>
@@ -36,6 +51,26 @@ export function ProjectSettings({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div class="lesson-body details">
+          <Group title="Default Modes">
+            <Field label="Default GameMode">
+              <select class="field" aria-label="Default GameMode" value={p.mapsModes?.defaultGameMode ?? ''} onChange={(e) => setMode((e.target as HTMLSelectElement).value)}>
+                <option value="">GameModeBase</option>
+                {modes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </Group>
+          <Group title="Selected GameMode">
+            <GameModeFields gameModeId={p.mapsModes?.defaultGameMode} />
+            {!p.mapsModes?.defaultGameMode && (
+              <button class="btn" onClick={makeMode}>
+                + Créer BP_GameMode
+              </button>
+            )}
+          </Group>
           <Group title="Default Maps">
             <Field label="Game Default Map">
               <select class="field" aria-label="Game Default Map" value={defaultLevel(p).id} onChange={(e) => setDefault((e.target as HTMLSelectElement).value)}>
@@ -65,6 +100,11 @@ export function ProjectSettings({ onClose }: { onClose: () => void }) {
             </Field>
           </Group>
           <AppHelp>
+            <p>
+              <b>Default GameMode</b> : le GameMode de chaque niveau qui n’a pas de GameMode Override (World Settings). Il fait apparaître le joueur :
+              <b> Selected GameMode</b> montre ses classes, comme dans UE, et on peut les régler ici. Le GameModeBase d’UE donne un DefaultPawn et un
+              PlayerController sans graphe : pour les changer, il faut un Blueprint GameMode.
+            </p>
             <p>
               <b>Game Default Map</b> : le niveau où le jeu commence une fois installé. Les vérifications des leçons partent de lui aussi.
             </p>

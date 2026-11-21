@@ -7,6 +7,7 @@
  * whose references are gone: a wire to a node that no longer exists, an actor
  * of a deleted class, a pawn class that is not there any more.
  */
+import { pruneGameModes } from '../model/gameMode';
 import { NATIVE_PARENTS, type Project } from '../model/project';
 import { slotDefaults, widgetPropsDefaults, WIDGET_KINDS, type WidgetKind } from '../model/widgets';
 
@@ -255,8 +256,18 @@ export function validateProject(value: unknown): asserts value is Project {
   }
   checkAssets(p);
   checkLevels(p, classIds);
-  if (p.playerClassId !== undefined && !classIds.has(p.playerClassId as string)) delete p.playerClassId;
-  if (p.playerControllerClassId !== undefined && !classIds.has(p.playerControllerClassId as string)) delete p.playerControllerClassId;
+  // Before format 17 these were on the project; they now live in a GameMode (serialize.ts, migrate).
+  delete p.playerClassId;
+  delete p.playerControllerClassId;
+  if (p.mapsModes && isObj(p.mapsModes) && p.mapsModes.defaultGameMode !== undefined && !isStr(p.mapsModes.defaultGameMode)) delete p.mapsModes.defaultGameMode;
+  for (const l of p.levels as Obj[]) if (l.gameModeOverride !== undefined && !isStr(l.gameModeOverride)) delete l.gameModeOverride;
+  for (const c of p.classes as Obj[]) {
+    if (c.gameMode === undefined) continue;
+    if (!isObj(c.gameMode)) delete c.gameMode;
+    else for (const k of Object.keys(c.gameMode)) if (!isStr((c.gameMode as Obj)[k])) delete (c.gameMode as Obj)[k];
+  }
+  // A GameMode setting that points at a class gone or of another kind is forgotten.
+  pruneGameModes(p as unknown as Project);
   if (p.saveSlots !== undefined) {
     need(isObj(p.saveSlots), 'Slots de sauvegarde mal formés.');
     const slots = p.saveSlots as Obj;

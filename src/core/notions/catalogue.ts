@@ -70,6 +70,8 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'umg', title: 'Interfaces à l’écran (UMG)', covers: 'Widget Blueprint, Designer, Is Variable, Create Widget, Add to Viewport, Remove from Parent, Construct et Destruct' },
   { id: 'widget-component', title: 'Widget Component', covers: 'un widget porté par chaque acteur, Get User Widget Object, Cast To vers son Widget Blueprint' },
   { id: 'ui-input', title: 'Menus et modes d’entrée', covers: 'boutons (On Clicked), Set Input Mode Game Only, UI Only, Game and UI, Show Mouse Cursor' },
+  { id: 'levels', title: 'Niveaux et Open Level', covers: 'plusieurs niveaux, Open Level (by Name), Get Current Level Name : ce qui disparaît au changement de niveau' },
+  { id: 'game-instance', title: 'GameInstance', covers: 'un objet pour toute la partie : Game Instance Class (Maps & Modes), Get Game Instance, Cast To, Event Init' },
   { id: 'mixed', title: 'Entraînement mélangé', covers: 'choisir soi-même l’outil, sans que la consigne le dise' },
 ];
 

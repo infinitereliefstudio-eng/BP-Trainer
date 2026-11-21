@@ -872,6 +872,30 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Écrire sur le disque prend du temps : on sauve au moment qui compte, une fois. Event Tick écrirait à chaque image.',
   ),
   q(
+    'l-couloir',
+    'Une porte fait Open Level (by Name) vers Lvl_Atelier. Que devient le niveau quitté ?',
+    ['Tout disparaît : acteurs, pion, Player Controller, widgets ; l’atelier démarre comme au premier Play', 'Il reste chargé en arrière-plan, prêt pour le retour', 'Seuls ses acteurs posés disparaissent, le joueur garde son pion', 'Rien ne change avant la fin de la chaîne suivante'],
+    'Open Level remplace tout le monde du jeu au début de l’image suivante : le nouveau niveau refait ses acteurs, son GameMode, son pion et son Player Controller.',
+  ),
+  q(
+    'p17-score-porte',
+    'Le pion a Score = 10 quand il passe une porte qui fait Open Level. Que vaut Score dans le niveau suivant ?',
+    ['Sa valeur par défaut : le pion est neuf', '10 : le pion traverse la porte', '10, mais seulement si Score est Instance Editable', 'Rien : Score n’existe plus, Get donne une erreur'],
+    'Chaque niveau crée son pion (Default Pawn Class du GameMode) : ses variables repartent de leur valeur par défaut. Ce qui doit suivre va dans le GameInstance.',
+  ),
+  q(
+    'l-sac-qui-suit',
+    'Un compteur doit suivre le joueur d’un niveau à l’autre pendant la partie, puis repartir à zéro au prochain lancement. Où le garder ?',
+    ['Dans le GameInstance, lu par Get Game Instance puis Cast To', 'Dans une variable du pion', 'Dans un Save Game écrit à chaque porte', 'Dans le GameMode'],
+    'Le GameInstance dure de Play à Stop, à travers les Open Level. Le pion et le GameMode sont refaits par chaque niveau ; le Save Game survit à la fermeture, ce qui est trop ici.',
+  ),
+  q(
+    'd27-sac-vide',
+    'Get Game Instance → Cast To BP_Jeu part toujours par Cast Failed, sans erreur. Le plus probable ?',
+    ['Game Instance Class n’est pas réglée sur BP_Jeu (Maps & Modes)', 'Get Game Instance rend None avant le premier niveau', 'BP_Jeu n’a pas d’Event Init', 'Le Cast To doit être fait dans le GameMode'],
+    'Sans Game Instance Class, le jeu crée un GameInstance ordinaire : Get Game Instance rend bien un objet, mais pas un BP_Jeu.',
+  ),
+  q(
     'd19-derniere-porte',
     'Trois portes du même Blueprint écoutent E, Consume Input coché (le réglage par défaut). Le joueur appuie sur E. Qui la reçoit ?',
     ['Seulement la dernière porte posée dans le niveau', 'Les trois, dans l’ordre où elles sont posées', 'Seulement la plus proche du joueur', 'Aucune : il faut un Enable Input'],

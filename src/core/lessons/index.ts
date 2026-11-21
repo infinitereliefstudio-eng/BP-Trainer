@@ -52,6 +52,7 @@ import { lessonMirrors } from './library/mirrors';
 import { debug15 } from './library/gridFloor';
 import { lessonCatalog, debug16, lessonDialogueTable } from './library/tables';
 import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from './library/saves';
+import { debug27, lessonBag, lessonCorridor, predictScoreDoor } from './library/travel';
 import { debug19 } from './library/inputs';
 import { autonomyTrap, transferBadge } from './library/chainCast';
 import { debugMappingContext, lessonInputController, lessonInputHold, lessonInputLamp } from './library/enhancedInput';
@@ -234,6 +235,11 @@ export const LESSONS: Lesson[] = [
   lessonTalk,
   lessonDialogueTable,
   lessonCheckpoint,
+  // Levels and the GameInstance (V7.50): right after the Save Game, the three lifetimes of a value.
+  lessonCorridor,
+  predictScoreDoor,
+  lessonBag,
+  debug27,
   debug26,
   complete6,
   lessonGrid,

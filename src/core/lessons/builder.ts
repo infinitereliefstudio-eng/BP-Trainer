@@ -9,6 +9,7 @@ import { ensureConstructionScript } from '../operations/constructionOps';
 import { addNode, connect } from '../operations/graphOps';
 import { placeActor } from '../operations/levelOps';
 import { addClass } from '../operations/projectOps';
+import { addLevel } from '../operations/levelAssetOps';
 import type { PinType } from '../types/pins';
 import type { Value } from '../types/values';
 
@@ -117,6 +118,28 @@ export class ProjectBuilder {
   playerStart(x: number, y: number, yaw = 0): this {
     levelOf(this.project).playerStart = { x, y, yaw };
     return this;
+  }
+
+  /**
+   * Another level (made if needed): `fill` places its actors and its Player
+   * Start, as if it were open in the editor; the first level is open again after.
+   */
+  level(name: string, fill: (pb: this) => void = () => undefined): string {
+    let level = this.project.levels.find((l) => l.name === name);
+    if (!level) {
+      const r = addLevel(this.project, name);
+      if (!r.ok) throw new Error(r.reason);
+      level = r.value;
+    }
+    const open = this.project.editorLevelId;
+    this.project.editorLevelId = level.id;
+    try {
+      fill(this);
+    } finally {
+      if (open === undefined) delete this.project.editorLevelId;
+      else this.project.editorLevelId = open;
+    }
+    return level.id;
   }
 }
 

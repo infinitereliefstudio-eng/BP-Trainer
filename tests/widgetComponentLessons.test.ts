@@ -28,11 +28,11 @@ const failing = (r: ReturnType<typeof runLesson>) => r.results.filter((x) => !x.
 const reason = (r: ReturnType<typeof runLesson>, id: string) => r.results.find((x) => x.check.id === id)?.reason ?? '';
 
 describe('the Widget Component steps (V7.43)', () => {
-  it('sit in the Avancé: discover and guided after T4, D26 after « Le checkpoint », T5 before S4', () => {
+  it('sit in the Avancé: discover and guided after T4, D26 after « Le checkpoint » and the level steps (V7.50), T5 before S4', () => {
     const ids = LESSONS.map((l) => l.id);
     const t4 = ids.indexOf('t4-energie');
     expect(ids.slice(t4 + 1, t4 + 3)).toEqual(['l-barre-ennemi', 'l-barre-par-ennemi']);
-    expect(ids[ids.indexOf('l-checkpoint') + 1]).toBe('d26-barre-figee');
+    expect(ids[ids.indexOf('d27-sac-vide') + 1]).toBe('d26-barre-figee');
     expect(ids[ids.indexOf('s4-fusibles') - 1]).toBe('t5-noms');
     for (const id of ['l-barre-ennemi', 'l-barre-par-ennemi', 'd26-barre-figee', 't5-noms']) {
       expect(lesson(id).level, id).toBe('avance');

@@ -142,9 +142,9 @@ export const GLOSSARY: GlossaryEntry[] = [
   {
     title: 'Player Controller',
     names: ['Player Controller', 'Player Controller Class', 'Get Player Controller', 'Get Controller', 'Cast To PlayerController', 'Enhanced Input Local Player Subsystem'],
-    what: 'Le joueur lui-même, au-delà de son pion. Le jeu le crée au lancement d’après Player Controller Class (Game Mode), il possède le pion et reçoit les entrées. Get Player Controller le renvoie ; depuis un pion, Get Controller renvoie un Controller, qu’un Cast To PlayerController précise. Il porte l’Enhanced Input Local Player Subsystem, sur lequel on ajoute les Mapping Contexts.',
+    what: 'Le joueur lui-même, au-delà de son pion. Le jeu le crée au lancement d’après la Player Controller Class du GameMode (ses Class Defaults), il possède le pion et reçoit les entrées. Get Player Controller le renvoie ; depuis un pion, Get Controller renvoie un Controller, qu’un Cast To PlayerController précise. Il porte l’Enhanced Input Local Player Subsystem, sur lequel on ajoute les Mapping Contexts.',
     when: 'Pour ce qui concerne le joueur plutôt que son corps : ses contrôles, son interface, sa pause. Et chaque fois qu’il faut le Subsystem d’Enhanced Input.',
-    trap: 'Créer un Blueprint Player Controller sans le choisir comme Player Controller Class : le jeu garde celui par défaut, et le graphe ne s’exécute jamais, sans erreur.',
+    trap: 'Créer un Blueprint Player Controller sans le choisir comme Player Controller Class dans le GameMode : le jeu garde celui par défaut, et le graphe ne s’exécute jamais, sans erreur.',
     pattern: 'Pion : BeginPlay → Get Controller → Cast To PlayerController → Enhanced Input Local Player Subsystem → Add Mapping Context',
   },
   {
@@ -649,5 +649,29 @@ export const GLOSSARY: GlossaryEntry[] = [
     when: 'Pour un jeu narratif : les quêtes et les répliques dépendent de faits acquis plutôt que d’une variable booléenne par événement.',
     trap: 'Un booléen par fait (bConnaitCode, bAParleAuGarde…) : le joueur devient impossible à faire évoluer. Un Set de Name garde la liste ouverte.',
     pattern: 'Réplique › Donne → Add (Faits) ; porte → Contains (Faits, CodePorte) → Branch',
+  },
+  {
+    title: 'Niveaux et Open Level',
+    names: ['Level', 'Open Level (by Name)', 'Get Current Level Name'],
+    what: 'Un jeu est fait de niveaux (Level, un fichier .umap), chacun avec ses acteurs et son Player Start. Open Level (by Name) quitte le niveau en cours pour celui dont on donne le nom d’asset, au début de l’image suivante : tout le niveau quitté disparaît (acteurs, pion, Player Controller, GameMode, widgets, timers), et le nouveau démarre comme au premier Play. Get Current Level Name dit où l’on est.',
+    when: 'Pour passer d’une zone à une autre : une porte, une fin de mission, un menu principal qui lance la partie.',
+    trap: 'Garder une valeur dans un acteur ou dans le pion : elle repart de sa valeur par défaut derrière la porte. Et écrire le nom avec une faute : Open Level ne trouve rien (« Travel Failure »).',
+    pattern: 'Porte : ActorBeginOverlap → Open Level (by Name), Level Name = Lvl_Atelier',
+  },
+  {
+    title: 'GameInstance',
+    names: ['GameInstance', 'Game Instance Class', 'Get Game Instance', 'Event Init', 'Event Shutdown'],
+    what: 'Un seul objet pour toute la partie : le jeu le crée au lancement (Event Init) et le garde jusqu’à la fermeture (Event Shutdown), à travers tous les Open Level. Sa classe se choisit dans Project Settings › Maps & Modes › Game Instance Class. On l’atteint par Get Game Instance, puis Cast To vers son Blueprint.',
+    when: 'Pour ce qui doit suivre le joueur d’un niveau à l’autre pendant la partie : un sac, un score, la porte par laquelle on arrive. Pour ce qui doit survivre à la fermeture, c’est un Save Game.',
+    trap: 'Oublier la Game Instance Class : Get Game Instance rend un GameInstance ordinaire, et chaque Cast To BP_Jeu part par Cast Failed, sans erreur. Et garder une référence d’acteur dedans : elle devient None au changement de niveau.',
+    pattern: 'Get Game Instance → Cast To BP_Jeu → Get / Set Pieces',
+  },
+  {
+    title: 'Pion du joueur et GameMode',
+    names: ['Pion du joueur', 'Default Pawn Class', 'GameMode'],
+    what: 'Le GameMode est l’acteur des règles d’un niveau. Le jeu en crée un par niveau (World Settings › GameMode Override, sinon le Default GameMode de Maps & Modes), et c’est lui qui fait apparaître le joueur : son pion (Default Pawn Class) et son Player Controller (Player Controller Class), réglés dans ses Class Defaults.',
+    when: 'Pour choisir quel Blueprint est le joueur, ou en changer selon le niveau (un pion différent dans l’atelier).',
+    trap: 'Croire que le pion traverse les niveaux : chaque niveau en crée un neuf, avec les valeurs par défaut de ses variables.',
+    pattern: 'BP_GameMode › Class Defaults › Default Pawn Class = BP_Joueur',
   },
 ];

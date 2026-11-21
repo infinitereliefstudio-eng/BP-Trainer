@@ -8,6 +8,7 @@
  * held a moment, as a finger does (the scenario presses and releases within
  * one frame): a solution that only works with instant presses fails too.
  */
+import { runMilestones } from './milestones';
 import { compileClass, type CompileMessage } from '../compiler/validate';
 import { defaultLevel, findLevelByName, type Project } from '../model/project';
 import { Game } from '../runtime/game';
@@ -34,6 +35,8 @@ export interface LessonRun {
 }
 
 export function runLesson(lesson: Lesson, project: Project): LessonRun {
+  // A project in milestones: each one up to the open one, in order (V7.65).
+  if (lesson.milestones) return runMilestones(lesson, project, runLesson).run;
   const compileErrors: CompileMessage[] = [];
   for (const cls of project.classes) {
     for (const m of compileClass(cls, project).messages) {

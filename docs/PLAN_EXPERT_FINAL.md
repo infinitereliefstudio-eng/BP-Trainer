@@ -136,3 +136,15 @@ Le reste existe : menu et boutons (V7.35), Does Save Game Exist et Set Is Enable
 3. **Les jalons** : un cahier dévoilé jalon par jalon (recommandé), ou tout visible dès le début ?
 4. **L'univers** : la station de l'appli, avec des textes écrits pour l'occasion (recommandé, le dépôt est public), ou des éléments que tu fournirais ?
 5. **Les projets non retenus** : au backlog comme projets bonus ?
+
+## Décisions du 21 novembre (font foi)
+
+Tristan trouve les quatre projets intéressants et a demandé les recommandations sur les cinq points (21 h 47), puis a lancé la mise en place (21 h 48, « Si c'est un petit chantier en terme de mise en place alors lance le ») :
+
+1. **Le parcours Expert** : cinq projets, du plus petit au plus gros : **X2 enrichi** (≈ 70 nœuds), **L'arène de maintenance** (≈ 80), **La ronde** (≈ 90), **Le réseau** (≈ 90, la grande version du « Réseau en boucle »), **Le réveil** en dernier (≈ 200). Rien ne part au backlog.
+2. **X1** : fondu dans Le réveil (son Mapping Context de dialogue devient le terminal du jalon 2).
+3. **Les jalons** : pour tous les projets, cahier dévoilé jalon par jalon : un jalon pour X2, deux pour L'arène, La ronde et Le réseau, quatre pour Le réveil ; 30 à 60 minutes par jalon.
+4. **L'univers** : la station de l'appli, textes écrits pour l'occasion, les cinq projets dans la même station (l'atelier, le cœur attaqué par les drones, l'aile de sécurité, la salle des relais, le dortoir).
+5. Sans objet : tout entre dans le parcours.
+
+Versions, une à la fois : **V7.65 les jalons** (la mise en place, lancée), puis X2 enrichi, L'arène, La ronde, Le réseau, Le réveil (deux versions), la reprise (X1 retiré, notions, révision, mémo, README). Chaque version attend son feu vert.

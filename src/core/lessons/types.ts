@@ -143,6 +143,19 @@ export interface Prediction {
   verify(prints: string[]): boolean;
 }
 
+/** A stage of a long project (Lesson.milestones). */
+export interface Milestone {
+  id: string;
+  title: string;
+  /** Its brief (cahier des charges, scénario de test), shown once the milestone is open. */
+  cards: LessonCard[];
+  objectives: string[];
+  scenario: ScenarioStep[];
+  checks: Check[];
+  /** This milestone's part of the reference solution, built on the previous ones' (used by tests). */
+  solve(p: Project): void;
+}
+
 export interface Lesson {
   id: string;
   kind?: LessonKind;
@@ -198,6 +211,15 @@ export interface Lesson {
    * « À retravailler en Blueprint » queue: never on a step of the path.
    */
   drill?: { family: string; seed: number; format: 'complete' | 'repair' | 'rebuild'; situation: string };
+  /**
+   * A long project checked in stages (V7.65, chantier n° 5): each milestone
+   * has its brief, its scenario and its checks. Vérifier replays them in
+   * order up to the one open; the next brief opens when it is passed. The
+   * lesson's own scenario and checks are unused (core/lessons/milestones.ts).
+   */
+  milestones?: Milestone[];
+  /** Set on a view of the lesson at one milestone (milestoneView): its index, from 0. */
+  atMilestone?: number;
 }
 
 /**

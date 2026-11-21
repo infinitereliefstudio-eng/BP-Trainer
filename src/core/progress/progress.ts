@@ -66,6 +66,8 @@ export interface Progress {
   log?: AttemptLog;
   /** The learner's choices on the « À retravailler en Blueprint » queue (core/rework). */
   rework?: ReworkChoices;
+  /** Projects in milestones (V7.65): how many milestones of each are passed, so the index of the one open. */
+  milestones?: Record<string, number>;
 }
 
 /** What the learner did with the « À retravailler en Blueprint » queue; the schedule itself is computed from the log. */
@@ -101,6 +103,12 @@ export function withPassed(p: Progress, lessonId: string, now = Date.now()): Pro
     { ...p, done: [...p.done, lessonId], doneAt: { ...p.doneAt, [lessonId]: now }, passedWith: { ...p.passedWith, [lessonId]: level } },
     now,
   );
+}
+
+/** The progress with `passed` milestones of a project passed (never fewer than before; unchanged when nothing changes). */
+export function withMilestones(p: Progress, lessonId: string, passed: number, now = Date.now()): Progress {
+  if ((p.milestones?.[lessonId] ?? 0) >= passed) return p;
+  return withToday({ ...p, milestones: { ...p.milestones, [lessonId]: passed } }, now);
 }
 
 /** The progress with the help of one lesson changed (unchanged when nothing changes). */
@@ -211,6 +219,7 @@ const FIELDS: [keyof Progress, (v: unknown) => boolean][] = [
   ['help', lessonHelp],
   ['passedWith', helpLevels],
   ['rework', reworkChoices],
+  ['milestones', numbers],
 ];
 
 /** What is wrong in a progress, field by field (empty when nothing is). */

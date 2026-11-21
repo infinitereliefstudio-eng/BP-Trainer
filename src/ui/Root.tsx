@@ -1,6 +1,7 @@
 /** Top level: home screen, or one open workspace (a lesson or free play). */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { getLesson } from '@core/lessons';
+import { lastMilestone, milestoneView } from '@core/lessons/milestones';
 import { flushSaves, startAutosave } from '@storage/persistence';
 import { watchForUpdates } from '../updates';
 import { App } from './App';
@@ -23,6 +24,7 @@ import {
   withCheck,
   withHelp,
   withHelpReset,
+  withMilestones,
   withPassed,
   withPracticeOpen,
   type WorkspaceRef,
@@ -180,6 +182,11 @@ export function Root() {
   const helpKey = practiceId ? practiceHelpKey(practiceId) : lessonId;
   const altOf = ws.ref.kind === 'alternative' ? getLesson(ws.ref.lessonId) : undefined;
   const solutionOf = ws.ref.kind === 'solution' ? getLesson(ws.ref.lessonId) : undefined;
+  const base = checked ? getLesson(checked) : solutionOf;
+  const lessonDone = !!lessonId && progress.done.includes(lessonId);
+  // A project in milestones opens at the one reached (V7.65): its briefs so far, its checks; all of it once passed.
+  const reached = base?.milestones && lessonId ? (lessonDone ? lastMilestone(base) : Math.min(progress.milestones?.[lessonId] ?? 0, lastMilestone(base))) : undefined;
+  const lesson = base && reached !== undefined ? milestoneView(base, reached) : base;
   return (
     <>
       <App
@@ -187,8 +194,8 @@ export function Root() {
         workspace={ws}
         alternative={altOf && ws.ref.kind === 'alternative' ? { lesson: altOf, title: altOf.alternatives?.[ws.ref.index]?.title ?? '' } : undefined}
         solution={solutionOf}
-        lesson={checked ? getLesson(checked) : solutionOf}
-        lessonDone={!!lessonId && progress.done.includes(lessonId)}
+        lesson={lesson}
+        lessonDone={lessonDone}
         practice={!!practiceId}
         onHome={() => {
           // Back from a practice: to the queue it came from.
@@ -196,7 +203,9 @@ export function Root() {
           setWs(null);
         }}
         onLessonPassed={() => {
-          if (lessonId) changeProgress((p) => withPassed(p, lessonId));
+          // A milestone short of the last: the next one opens, the project is not passed yet.
+          if (lessonId && base && reached !== undefined && reached < lastMilestone(base)) changeProgress((p) => withMilestones(p, lessonId, reached + 1));
+          else if (lessonId) changeProgress((p) => withPassed(p, lessonId));
           // A practice passed: the next one starts from scratch.
           if (practiceId) changeProgress((p) => withPracticeOpen(p, practiceId, false));
         }}

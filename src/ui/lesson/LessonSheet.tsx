@@ -7,6 +7,7 @@ import { whereItStopped } from '@core/explain/stops';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
 import { asksHypothesis, type HypothesisChoice } from '@core/explain/hypothesis';
 import { cardsFor, helpOffers, type HelpKind } from '@core/lessons/helpPolicy';
+import { milestoneName } from '@core/lessons/milestones';
 import type { HypothesisNote } from '@core/progress/progress';
 import { HypothesisAsk, HypothesisCard } from './HypothesisAsk';
 import { LEVELS } from '@core/lessons/levels';
@@ -95,6 +96,8 @@ export function LessonSheet({
   const [tab, setTab] = useState<Tab>(initialTab ?? 'learn');
   const offers = helpOffers(lesson, { tried, fails, done });
   const cards = cardsFor(lesson, done);
+  // A project in milestones, not finished: a passed check opened the next milestone (V7.65).
+  const midway = !!lesson.milestones && !done;
   const shown = offers.filter((o) => o.index < hints);
   const nextOffer = offers.find((o) => o.index >= hints);
   const levelHelp = LEVELS.find((l) => l.id === lesson.level)?.help;
@@ -156,6 +159,7 @@ export function LessonSheet({
           {tab === 'goals' && !lesson.predict && (
             <>
               <p class="situation">{lesson.situation}</p>
+              {midway && <p class="eyebrow">En cours : {milestoneName(lesson, lesson.atMilestone ?? 0)}</p>}
               <ol class="objectives">
                 {lesson.objectives.map((o) => (
                   <li key={o}>{richInline(o)}</li>
@@ -173,9 +177,15 @@ export function LessonSheet({
                   }}
                 />
               )}
-              {run?.passed && (
+              {run?.passed && midway && (
                 <div class="success">
-                  <strong>{lesson.kind === 'debug' ? 'Réparé !' : lesson.kind === 'complete' || lesson.kind === 'refactor' ? 'Exercice réussi.' : 'Leçon réussie.'}</strong>
+                  <strong>Jalon réussi.</strong>
+                  <p>Le cahier du {milestoneName(lesson, lesson.atMilestone ?? 0)} est ouvert dans la fiche : c’est la suite du projet, à construire sur ce que tu as déjà fait.</p>
+                </div>
+              )}
+              {run?.passed && !midway && (
+                <div class="success">
+                  <strong>{lesson.kind === 'debug' ? 'Réparé !' : lesson.kind === 'complete' || lesson.kind === 'refactor' ? 'Exercice réussi.' : lesson.milestones ? 'Projet réussi.' : 'Leçon réussie.'}</strong>
                   <p>
                     <span class="eyebrow">À retenir</span> {lesson.remember}
                   </p>

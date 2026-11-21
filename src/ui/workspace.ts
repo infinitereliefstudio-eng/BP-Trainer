@@ -23,6 +23,7 @@ export {
   withCheck,
   withHelp,
   withHelpReset,
+  withMilestones,
   withPassed,
   withPostponed,
   withPracticeOpen,

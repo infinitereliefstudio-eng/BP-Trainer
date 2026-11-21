@@ -14,13 +14,15 @@
  *   BP_Jeu fails without a word.
  */
 import type { Project } from '../../model/project';
+import { playerClassesFor } from '../../model/gameMode';
+import { setGameModeDefault, setGameModeOverride } from '../../operations/gameModeOps';
 import { setGameInstanceClass } from '../../operations/levelAssetOps';
 import { addClass, setPlayerClass } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { ClassBuilder, edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, normText, notion, printedNumbers, usesNode } from '../checks';
 import type { Check, CheckContext, Lesson } from '../types';
-import { PREDICT_METHOD, wipe } from './kit';
+import { editable, getVar, nodeOf, override, PREDICT_METHOD, wipe } from './kit';
 import { predictLesson } from './predicts';
 
 export const LEVELS_MODULE = 'Niveaux et GameInstance';
@@ -489,4 +491,569 @@ export const debug27: Lesson = {
     const r = setGameInstanceClass(p, cls(p, 'BP_Jeu').id);
     if (!r.ok) throw new Error(r.reason);
   },
+};
+
+// =================================================================== V7.51
+
+/** Is the pawn within 60 of an actor of that label? */
+const pawnAt = (cx: CheckContext, label: string) => {
+  const a = cx.actor(label);
+  return !!a && Math.hypot(cx.sim.player.x - a.x, cx.sim.player.y - a.y) < 60;
+};
+
+// ------------------------------------------- Arriver par la bonne porte
+
+const DOOR_N: [number, number] = [320, -200];
+const DOOR_S: [number, number] = [320, 200];
+const ARRIVAL_N: [number, number] = [250, -220];
+const ARRIVAL_S: [number, number] = [250, 220];
+const WORKSHOP_START: [number, number] = [-300, 0];
+
+/**
+ * Two doors at the end of the corridor (Sortie: Nord, Sud), both to the
+ * workshop; two arrivals there (Porte: Nord, Sud), graph empty. BP_Jeu, the
+ * Game Instance Class, has Arrivee (Name).
+ */
+function doorsProject(): Project {
+  const pb = new ProjectBuilder('Arriver par la bonne porte');
+  const jeu = pb.blueprint('BP_Jeu', 'GameInstance');
+  jeu.variable('Arrivee', T.name, '');
+  setGameInstanceClass(pb.project, jeu.cls.id);
+  const door = doorClass(pb);
+  const exit = editable(door, 'Sortie', T.name, 'Nord');
+  openOnOverlap(door);
+  pb.place(door, ...DOOR_N);
+  override(pb, pb.place(door, ...DOOR_S), exit, 'Sud');
+  pb.playerStart(...START);
+  const arrival = pb.blueprint('BP_Arrivee');
+  arrival.component('StaticMesh', 'Dalle', { sizeX: 90, sizeY: 90, color: '#16a34a', blocks: false });
+  const side = editable(arrival, 'Porte', T.name, 'Nord');
+  pb.level(WORKSHOP, (q) => {
+    q.place(arrival, ...ARRIVAL_N);
+    override(q, q.place(arrival, ...ARRIVAL_S), side, 'Sud');
+    q.playerStart(...WORKSHOP_START);
+  });
+  return pb.project;
+}
+
+function solveDoors(p: Project): void {
+  const jeu = cls(p, 'BP_Jeu').id;
+  const arrivee = vid(p, 'BP_Jeu', 'Arrivee');
+  const door = edit(p, 'BP_Porte');
+  const open = nodeOf(door.graph, 'level.open');
+  const ov = nodeOf(door.graph, 'event.actorBeginOverlap');
+  for (const [id, l] of Object.entries(door.graph.links)) if (l.from.node === ov) delete door.graph.links[id];
+  const cast = door.node('cast.to', { class: jeu }, {}, [340, 300]);
+  const set = door.node('var.setExternal', { owner: jeu, variable: arrivee }, {}, [640, 300]);
+  door.link(ov, 'then', cast, 'exec').link(door.node('game.getGameInstance', {}, {}, [120, 420]), 'result', cast, 'object');
+  door.link(cast, 'then', set, 'exec').link(cast, 'as', set, 'target').link(getVar(door, 'Sortie', [420, 480]), 'value', set, 'value').link(set, 'then', open, 'exec');
+  const arrival = edit(p, 'BP_Arrivee');
+  const begin = arrival.node('event.beginPlay', {}, {}, [64, 96]);
+  const acast = arrival.node('cast.to', { class: jeu }, {}, [340, 96]);
+  const get = arrival.node('var.getExternal', { owner: jeu, variable: arrivee }, {}, [480, 300]);
+  const same = arrival.node('name.equal', {}, {}, [700, 300]);
+  const branch = arrival.node('flow.branch', {}, {}, [700, 96]);
+  const move = arrival.node('actor.setLocation', {}, {}, [1000, 96]);
+  arrival.link(begin, 'then', acast, 'exec').link(arrival.node('game.getGameInstance', {}, {}, [120, 300]), 'result', acast, 'object');
+  arrival.link(acast, 'as', get, 'target').link(get, 'value', same, 'a').link(getVar(arrival, 'Porte', [480, 420]), 'value', same, 'b');
+  arrival.link(acast, 'then', branch, 'exec').link(same, 'result', branch, 'condition').link(branch, 'true', move, 'exec');
+  arrival.link(arrival.node('actor.getPlayerPawn', {}, {}, [760, 420]), 'result', move, 'target').link(arrival.node('actor.getLocation', {}, {}, [760, 520]), 'result', move, 'location');
+}
+
+/** After going through the door `side`: in the workshop, on the arrival of that side. */
+function arrivedBy(side: 'Nord' | 'Sud', at?: string): Check {
+  const mine = side === 'Nord' ? 'BP_Arrivee' : 'BP_Arrivee2';
+  const other = side === 'Nord' ? 'BP_Arrivee2' : 'BP_Arrivee';
+  return {
+    id: side === 'Nord' ? 'nord' : 'sud',
+    label: `Par la porte ${side.toLowerCase()}, le joueur arrive sur l’arrivée ${side.toLowerCase()}`,
+    at,
+    test: (cx) => {
+      const where = reachedWorkshop(cx);
+      if (where !== true) return where;
+      if (pawnAt(cx, mine)) return true;
+      if (pawnAt(cx, other))
+        return `Passé par la porte ${side.toLowerCase()}, le joueur arrive au ${side === 'Nord' ? 'sud' : 'nord'} : chaque porte doit noter sa propre Sortie (la variable de l’instance posée), et chaque arrivée se comparer à sa propre Porte.`;
+      const p = cx.sim.player;
+      if (Math.hypot(p.x - WORKSHOP_START[0], p.y - WORKSHOP_START[1]) < 60)
+        return 'Le joueur est resté sur le Player Start de l’atelier : rien ne l’a déplacé. Au BeginPlay, chaque BP_Arrivee compare Arrivee (dans le GameInstance) à sa Porte et, si c’est la sienne, y place le pion (Get Player Pawn, Set Actor Location).';
+      return `Le joueur est arrivé ailleurs que sur l’arrivée ${side.toLowerCase()} : Set Actor Location doit le mettre à l’emplacement de l’arrivée (Get Actor Location de Self).`;
+    },
+  };
+}
+
+export const lessonRightDoor: Lesson = {
+  id: 'l-bonne-porte',
+  module: LEVELS_MODULE,
+  level: 'avance',
+  number: 0,
+  title: 'Arriver par la bonne porte',
+  situation:
+    'Le couloir a maintenant deux portes vers l’atelier, au nord et au sud. Quelle que soit la porte, le joueur arrive au Player Start de l’atelier, au milieu. Il doit arriver du côté par lequel il est entré.',
+  chain: { notion: 'levels', step: 'guided' },
+  recalls: ['other-bp'],
+  notions: ['GameInstance', 'Name', 'Instance Editable', 'Set Actor Location'],
+  remember:
+    'Le niveau suivant ne sait rien du précédent : pour lui dire d’où l’on vient, on écrit une donnée simple (un Name) dans le GameInstance avant Open Level, et on la relit au BeginPlay du nouveau niveau.',
+  cards: [
+    {
+      title: 'Ce qui est en place',
+      body:
+        `- **${MAIN}** : deux **BP_Porte**, au nord et au sud. Chacune a une variable **Sortie** (Name, Instance Editable) : Nord pour l’une, Sud pour l’autre. Leur graphe fait déjà Open Level vers ${WORKSHOP}.\n` +
+        `- **${WORKSHOP}** : deux **BP_Arrivee** (des dalles vertes), avec **Porte** = Nord et Sud. Graphe vide.\n` +
+        '- **BP_Jeu**, la Game Instance Class, a une variable **Arrivee** (Name), vide au départ.',
+    },
+    {
+      title: 'L’idée',
+      body:
+        'Rien de l’ancien niveau ne passe la porte, sauf le GameInstance. La porte y laisse un mot avant de partir ; l’atelier le lit en arrivant.\n\n' +
+        'On ne garde pas l’acteur porte lui-même : il sera détruit avec le couloir, et la référence vaudrait None. On garde un **Name**, une simple étiquette : « Sud ». Elle a le même sens dans les deux niveaux.',
+    },
+    {
+      title: 'La porte : noter d’où l’on part',
+      body:
+        'Dans **BP_Porte**, entre **ActorBeginOverlap** et **Open Level** :\n\n' +
+        '1. **Get Game Instance** → **Cast To BP_Jeu**.\n2. **Set Arrivee** sur As BP_Jeu, valeur = **Sortie** (la variable de cette porte-ci).\n3. Puis Open Level, comme avant.\n\n' +
+        'Chaque porte posée a sa propre Sortie : un seul graphe suffit pour les deux.',
+    },
+    {
+      title: 'L’arrivée : placer le joueur',
+      body:
+        'Dans **BP_Arrivee**, à l’**Event BeginPlay** :\n\n' +
+        '1. **Get Game Instance** → **Cast To BP_Jeu**, puis **Get Arrivee**.\n2. **Equal (Name)** : Arrivee == **Porte** (celle de cette dalle). → **Branch**.\n3. Sur True : **Set Actor Location**, Target = **Get Player Pawn**, New Location = **Get Actor Location** (de Self, la dalle).\n\n' +
+        'Au BeginPlay des acteurs posés, le pion du joueur existe déjà : le GameMode l’a fait apparaître sur le Player Start.',
+    },
+  ],
+  objectives: ['La porte sud mène à l’arrivée sud.', 'La porte nord mène à l’arrivée nord.', 'Touche Vérifier : deux parties, une par porte.'],
+  hints: [
+    'Qu’est-ce qui survit au changement de niveau, et quelle donnée simple dit « je viens du sud » ?',
+    'Get Game Instance ; Cast To BP_Jeu ; Set Arrivee (= Sortie) ; Equal (Name) ; Branch ; Get Player Pawn ; Set Actor Location ; Get Actor Location.',
+    'Solution : BP_Porte, Overlap → Cast To BP_Jeu (Get Game Instance) → Set Arrivee = Sortie → Open Level. BP_Arrivee, BeginPlay → Cast To BP_Jeu → Branch (Arrivee == Porte) → Set Actor Location (Get Player Pawn, Get Actor Location).',
+  ],
+  challenge: 'Fais aussi tourner le joueur dans le sens de la dalle (Set Actor Rotation), et vide Arrivee une fois utilisée : que se passerait-il sinon en lançant le jeu directement dans l’atelier ?',
+  setup: doorsProject,
+  scenario: [{ wait: 0.3 }, { teleport: DOOR_S }, { wait: 0.4 }, { checkpoint: 'sud' }, { restart: true }, { wait: 0.3 }, { teleport: DOOR_N }, { wait: 0.4 }],
+  checks: [
+    arrivedBy('Sud', 'sud'),
+    arrivedBy('Nord'),
+    notion({
+      id: 'note',
+      label: 'Le GameInstance garde la porte d’arrivée',
+      test: (cx) => (normText(String(cx.gameInstance('Arrivee') ?? '')) === 'nord' ? true : 'Arrivee, dans BP_Jeu, doit valoir la Sortie de la porte prise (Nord à la fin) : la porte l’écrit avant Open Level.'),
+    }),
+    noRuntimeErrors(),
+  ],
+  solve: solveDoors,
+  avoid: [
+    {
+      defs: ['save.toSlot'],
+      label: 'Écrire la porte dans un Save Game',
+      why: 'Ça marcherait, mais un slot est fait pour survivre à la fermeture du jeu : la prochaine partie croirait arriver par la porte de la dernière fois. Pour la durée de la partie, le GameInstance suffit.',
+    },
+  ],
+};
+
+// ------------------------------------------- D28 L'objet ramassé réapparaît
+
+const KEY: [number, number] = [-220, 0];
+const BACK_DOOR: [number, number] = [300, 0];
+
+/**
+ * A key in the corridor (Id: Cle_Couloir); the door to the workshop, and a
+ * door back. BP_Jeu keeps CleRamassee (Actor reference): set to the key when
+ * picked up; at BeginPlay, the key destroys itself if it is valid. After a
+ * round trip, the reference is None: the key is back.
+ */
+function keyProject(): Project {
+  const pb = new ProjectBuilder('L’objet ramassé réapparaît');
+  const jeu = pb.blueprint('BP_Jeu', 'GameInstance');
+  const picked = jeu.variable('CleRamassee', T.object('Actor'));
+  setGameInstanceClass(pb.project, jeu.cls.id);
+  const key = pb.blueprint('BP_Cle');
+  key.component('StaticMesh', 'Cle', { sizeX: 40, sizeY: 20, color: '#facc15', blocks: false });
+  key.component('BoxCollision', 'Zone', { sizeX: 80, sizeY: 80 });
+  editable(key, 'Id', T.name, 'Cle_Couloir');
+  const ov = key.node('event.actorBeginOverlap', {}, {}, [64, 96]);
+  const cast = key.node('cast.to', { class: jeu.cls.id }, {}, [340, 96]);
+  const keep = key.node('var.setExternal', { owner: jeu.cls.id, variable: picked }, {}, [640, 96]);
+  const said = key.node('debug.printString', {}, { text: 'Clé ramassée' }, [940, 96]);
+  key.link(ov, 'then', cast, 'exec').link(key.node('game.getGameInstance', {}, {}, [120, 300]), 'result', cast, 'object');
+  key.link(cast, 'then', keep, 'exec').link(cast, 'as', keep, 'target').link(key.node('actor.self', {}, {}, [440, 300]), 'self', keep, 'value');
+  key.link(keep, 'then', said, 'exec').link(said, 'then', key.node('actor.destroy', {}, {}, [1240, 96]), 'exec');
+  const begin = key.node('event.beginPlay', {}, {}, [64, 560]);
+  const bcast = key.node('cast.to', { class: jeu.cls.id }, {}, [340, 560]);
+  const get = key.node('var.getExternal', { owner: jeu.cls.id, variable: picked }, {}, [480, 760]);
+  const valid = key.node('flow.isValid', {}, {}, [700, 560]);
+  key.link(begin, 'then', bcast, 'exec').link(key.node('game.getGameInstance', {}, {}, [120, 760]), 'result', bcast, 'object');
+  key.link(bcast, 'then', valid, 'exec').link(bcast, 'as', get, 'target').link(get, 'value', valid, 'object');
+  key.link(valid, 'valid', key.node('actor.destroy', {}, {}, [1000, 560]), 'exec');
+  pb.place(key, ...KEY);
+  const door = doorClass(pb);
+  openOnOverlap(door);
+  pb.place(door, ...DOOR);
+  pb.playerStart(...START);
+  const back = pb.blueprint('BP_PorteRetour');
+  back.component('StaticMesh', 'Cadre', { sizeX: 40, sizeY: 150, color: '#c08a3e', blocks: false });
+  back.component('BoxCollision', 'Zone', { sizeX: 120, sizeY: 170 });
+  back.link(back.node('event.actorBeginOverlap', {}, {}, [64, 96]), 'then', back.node('level.open', {}, { level: MAIN }, [400, 96]), 'exec');
+  pb.level(WORKSHOP, (q) => {
+    q.place(back, ...BACK_DOOR);
+    q.playerStart(...WORKSHOP_START);
+  });
+  return pb.project;
+}
+
+/** A Set of Name in BP_Jeu: the key adds its Id when picked up, and destroys itself at BeginPlay if its Id is in. */
+function solveKey(p: Project): void {
+  const jeuCls = cls(p, 'BP_Jeu');
+  const jeu = new ClassBuilder(jeuCls, p);
+  const picked = jeu.variable('Ramasses', T.set(T.name));
+  const key = edit(p, 'BP_Cle');
+  wipe(key.graph);
+  const ov = key.node('event.actorBeginOverlap', {}, {}, [64, 96]);
+  const cast = key.node('cast.to', { class: jeuCls.id }, {}, [340, 96]);
+  const list = key.node('var.getExternal', { owner: jeuCls.id, variable: picked }, {}, [480, 300]);
+  const add = key.node('set.add', {}, {}, [640, 96]);
+  const said = key.node('debug.printString', {}, { text: 'Clé ramassée' }, [940, 96]);
+  key.link(ov, 'then', cast, 'exec').link(key.node('game.getGameInstance', {}, {}, [120, 300]), 'result', cast, 'object');
+  key.link(cast, 'then', add, 'exec').link(cast, 'as', list, 'target').link(list, 'value', add, 'set').link(getVar(key, 'Id', [480, 420]), 'value', add, 'item');
+  key.link(add, 'then', said, 'exec').link(said, 'then', key.node('actor.destroy', {}, {}, [1240, 96]), 'exec');
+  const begin = key.node('event.beginPlay', {}, {}, [64, 560]);
+  const bcast = key.node('cast.to', { class: jeuCls.id }, {}, [340, 560]);
+  const blist = key.node('var.getExternal', { owner: jeuCls.id, variable: picked }, {}, [480, 760]);
+  const has = key.node('set.contains', {}, {}, [700, 760]);
+  const branch = key.node('flow.branch', {}, {}, [700, 560]);
+  key.link(begin, 'then', bcast, 'exec').link(key.node('game.getGameInstance', {}, {}, [120, 760]), 'result', bcast, 'object');
+  key.link(bcast, 'as', blist, 'target').link(blist, 'value', has, 'set').link(getVar(key, 'Id', [480, 880]), 'value', has, 'item');
+  key.link(bcast, 'then', branch, 'exec').link(has, 'result', branch, 'condition').link(branch, 'true', key.node('actor.destroy', {}, {}, [1000, 560]), 'exec');
+}
+
+export const debug28: Lesson = {
+  id: 'd28-objet-revient',
+  kind: 'debug',
+  code: 'D28',
+  module: LEVELS_MODULE,
+  level: 'avance',
+  number: 0,
+  title: 'L’objet ramassé réapparaît',
+  situation:
+    'Le joueur ramasse la clé du couloir, va à l’atelier, puis revient. La clé est de nouveau par terre. Pourtant, BP_Jeu (le GameInstance) garde la clé ramassée, et la clé vérifie au BeginPlay si elle l’a été. Aucune erreur.',
+  notions: ['GameInstance', 'Is Valid', 'Set', 'Name'],
+  remember:
+    'Une référence d’acteur ne survit pas à son niveau : l’acteur est détruit avec lui, la référence vaut None derrière la porte. Ce qui doit durer se garde sous une forme qui ne dépend pas du niveau : un nom, un numéro (ici l’Id de la clé, dans un Set of Name du GameInstance).',
+  cards: [
+    {
+      title: 'Ce qui est en place',
+      body:
+        '- **BP_Jeu** (Game Instance Class) : **CleRamassee**, une référence d’acteur.\n' +
+        '- **BP_Cle** (Id = Cle_Couloir, Instance Editable) : à l’overlap, Set CleRamassee = **Self**, Print « Clé ramassée », Destroy Actor. Au BeginPlay : **Is Valid** (CleRamassee) → Destroy Actor.\n' +
+        `- Une porte vers ${WORKSHOP}, et dans l’atelier **BP_PorteRetour**, qui ramène au couloir.\n\n` +
+        'Le test : la clé, la porte, la porte du retour.',
+    },
+    {
+      title: 'Ce qui cloche',
+      body:
+        'Au retour, le couloir est un niveau neuf : sa clé est un nouvel acteur, qui fait son BeginPlay. Que vaut alors CleRamassee ?\n\n' +
+        'Pendant Play, ouvre l’Outliner, ligne **GameInstance** : regarde CleRamassee avant la porte, puis après le retour.',
+    },
+  ],
+  objectives: ['Trouver pourquoi la clé revient.', 'Après l’aller-retour, la clé n’est plus dans le couloir.'],
+  hints: [
+    'Le GameInstance garde bien quelque chose. Mais ce qu’il garde, l’acteur clé du premier passage, existe-t-il encore au retour ?',
+    'Is Valid ; référence d’acteur après Open Level ; Set of Name ; Add ; Contains ; la variable Id de la clé.',
+    'Solution : la référence vaut None après l’aller-retour (sa clé a été détruite avec le niveau), Is Valid est faux et la clé reste. Garde plutôt son Id : une variable Ramasses (Set of Name) dans BP_Jeu ; à l’overlap, Add (Id) ; au BeginPlay, Contains (Id) → Branch → Destroy Actor.',
+  ],
+  challenge: 'Pose une deuxième clé (Id = Cle_Atelier) dans l’atelier : sans rien changer d’autre, chacune doit se souvenir d’elle-même.',
+  setup: keyProject,
+  scenario: [{ wait: 0.3 }, { teleport: KEY }, { wait: 0.2 }, { teleport: DOOR }, { wait: 0.4 }, { teleport: BACK_DOOR }, { wait: 0.4 }],
+  checks: [
+    {
+      id: 'picked',
+      label: 'La clé se ramasse au premier passage',
+      test: (cx) => (cx.prints().filter((m) => m === 'Clé ramassée').length === 1 ? true : 'Au premier passage, toucher la clé doit afficher « Clé ramassée » et la faire disparaître, une fois.'),
+    },
+    {
+      id: 'back',
+      label: 'Le joueur est revenu dans le couloir',
+      test: (cx) => (cx.levels().join(' › ') === `${MAIN} › ${WORKSHOP} › ${MAIN}` ? true : `Le jeu devait aller dans l’atelier puis revenir : il a joué ${cx.levels().join(' › ')}.`),
+    },
+    {
+      id: 'gone',
+      label: 'Au retour, la clé n’est plus là',
+      test: (cx) =>
+        cx.sim.actors.some((a) => a.className === 'BP_Cle' && !a.destroyed)
+          ? 'La clé est revenue : la référence gardée désignait l’acteur clé du premier passage, détruit avec son niveau. Derrière la porte elle vaut None, et Is Valid répond faux. Garde ce qui ne dépend pas du niveau : l’Id de la clé, dans un Set of Name du GameInstance.'
+          : true,
+    },
+    noRuntimeErrors(),
+  ],
+  solve: solveKey,
+};
+
+// ---------------------------------------------- T6 Le pion de l'atelier
+
+function droneProject(): Project {
+  const pb = new ProjectBuilder('Le pion de l’atelier');
+  const player = pb.blueprint('BP_Joueur', 'Pawn');
+  setPlayerClass(pb.project, player.cls.id);
+  const drone = pb.blueprint('BP_Drone', 'Pawn');
+  drone.link(drone.node('event.beginPlay', {}, {}, [64, 96]), 'then', drone.node('debug.printString', {}, { text: 'Drone en ligne' }, [400, 96]), 'exec');
+  const door = doorClass(pb);
+  openOnOverlap(door);
+  pb.place(door, ...DOOR);
+  pb.playerStart(...START);
+  const bench = pb.blueprint('BP_Etabli');
+  bench.component('StaticMesh', 'Etabli', { sizeX: 160, sizeY: 70, color: '#64748b', blocks: false });
+  pb.level(WORKSHOP, (q) => {
+    q.place(bench, 160, -160);
+    q.playerStart(...WORKSHOP_START);
+  });
+  return pb.project;
+}
+
+function solveDrone(p: Project): void {
+  const made = addClass(p, 'BP_GameModeAtelier', 'GameModeBase');
+  if (!made.ok) throw new Error(made.reason);
+  const pawn = setGameModeDefault(p, made.value.id, 'defaultPawnClass', cls(p, 'BP_Drone').id);
+  if (!pawn.ok) throw new Error(pawn.reason);
+  const level = p.levels.find((l) => l.name === WORKSHOP)!;
+  const r = setGameModeOverride(p, level.id, made.value.id);
+  if (!r.ok) throw new Error(r.reason);
+}
+
+export const transferDrone: Lesson = {
+  id: 't6-pion-atelier',
+  code: 'T6',
+  module: LEVELS_MODULE,
+  level: 'avance',
+  number: 0,
+  title: 'Le pion de l’atelier',
+  situation:
+    'Dans l’atelier, on ne marche pas : on pilote un drone. BP_Drone est prêt, mais derrière la porte le joueur est toujours BP_Joueur. Dans le couloir, il doit le rester.',
+  chain: { notion: 'game-mode', step: 'transfer' },
+  notions: ['GameMode', 'Default Pawn Class', 'GameMode Override', 'World Settings'],
+  remember:
+    'C’est le GameMode du niveau qui fait apparaître le joueur. Un niveau qui veut un autre pion a son propre GameMode, choisi dans ses World Settings (GameMode Override) ; les autres gardent le Default GameMode.',
+  cards: [
+    {
+      title: 'Cahier des charges',
+      body:
+        '**BP_Joueur** est le pion de tout le projet : Default Pawn Class de **BP_GameMode**, le Default GameMode (Project Settings › Maps & Modes). **BP_Drone** est un autre Blueprint Pawn ; son BeginPlay affiche « Drone en ligne ».\n\n' +
+        `- Dans ${WORKSHOP}, le joueur est un **BP_Drone**.\n` +
+        `- Dans ${MAIN}, il reste un **BP_Joueur**.\n` +
+        '- Un troisième niveau ajouté plus tard doit avoir BP_Joueur sans qu’on y touche.',
+    },
+    {
+      title: 'Comment t’y prendre',
+      body:
+        'Tu as déjà réglé une Player Controller Class dans un GameMode (« Les contrôles au Player Controller »). Ici, même mécanique, mais pour un seul niveau. Avant de toucher à quoi que ce soit :\n\n' +
+        '1. Qui décide du pion, et à quel moment ?\n2. Changer BP_GameMode, est-ce changer un niveau ou tous ?\n3. Où un niveau dit-il « pas le GameMode par défaut, celui-ci » ?\n\n' +
+        'Indice de lieu : dans l’Outliner d’un niveau, la ligne **WorldSettings**.',
+    },
+  ],
+  objectives: [`Dans ${WORKSHOP}, le joueur est BP_Drone.`, `Dans ${MAIN}, il reste BP_Joueur.`, 'Le Default GameMode garde BP_Joueur.'],
+  hints: [
+    'Qui fait apparaître le pion d’un niveau ? Et un niveau peut-il en choisir un autre que celui du projet ?',
+    'Content Drawer › Blueprint Class › Game Mode Base ; Class Defaults › Default Pawn Class ; Outliner de l’atelier › WorldSettings › GameMode Override.',
+    `Solution : un nouveau GameMode (BP_GameModeAtelier), Default Pawn Class = BP_Drone ; ouvre ${WORKSHOP}, Outliner › WorldSettings › GameMode Override = BP_GameModeAtelier. BP_GameMode ne change pas.`,
+  ],
+  challenge: 'Donne au drone son propre Player Controller dans l’atelier seulement. Puis : le GameMode de l’atelier peut-il hériter de BP_GameMode pour ne changer que le pion ?',
+  setup: droneProject,
+  scenario: [{ wait: 0.3 }, { checkpoint: 'debut' }, ...throughDoor],
+  checks: [
+    {
+      id: 'corridor',
+      label: `Dans ${MAIN}, le joueur est BP_Joueur`,
+      at: 'debut',
+      test: (cx) =>
+        cx.sim.player.className === 'BP_Joueur'
+          ? true
+          : `Dans le couloir, le joueur est ${cx.sim.player.className || 'le pion par défaut'} : le Default GameMode (BP_GameMode) doit garder BP_Joueur. Seul l’atelier change.`,
+    },
+    { id: 'travel', label: `La porte mène dans ${WORKSHOP}`, test: reachedWorkshop },
+    {
+      id: 'drone',
+      label: `Dans ${WORKSHOP}, le joueur est BP_Drone`,
+      test: (cx) => {
+        if (cx.level() !== WORKSHOP) return 'Le joueur n’est pas arrivé dans l’atelier.';
+        if (cx.sim.player.className === 'BP_Drone') return true;
+        const level = cx.project.levels.find((l) => l.name === WORKSHOP);
+        if (!level?.gameModeOverride) return `Dans l’atelier, le joueur est encore ${cx.sim.player.className || 'le pion par défaut'} : l’atelier prend le Default GameMode. Donne-lui le sien : World Settings › GameMode Override.`;
+        return `L’atelier a son GameMode (${cx.sim.gameMode.className}), mais sa Default Pawn Class n’est pas BP_Drone : règle-la dans ses Class Defaults.`;
+      },
+    },
+    {
+      id: 'online',
+      label: 'Le drone annonce « Drone en ligne »',
+      test: (cx) => (cx.prints().includes('Drone en ligne') ? true : 'Le BeginPlay de BP_Drone ne s’est pas exécuté : le drone n’a pas été créé comme pion.'),
+    },
+    notion({
+      id: 'override',
+      label: 'L’atelier a son GameMode (GameMode Override)',
+      test: (cx) => {
+        const level = cx.project.levels.find((l) => l.name === WORKSHOP)!;
+        if (!level.gameModeOverride) return 'Le pion de l’atelier doit venir d’un GameMode Override dans ses World Settings.';
+        const main = cx.project.levels.find((l) => l.name === MAIN)!;
+        return playerClassesFor(cx.project, main).pawn?.name === 'BP_Joueur' ? true : 'Le Default GameMode doit garder BP_Joueur pour les autres niveaux.';
+      },
+    }),
+    noRuntimeErrors(),
+  ],
+  solve: solveDrone,
+};
+
+// ------------------------------------------- A4 Reprendre la partie
+
+const RESUME_SCENARIO = [
+  { wait: 0.3 },
+  { checkpoint: 'debut' },
+  { teleport: COINS[0] },
+  { wait: 0.2 },
+  ...throughDoor,
+  { checkpoint: 'atelier' },
+  { restart: true as const },
+  { wait: 0.6 },
+];
+
+/** The int variable of the chosen GameInstance (the bag), if any. */
+function bagValue(cx: CheckContext): number | undefined {
+  const v = chosenInstance(cx)?.variables.find((x) => x.type.category === 'int' && !x.type.container);
+  return v ? Number(cx.gameInstance(v.name)) : undefined;
+}
+
+/**
+ * BP_Sauvegarde (Niveau, Pieces). BP_Jeu: Event Shutdown writes the level and
+ * the bag; Event Init reads them back, Pieces at once, the level in Reprendre.
+ * BP_GameMode's BeginPlay opens Reprendre if set, then clears it.
+ */
+function solveResume(p: Project): void {
+  const savePb = new ClassBuilder(must(addClass(p, 'BP_Sauvegarde', 'SaveGame')), p);
+  const niveau = savePb.variable('Niveau', T.name, '');
+  const savedPieces = savePb.variable('Pieces', T.int, 0);
+  const saveId = savePb.cls.id;
+  const jeuCls = cls(p, 'BP_Jeu');
+  const jeu = new ClassBuilder(jeuCls, p);
+  const resume = jeu.variable('Reprendre', T.name, '');
+  const pieces = vid(p, 'BP_Jeu', 'Pieces');
+  // Shutdown → Create → Set Niveau (Get Current Level Name) → Set Pieces → Save.
+  const down = jeu.node('event.gameShutdown', {}, {}, [64, 96]);
+  const create = jeu.node('save.create', {}, { saveClass: saveId }, [340, 96]);
+  const setLevel = jeu.node('var.setExternal', { owner: saveId, variable: niveau }, {}, [640, 96]);
+  const toName = jeu.node('conv.stringToName', {}, {}, [440, 300]);
+  const setBag = jeu.node('var.setExternal', { owner: saveId, variable: savedPieces }, {}, [940, 96]);
+  const write = jeu.node('save.toSlot', {}, { slot: 'Partie' }, [1240, 96]);
+  jeu.link(down, 'then', create, 'exec').link(create, 'then', setLevel, 'exec').link(create, 'result', setLevel, 'target');
+  jeu.link(jeu.node('level.currentName', {}, {}, [200, 300]), 'result', toName, 'in').link(toName, 'result', setLevel, 'value');
+  jeu.link(setLevel, 'then', setBag, 'exec').link(create, 'result', setBag, 'target').link(jeu.node('var.get', { variable: pieces }, {}, [760, 300]), 'value', setBag, 'value');
+  jeu.link(setBag, 'then', write, 'exec').link(create, 'result', write, 'object');
+  // Init → Load → Cast → Set Pieces → Set Reprendre.
+  const init = jeu.node('event.gameInit', {}, {}, [64, 560]);
+  const load = jeu.node('save.fromSlot', {}, { slot: 'Partie' }, [340, 560]);
+  const cast = jeu.node('cast.to', { class: saveId }, {}, [640, 560]);
+  const keepBag = jeu.node('var.set', { variable: pieces }, {}, [940, 560]);
+  const keepLevel = jeu.node('var.set', { variable: resume }, {}, [1240, 560]);
+  jeu.link(init, 'then', load, 'exec').link(load, 'then', cast, 'exec').link(load, 'result', cast, 'object').link(cast, 'then', keepBag, 'exec');
+  jeu.link(jeu.node('var.getExternal', { owner: saveId, variable: savedPieces }, {}, [800, 760]), 'value', keepBag, 'value');
+  jeu.link(jeu.node('var.getExternal', { owner: saveId, variable: niveau }, {}, [1100, 760]), 'value', keepLevel, 'value');
+  const [g1, g2] = Object.values(jeu.graph.nodes).filter((n) => n.def === 'var.getExternal').slice(-2);
+  jeu.link(cast, 'as', g1.id, 'target').link(cast, 'as', g2.id, 'target').link(keepBag, 'then', keepLevel, 'exec');
+  // BP_GameMode: BeginPlay → Cast To BP_Jeu → Is None (Reprendre)? false → Open Level (Reprendre) → Reprendre = None.
+  const gm = edit(p, 'BP_GameMode');
+  const begin = gm.node('event.beginPlay', {}, {}, [64, 96]);
+  const gcast = gm.node('cast.to', { class: jeuCls.id }, {}, [340, 96]);
+  const get = gm.node('var.getExternal', { owner: jeuCls.id, variable: resume }, {}, [480, 300]);
+  const none = gm.node('name.isNone', {}, {}, [700, 300]);
+  const branch = gm.node('flow.branch', {}, {}, [700, 96]);
+  const open = gm.node('level.open', {}, {}, [1000, 96]);
+  const clear = gm.node('var.setExternal', { owner: jeuCls.id, variable: resume }, { value: '' }, [1300, 96]);
+  gm.link(begin, 'then', gcast, 'exec').link(gm.node('game.getGameInstance', {}, {}, [120, 300]), 'result', gcast, 'object');
+  gm.link(gcast, 'as', get, 'target').link(get, 'value', none, 'in').link(gcast, 'then', branch, 'exec').link(none, 'result', branch, 'condition');
+  gm.link(branch, 'false', open, 'exec').link(get, 'value', open, 'level').link(open, 'then', clear, 'exec').link(gcast, 'as', clear, 'target');
+}
+
+function must<T>(r: { ok: true; value: T } | { ok: false; reason: string }): T {
+  if (!r.ok) throw new Error(r.reason);
+  return r.value;
+}
+
+export const autonomyResume: Lesson = {
+  id: 'a4-reprendre',
+  code: 'A4',
+  chain: { notion: 'game-instance', step: 'autonomy', after: { lesson: 'l-sac-qui-suit', days: 2 } },
+  module: LEVELS_MODULE,
+  level: 'avance',
+  number: 0,
+  title: 'Reprendre la partie',
+  situation:
+    'Le sac suit le joueur d’un niveau à l’autre. Mais si on quitte le jeu dans l’atelier, tout repart de zéro au lancement suivant, au couloir. Il faut reprendre là où on s’était arrêté : au bon niveau, avec son sac.',
+  notions: ['GameInstance', 'Event Init', 'Event Shutdown', 'SaveGame', 'Open Level (by Name)'],
+  remember:
+    'Deux durées, deux outils : le GameInstance garde la partie en cours d’un niveau à l’autre ; le Save Game la garde d’un lancement à l’autre. Le GameInstance est le bon endroit pour faire le lien : il relit le slot au lancement (Event Init) et l’écrit à la fermeture (Event Shutdown).',
+  cards: [
+    {
+      title: 'Cahier des charges',
+      body:
+        'Le projet du « Sac qui suit », résolu : **BP_Jeu** (Game Instance Class) compte les pièces, le comptoir de l’atelier les affiche. **BP_GameMode** est le Default GameMode (son pion : BP_Joueur).\n\n' +
+        '- Une première partie, sans sauvegarde, commence au couloir avec un sac vide.\n' +
+        '- Le joueur ramasse une pièce, passe la porte : le comptoir affiche 1.\n' +
+        '- Il quitte (Stop), puis relance (Play) : la partie **reprend dans l’atelier**, et le comptoir affiche encore **1**.\n\n' +
+        'Le test fait exactement ça : une pièce, la porte, Stop, Play.',
+    },
+    {
+      title: 'Comment t’y prendre',
+      body:
+        'Pas de liste de nœuds. Réponds d’abord :\n\n' +
+        '1. Quoi écrire sur le disque, et sous quelle forme (un niveau peut-il s’écrire comme un nom) ?\n2. À quel moment écrire, pour être sûr d’avoir le dernier état ? Et relire ?\n3. Au lancement, qui peut faire Open Level vers le niveau retrouvé, et quand ?\n4. Que se passe-t-il au lancement suivant si le niveau retrouvé est déjà le bon ?\n\n' +
+        'Les indices s’ouvrent après un premier essai.',
+    },
+  ],
+  objectives: ['Sans sauvegarde : le couloir, un sac vide.', 'Après Stop puis Play : l’atelier, et le sac retrouvé.'],
+  hints: [
+    'Quels sont les deux moments à lui du GameInstance ? Et sous quelle forme écrire le niveau en cours ?',
+    'SaveGame (Niveau en Name, Pieces) ; Event Shutdown ; Get Current Level Name ; String to Name ; Save Game to Slot ; Event Init ; Load Game from Slot ; Cast To ; BeginPlay du GameMode ; Open Level (by Name).',
+    'Solution : BP_Sauvegarde (Niveau, Pieces). BP_Jeu : Event Shutdown → Create Save Game Object → Niveau = Get Current Level Name → Pieces → Save Game to Slot (« Partie ») ; Event Init → Load Game from Slot → Cast To BP_Sauvegarde → Pieces, et un Name Reprendre = Niveau. BP_GameMode : BeginPlay → Cast To BP_Jeu → si Reprendre n’est pas None → Open Level (Reprendre), puis Reprendre = None.',
+  ],
+  challenge: 'Ajoute « Nouvelle partie » : un moyen d’effacer le slot (Delete Game in Slot) pour repartir du couloir. Et si le jeu plante, Event Shutdown n’a pas lieu : où sauver en plus pour ne pas tout perdre ?',
+  setup() {
+    const p = bagProject('Reprendre la partie');
+    solveBag(p);
+    return p;
+  },
+  scenario: RESUME_SCENARIO,
+  checks: [
+    {
+      id: 'fresh',
+      label: 'Sans sauvegarde : le couloir, sac vide',
+      at: 'debut',
+      test: (cx) => {
+        if (cx.level() !== MAIN) return `Sans aucune sauvegarde, la partie doit commencer au couloir : elle est partie vers ${cx.level()}.`;
+        return bagValue(cx) === 0 ? true : 'Sans sauvegarde, le sac doit être vide au lancement.';
+      },
+    },
+    {
+      id: 'first',
+      label: 'Avant de quitter : l’atelier, le comptoir affiche 1',
+      at: 'atelier',
+      test: (cx) => (cx.level() === WORKSHOP && printedNumbers(cx).at(-1) === '1' ? true : 'Avant de quitter, le joueur doit être dans l’atelier et le comptoir afficher 1 : le sac du « Sac qui suit » doit toujours marcher.'),
+    },
+    {
+      id: 'level',
+      label: 'Après Stop puis Play, la partie reprend dans l’atelier',
+      test: (cx) =>
+        cx.level() === WORKSHOP
+          ? true
+          : `Après Stop puis Play, la partie est dans ${cx.level()} : au lancement, rien ne relit le niveau sauvé pour y retourner (Open Level vers le nom retrouvé).`,
+    },
+    {
+      id: 'bag',
+      label: 'Après Stop puis Play, le sac a toujours 1 pièce',
+      test: (cx) => {
+        const v = bagValue(cx);
+        if (v === 1) return printedNumbers(cx).at(-1) === '1' ? true : 'Le sac a bien 1 pièce, mais le comptoir de l’atelier ne l’a pas affiché après la reprise.';
+        return `Après Stop puis Play, le sac vaut ${v ?? '?'} : le GameInstance est neuf à chaque lancement. Il doit relire le slot au lancement (Event Init), et le slot avoir été écrit avant (Event Shutdown, ou à la porte).`;
+      },
+    },
+    noRuntimeErrors(),
+  ],
+  solve: solveResume,
 };

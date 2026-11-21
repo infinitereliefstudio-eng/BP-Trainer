@@ -1,6 +1,6 @@
 # Chantier n° 4, niveaux et GameInstance : analyse (20 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Chantier n° 4, niveaux et GameInstance : analyse » : https://claude.ai/artifact/8jupgWRbXyTExFaxjEXqv1. Demandée par Tristan le 20 novembre au soir (« Analyse pour le chantier 4 ce qui existe dans l'App, les règles ue, et de quelle manière on pourrait implémenter le chantier »). **Décisions du 20 novembre à 22 h 58** : Tristan a pris les sept recommandations (« Ok pour tes recos »), et demandé de garder au backlog comment aller plus loin (BACKLOG.md, « Aller plus loin après le chantier n° 4 »). Donc : vrai GameMode (GameModeBase, Maps & Modes, World Settings), pas de Level Blueprint, étapes à l'Avancé après « Le checkpoint », Quit Game simulé, pin Options sans effet, autonomie A4 dans le parcours, `Lvl_Principal`. **V7.46 faite** (plusieurs niveaux, Maps & Modes), **V7.47 faite** (Open Level, Get Current Level Name, la partie `Game`), **V7.48 faite** (GameInstance, Quit Game), **V7.49 faite** (vrai GameMode), **V7.50 faite** (étapes 1 à 4) ; la suite (V7.51, étapes 5 à 8, mémo, révision) attend son feu vert.
+Copie du Claude Doc « BP Trainer — Chantier n° 4, niveaux et GameInstance : analyse » : https://claude.ai/artifact/8jupgWRbXyTExFaxjEXqv1. Demandée par Tristan le 20 novembre au soir (« Analyse pour le chantier 4 ce qui existe dans l'App, les règles ue, et de quelle manière on pourrait implémenter le chantier »). **Décisions du 20 novembre à 22 h 58** : Tristan a pris les sept recommandations (« Ok pour tes recos »), et demandé de garder au backlog comment aller plus loin (BACKLOG.md, « Aller plus loin après le chantier n° 4 »). Donc : vrai GameMode (GameModeBase, Maps & Modes, World Settings), pas de Level Blueprint, étapes à l'Avancé après « Le checkpoint », Quit Game simulé, pin Options sans effet, autonomie A4 dans le parcours, `Lvl_Principal`. **V7.46 faite** (plusieurs niveaux, Maps & Modes), **V7.47 faite** (Open Level, Get Current Level Name, la partie `Game`), **V7.48 faite** (GameInstance, Quit Game), **V7.49 faite** (vrai GameMode), **V7.50 faite** (étapes 1 à 4), **V7.51 faite** (étapes 5 à 8, mémo, révision) : **chantier terminé**.
 
 ## En bref
 
@@ -123,7 +123,7 @@ Six versions, chacune essayable seule sur le téléphone ; cinq si le GameMode r
 | V7.48 (**faite**) | GameInstance : la classe, Event Init et Shutdown, Get Game Instance, Game Instance Class, ligne GameInstance dans l'Outliner en direct | Un compteur qui survit à la porte |
 | V7.49 (**faite**) | GameMode (question 1) : la classe GameModeBase, ses Class Defaults, Default GameMode, World Settings › GameMode Override, Get Game Mode, reprise de l'ancien réglage | Un pion différent dans chaque niveau |
 | V7.50 (**faite**) | Étapes 1 à 4 | Le couloir, le Prédis, le sac, le sac vide |
-| V7.51 | Étapes 5 à 8, mémo, glossaire, conseils, révision | La bonne porte, l'objet qui réapparaît, le transfert, l'autonomie |
+| V7.51 (**faite**) | Étapes 5 à 8, mémo, glossaire, conseils, révision | La bonne porte, l'objet qui réapparaît, le transfert, l'autonomie |
 
 **Taille** : L, du même ordre que le chantier UMG (V7.33 à V7.37). Le risque principal est la migration du format ; il est couvert par les tests de chargement et de restauration déjà en place.
 

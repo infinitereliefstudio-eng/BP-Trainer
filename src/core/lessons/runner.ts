@@ -166,6 +166,8 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     }
     if (runaway) continue;
     if ('restart' in step) {
+      // Stop, then Play: the game closes first, as Stop does (End Play, then the GameInstance's Event Shutdown).
+      game.shutdown();
       earlier.prints = cx.prints();
       earlier.errors.push(...game.world.log.filter((l) => l.level === 'error').map((l) => l.text));
       game = new Game(project, { order, slots, levelId });

@@ -294,8 +294,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 144:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 144")
+        if await page.locator('.lesson-item').count() != 148:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 148")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -1287,8 +1287,9 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l-sac-qui-suit', (HERE / 'out' / 'l-sac-qui-suit.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le sac qui suit').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Le sac qui suit').tap()
+        # « après Le sac qui suit » is also on A4's card: the step itself comes first.
+        await page.locator('.lesson-item', has_text='Le sac qui suit').first.scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='Le sac qui suit').first.tap()
         await page.wait_for_timeout(600)
         await shot('119_lesson_bag_level')
         await page.locator('button', has_text='Vérifier').first.tap()
@@ -1296,6 +1297,18 @@ async def main():
         if await page.locator('.success').count() == 0:
             errs.append('Le sac qui suit : la solution de référence ne passe pas dans l’appli')
         await shot('120_lesson_bag_passed')
+        # V7.51: « Arriver par la bonne porte » solved passes too (two games, one per door, with a restart in between).
+        await page.evaluate(PUT, ['project:lesson:l-bonne-porte', (HERE / 'out' / 'l-bonne-porte.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Arriver par la bonne porte').first.scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='Arriver par la bonne porte').first.tap()
+        await page.wait_for_timeout(600)
+        await page.locator('button', has_text='Vérifier').first.tap()
+        await page.wait_for_timeout(1500)
+        if await page.locator('.success').count() == 0:
+            errs.append('Arriver par la bonne porte : la solution de référence ne passe pas dans l’appli')
+        await shot('121_lesson_right_door_passed')
         await page.goto(home)
         await page.wait_for_timeout(500)
 

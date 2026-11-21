@@ -53,6 +53,7 @@ const NODE_NOTIONS: [RegExp, string][] = [
   [/^widgetComponent\./, 'widget-component'],
   [/^level\./, 'levels'],
   [/^(game\.getGameInstance|event\.gameInit|event\.gameShutdown)$/, 'game-instance'],
+  [/^game\.getGameMode$/, 'game-mode'],
   [/^(component\.getOwner|actor\.getComponentsByClass|actor\.getComponentByClass|event\.componentDispatcher|dispatcher\.bindNative)$/, 'actor-components'],
 ];
 

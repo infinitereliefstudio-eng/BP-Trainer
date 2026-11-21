@@ -72,6 +72,7 @@ export const NOTIONS: readonly Notion[] = [
   { id: 'ui-input', title: 'Menus et modes d’entrée', covers: 'boutons (On Clicked), Set Input Mode Game Only, UI Only, Game and UI, Show Mouse Cursor' },
   { id: 'levels', title: 'Niveaux et Open Level', covers: 'plusieurs niveaux, Open Level (by Name), Get Current Level Name : ce qui disparaît au changement de niveau' },
   { id: 'game-instance', title: 'GameInstance', covers: 'un objet pour toute la partie : Game Instance Class (Maps & Modes), Get Game Instance, Cast To, Event Init' },
+  { id: 'game-mode', title: 'GameMode', covers: 'le GameMode fait apparaître le joueur : Default Pawn Class, Player Controller Class, Default GameMode, GameMode Override d’un niveau' },
   { id: 'mixed', title: 'Entraînement mélangé', covers: 'choisir soi-même l’outil, sans que la consigne le dise' },
 ];
 

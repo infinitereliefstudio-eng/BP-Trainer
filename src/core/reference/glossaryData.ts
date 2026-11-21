@@ -668,9 +668,9 @@ export const GLOSSARY: GlossaryEntry[] = [
   },
   {
     title: 'Pion du joueur et GameMode',
-    names: ['Pion du joueur', 'Default Pawn Class', 'GameMode'],
+    names: ['Pion du joueur', 'Default Pawn Class', 'GameMode', 'GameMode Override', 'World Settings'],
     what: 'Le GameMode est l’acteur des règles d’un niveau. Le jeu en crée un par niveau (World Settings › GameMode Override, sinon le Default GameMode de Maps & Modes), et c’est lui qui fait apparaître le joueur : son pion (Default Pawn Class) et son Player Controller (Player Controller Class), réglés dans ses Class Defaults.',
-    when: 'Pour choisir quel Blueprint est le joueur, ou en changer selon le niveau (un pion différent dans l’atelier).',
+    when: 'Pour choisir quel Blueprint est le joueur, ou en changer selon le niveau : World Settings du niveau (la ligne WorldSettings de son Outliner) › GameMode Override.',
     trap: 'Croire que le pion traverse les niveaux : chaque niveau en crée un neuf, avec les valeurs par défaut de ses variables.',
     pattern: 'BP_GameMode › Class Defaults › Default Pawn Class = BP_Joueur',
   },

@@ -31,9 +31,9 @@ describe('the level steps (V7.50)', () => {
   it('sit in the Avancé right after « Le checkpoint », with their notions and help cards', () => {
     const ids = LESSONS.map((l) => l.id);
     const at = ids.indexOf('l-checkpoint');
-    expect(ids.slice(at + 1, at + 5)).toEqual(IDS);
-    expect(LESSONS.length).toBe(144);
-    for (const id of IDS) {
+    expect(ids.slice(at + 1, at + 9)).toEqual([...IDS, 'l-bonne-porte', 'd28-objet-revient', 't6-pion-atelier', 'a4-reprendre']);
+    expect(LESSONS.length).toBe(148);
+    for (const id of [...IDS, 'l-bonne-porte', 'd28-objet-revient', 't6-pion-atelier', 'a4-reprendre']) {
       expect(lesson(id).level, id).toBe('avance');
       for (const n of lesson(id).notions) expect(notionHelp(n), `${id}: ${n}`).toBeDefined();
     }
@@ -127,5 +127,55 @@ describe('Le sac qui suit and D27', () => {
     expect(start.runtimeErrors).toEqual([]);
     expect(diagnose(start)?.hypothesis).toBe('reference');
     expect(run(d).passed).toBe(true);
+  });
+});
+
+describe('the last four level steps (V7.51)', () => {
+  it('Arriver par la bonne porte: unsolved, the player stays on the Player Start; one fixed Sortie puts him on the wrong side', () => {
+    const l = lesson('l-bonne-porte');
+    const start = run(l, () => {}, false);
+    expect(reason(start, 'sud')).toContain('resté sur le Player Start');
+    const fixed = run(l, (p) => {
+      const door = edit(p, 'BP_Porte');
+      const set = nodeOf(p, 'BP_Porte', 'var.setExternal');
+      for (const [id, k] of Object.entries(door.graph.links)) if (k.to.node === set.id && k.to.pin === 'value') delete door.graph.links[id];
+      set.defaults.value = 'Nord';
+    });
+    expect(reason(fixed, 'sud')).toContain('arrive au nord');
+  });
+
+  it('D28: the reference is None after the round trip, the key is back; the Set of Name keeps it gone', () => {
+    const d = lesson('d28-objet-revient');
+    const start = run(d, () => {}, false);
+    expect(reason(start, 'gone')).toContain('vaut None');
+    expect(start.results.find((r) => r.check.id === 'picked')!.ok).toBe(true);
+    expect(start.runtimeErrors).toEqual([]);
+    expect(run(d).passed).toBe(true);
+  });
+
+  it('T6: without an override the workshop keeps BP_Joueur; changing the Default GameMode breaks the corridor', () => {
+    const t = lesson('t6-pion-atelier');
+    expect(reason(run(t, () => {}, false), 'drone')).toContain('GameMode Override');
+    const everywhere = run(
+      t,
+      (p) => {
+        const gm = p.classes.find((c) => c.name === 'BP_GameMode')!;
+        gm.gameMode = { defaultPawnClass: p.classes.find((c) => c.name === 'BP_Drone')!.id };
+      },
+      false,
+    );
+    expect(reason(everywhere, 'corridor')).toContain('le Default GameMode (BP_GameMode) doit garder BP_Joueur');
+  });
+
+  it('A4: unsolved, Stop then Play starts again in the corridor with an empty bag; the reference resumes in the workshop', () => {
+    const a = lesson('a4-reprendre');
+    expect(a.chain).toEqual({ notion: 'game-instance', step: 'autonomy', after: { lesson: 'l-sac-qui-suit', days: 2 } });
+    const start = run(a, () => {}, false);
+    expect(start.results.find((r) => r.check.id === 'first')!.ok).toBe(true);
+    expect(reason(start, 'level')).toContain('la partie est dans Lvl_Principal');
+    expect(reason(start, 'bag')).toContain('le sac vaut 0');
+    const done = run(a);
+    expect(done.passed).toBe(true);
+    expect(done.prints.filter((m) => m === '1')).toHaveLength(2);
   });
 });

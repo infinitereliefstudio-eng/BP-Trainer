@@ -896,6 +896,30 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Sans Game Instance Class, le jeu crée un GameInstance ordinaire : Get Game Instance rend bien un objet, mais pas un BP_Jeu.',
   ),
   q(
+    'l-bonne-porte',
+    'Deux portes mènent au même niveau. Comment le niveau d’arrivée sait-il par laquelle le joueur est passé ?',
+    ['La porte écrit un Name dans le GameInstance avant Open Level ; l’arrivée le lit à son BeginPlay', 'L’arrivée lit une variable de la porte par une référence gardée', 'Open Level transmet la porte d’origine au niveau suivant', 'Le pion garde la porte dans une de ses variables'],
+    'Rien du niveau quitté ne passe, ni la porte ni le pion. Le GameInstance, lui, passe : une donnée simple qu’il garde a le même sens dans les deux niveaux.',
+  ),
+  q(
+    'd28-objet-revient',
+    'Le GameInstance garde une référence à la clé ramassée. Au retour dans le couloir, que répond Is Valid sur cette référence ?',
+    ['Faux : la clé du premier passage a été détruite avec son niveau', 'Vrai : le GameInstance garde aussi l’acteur', 'Vrai, car la nouvelle clé a le même nom', 'Une erreur Accessed None'],
+    'Une référence désigne un acteur précis. Il disparaît avec son niveau : derrière la porte, la référence vaut None. Garde plutôt un identifiant (un Name dans un Set).',
+  ),
+  q(
+    't6-pion-atelier',
+    'Un seul niveau doit avoir un autre pion que le reste du projet. Que régler ?',
+    ['Un GameMode avec ce pion, en GameMode Override dans les World Settings de ce niveau', 'La Default Pawn Class du Default GameMode', 'Un Possess dans le BeginPlay du niveau', 'Le Player Start de ce niveau'],
+    'Le GameMode du niveau fait apparaître le pion. Changer le Default GameMode changerait tous les niveaux ; l’override ne change que celui-ci.',
+  ),
+  q(
+    'a4-reprendre',
+    'Pour reprendre au bon niveau après avoir quitté le jeu, que faut-il ?',
+    ['Un Save Game écrit avant la fermeture (Event Shutdown, par exemple), relu au lancement (Event Init)', 'Le GameInstance seul : il garde tout d’un lancement à l’autre', 'Un Open Level vers le dernier niveau dans le BeginPlay du pion', 'Rien : Play rouvre le dernier niveau joué'],
+    'Le GameInstance vit de Play à Stop, pas au-delà. Seul le disque (un slot) traverse la fermeture ; le GameInstance est le bon endroit pour l’écrire et le relire.',
+  ),
+  q(
     'd19-derniere-porte',
     'Trois portes du même Blueprint écoutent E, Consume Input coché (le réglage par défaut). Le joueur appuie sur E. Qui la reçoit ?',
     ['Seulement la dernière porte posée dans le niveau', 'Les trois, dans l’ordre où elles sont posées', 'Seulement la plus proche du joueur', 'Aucune : il faut un Enable Input'],

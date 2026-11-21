@@ -105,6 +105,12 @@ export interface WorldApi {
   readonly gameInstance: ActorRT;
   /** Quit Game: the game closes at the start of the next frame (core/runtime/game.ts). */
   quitGame(): void;
+  /**
+   * Event Init of the GameInstance is running: as in UE, it comes before the
+   * GameMode, the Player Controller and the pawn exist (Get Player Pawn,
+   * Get Player Controller and Get Game Mode give None).
+   */
+  readonly beforePlayers: boolean;
 }
 
 export interface ValueCx {

@@ -117,7 +117,9 @@ describe('the GameMode makes the player', () => {
     if (!lvl.ok) throw new Error(lvl.reason);
     const g = new Game(p);
     g.start();
-    expect(g.gameInstance.vars[ref]).toEqual({ ref: 'actor', id: g.world.gameMode.id });
+    // V7.52: Event Init comes before the GameMode exists, as in UE.
+    expect(g.gameInstance.vars[ref]).toBeNull();
+    g.gameInstance.vars[ref] = { ref: 'actor', id: g.world.gameMode.id };
     g.world.openLevel('Lvl_2', true, '');
     g.step();
     expect(g.level.name).toBe('Lvl_2');

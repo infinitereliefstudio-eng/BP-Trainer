@@ -31,7 +31,8 @@ export const communicationBehaviors: Record<string, Behavior> = {
 
   'actor.getPlayerPawn': {
     // One local player: any Player Index but 0 gives None, as in UE.
-    pure: (cx) => ({ result: Math.trunc(cx.num('index')) === 0 ? { ref: 'actor', id: 'player' } : null }),
+    // During Event Init no pawn exists yet (UE: Init comes before the GameMode spawns the player).
+    pure: (cx) => ({ result: Math.trunc(cx.num('index')) === 0 && !cx.world.beforePlayers ? { ref: 'actor', id: 'player' } : null }),
   },
 
   'flow.isValid': {

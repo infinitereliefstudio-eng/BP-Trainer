@@ -1,6 +1,6 @@
 # Revue du chantier n° 4, niveaux et GameInstance, V7.46 à V7.51 (21 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Revue du chantier n° 4 (V7.46 à V7.51) » : https://claude.ai/artifact/7kzFMMAK2ZHTviw3rudRSW. Demandée par Tristan le 21 novembre (« fait une review du dernier chantier »). **Rien n'est corrigé** : les lots attendent son feu vert.
+Copie du Claude Doc « BP Trainer — Revue du chantier n° 4 (V7.46 à V7.51) » : https://claude.ai/artifact/7kzFMMAK2ZHTviw3rudRSW. Demandée par Tristan le 21 novembre (« fait une review du dernier chantier »). Tristan a répondu le 21 novembre à 17 h 28 (« Ok pour 1 et 2, pour trois on simule maintenant, on peut passer à la correction ») : L2 devient une version à part, V7.53 (plusieurs Player Start simulés), et le lot 2 passe en V7.54.
 
 État de départ : lint, types et build sans erreur, 1 830 tests, smoke test sans erreur (captures 110 à 121 relues), CI verte sur les cinq derniers pushs. Rien ne casse une sauvegarde ni une progression. Chaque constat a été reproduit par un test jetable (non versionné) ou se lit dans le code.
 
@@ -29,14 +29,15 @@ Note pédagogique, sans lot : T6 est la première étape où l'élève crée un 
 
 | Lot | Contenu | Version | État |
 | --- | --- | --- | --- |
-| 1 | R1, G1, G2, E1, E2 : ce que la partie a fait suivi sur toute la partie (« Pourquoi ? », « Montre-moi », Execution Trace) ; Event Init avant le GameMode, le Player Controller et le pion (Get Player Pawn, Get Player Controller et Get Game Mode rendent None pendant Init) ; timers du GameInstance qui survivent à Open Level ; un seul End Play par acteur ; SaveGame gardés seulement s'ils sont référencés. Un test chacun | V7.52 | à lancer |
-| 2 | P1, P2, L1, L2, D1 : A4 sauve à la porte (et à Event Shutdown en complément), « À retenir », mémo et note « Dans UE » sur le téléphone ; un rappel court de Player Controller dans une des huit étapes, `KNOWN_GAPS` redescendus ; T6 vérifie le Default GameMode ; note Player Start Tag ; docs à jour | V7.53 | à lancer |
+| 1 | R1, G1, G2, E1, E2 : ce que la partie a fait suivi sur toute la partie (« Pourquoi ? », « Montre-moi », Execution Trace) ; Event Init avant le GameMode, le Player Controller et le pion (Get Player Pawn, Get Player Controller et Get Game Mode rendent None pendant Init) ; timers du GameInstance qui survivent à Open Level ; un seul End Play par acteur ; SaveGame gardés seulement s'ils sont référencés. Un test chacun | V7.52 | fait |
+| 2 | P1, P2, L1, D1 : A4 sauve à la porte (et à Event Shutdown en complément), « À retenir », mémo et note « Dans UE » sur le téléphone ; un rappel court de Player Controller dans une des huit étapes, `KNOWN_GAPS` redescendus ; T6 vérifie le Default GameMode ; docs à jour | V7.54 | à faire |
+| L2 | Plusieurs Player Start par niveau, Player Start Tag, Choose Player Start du GameMode (défaut d'UE et surcharge en Blueprint) ; « Arriver par la bonne porte » refaite avec | V7.53 | à faire |
 
 ## Questions à trancher
 
-1. G2, timers du GameInstance : les faire survivre à Open Level, comme le Timer Manager d'UE (recommandé ; je l'écris d'après les sources, et toi tu peux le confirmer dans UE) ; ou les garder liés au niveau et l'expliquer.
-2. P1, la solution de référence d'A4 : sauver à la porte, avant Open Level, et à Event Shutdown en complément (recommandé, ça marche aussi sur Android) ; ou garder Event Shutdown seul, avec un avertissement.
-3. L2, plusieurs Player Start avec Player Start Tag : une note « Dans UE » et le backlog (recommandé) ; ou les simuler maintenant (un chantier en soi).
+1. G2, timers du GameInstance : les faire survivre à Open Level, comme le Timer Manager d'UE (recommandé ; je l'écris d'après les sources, et toi tu peux le confirmer dans UE) ; ou les garder liés au niveau et l'expliquer. **Réponse : survivre.**
+2. P1, la solution de référence d'A4 : sauver à la porte, avant Open Level, et à Event Shutdown en complément (recommandé, ça marche aussi sur Android) ; ou garder Event Shutdown seul, avec un avertissement. **Réponse : à la porte et à Shutdown.**
+3. L2, plusieurs Player Start avec Player Start Tag : une note « Dans UE » et le backlog (recommandé) ; ou les simuler maintenant (un chantier en soi). **Réponse : les simuler maintenant.**
 
 ## Sources
 

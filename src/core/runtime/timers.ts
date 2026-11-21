@@ -43,6 +43,14 @@ export class TimerSet {
     for (const t of [...this.timers.values()]) if (t.actor === actorId) this.timers.delete(t.id);
   }
 
+  /**
+   * Open Level: only the timers of these owners go on (the GameInstance's,
+   * as UE's Timer Manager belongs to the GameInstance); the others went with their actors.
+   */
+  keepOwners(ids: Set<string>): void {
+    for (const t of [...this.timers.values()]) if (!ids.has(t.actor)) this.timers.delete(t.id);
+  }
+
   /** Count down; a looping timer can fire several times in a long frame. */
   tick(dt: number, fire: (t: TimerRT) => void): void {
     for (const t of [...this.timers.values()]) {

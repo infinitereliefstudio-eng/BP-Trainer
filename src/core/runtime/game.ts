@@ -13,7 +13,8 @@
  * kept to one of them is None (Accessed None, Is Valid false).
  *
  * The GameInstance (V7.48) is made here, before the first world: Event Init
- * runs before the first BeginPlay, the same object is handed to every world,
+ * runs before the GameMode, the Player Controller and the pawn exist (V7.52),
+ * the same object is handed to every world (with its Delays and timers),
  * and Event Shutdown runs when the game closes (Stop, or Quit Game at the
  * start of the next frame), after the last world's End Play.
  */
@@ -21,7 +22,9 @@ import { findClass, findLevelByName, type Level, type Project } from '../model/p
 import { inheritedView } from '../model/inheritance';
 import { createGameInstance } from './actorFactory';
 import { Journal } from './journal';
-import { Simulation, type SimulationOptions, STEP } from './simulation';
+import { RunRecord } from './runRecord';
+import { Simulation, type SimulationOptions, STEP, type TraceEntry } from './simulation';
+import { TimerSet } from './timers';
 import { type ActorRT, isRef, type RValue } from './world';
 
 /** Each world gets its own seed, derived from the game's: the order of a shuffled BeginPlay changes from one level to the next. */
@@ -32,6 +35,12 @@ export class Game {
   world: Simulation;
   /** Output Log and on-screen messages, for every world of the game. */
   readonly journal = new Journal();
+  /** What every world of the game did: « Pourquoi ? » and « Montre-moi » see the levels left behind too. */
+  readonly record = new RunRecord();
+  /** The Execution Trace, over every level. */
+  readonly trace: TraceEntry[] = [];
+  /** The timers: UE's Timer Manager belongs to the GameInstance, so its own timers outlive Open Level. */
+  readonly timers = new TimerSet();
   /** The levels played, in order, by name: the first one, then one per Open Level. */
   readonly visited: string[] = [];
   /** Told after each travel, once the new world has begun play. */
@@ -53,8 +62,9 @@ export class Game {
    * actors, components or widgets (or an event bound on them) becomes None,
    * as their objects are gone. Itself and SaveGame objects stay valid.
    */
-  private forgetOldWorld(old: Simulation): void {
-    const keep = new Set([this.gameInstance.id, ...old.objects.filter((o) => o.native === 'SaveGame').map((o) => o.id)]);
+  private forgetOldWorld(old: Simulation): ActorRT[] {
+    const saves = this.savesKept(old);
+    const keep = new Set([this.gameInstance.id, ...saves.map((o) => o.id)]);
     const clean = (v: RValue): RValue => {
       if (isRef(v)) {
         if (v.ref === 'actor') return keep.has(v.id) ? v : null;
@@ -70,11 +80,38 @@ export class Game {
     // Events of old actors bound to its Event Dispatchers: gone with them.
     const b = this.gameInstance.bindings;
     for (const k of Object.keys(b)) b[k] = (b[k] ?? []).filter((x) => keep.has(x.actor));
+    // Timers of the old actors go with them; the GameInstance's own go on (UE: its Timer Manager).
+    this.timers.keepOwners(new Set([this.gameInstance.id]));
+    return saves;
+  }
+
+  /**
+   * The SaveGame objects that outlive the old world: those the GameInstance
+   * still reaches through its variables (or through another one kept). The
+   * others were only referenced by actors of the old level, gone with it.
+   */
+  private savesKept(old: Simulation): ActorRT[] {
+    const saves = new Map(old.objects.filter((o) => o.native === 'SaveGame').map((o) => [o.id, o]));
+    const kept = new Map<string, ActorRT>();
+    const visit = (v: RValue): void => {
+      if (isRef(v)) {
+        const o = v.ref === 'actor' ? saves.get(v.id) : undefined;
+        if (o && !kept.has(o.id)) {
+          kept.set(o.id, o);
+          for (const x of Object.values(o.vars)) visit(x);
+        }
+        return;
+      }
+      if (Array.isArray(v)) for (const x of v) visit(x);
+      else if (v && typeof v === 'object') for (const x of Object.values(v)) visit(x as RValue);
+    };
+    for (const x of Object.values(this.gameInstance.vars)) visit(x);
+    return [...kept.values()];
   }
 
   constructor(
     readonly project: Project,
-    private readonly opts: Omit<SimulationOptions, 'journal' | 'gameInstance' | 'initGameInstance'> = {},
+    private readonly opts: Omit<SimulationOptions, 'journal' | 'gameInstance' | 'initGameInstance' | 'record' | 'trace' | 'timers'> = {},
   ) {
     const id = project.mapsModes?.gameInstanceClass;
     const cls = id ? findClass(project, id) : undefined;
@@ -91,6 +128,9 @@ export class Game {
       seed,
       levelId,
       journal: this.journal,
+      record: this.record,
+      trace: this.trace,
+      timers: this.timers,
       gameInstance: this.gameInstance,
       initGameInstance: first,
     });
@@ -185,11 +225,11 @@ export class Game {
     const move = old.move;
     this.slotsChangedBefore ||= old.slotsChanged;
     this.journal.rebase(old.time);
-    this.forgetOldWorld(old);
+    const saves = this.forgetOldWorld(old);
     this.world = this.make(this.target);
     this.world.move = move;
     // A SaveGame object is not in the level: kept by the GameInstance, it survives the travel.
-    this.world.objects.push(...old.objects.filter((o) => o.native === 'SaveGame'));
+    this.world.objects.push(...saves);
     this.world.engineLog(
       `LogLoad: LoadMap: /Game/${this.world.level.name} (Open Level depuis ${old.level.name} : un monde neuf, ses acteurs, le joueur et le Player Controller recréés)`,
     );

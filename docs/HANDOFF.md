@@ -10,7 +10,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Où on en est
 
-- **Revue du chantier n° 4 (21 novembre, 17 h)** : demandée par Tristan (« fait une review du dernier chantier »), [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md), copie du Claude Doc https://claude.ai/artifact/7kzFMMAK2ZHTviw3rudRSW. Dix constats en deux lots (V7.52 moteur : « Pourquoi ? » après Open Level, Event Init trop tard, timers du GameInstance, double End Play, SaveGame gardés ; V7.53 étapes et docs : A4 et Event Shutdown sur Android, rappels manquants, T6, note Player Start Tag, docs) et trois questions. **Rien n'est corrigé** : les lots attendent son feu vert et ses réponses.
+- **Revue du chantier n° 4 (21 novembre, 17 h)** : corrections lancées à 17 h 28 (« Ok pour 1 et 2, pour trois on simule maintenant ») : **V7.52 faite** (lot 1), V7.53 (plusieurs Player Start) et V7.54 (lot 2) à suivre. Demandée par Tristan (« fait une review du dernier chantier »), [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md), copie du Claude Doc https://claude.ai/artifact/7kzFMMAK2ZHTviw3rudRSW. Dix constats en deux lots (V7.52 moteur : « Pourquoi ? » après Open Level, Event Init trop tard, timers du GameInstance, double End Play, SaveGame gardés ; V7.53 étapes et docs : A4 et Event Shutdown sur Android, rappels manquants, T6, note Player Start Tag, docs) et trois questions. Réponses : 1 et 2 recommandés, 3 : simuler maintenant.
 - **Version en ligne : 7.51.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **Les trois lots sont faits** (V7.38 à V7.40, voir leurs sections). À la reprise : ses essais sur téléphone des V7.33 à V7.40 (rien n'a encore été essayé, dont le Screen Size et les boutons sous le joystick), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite, avant toute version. **Pause demandée par Tristan le 20 novembre à 16 h 30 (« met à jour le backlog et on arrête ») : rien n'est en cours.** La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
 - **Chantier annexe en cours (20 novembre au soir), avant le n° 4** : le Widget Component, avec plusieurs projets en simulation libre. Plan : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md) (V7.41 Mes projets, V7.42 moteur du Widget Component, V7.43 étapes à l'Avancé). Tristan a pris les trois recommandations (« Ok pour tes recos, tu peux lancer »). **V7.41**, **V7.42** et **V7.43** faites (voir leurs sections) : **chantier annexe terminé**. **Pause demandée par Tristan le 20 novembre à 20 h 52 (« on termine ici ») : rien n'est en cours.** À la reprise : ses essais (Mes projets, Widget Component en simulation libre, les quatre étapes de l'Avancé), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite.
@@ -1092,6 +1092,20 @@ Lancée par Tristan (« Tu peux lancer »). Toujours sans E40 du recueil (voir V
 - **Tests** : `tests/levelLessons.test.ts` (14). Smoke : 148 étapes, « Arriver par la bonne porte » résolu passe Vérifier (capture 121).
 
 Version 7.51.0.
+
+## V7.52 (2026-11-21) : revue du chantier n° 4, lot 1 (le moteur après Open Level)
+
+Lancée par Tristan (« Ok pour 1 et 2, pour trois on simule maintenant, on peut passer à la correction »), selon [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md). Réponses : timers du GameInstance qui survivent (1), A4 sauve à la porte et à Shutdown (2), plusieurs Player Start simulés maintenant (3, V7.53).
+
+- **R1** : la `Game` tient un seul `RunRecord`, une seule Execution Trace (`SimulationOptions.record`, `trace`) pour tous ses mondes. « Pourquoi ? » et « Montre-moi » voient le couloir après Open Level (D27 : le Cast To de BP_Piece).
+- **G1** : Event Init part avec `Simulation.beforePlayers` vrai ; le BeginPlay de tous passe dans une phase après lui. Pendant Init, Get Player Pawn, Get Player Controller et Get Game Mode rendent None (`WorldApi.beforePlayers`), comme dans UE où Init précède le GameMode et le login.
+- **G2** : la `Game` tient le `TimerSet` (`SimulationOptions.timers`) ; au voyage, `keepOwners` ne garde que ceux du GameInstance. Ses Delay sont comptés à chaque image (`tickLatents(gameInstance)` : avant, un Delay dans un GameInstance ne finissait jamais).
+- **E1** : `Simulation.endPlayed` : un acteur ou un composant ne reçoit End Play qu'une fois (Stop pendant un End Play de voyage).
+- **E2** : `Game.savesKept` : seuls les SaveGame que le GameInstance atteint (par ses variables, ou par un autre SaveGame gardé) passent au monde suivant.
+- **Règles** : changement n° 6 (`model/rules.ts`), avis à l'ouverture d'un projet plus ancien.
+- **Tests** : `tests/reviewNiveaux.test.ts` (9) ; `tests/gameMode.test.ts` suit G1 (Get Game Mode vaut None dans Init).
+
+Version 7.52.0.
 
 ## Méthode de travail
 

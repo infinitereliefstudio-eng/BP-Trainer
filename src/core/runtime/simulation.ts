@@ -81,6 +81,12 @@ export interface SimulationOptions {
   gameInstance?: ActorRT;
   /** The first world of a game: Event Init of the GameInstance runs before the first BeginPlay. */
   initGameInstance?: boolean;
+  /** What the game did (« Pourquoi ? », « Montre-moi »): a Game passes its own, kept over every level. */
+  record?: RunRecord;
+  /** The Execution Trace: a Game passes its own, kept over every level. */
+  trace?: TraceEntry[];
+  /** The timers: a Game passes its own, as UE's Timer Manager belongs to the GameInstance. */
+  timers?: TimerSet;
 }
 
 /** What Open Level asked for: done by the Game at the start of the next frame (core/runtime/game.ts). */
@@ -103,7 +109,7 @@ export class Simulation implements InterpreterHost {
   readonly gameMode: ActorRT;
   private readonly subsystem = createInputSubsystem();
   /** Last nodes run, oldest first (bounded). */
-  trace: TraceEntry[] = [];
+  trace: TraceEntry[];
   /** Joystick direction, each axis in [-1, 1]. */
   move = { x: 0, y: 0 };
   /** Duration of the frame being played. */
@@ -111,9 +117,9 @@ export class Simulation implements InterpreterHost {
   /** Debug lines of Line Traces still on screen. */
   debugLines: DebugLine[] = [];
   /** Running timers (Set Timer by Event). */
-  readonly timers = new TimerSet();
+  readonly timers: TimerSet;
   /** Everything that ran, for "why did this node not run?". */
-  readonly record = new RunRecord();
+  readonly record: RunRecord;
   /** Objects that are not actors (SaveGame): never in the level, found by reference only. */
   readonly objects: ActorRT[] = [];
   /**
@@ -154,6 +160,10 @@ export class Simulation implements InterpreterHost {
   ended = false;
   /** Quit Game was called: the Game closes at the start of the next frame. */
   quit = false;
+  /** Event Init is running: no GameMode, Player Controller nor pawn yet, as in UE. */
+  beforePlayers = false;
+  /** Actors (and components) that already got Event End Play: never twice. */
+  private endPlayed = new Set<string>();
   /** The GameInstance (Get Game Instance): the same object in every world of a game. */
   readonly gameInstance: ActorRT;
   private readonly initGameInstance: boolean;
@@ -190,6 +200,9 @@ export class Simulation implements InterpreterHost {
     opts: SimulationOptions = {},
   ) {
     this.journal = opts.journal ?? new Journal();
+    this.record = opts.record ?? new RunRecord();
+    this.trace = opts.trace ?? [];
+    this.timers = opts.timers ?? new TimerSet();
     this.gameInstance = opts.gameInstance ?? createGameInstance(undefined);
     this.initGameInstance = !!opts.initGameInstance;
     this.level = project.levels.find((l) => l.id === opts.levelId) ?? levelOf(project);
@@ -399,14 +412,21 @@ export class Simulation implements InterpreterHost {
         `Ordre des BeginPlay pour cette partie : ${first.map((a) => a.label).join(', ')}. Il change à chaque Play : UE ne garantit pas l'ordre entre acteurs.`,
       );
     }
-    // Event Init: once, at the launch of the game, before any BeginPlay (UE: UGameInstance::Init).
-    if (this.initGameInstance) this.fire(this.gameInstance, (n) => n.def === 'event.gameInit', 'then');
-    for (const a of this.scripted()) this.interp.autoPlayTimelines(a);
-    for (const a of this.scripted()) {
-      // An actor's Widget Components make their widget as they begin play, before the actor's own Event BeginPlay.
-      if (!a.owner) for (const e of this.initWidgetComponents(a)) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
-      this.fire(a, isBeginPlay, 'then');
+    // Event Init: once, at the launch of the game, before the GameMode, the Player Controller and the pawn
+    // exist (UE: UGameInstance::Init, then SetGameMode and the login), so before any BeginPlay.
+    if (this.initGameInstance) {
+      this.beforePlayers = true;
+      this.fire(this.gameInstance, (n) => n.def === 'event.gameInit', 'then');
     }
+    this.phases.push(() => {
+      this.beforePlayers = false;
+      for (const a of this.scripted()) this.interp.autoPlayTimelines(a);
+      for (const a of this.scripted()) {
+        // An actor's Widget Components make their widget as they begin play, before the actor's own Event BeginPlay.
+        if (!a.owner) for (const e of this.initWidgetComponents(a)) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
+        this.fire(a, isBeginPlay, 'then');
+      }
+    });
     this.runPhases();
   }
 
@@ -459,6 +479,8 @@ export class Simulation implements InterpreterHost {
         }
         // A widget's Delay runs on the world's time too: it waits while the game is paused.
         for (const o of this.umg.widgetObjects()) this.interp.tickLatents(o, dt);
+        // The GameInstance's Delays too (it is in no level: scripted() leaves it out).
+        this.interp.tickLatents(this.gameInstance, dt);
         this.timers.tick(dt, (t) => {
           const owner = this.findActor(t.actor);
           if (owner && !owner.destroyed) this.fire(owner, (n) => n.id === t.node, 'then');
@@ -639,8 +661,12 @@ export class Simulation implements InterpreterHost {
   private fireEndPlayAll(reason: number): void {
     const isEndPlay = (n: NodeInstance) => n.def === 'event.endPlay';
     for (const a of this.scripted().filter((o) => !o.owner)) {
-      this.fire(a, isEndPlay, 'then', { reason });
-      for (const c of this.componentsOf(a)) this.fire(c, isEndPlay, 'then', { reason });
+      for (const o of [a, ...this.componentsOf(a)]) {
+        // Stop during an End Play of Open Level: those already ended do not end a second time.
+        if (this.endPlayed.has(o.id)) continue;
+        this.endPlayed.add(o.id);
+        this.fire(o, isEndPlay, 'then', { reason });
+      }
     }
   }
 

@@ -46,6 +46,13 @@ export const RULE_CHANGES: readonly RuleChange[] = [
     text:
       'Enhanced Input : l’événement d’une Input Action n’a plus de case Consume Input, comme dans UE. Tous les acteurs qui reçoivent les entrées et écoutent l’action la reçoivent ; les événements de touche gardent leur Consume Input.',
   },
+  {
+    version: 6,
+    since: Date.parse('2026-11-21T17:30:00+01:00'),
+    app: '7.52',
+    text:
+      'GameInstance : pendant Event Init, le pion, le Player Controller et le GameMode n’existent pas encore (Get Player Pawn, Get Player Controller et Get Game Mode rendent None), comme dans UE. Ses Delay et ses timers continuent après Open Level.',
+  },
 ];
 
 export const RULES_VERSION = RULE_CHANGES[RULE_CHANGES.length - 1].version;

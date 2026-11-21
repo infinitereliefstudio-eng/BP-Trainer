@@ -31,7 +31,7 @@ export const gameInstanceNodes: NodeDefinition[] = [
     unique: true,
     allowedIn: ['event'],
     description:
-      'La fin d’un GameInstance : quand le jeu se ferme (Stop, ou Quit Game), après l’End Play du dernier niveau. Dernier moment pour écrire un Save Game. Rien ne le garantit si le jeu plante.',
+      'La fin d’un GameInstance : quand le jeu se ferme (Stop, ou Quit Game), après l’End Play du dernier niveau. Un dernier moment pour écrire un Save Game, pas le seul : rien ne le garantit si le jeu plante, ni sur un téléphone quand on ferme l’appli depuis les applis récentes. Sauve aussi aux moments clés (une porte, un checkpoint).',
     keywords: ['shutdown', 'fermeture', 'fin', 'quitter', 'game instance'],
     pins: [execOut()],
   },

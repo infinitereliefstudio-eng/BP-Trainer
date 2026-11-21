@@ -1,17 +1,17 @@
 # Reprise du projet
 
-Ce fichier suffit pour reprendre le travail sans l'historique des conversations. **Commencer par « Reprise rapide » ci-dessous** : c'est l'état réel au 2026-11-20. Les sections suivantes (« État », V2 à V7.x) sont l'historique, gardé pour les décisions qu'il explique ; quand elles contredisent la reprise rapide, c'est la reprise rapide qui fait foi.
+Ce fichier suffit pour reprendre le travail sans l'historique des conversations. **Commencer par « Reprise rapide » ci-dessous** : c'est l'état réel au 2026-11-21. Les sections suivantes (« État », V2 à V7.x) sont l'historique, gardé pour les décisions qu'il explique ; quand elles contredisent la reprise rapide, c'est la reprise rapide qui fait foi.
 
 À lire ensuite : [ARCHITECTURE.md](ARCHITECTURE.md) (le code), [BACKLOG.md](BACKLOG.md) (noté pour plus tard, à ne pas faire sans demande, avec l'ordre des prochains chantiers), [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md) (la dernière revue, celle du chantier n° 4, corrections pas encore lancées), [REVUE_ANNEXE_WIDGET_PROJETS.md](REVUE_ANNEXE_WIDGET_PROJETS.md), [REVUE_UMG.md](REVUE_UMG.md) et [REVUE_V7.md](REVUE_V7.md). Les plans ([PLAN_PARCOURS.md](PLAN_PARCOURS.md), [PLAN_COMPOSANTS.md](PLAN_COMPOSANTS.md), [PLAN_V3.md](PLAN_V3.md), [PLAN_V2.md](PLAN_V2.md), [PLAN_V1.md](PLAN_V1.md)) sont terminés.
 
-## Reprise rapide (2026-11-21, après la V7.51)
+## Reprise rapide (2026-11-21, après la V7.54)
 
 **Reprise par un autre agent : lire d'abord la section « Reprise par un autre agent » de [BACKLOG.md](BACKLOG.md)** (état exact, ce qui reste au chantier n° 4 version par version, plan technique de la V7.47, piège du déploiement). Les puces ci-dessous sont l'historique de la journée du 20 novembre ; la plus récente est celle du chantier n° 4.
 
 ### Où on en est
 
-- **Revue du chantier n° 4 (21 novembre, 17 h)** : corrections lancées à 17 h 28 (« Ok pour 1 et 2, pour trois on simule maintenant ») : **V7.52 faite** (lot 1), **V7.53 faite** (plusieurs Player Start), V7.54 (lot 2) à suivre. Demandée par Tristan (« fait une review du dernier chantier »), [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md), copie du Claude Doc https://claude.ai/artifact/7kzFMMAK2ZHTviw3rudRSW. Dix constats en deux lots (V7.52 moteur : « Pourquoi ? » après Open Level, Event Init trop tard, timers du GameInstance, double End Play, SaveGame gardés ; V7.53 étapes et docs : A4 et Event Shutdown sur Android, rappels manquants, T6, note Player Start Tag, docs) et trois questions. Réponses : 1 et 2 recommandés, 3 : simuler maintenant.
-- **Version en ligne : 7.51.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
+- **Revue du chantier n° 4 (21 novembre, 17 h)** : corrections lancées à 17 h 28 (« Ok pour 1 et 2, pour trois on simule maintenant ») : **V7.52 faite** (lot 1), **V7.53 faite** (plusieurs Player Start), **V7.54 faite** (lot 2) : **revue entièrement corrigée**. À la reprise : ses essais (dont les trois Player Start de l'atelier et Choose Player Start), puis le chantier n° 5 (projet Expert final, analyse d'abord) sur son feu vert. E40 du recueil reste à relire s'il le renvoie. Demandée par Tristan (« fait une review du dernier chantier »), [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md), copie du Claude Doc https://claude.ai/artifact/7kzFMMAK2ZHTviw3rudRSW. Dix constats en deux lots (V7.52 moteur : « Pourquoi ? » après Open Level, Event Init trop tard, timers du GameInstance, double End Play, SaveGame gardés ; V7.53 étapes et docs : A4 et Event Shutdown sur Android, rappels manquants, T6, note Player Start Tag, docs) et trois questions. Réponses : 1 et 2 recommandés, 3 : simuler maintenant.
+- **Version en ligne : 7.54.0** sur `main`, déployée (GitHub Pages → l'APK de Tristan se met à jour seule) et publiée sur la page de test.
 - **Revue du chantier UMG (20 novembre, après la pause)** : Tristan a demandé une phase de revue des V7.33 à V7.37 ([REVUE_UMG.md](REVUE_UMG.md), copie du Claude Doc https://claude.ai/artifact/CrkTaiJba82iawUak3Nwfy). Douze constats en trois lots (V7.38 moteur, V7.39 Play et Designer au téléphone, V7.40 code et docs). Tristan a pris les recommandations (« ok pour tes recos, tu peux passer aux corrections ») : PAUSED caché quand un widget est à l'écran, aperçu « Téléphone » dans le Designer. **Les trois lots sont faits** (V7.38 à V7.40, voir leurs sections). À la reprise : ses essais sur téléphone des V7.33 à V7.40 (rien n'a encore été essayé, dont le Screen Size et les boutons sous le joystick), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite, avant toute version. **Pause demandée par Tristan le 20 novembre à 16 h 30 (« met à jour le backlog et on arrête ») : rien n'est en cours.** La revue précédente ([REVUE_V7.md](REVUE_V7.md), 19 novembre) est entièrement corrigée (V7.23 à V7.26).
 - **Chantier annexe en cours (20 novembre au soir), avant le n° 4** : le Widget Component, avec plusieurs projets en simulation libre. Plan : [PLAN_ANNEXE_WIDGET_PROJETS.md](PLAN_ANNEXE_WIDGET_PROJETS.md) (V7.41 Mes projets, V7.42 moteur du Widget Component, V7.43 étapes à l'Avancé). Tristan a pris les trois recommandations (« Ok pour tes recos, tu peux lancer »). **V7.41**, **V7.42** et **V7.43** faites (voir leurs sections) : **chantier annexe terminé**. **Pause demandée par Tristan le 20 novembre à 20 h 52 (« on termine ici ») : rien n'est en cours.** À la reprise : ses essais (Mes projets, Widget Component en simulation libre, les quatre étapes de l'Avancé), puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite.
 - **Revue du chantier annexe (20 novembre au soir)** : Tristan a demandé une phase de revue des V7.41 à V7.43 ([REVUE_ANNEXE_WIDGET_PROJETS.md](REVUE_ANNEXE_WIDGET_PROJETS.md), copie du Claude Doc https://claude.ai/artifact/138H1RP5QSDFRbmznHPFyu). Sept constats et deux notes en deux lots (V7.44 : widget qui tourne avec son acteur, avis de règles perdu à l'import ; V7.45 : export, noms, autre façon de faire, docs). Tristan a pris les recommandations (« Ok pour tes recos, lance les corrections ») : ne jamais tourner, ajouter l'autre façon de faire. **V7.44** (lot 1) et **V7.45** (lot 2) faites, voir leurs sections : **revue entièrement corrigée**. À la reprise : ses essais sur téléphone des V7.33 à V7.45, puis l'analyse du chantier n° 4 (niveaux et GameInstance) sur son feu vert explicite.
@@ -24,7 +24,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ### Le parcours aujourd'hui
 
-140 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 33 (fin : A1 puis synthèse S2), Confirmé 48 (fin : A3, C7 puis synthèse S3), Avancé 42 (fin : A2, T5 puis synthèse S4), Expert 2 (Projet X2, Projet X1). 170 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (`isNumbered` : les leçons `build` sans code, hors transfert/autonomie), les exercices et les étapes à code ont un libellé à eux (P, D, C, R, T, A, S ; M pour Entraînement, X pour Projet).
+148 étapes : Débutant 15 (fin : synthèse S1), Intermédiaire 33 (fin : A1 puis synthèse S2), Confirmé 48 (fin : A3, C7 puis synthèse S3), Avancé 50 (fin : A2, T5 puis synthèse S4 ; le bloc niveaux et GameInstance après « Le checkpoint »), Expert 2 (Projet X2, Projet X1). 178 questions de révision sur les leçons (et 3 sur la fiche de mémo Actor Components). L'ordre est dans `src/core/lessons/index.ts` (`LESSONS`) ; les numéros de leçon sont calculés (`isNumbered` : les leçons `build` sans code, hors transfert/autonomie), les exercices et les étapes à code ont un libellé à eux (P, D, C, R, T, A, S ; M pour Entraînement, X pour Projet).
 
 Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 - **Aide par niveau** (`core/lessons/helpPolicy.ts`) : ouverte en Débutant et Intermédiaire ; à partir du Confirmé, indice après un premier essai, pas de liste des nœuds, solution après réussite (ou 3 vérifications ratées en Confirmé) ; Expert sans indice. Une première marche (`discover`, `guided`) garde sa méthode visible et ouvre sa solution après 3 échecs, à tout niveau (V7.25). Un Prédis garde tout ouvert ; transfert : tout après un essai ; autonomie et synthèse : pas de liste des nœuds. Concrètement, `hints[0]` = piste, `hints[1]` = liste des nœuds, `hints[2]` = solution.
@@ -36,7 +36,7 @@ Cadre posé au lot 0 et à respecter dans toute nouvelle étape :
 
 ### Ce qui reste à faire
 
-Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (fait, V7.27 à V7.30), UMG (fait, V7.33 à V7.37), puis niveaux et GameInstance (**en cours** : V7.46 faite, V7.47 à V7.51 à faire, [PLAN_NIVEAUX.md](PLAN_NIVEAUX.md)), puis le projet Expert final. Chaque version attend son feu vert.
+Prochains chantiers, dans l'ordre choisi par Tristan le 19 novembre (détail dans BACKLOG.md) : révisions de graphes espacées (fait, V7.27 à V7.30), UMG (fait, V7.33 à V7.37), puis niveaux et GameInstance (fait, V7.46 à V7.51, [PLAN_NIVEAUX.md](PLAN_NIVEAUX.md) ; revu et corrigé, V7.52 à V7.54, [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md)), puis le projet Expert final. Chaque version attend son feu vert.
 
 Restes du plan du parcours, à étudier (BACKLOG.md, « Reste du plan du parcours ») :
 
@@ -53,7 +53,7 @@ Une étape oubliée dans un de ces fichiers fait échouer un test (c'est voulu) 
 5. Une question de révision (`core/review/bank/lessons.ts`, bonne réponse en premier).
 6. `recalls` si la solution réécrit une notion ancienne ; relancer `tests/spacing.test.ts` et suivre ses messages.
 7. Si la leçon change le projet de départ d'une étape existante : `revision` + 1 (l'appli signale alors la leçon comme changée).
-8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~285 (nombre d'étapes attendu, 140 depuis la V7.43) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
+8. Tests à ajuster selon le cas : `tests/lot2.test.ts` (numéros de « La porte verrouillée » et « La porte qui se referme », durées), `tests/reviewV5.test.ts` (`firstSeen`), `tools/e2e/smoke.py` ligne ~285 (nombre d'étapes attendu, 148 depuis la V7.51) et les sélecteurs `has_text` qui pourraient devenir ambigus (`.first`).
 9. Les textes qui renvoient à une leçon la nomment par son **titre**, jamais par son numéro (les numéros bougent).
 10. Le correcteur rejoue chaque solution avec des appuis tenus 0,1 s (V7.23) : une étape à touche doit passer quand la touche reste enfoncée quelques images (Started plutôt que Triggered sans déclencheur).
 
@@ -1118,6 +1118,17 @@ Réponse 3 de Tristan à la revue (« pour trois on simule maintenant ») : le c
 - **Tests** : `tests/playerStarts.test.ts` (9) ; `tests/levelLessons.test.ts` suit la nouvelle étape ; smoke : captures 122 (les trois Player Starts, Details de PlayerStart3) et 123 (Choose Player Start dans BP_GameMode).
 
 Version 7.53.0.
+
+## V7.54 (2026-11-21) : revue du chantier n° 4, lot 2 (les étapes et les docs)
+
+Suite des corrections lancées par Tristan ([REVUE_NIVEAUX.md](REVUE_NIVEAUX.md), réponse 2 : sauver à la porte et à Shutdown).
+
+- **P1, A4** : la solution de référence a une fonction **Sauver (Niveau)** dans BP_Jeu ; BP_Porte l'appelle avec Lvl_Atelier juste avant Open Level, Event Shutdown avec Get Current Level Name. « À retenir », questions de « Comment t'y prendre », indices et défi le disent (sur un téléphone, fermer l'appli ne déclenche pas Shutdown ; Event Init vient avant le GameMode). Note Piège sur Event Shutdown (`explain/notes.ts`, Application Will Enter Background), description du nœud et mémo « Niveaux et sauvegarde » à jour. Les vérifications acceptent toujours toute façon de sauver.
+- **P2 et L1, T6** (`revision: 2`) : le drone a ses commandes, IMC_Drone (E → IA_Monter), qu'il ajoute lui-même à son BeginPlay (Get Player Controller → Enhanced Input Local Player Subsystem → Add Mapping Context) : rappels `player-controller` et `enhanced-input`. Le projet a le BP_PlayerController du template (`ensurePlayerInput`). Nouvelle vérification `controls` (E après la porte). La vérification `override` regarde le Default GameMode sur un niveau sans override (avant : le pion du couloir, qu'un override pouvait cacher). `KNOWN_GAPS` : enhanced-input sort de la liste, player-controller 54 → 45.
+- **D1** : HANDOFF (reprise rapide, parcours à 148 étapes et 178 questions, liste à cocher), BACKLOG (essais en retard). E40 du recueil n'est toujours pas dans le dépôt.
+- **Tests** : `tests/reviewNiveaux.test.ts` (12 au total : A4 sauve à la porte avant Stop, T6 avec Default GameMode changé, T6 sans Mapping Context).
+
+Version 7.54.0.
 
 ## Méthode de travail
 

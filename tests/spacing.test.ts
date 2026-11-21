@@ -35,7 +35,8 @@ const KNOWN_GAPS: Record<string, number> = {
   // V7.50 inserted four level steps after « Le checkpoint » (Le couloir, P17, Le sac qui suit, D27): hit, inheritance,
   // player-controller, tick and timers grew by up to four, trace entered the list (19).
   // V7.51 added the four last ones (La bonne porte, D28, T6, A4): the gaps that cross the eight grew by up to four more,
-  // and actor-components, enhanced-input, input and widget-component went just over 15.
+  // and actor-components, enhanced-input, input and widget-component went just over 15. V7.54: T6 writes Get Player Controller and
+  // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45.
   'actor-components': 17, // V7.51: the eight level steps sit in its gap
   arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4
@@ -44,7 +45,6 @@ const KNOWN_GAPS: Record<string, number> = {
   'data-tables': 66, // runs to the end of the path
   destroy: 48,
   dispatchers: 27,
-  'enhanced-input': 16, // V7.51: the eight level steps sit in its gap
   enum: 41,
   'flow-memory': 29,
   functions: 42, // lot 3 added Confirmé steps inside this gap: lot 4
@@ -58,7 +58,7 @@ const KNOWN_GAPS: Record<string, number> = {
   maps: 59, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 25, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 20,
-  'player-controller': 54, // V7.36: Get Owning Player in the Confirmé menus; from there to Expert X1, a recall in the Avancé is still to find
+  'player-controller': 45, // V7.36: Get Owning Player in the Confirmé menus; V7.54: T6's drone adds its Mapping Context through Get Player Controller (the gap left is before it)
   random: 58, // lot 3 added Confirmé steps inside this gap: lot 4
   rotation: 27,
   'save-game': 41, // runs to the end of the path

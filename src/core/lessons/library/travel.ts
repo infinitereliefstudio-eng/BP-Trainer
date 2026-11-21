@@ -16,7 +16,9 @@
 import type { Project } from '../../model/project';
 import { gameModeOf, playerClassesFor } from '../../model/gameMode';
 import { ensureDefaultGameMode, setGameModeDefault, setGameModeOverride } from '../../operations/gameModeOps';
-import { overrideFunction } from '../../operations/functionOps';
+import { addFunction, addFunctionParam, overrideFunction } from '../../operations/functionOps';
+import { addInputAction, addMapping, addMappingContext } from '../../operations/inputOps';
+import { ensurePlayerInput } from '../ue5Input';
 import { lineage } from '../../model/inheritance';
 import { setGameInstanceClass } from '../../operations/levelAssetOps';
 import { addClass, setPlayerClass } from '../../operations/projectOps';
@@ -175,6 +177,7 @@ export const lessonCorridor: Lesson = {
 // ----------------------------------------------------------------- P17
 
 const P17 = ['Score : 0', 'Porte franchie', 'Score : 0'];
+const DRONE_UP = 'Drone : montée';
 
 export const predictScoreDoor: Lesson = predictLesson({
   id: 'p17-score-porte',
@@ -834,8 +837,15 @@ function droneProject(): Project {
   const pb = new ProjectBuilder('Le pion de l’atelier');
   const player = pb.blueprint('BP_Joueur', 'Pawn');
   setPlayerClass(pb.project, player.cls.id);
+  // The project is set up as UE5's template: BP_PlayerController adds IMC_Joueur (empty here).
+  ensurePlayerInput(pb.project, []);
   const drone = pb.blueprint('BP_Drone', 'Pawn');
   drone.link(drone.node('event.beginPlay', {}, {}, [64, 96]), 'then', drone.node('debug.printString', {}, { text: 'Drone en ligne' }, [400, 96]), 'exec');
+  // The drone's own controls: IMC_Drone (E → IA_Monter) exists, nothing adds it yet.
+  const action = must(addInputAction(pb.project, 'IA_Monter'));
+  const imc = must(addMappingContext(pb.project, 'IMC_Drone'));
+  must(addMapping(pb.project, imc.id, action.id, 'E'));
+  drone.link(drone.node('input.action', { action: action.id }, {}, [64, 400]), 'started', drone.node('debug.printString', {}, { text: DRONE_UP }, [400, 400]), 'exec');
   const door = doorClass(pb);
   openOnOverlap(door);
   pb.place(door, ...DOOR);
@@ -850,6 +860,12 @@ function droneProject(): Project {
 }
 
 function solveDrone(p: Project): void {
+  // The drone adds its Mapping Context to the Player Controller that possesses it, as it begins play.
+  const drone = edit(p, 'BP_Drone');
+  const said = Object.values(drone.graph.nodes).find((n) => n.def === 'debug.printString' && n.defaults.text === 'Drone en ligne')!.id;
+  const add = drone.node('input.addMappingContext', { context: p.mappingContexts.find((c) => c.name === 'IMC_Drone')!.id }, {}, [700, 96]);
+  const sub = drone.node('input.subsystem', {}, {}, [460, 250]);
+  drone.link(said, 'then', add, 'exec').link(drone.node('player.getController', {}, {}, [200, 250]), 'result', sub, 'controller').link(sub, 'result', add, 'target');
   const made = addClass(p, 'BP_GameModeAtelier', 'GameModeBase');
   if (!made.ok) throw new Error(made.reason);
   const pawn = setGameModeDefault(p, made.value.id, 'defaultPawnClass', cls(p, 'BP_Drone').id);
@@ -862,6 +878,8 @@ function solveDrone(p: Project): void {
 export const transferDrone: Lesson = {
   id: 't6-pion-atelier',
   code: 'T6',
+  // V7.54: the drone's own controls (IMC_Drone, added through Get Player Controller), the template's BP_PlayerController.
+  revision: 2,
   module: LEVELS_MODULE,
   level: 'avance',
   number: 0,
@@ -879,25 +897,27 @@ export const transferDrone: Lesson = {
         '**BP_Joueur** est le pion de tout le projet : Default Pawn Class de **BP_GameMode**, le Default GameMode (Project Settings › Maps & Modes). **BP_Drone** est un autre Blueprint Pawn ; son BeginPlay affiche « Drone en ligne ».\n\n' +
         `- Dans ${WORKSHOP}, le joueur est un **BP_Drone**.\n` +
         `- Dans ${MAIN}, il reste un **BP_Joueur**.\n` +
-        '- Un troisième niveau ajouté plus tard doit avoir BP_Joueur sans qu’on y touche.',
+        '- Un troisième niveau ajouté plus tard doit avoir BP_Joueur sans qu’on y touche.\n' +
+        `- Le drone a ses commandes : **IMC_Drone** (E → IA_Monter) est prêt, et l’événement IA_Monter de BP_Drone affiche « ${DRONE_UP} ». Mais personne n’ajoute IMC_Drone : le drone doit l’ajouter lui-même en apparaissant, au Player Controller du joueur.`,
     },
     {
       title: 'Comment t’y prendre',
       body:
         'Tu as déjà réglé une Player Controller Class dans un GameMode (« Les contrôles au Player Controller »). Ici, même mécanique, mais pour un seul niveau. Avant de toucher à quoi que ce soit :\n\n' +
-        '1. Qui décide du pion, et à quel moment ?\n2. Changer BP_GameMode, est-ce changer un niveau ou tous ?\n3. Où un niveau dit-il « pas le GameMode par défaut, celui-ci » ?\n\n' +
+        '1. Qui décide du pion, et à quel moment ?\n2. Changer BP_GameMode, est-ce changer un niveau ou tous ?\n3. Où un niveau dit-il « pas le GameMode par défaut, celui-ci » ?\n4. Un Mapping Context s’ajoute à quoi, et qui peut l’atteindre depuis le drone (« Les contrôles au Player Controller ») ?\n\n' +
         'Indice de lieu : dans l’Outliner d’un niveau, la ligne **WorldSettings**.',
     },
   ],
-  objectives: [`Dans ${WORKSHOP}, le joueur est BP_Drone.`, `Dans ${MAIN}, il reste BP_Joueur.`, 'Le Default GameMode garde BP_Joueur.'],
+  objectives: [`Dans ${WORKSHOP}, le joueur est BP_Drone.`, `Dans ${MAIN}, il reste BP_Joueur.`, 'Le Default GameMode garde BP_Joueur.', 'Dans l’atelier, E fait monter le drone.'],
   hints: [
     'Qui fait apparaître le pion d’un niveau ? Et un niveau peut-il en choisir un autre que celui du projet ?',
-    'Content Drawer › Blueprint Class › Game Mode Base ; Class Defaults › Default Pawn Class ; Outliner de l’atelier › WorldSettings › GameMode Override.',
-    `Solution : un nouveau GameMode (BP_GameModeAtelier), Default Pawn Class = BP_Drone ; ouvre ${WORKSHOP}, Outliner › WorldSettings › GameMode Override = BP_GameModeAtelier. BP_GameMode ne change pas.`,
+    'Content Drawer › Blueprint Class › Game Mode Base ; Class Defaults › Default Pawn Class ; Outliner de l’atelier › WorldSettings › GameMode Override ; Get Player Controller ; Enhanced Input Local Player Subsystem ; Add Mapping Context.',
+    `Solution : un nouveau GameMode (BP_GameModeAtelier), Default Pawn Class = BP_Drone ; ouvre ${WORKSHOP}, Outliner › WorldSettings › GameMode Override = BP_GameModeAtelier. BP_GameMode ne change pas. BP_Drone, après « Drone en ligne » : Add Mapping Context (IMC_Drone), Target = Enhanced Input Local Player Subsystem de Get Player Controller.`,
   ],
-  challenge: 'Donne au drone son propre Player Controller dans l’atelier seulement. Puis : le GameMode de l’atelier peut-il hériter de BP_GameMode pour ne changer que le pion ?',
+  challenge: 'De retour au couloir, IMC_Drone est-il encore là ? (Le Player Controller est refait à chaque niveau.) Puis : le GameMode de l’atelier peut-il hériter de BP_GameMode pour ne changer que le pion ?',
   setup: droneProject,
-  scenario: [{ wait: 0.3 }, { checkpoint: 'debut' }, ...throughDoor],
+  scenario: [{ wait: 0.3 }, { checkpoint: 'debut' }, ...throughDoor, { press: 'E' }, { wait: 0.1 }, { release: 'E' }, { wait: 0.1 }],
+  recalls: ['player-controller', 'enhanced-input'],
   checks: [
     {
       id: 'corridor',
@@ -931,10 +951,22 @@ export const transferDrone: Lesson = {
       test: (cx) => {
         const level = cx.project.levels.find((l) => l.name === WORKSHOP)!;
         if (!level.gameModeOverride) return 'Le pion de l’atelier doit venir d’un GameMode Override dans ses World Settings.';
-        const main = cx.project.levels.find((l) => l.name === MAIN)!;
-        return playerClassesFor(cx.project, main).pawn?.name === 'BP_Joueur' ? true : 'Le Default GameMode doit garder BP_Joueur pour les autres niveaux.';
+        // A level without override, as one added later: the Default GameMode's pawn, whatever the corridor's own settings.
+        const later = { ...cx.project.levels.find((l) => l.name === MAIN)!, gameModeOverride: undefined };
+        return playerClassesFor(cx.project, later).pawn?.name === 'BP_Joueur'
+          ? true
+          : 'Le Default GameMode doit garder BP_Joueur : un niveau ajouté plus tard, sans GameMode Override, aurait sinon un autre pion. Seul l’atelier change, par son GameMode Override.';
       },
     }),
+    {
+      id: 'controls',
+      label: 'Dans l’atelier, E fait monter le drone',
+      test: (cx) => {
+        if (cx.prints().includes(DRONE_UP)) return true;
+        if (cx.sim.player.className !== 'BP_Drone') return 'Le drone n’est pas le joueur dans l’atelier : règle d’abord son GameMode.';
+        return 'E ne fait rien au drone : IMC_Drone n’est ajouté nulle part. À son BeginPlay, BP_Drone fait Add Mapping Context (IMC_Drone) sur l’Enhanced Input Local Player Subsystem de Get Player Controller.';
+      },
+    },
     noRuntimeErrors(),
   ],
   solve: solveDrone,
@@ -960,9 +992,12 @@ function bagValue(cx: CheckContext): number | undefined {
 }
 
 /**
- * BP_Sauvegarde (Niveau, Pieces). BP_Jeu: Event Shutdown writes the level and
- * the bag; Event Init reads them back, Pieces at once, the level in Reprendre.
- * BP_GameMode's BeginPlay opens Reprendre if set, then clears it.
+ * BP_Sauvegarde (Niveau, Pieces). BP_Jeu has a function Sauver (Niveau: Name)
+ * that writes the slot « Partie »; the door calls it with its destination just
+ * before Open Level, and Event Shutdown with the level being played (on a
+ * phone, Shutdown does not come when the app is killed: the door's save is
+ * the one that counts). Event Init reads the slot back, Pieces at once, the
+ * level in Reprendre; BP_GameMode's BeginPlay opens Reprendre if set, then clears it.
  */
 function solveResume(p: Project): void {
   const savePb = new ClassBuilder(must(addClass(p, 'BP_Sauvegarde', 'SaveGame')), p);
@@ -973,17 +1008,24 @@ function solveResume(p: Project): void {
   const jeu = new ClassBuilder(jeuCls, p);
   const resume = jeu.variable('Reprendre', T.name, '');
   const pieces = vid(p, 'BP_Jeu', 'Pieces');
-  // Shutdown → Create → Set Niveau (Get Current Level Name) → Set Pieces → Save.
+  // Sauver (Niveau) : Create → Set Niveau → Set Pieces → Save Game to Slot (« Partie »).
+  const fn = addFunction(jeuCls, 'Sauver');
+  const param = addFunctionParam(p, jeuCls, fn.id, 'inputs', T.name)!;
+  param.name = 'Niveau';
+  const f = jeu.inGraph(fn.id);
+  const entry = nodeOf(fn, 'fn.entry');
+  const create = f.node('save.create', {}, { saveClass: saveId }, [340, 0]);
+  const setLevel = f.node('var.setExternal', { owner: saveId, variable: niveau }, {}, [640, 0]);
+  const setBag = f.node('var.setExternal', { owner: saveId, variable: savedPieces }, {}, [940, 0]);
+  const write = f.node('save.toSlot', {}, { slot: 'Partie' }, [1240, 0]);
+  f.link(entry, 'then', create, 'exec').link(create, 'then', setLevel, 'exec').link(create, 'result', setLevel, 'target').link(entry, param.id, setLevel, 'value');
+  f.link(setLevel, 'then', setBag, 'exec').link(create, 'result', setBag, 'target').link(f.node('var.get', { variable: pieces }, {}, [760, 200]), 'value', setBag, 'value');
+  f.link(setBag, 'then', write, 'exec').link(create, 'result', write, 'object');
+  // Shutdown → Sauver (Get Current Level Name, as a Name).
   const down = jeu.node('event.gameShutdown', {}, {}, [64, 96]);
-  const create = jeu.node('save.create', {}, { saveClass: saveId }, [340, 96]);
-  const setLevel = jeu.node('var.setExternal', { owner: saveId, variable: niveau }, {}, [640, 96]);
+  const callDown = jeu.node('call.function', { owner: jeuCls.id, graph: fn.id }, {}, [640, 96]);
   const toName = jeu.node('conv.stringToName', {}, {}, [440, 300]);
-  const setBag = jeu.node('var.setExternal', { owner: saveId, variable: savedPieces }, {}, [940, 96]);
-  const write = jeu.node('save.toSlot', {}, { slot: 'Partie' }, [1240, 96]);
-  jeu.link(down, 'then', create, 'exec').link(create, 'then', setLevel, 'exec').link(create, 'result', setLevel, 'target');
-  jeu.link(jeu.node('level.currentName', {}, {}, [200, 300]), 'result', toName, 'in').link(toName, 'result', setLevel, 'value');
-  jeu.link(setLevel, 'then', setBag, 'exec').link(create, 'result', setBag, 'target').link(jeu.node('var.get', { variable: pieces }, {}, [760, 300]), 'value', setBag, 'value');
-  jeu.link(setBag, 'then', write, 'exec').link(create, 'result', write, 'object');
+  jeu.link(down, 'then', callDown, 'exec').link(jeu.node('level.currentName', {}, {}, [200, 300]), 'result', toName, 'in').link(toName, 'result', callDown, param.id);
   // Init → Load → Cast → Set Pieces → Set Reprendre.
   const init = jeu.node('event.gameInit', {}, {}, [64, 560]);
   const load = jeu.node('save.fromSlot', {}, { slot: 'Partie' }, [340, 560]);
@@ -991,10 +1033,19 @@ function solveResume(p: Project): void {
   const keepBag = jeu.node('var.set', { variable: pieces }, {}, [940, 560]);
   const keepLevel = jeu.node('var.set', { variable: resume }, {}, [1240, 560]);
   jeu.link(init, 'then', load, 'exec').link(load, 'then', cast, 'exec').link(load, 'result', cast, 'object').link(cast, 'then', keepBag, 'exec');
-  jeu.link(jeu.node('var.getExternal', { owner: saveId, variable: savedPieces }, {}, [800, 760]), 'value', keepBag, 'value');
-  jeu.link(jeu.node('var.getExternal', { owner: saveId, variable: niveau }, {}, [1100, 760]), 'value', keepLevel, 'value');
-  const [g1, g2] = Object.values(jeu.graph.nodes).filter((n) => n.def === 'var.getExternal').slice(-2);
-  jeu.link(cast, 'as', g1.id, 'target').link(cast, 'as', g2.id, 'target').link(keepBag, 'then', keepLevel, 'exec');
+  const g1 = jeu.node('var.getExternal', { owner: saveId, variable: savedPieces }, {}, [800, 760]);
+  const g2 = jeu.node('var.getExternal', { owner: saveId, variable: niveau }, {}, [1100, 760]);
+  jeu.link(g1, 'value', keepBag, 'value').link(g2, 'value', keepLevel, 'value');
+  jeu.link(cast, 'as', g1, 'target').link(cast, 'as', g2, 'target').link(keepBag, 'then', keepLevel, 'exec');
+  // BP_Porte: Overlap → Cast To BP_Jeu → Sauver (Lvl_Atelier) → Open Level, as before.
+  const door = edit(p, 'BP_Porte');
+  const ov = nodeOf(door.graph, 'event.actorBeginOverlap');
+  const open = nodeOf(door.graph, 'level.open');
+  for (const [id, l] of Object.entries(door.graph.links)) if (l.from.node === ov) delete door.graph.links[id];
+  const dcast = door.node('cast.to', { class: jeuCls.id }, {}, [340, 300]);
+  const callDoor = door.node('call.function', { owner: jeuCls.id, graph: fn.id }, { [param.id]: WORKSHOP }, [640, 300]);
+  door.link(ov, 'then', dcast, 'exec').link(door.node('game.getGameInstance', {}, {}, [120, 420]), 'result', dcast, 'object');
+  door.link(dcast, 'then', callDoor, 'exec').link(dcast, 'as', callDoor, 'target').link(callDoor, 'then', open, 'exec');
   // BP_GameMode: BeginPlay → Cast To BP_Jeu → Is None (Reprendre)? false → Open Level (Reprendre) → Reprendre = None.
   const gm = edit(p, 'BP_GameMode');
   const begin = gm.node('event.beginPlay', {}, {}, [64, 96]);
@@ -1002,11 +1053,11 @@ function solveResume(p: Project): void {
   const get = gm.node('var.getExternal', { owner: jeuCls.id, variable: resume }, {}, [480, 300]);
   const none = gm.node('name.isNone', {}, {}, [700, 300]);
   const branch = gm.node('flow.branch', {}, {}, [700, 96]);
-  const open = gm.node('level.open', {}, {}, [1000, 96]);
+  const go = gm.node('level.open', {}, {}, [1000, 96]);
   const clear = gm.node('var.setExternal', { owner: jeuCls.id, variable: resume }, { value: '' }, [1300, 96]);
   gm.link(begin, 'then', gcast, 'exec').link(gm.node('game.getGameInstance', {}, {}, [120, 300]), 'result', gcast, 'object');
   gm.link(gcast, 'as', get, 'target').link(get, 'value', none, 'in').link(gcast, 'then', branch, 'exec').link(none, 'result', branch, 'condition');
-  gm.link(branch, 'false', open, 'exec').link(get, 'value', open, 'level').link(open, 'then', clear, 'exec').link(gcast, 'as', clear, 'target');
+  gm.link(branch, 'false', go, 'exec').link(get, 'value', go, 'level').link(go, 'then', clear, 'exec').link(gcast, 'as', clear, 'target');
 }
 
 function must<T>(r: { ok: true; value: T } | { ok: false; reason: string }): T {
@@ -1026,7 +1077,7 @@ export const autonomyResume: Lesson = {
     'Le sac suit le joueur d’un niveau à l’autre. Mais si on quitte le jeu dans l’atelier, tout repart de zéro au lancement suivant, au couloir. Il faut reprendre là où on s’était arrêté : au bon niveau, avec son sac.',
   notions: ['GameInstance', 'Event Init', 'Event Shutdown', 'SaveGame', 'Open Level (by Name)'],
   remember:
-    'Deux durées, deux outils : le GameInstance garde la partie en cours d’un niveau à l’autre ; le Save Game la garde d’un lancement à l’autre. Le GameInstance est le bon endroit pour faire le lien : il relit le slot au lancement (Event Init) et l’écrit à la fermeture (Event Shutdown).',
+    'Deux durées, deux outils : le GameInstance garde la partie en cours d’un niveau à l’autre ; le Save Game la garde d’un lancement à l’autre. Le GameInstance fait le lien : il relit le slot au lancement (Event Init). Il l’écrit aux moments clés (une porte) et à Event Shutdown en plus : sur un téléphone, fermer l’appli ne déclenche pas Shutdown.',
   cards: [
     {
       title: 'Cahier des charges',
@@ -1041,17 +1092,17 @@ export const autonomyResume: Lesson = {
       title: 'Comment t’y prendre',
       body:
         'Pas de liste de nœuds. Réponds d’abord :\n\n' +
-        '1. Quoi écrire sur le disque, et sous quelle forme (un niveau peut-il s’écrire comme un nom) ?\n2. À quel moment écrire, pour être sûr d’avoir le dernier état ? Et relire ?\n3. Au lancement, qui peut faire Open Level vers le niveau retrouvé, et quand ?\n4. Que se passe-t-il au lancement suivant si le niveau retrouvé est déjà le bon ?\n\n' +
+        '1. Quoi écrire sur le disque, et sous quelle forme (un niveau peut-il s’écrire comme un nom) ?\n2. À quels moments écrire, pour avoir le dernier état même si le joueur ferme l’appli d’un coup (sur un téléphone, Event Shutdown n’a alors pas lieu) ? Et quand relire ?\n3. Au lancement, qui peut faire Open Level vers le niveau retrouvé, et quand ? (Event Init vient avant le GameMode et le joueur.)\n4. Que se passe-t-il au lancement suivant si le niveau retrouvé est déjà le bon ?\n\n' +
         'Les indices s’ouvrent après un premier essai.',
     },
   ],
   objectives: ['Sans sauvegarde : le couloir, un sac vide.', 'Après Stop puis Play : l’atelier, et le sac retrouvé.'],
   hints: [
     'Quels sont les deux moments à lui du GameInstance ? Et sous quelle forme écrire le niveau en cours ?',
-    'SaveGame (Niveau en Name, Pieces) ; Event Shutdown ; Get Current Level Name ; String to Name ; Save Game to Slot ; Event Init ; Load Game from Slot ; Cast To ; BeginPlay du GameMode ; Open Level (by Name).',
-    'Solution : BP_Sauvegarde (Niveau, Pieces). BP_Jeu : Event Shutdown → Create Save Game Object → Niveau = Get Current Level Name → Pieces → Save Game to Slot (« Partie ») ; Event Init → Load Game from Slot → Cast To BP_Sauvegarde → Pieces, et un Name Reprendre = Niveau. BP_GameMode : BeginPlay → Cast To BP_Jeu → si Reprendre n’est pas None → Open Level (Reprendre), puis Reprendre = None.',
+    'SaveGame (Niveau en Name, Pieces) ; une fonction Sauver (Niveau) dans BP_Jeu ; la porte et Event Shutdown l’appellent ; Get Current Level Name ; String to Name ; Save Game to Slot ; Event Init ; Load Game from Slot ; Cast To ; BeginPlay du GameMode ; Open Level (by Name).',
+    'Solution : BP_Sauvegarde (Niveau, Pieces). BP_Jeu : une fonction Sauver (Niveau : Name) → Create Save Game Object → Niveau, Pieces → Save Game to Slot (« Partie ») ; BP_Porte l’appelle avec Lvl_Atelier juste avant Open Level, Event Shutdown avec Get Current Level Name. Event Init → Load Game from Slot → Cast To BP_Sauvegarde → Pieces, et un Name Reprendre = Niveau. BP_GameMode : BeginPlay → Cast To BP_Jeu → si Reprendre n’est pas None → Open Level (Reprendre), puis Reprendre = None.',
   ],
-  challenge: 'Ajoute « Nouvelle partie » : un moyen d’effacer le slot (Delete Game in Slot) pour repartir du couloir. Et si le jeu plante, Event Shutdown n’a pas lieu : où sauver en plus pour ne pas tout perdre ?',
+  challenge: 'Ajoute « Nouvelle partie » : un moyen d’effacer le slot (Delete Game in Slot) pour repartir du couloir. Et la pièce ramassée après la dernière porte : à quel autre moment la sauver, sans écrire à chaque image ?',
   setup() {
     const p = bagProject('Reprendre la partie');
     solveBag(p);

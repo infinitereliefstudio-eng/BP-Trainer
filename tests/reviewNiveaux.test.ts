@@ -8,6 +8,8 @@ import { runLesson } from '../src/core/lessons/runner';
 import { addLevel, setGameInstanceClass } from '../src/core/operations/levelAssetOps';
 import { Game } from '../src/core/runtime/game';
 import { T } from '../src/core/types/pins';
+import type { Project } from '../src/core/model/project';
+import { addClass } from '../src/core/operations/projectOps';
 
 const say = (b: ClassBuilder, after: string, pin: string, text: string): string => {
   const p = b.node('debug.printString', {}, { text });
@@ -183,3 +185,58 @@ describe('E1, E2: one End Play per actor; only the SaveGame objects the GameInst
     expect(saves.length).toBeLessThanOrEqual(2);
   });
 });
+
+describe('V7.54: review of chantier n° 4, lot 2 (the steps)', () => {
+  const step = (id: string) => LESSONS.find((l) => l.id === id)!;
+  const failed = (r: ReturnType<typeof runLesson>) => r.results.filter((x) => !x.ok).map((x) => x.check.id);
+
+  it('A4: the reference saves at the door, before Open Level: the slot is written while the game still runs', () => {
+    const a4 = step('a4-reprendre');
+    const p = a4.setup();
+    a4.solve(p);
+    const g = new Game(p, { slots: {} });
+    g.start();
+    g.world.teleportPlayer(40, 0);
+    run(g, 10);
+    g.world.teleportPlayer(320, 0);
+    run(g, 10);
+    expect(g.level.name).toBe('Lvl_Atelier');
+    // No Stop yet: the door's save is there (on a phone, Shutdown may never come).
+    expect(g.slotsChanged).toBe(true);
+    expect(runLesson(a4, p).passed).toBe(true);
+  });
+
+  it('T6: a Default GameMode changed to the drone fails, even with an override on every level', () => {
+    const t6 = step('t6-pion-atelier');
+    const p = t6.setup();
+    t6.solve(p);
+    const id = (n: string) => p.classes.find((c) => c.name === n)!.id;
+    const gm = p.classes.find((c) => c.name === 'BP_GameMode')!;
+    gm.gameMode = { ...gm.gameMode, defaultPawnClass: id('BP_Drone') };
+    const corridor = pb2(p, id('BP_Joueur'));
+    p.levels.find((l) => l.name === 'Lvl_Principal')!.gameModeOverride = corridor;
+    const r = runLesson(t6, p);
+    expect(failed(r)).toEqual(['override']);
+  });
+
+  it('T6: without its Mapping Context the drone does not climb; the reference adds it through Get Player Controller', () => {
+    const t6 = step('t6-pion-atelier');
+    expect(t6.recalls).toEqual(['player-controller', 'enhanced-input']);
+    const p = t6.setup();
+    t6.solve(p);
+    const drone = p.classes.find((c) => c.name === 'BP_Drone')!;
+    const add = Object.values(drone.graphs[0].nodes).find((n) => n.def === 'input.addMappingContext')!;
+    delete drone.graphs[0].nodes[add.id];
+    for (const [k, l] of Object.entries(drone.graphs[0].links)) if (l.to.node === add.id || l.from.node === add.id) delete drone.graphs[0].links[k];
+    const r = runLesson(t6, p);
+    expect(r.results.find((x) => x.check.id === 'controls')?.reason).toContain('IMC_Drone');
+  });
+});
+
+/** A GameModeBase Blueprint with that Default Pawn Class, for T6's variant. */
+function pb2(p: Project, pawn: string): string {
+  const made = addClass(p, 'BP_GM_Couloir', 'GameModeBase');
+  if (!made.ok) throw new Error(made.reason);
+  made.value.gameMode = { defaultPawnClass: pawn };
+  return made.value.id;
+}

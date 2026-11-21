@@ -27,6 +27,7 @@ const TRAPS: Record<string, string> = {
   'flow.forLoop': 'La boucle tourne d’un coup, dans la même image : un Delay dans Loop Body ne la fait pas attendre.',
   'array.get': 'Renvoie une copie de l’élément : la modifier ne change pas le tableau. Pour changer un élément, utilise Set Array Elem.',
   'math.equalFloat': 'Comparaison exacte : un Float issu d’un calcul (0,1 + 0,2) n’est presque jamais exactement égal à la valeur attendue. Utilise Nearly Equal.',
+  'event.gameShutdown': 'Sur Android et iOS, fermer l’appli depuis les applis récentes la tue sans Event Shutdown : un Save Game écrit seulement ici serait perdu. Sauve aussi aux moments clés (une porte, un checkpoint) ; dans UE, Application Will Enter Background prévient quand l’appli passe en arrière-plan.',
   'event.inputKey': 'Consume Input est coché par défaut : si plusieurs acteurs écoutent cette touche, seul le premier de la pile la reçoit, c’est-à-dire le dernier posé dans le niveau. Le joueur passe après tous les autres.',
   'cast.to': 'Un échec n’est pas une erreur : il sort par Cast Failed sans rien dire. Si rien ne se passe, regarde d’abord de ce côté.',
   'input.subsystem': 'Obtenir le Subsystem ne fait rien tout seul : c’est Add Mapping Context, branché sur sa Return Value, qui active le contexte.',

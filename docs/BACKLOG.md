@@ -334,6 +334,7 @@ Ce que le chantier laisse de côté, du plus utile au moins utile pour un jeu so
 | Idée | Ce qu'elle apprendrait | Pertinence | Difficulté |
 | --- | --- | --- | --- |
 | **Level Blueprint** | Un graphe par niveau, qui référence directement les acteurs posés ; ses variables meurent avec le niveau ; pourquoi la logique d'un objet va plutôt dans sa classe | ★★ | M |
+| **Mini-exercices « Niveaux et GameInstance »** | Une famille de la file « À retravailler en Blueprint » (comme Cast To ou Interfaces UMG) : garder une valeur dans le GameInstance à travers une porte, une référence d'acteur qui devient None, choisir le pion par le GameMode. Promise avec C8, pas faite en V7.56 (une famille est un travail à part) | ★★ | M |
 | ~~Plusieurs Player Start et Player Start Tag~~ | **Fait en V7.53** (Choose Player Start surchargé, Player Start Tag) | — | — |
 | **Possess et Unpossess** | Spawn Actor from Class puis Possess : prendre le contrôle d'un autre pion en cours de partie (monter dans un véhicule, piloter un drone puis revenir au personnage, caméra de spectateur), Get Controlled Pawn, Event Possessed / Unpossessed, ce que devient l'ancien pion. C'est la voie qu'E40 du recueil cite pour l'avatar choisi ; au départ d'un niveau, Get Default Pawn Class For Controller (V7.55) suffit et garantit un seul pion. Demande de changer le pion du joueur en cours de partie (aujourd'hui `Simulation.player` est fixé par niveau) : entrées, caméra qui suit, Outliner, correcteur | ★★ | M à L |
 | **GameInstance Subsystems** | Ce qu'utilise Station enterrée : créés en C++, appelés depuis un Blueprint ; une fiche « Dans UE » puis, si on simule, un sous-système fourni par l'appli | ★★ | S (fiche) à M |
@@ -419,6 +420,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.56 (21 novembre 2026), E40 du recueil : Complète C8 « Le personnage choisi » après T6 (menu, vitrines, le choix gardé en Class Reference dans le GameInstance, Get Default Pawn Class For Controller du GameMode, un seul pion) ; Get Class typé par son objet (format 19). 149 étapes.
 - V7.55 (21 novembre 2026), E40 du recueil, moteur : Get Default Pawn Class For Controller surchargeable dans un GameMode (un seul pion, de la classe rendue) ; le pion est construit après Event Init dans tous les cas ; le pas `restart` du correcteur peut relancer dans un niveau donné. Possess noté au backlog.
 - V7.54 (21 novembre 2026), revue du chantier n° 4, lot 2 : A4 sauve à la porte et à Event Shutdown (fonction Sauver du GameInstance ; sur un téléphone Shutdown n'a pas lieu quand on tue l'appli), note Piège sur Event Shutdown ; T6 : le drone ajoute son Mapping Context par Get Player Controller (rappels player-controller et enhanced-input), la vérification regarde le Default GameMode ; docs de reprise à jour. **Revue entièrement corrigée.**
 - V7.53 (21 novembre 2026), revue du chantier n° 4, L2 : plusieurs Player Start par niveau (format 18), Player Start Tag, Get Player Start Tag, Choose Player Start du GameMode (choix d'UE au hasard, ou surcharge en Blueprint : Functions › Override) ; « Arriver par la bonne porte » refaite avec.

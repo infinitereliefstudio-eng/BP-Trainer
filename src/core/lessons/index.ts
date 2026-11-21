@@ -53,6 +53,7 @@ import { debug15 } from './library/gridFloor';
 import { lessonCatalog, debug16, lessonDialogueTable } from './library/tables';
 import { lessonPiggyBank, debug17, predict11, debug18, lessonCheckpoint } from './library/saves';
 import { autonomyResume, debug27, debug28, lessonBag, lessonCorridor, lessonRightDoor, predictScoreDoor, transferDrone } from './library/travel';
+import { complete8 } from './library/chosenAvatar';
 import { debug19 } from './library/inputs';
 import { autonomyTrap, transferBadge } from './library/chainCast';
 import { debugMappingContext, lessonInputController, lessonInputHold, lessonInputLamp } from './library/enhancedInput';
@@ -243,6 +244,7 @@ export const LESSONS: Lesson[] = [
   lessonRightDoor,
   debug28,
   transferDrone,
+  complete8,
   autonomyResume,
   debug26,
   complete6,

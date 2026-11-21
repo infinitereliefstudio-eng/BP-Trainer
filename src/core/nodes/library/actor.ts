@@ -1,6 +1,7 @@
 import { inheritedView } from '../../model/inheritance';
 import { findClass, spawnPins } from '../../model/project';
 import { T } from '../../types/pins';
+import { adoptedBy, decodeType } from '../../types/wildcard';
 import { dataIn, dataOut, execIn, execOut, type NodeContext, type NodeDefinition } from '../definition';
 
 const ACTOR = 'Actor';
@@ -183,8 +184,14 @@ export const actorNodes: NodeDefinition[] = [
     title: 'Get Class',
     category: 'Utilities',
     kind: 'pure',
-    description: "La classe de l'objet (Class Reference), par exemple pour la comparer ou la passer à Spawn Actor.",
-    keywords: ['class', 'classe', 'type'],
-    pins: [dataIn('object', 'Object', T.object('Object')), dataOut('result', 'Return Value', T.class('Object'))],
+    description:
+      "La classe de l'objet (Class Reference), par exemple pour la comparer, la garder ou la passer à Spawn Actor. Comme dans UE, sa sortie prend le type de l'objet relié : un Pawn donne une Class Reference de Pawn.",
+    keywords: ['class', 'classe', 'type', 'get class'],
+    // UE's GetObjectClass (DeterminesOutputType = Object): the output is a class of the wired object's type (V7.56).
+    pins: (n) => {
+      const wired = adoptedBy(n, 'object');
+      const of = wired ? decodeType(wired).subtype : undefined;
+      return [dataIn('object', 'Object', T.wildcard, { wildGroup: 'object', accepts: ['object'] }), dataOut('result', 'Return Value', T.class(of ?? 'Object'))];
+    },
   },
 ];

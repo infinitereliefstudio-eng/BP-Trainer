@@ -157,6 +157,7 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   'l-bonne-porte': N(['levels', 'game-instance'], ['game-instance', 'cast', 'other-bp', 'branch', 'variables']),
   'd28-objet-revient': N(['game-instance', 'sets'], ['game-instance', 'levels', 'sets', 'references']),
   't6-pion-atelier': N(['game-mode'], ['levels', 'player-controller', 'enhanced-input']),
+  'c8-personnage': N(['game-mode', 'game-instance'], ['levels', 'cast', 'umg', 'other-bp']),
   'a4-reprendre': N(['game-instance', 'save-game'], ['game-instance', 'save-game', 'levels', 'cast']),
   'c6-annuler': N(['arrays', 'structs', 'loops'], ['copies']),
   'l-reseau': N(['sets', 'loops', 'other-bp'], ['sets', 'arrays']),

@@ -31,9 +31,10 @@ describe('the level steps (V7.50)', () => {
   it('sit in the Avancé right after « Le checkpoint », with their notions and help cards', () => {
     const ids = LESSONS.map((l) => l.id);
     const at = ids.indexOf('l-checkpoint');
-    expect(ids.slice(at + 1, at + 9)).toEqual([...IDS, 'l-bonne-porte', 'd28-objet-revient', 't6-pion-atelier', 'a4-reprendre']);
-    expect(LESSONS.length).toBe(148);
-    for (const id of [...IDS, 'l-bonne-porte', 'd28-objet-revient', 't6-pion-atelier', 'a4-reprendre']) {
+    // V7.56: C8 (E40 of the collection) after T6.
+    expect(ids.slice(at + 1, at + 10)).toEqual([...IDS, 'l-bonne-porte', 'd28-objet-revient', 't6-pion-atelier', 'c8-personnage', 'a4-reprendre']);
+    expect(LESSONS.length).toBe(149);
+    for (const id of [...IDS, 'l-bonne-porte', 'd28-objet-revient', 't6-pion-atelier', 'c8-personnage', 'a4-reprendre']) {
       expect(lesson(id).level, id).toBe('avance');
       for (const n of lesson(id).notions) expect(notionHelp(n), `${id}: ${n}`).toBeDefined();
     }

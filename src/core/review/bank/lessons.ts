@@ -914,10 +914,16 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Le GameMode du niveau fait apparaître le pion. Changer le Default GameMode changerait tous les niveaux ; l’override ne change que celui-ci.',
   ),
   q(
+    'c8-personnage',
+    'Un menu fait choisir le personnage, puis ouvre le niveau de jeu. Comment le GameMode de ce niveau fait-il apparaître le bon pion ?',
+    ['Get Default Pawn Class For Controller, surchargée, rend la classe gardée dans le GameInstance', 'Un Spawn Actor du personnage choisi au BeginPlay du GameMode', 'Le GameInstance garde une référence vers la vitrine du menu', 'La Default Pawn Class change toute seule après le choix'],
+    'Le GameMode crée un seul pion par niveau ; sa fonction Get Default Pawn Class For Controller lui en donne la classe. Un Spawn Actor ferait un second pion, et une référence vers un acteur du menu vaut None derrière la porte.',
+  ),
+  q(
     'a4-reprendre',
     'Pour reprendre au bon niveau après avoir quitté le jeu, que faut-il ?',
-    ['Un Save Game écrit avant la fermeture (Event Shutdown, par exemple), relu au lancement (Event Init)', 'Le GameInstance seul : il garde tout d’un lancement à l’autre', 'Un Open Level vers le dernier niveau dans le BeginPlay du pion', 'Rien : Play rouvre le dernier niveau joué'],
-    'Le GameInstance vit de Play à Stop, pas au-delà. Seul le disque (un slot) traverse la fermeture ; le GameInstance est le bon endroit pour l’écrire et le relire.',
+    ['Un Save Game écrit aux moments clés (à la porte) et à Event Shutdown, relu au lancement (Event Init)', 'Le GameInstance seul : il garde tout d’un lancement à l’autre', 'Un Open Level vers le dernier niveau dans le BeginPlay du pion', 'Rien : Play rouvre le dernier niveau joué'],
+    'Le GameInstance vit de Play à Stop, pas au-delà. Seul le disque (un slot) traverse la fermeture ; on l’écrit aux moments clés, car sur un téléphone Event Shutdown n’a pas lieu quand on tue l’appli, et le GameInstance le relit à Event Init.',
   ),
   q(
     'd19-derniere-porte',

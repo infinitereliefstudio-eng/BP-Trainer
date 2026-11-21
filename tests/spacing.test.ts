@@ -36,8 +36,9 @@ const KNOWN_GAPS: Record<string, number> = {
   // player-controller, tick and timers grew by up to four, trace entered the list (19).
   // V7.51 added the four last ones (La bonne porte, D28, T6, A4): the gaps that cross the eight grew by up to four more,
   // and actor-components, enhanced-input, input and widget-component went just over 15. V7.54: T6 writes Get Player Controller and
-  // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45.
-  'actor-components': 17, // V7.51: the eight level steps sit in its gap
+  // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45. V7.56 inserted C8 after T6:
+  // the gaps that cross it grew by one.
+  'actor-components': 18, // V7.51: the eight level steps sit in its gap
   arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4
   components: 26,
@@ -48,10 +49,10 @@ const KNOWN_GAPS: Record<string, number> = {
   enum: 41,
   'flow-memory': 29,
   functions: 42, // lot 3 added Confirmé steps inside this gap: lot 4
-  hit: 28, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
-  inheritance: 37, // runs to the end of the path
-  input: 16, // V7.51: the eight level steps sit in its gap
-  interfaces: 21,
+  hit: 29, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
+  inheritance: 38, // runs to the end of the path
+  input: 17, // V7.51: the eight level steps sit in its gap
+  interfaces: 22,
   latent: 49, // runs to the end of the path
   locals: 38, // lot 3 added Confirmé steps inside this gap: lot 4
   loops: 22,
@@ -66,13 +67,13 @@ const KNOWN_GAPS: Record<string, number> = {
   sets: 33, // lot 3 added Confirmé steps inside this gap: lot 4
   spawn: 40, // lot 3 added Confirmé steps inside this gap: lot 4
   structs: 59, // runs to the end of the path
-  switch: 38,
-  tick: 55, // runs to the end of the path
+  switch: 39,
+  tick: 56, // runs to the end of the path
   timeline: 51,
-  timers: 34,
-  trace: 23, // V7.50: the level steps sit between M2 and the end of the Avancé
-  visibility: 30, // runs to the end of the path
-  'widget-component': 16, // V7.51: the eight level steps sit in its gap
+  timers: 35,
+  trace: 24, // V7.50: the level steps sit between M2 and the end of the Avancé
+  visibility: 31, // runs to the end of the path
+  'widget-component': 17, // V7.51: the eight level steps sit in its gap
 };
 
 const practised = LESSONS.map(practisedBy);

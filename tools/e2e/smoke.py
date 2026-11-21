@@ -294,8 +294,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 148:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 148")
+        if await page.locator('.lesson-item').count() != 149:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 149")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -1334,6 +1334,18 @@ async def main():
         await page.evaluate('() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === "BP_GameMode"); s.openGraph(c.graphs.find(g => g.override === "ChoosePlayerStart").id); }')
         await page.wait_for_timeout(600)
         await shot('123_choose_player_start')
+        # V7.56: C8 « Le personnage choisi » solved: Vérifier passes in the app (a menu, two travels, a restart in Lvl_Jeu).
+        await page.evaluate(PUT, ['project:lesson:c8-personnage', (HERE / 'out' / 'c8-personnage.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='Le personnage choisi').first.scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='Le personnage choisi').first.tap()
+        await page.wait_for_timeout(600)
+        await page.locator('button', has_text='Vérifier').first.tap()
+        await page.wait_for_timeout(1500)
+        if await page.locator('.success').count() == 0:
+            errs.append('Le personnage choisi : la solution de référence ne passe pas dans l’appli')
+        await shot('124_lesson_chosen_avatar_passed')
         await page.goto(home)
         await page.wait_for_timeout(500)
 

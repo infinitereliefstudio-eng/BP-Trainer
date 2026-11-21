@@ -180,6 +180,14 @@ function migrate(p: Project, from: number): Project {
     // Choose Player Start (Graph.override). Nothing to convert: the number keeps an older app from losing them.
     cur = 18;
   }
+  if (cur === 18) {
+    // v19: Get Class takes the type of the object wired to it (its input became generic, as UE's DeterminesOutputType);
+    // a Get Class already wired is typed from its wire.
+    // Only on a well-formed project: a damaged one is refused by validateProject, with its own reason.
+    const sound = Array.isArray(p.classes) && p.classes.every((c) => c && Array.isArray(c.graphs) && c.graphs.every((g) => g && typeof g.links === 'object' && g.links && typeof g.nodes === 'object' && g.nodes));
+    if (sound) adoptFromLinks(p);
+    cur = 19;
+  }
   p.format = cur;
   return p;
 }

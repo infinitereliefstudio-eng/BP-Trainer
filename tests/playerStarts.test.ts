@@ -67,7 +67,7 @@ describe('several Player Starts', () => {
     const p = starts(pb);
     const back = parseProject(serializeProject(p));
     expect(back.format).toBe(PROJECT_FORMAT);
-    expect(PROJECT_FORMAT).toBe(18);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(18);
     expect(playerStartsOf(levelOf(back)).map((s) => [s.name, s.tag ?? ''])).toEqual([
       ['PlayerStart', ''],
       ['PlayerStart2', 'Nord'],

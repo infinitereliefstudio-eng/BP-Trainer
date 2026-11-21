@@ -301,6 +301,24 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Spawn Actor lance le BeginPlay avant de rendre la main : un Set après arrive trop tard. Expose on Spawn donne la valeur à la naissance.',
   ),
   q(
+    'm3-monte-charge',
+    'Un monte-charge doit refuser un nouvel ordre tant que son Timeline roule. Le plus simple ?',
+    ['Un Boolean mis à vrai au départ, remis à faux par la sortie Finished', 'Un Delay d’une seconde après chaque appui', 'Comparer sa position à chaque Tick', 'Rien : Play from Start ignore les appels pendant la lecture'],
+    'Finished dit exactement quand le trajet est fini. Play from Start, lui, repartirait de zéro à chaque appui : le plateau sauterait.',
+  ),
+  q(
+    'm4-stand-tir',
+    'Des cibles doivent ajouter leurs points au score sans savoir qui le tient. Quel outil sur la cible ?',
+    ['Un Event Dispatcher, auquel celui qui compte s’abonne', 'Une référence au Player Controller dans chaque cible', 'Get All Actors Of Class dans la cible', 'Un Cast To vers le widget du score'],
+    'La cible annonce (Call), celui qui compte s’abonne (Bind). On ajoute une cible sans toucher au compteur, et le compteur ne dépend d’aucune cible en particulier.',
+  ),
+  q(
+    'm5-marche',
+    'Une caisse et un bidon, deux Blueprints sans parent commun, doivent se ramasser de la même façon. Où l’écrire une fois ?',
+    ['Dans un Actor Component ajouté aux deux', 'Dans le joueur, avec un Cast par sorte d’objet', 'Dans le GameInstance', 'Dans chacun des deux, recopié'],
+    'Un Actor Component apporte le même comportement à des acteurs différents, chacun avec sa copie (et sa Valeur). Le parent commun serait l’autre voie, mais il faudrait changer la classe des deux.',
+  ),
+  q(
     's4-fusibles',
     'Des fusibles ramassés dans le couloir doivent encore compter dans la salle, derrière un Open Level. Où garder leur compte ?',
     ['Dans le GameInstance : un seul objet de Play à Stop', 'Dans une variable du joueur', 'Dans une variable du sas', 'Dans le GameMode du couloir'],

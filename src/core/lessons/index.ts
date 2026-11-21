@@ -72,6 +72,7 @@ import { synthesis3 } from './library/synthesis3';
 import { predictSpawnOrder } from './library/predicts3';
 import { lessonUniversalLever } from './library/universalLever';
 import { mixedDispenser, mixedSas } from './library/mixed';
+import { mixedLift, mixedMarket, mixedStand } from './library/mixed2';
 import { synthesis4 } from './library/synthesis4';
 import { expertRadio } from './library/expertRadio';
 import { expertWorkshop } from './library/expertWorkshop';
@@ -143,6 +144,8 @@ export const LESSONS: Lesson[] = [
   transferChest,
   lessonSlidingDoor,
   complete3,
+  // V7.61 (review of the path's progression): a mixed practice at the end of each level.
+  mixedLift,
   autonomyTrap,
   synthesis2,
   // Confirmé
@@ -193,6 +196,7 @@ export const LESSONS: Lesson[] = [
   debug17,
   predict11,
   debug18,
+  mixedStand,
   // UMG (V7.37): the delayed autonomy on menus, then a list of child widgets.
   autonomyTerminal,
   complete7,
@@ -247,6 +251,7 @@ export const LESSONS: Lesson[] = [
   transferDrone,
   complete8,
   autonomyResume,
+  mixedMarket,
   debug26,
   complete6,
   lessonGrid,

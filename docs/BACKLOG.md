@@ -11,7 +11,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 
 **À lire d'abord**, dans cet ordre : CLAUDE.md, [HANDOFF.md](HANDOFF.md) (« Reprise rapide », les sections V7.46 à V7.56 et « Méthode de travail »), [PLAN_NIVEAUX.md](PLAN_NIVEAUX.md) et [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md) (le dernier chantier et sa revue), puis cette section. Tristan parle français, teste sur son téléphone (APK liée au site : un push sur `main` est une mise en production) et donne son feu vert version par version.
 
-**Où on en est** : version en ligne **7.60.0** (déployée, page de test à jour). 149 étapes, 179 questions de révision. Rien n'est commencé au-delà ; aucune branche, aucun fichier non poussé.
+**Où on en est** : version en ligne **7.61.0** (déployée, page de test à jour). 152 étapes, 182 questions de révision. Rien n'est commencé au-delà ; aucune branche, aucun fichier non poussé.
 
 | Quoi | Versions | État |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | E40 du recueil (renvoyé en entier par Tristan) : Get Default Pawn Class For Controller surchargeable, pion construit après Event Init, `restart` dans un niveau donné | V7.55 | **fait** |
 | E40 : Complète C8 « Le personnage choisi » après T6 ; Get Class typé par son objet (format 19) | V7.56 | **fait** |
 
-**Revue de la progression des exercices** (21 novembre, 19 h 10, à sa demande) : [REVUE_PARCOURS_EXERCICES.md](REVUE_PARCOURS_EXERCICES.md), cinq versions proposées (V7.57 outillage, V7.58 entrées des anciennes étapes, V7.59 messages à l’écran, V7.60 synthèses, V7.61 trois entraînements mélangés) et cinq questions. Lancée par Tristan à 19 h 18 (« Ok pour tes recos, tu peux lancer ») : **V7.57 faite**, **V7.58 faite**, **V7.59 faite**, **V7.60 faite**.
+**Revue de la progression des exercices** (21 novembre, 19 h 10, à sa demande) : [REVUE_PARCOURS_EXERCICES.md](REVUE_PARCOURS_EXERCICES.md), cinq versions proposées (V7.57 outillage, V7.58 entrées des anciennes étapes, V7.59 messages à l’écran, V7.60 synthèses, V7.61 trois entraînements mélangés) et cinq questions. Lancée par Tristan à 19 h 18 (« Ok pour tes recos, tu peux lancer ») : **V7.57 faite**, **V7.58 faite**, **V7.59 faite**, **V7.60 faite**, **V7.61 faite** : **revue entièrement faite**. X1 et X2 sont à décider dans l’analyse du chantier n° 5.
 
 **Ce qui attend Tristan** :
 1. **Ses essais sur téléphone**, en retard depuis la V7.33 (à lui rappeler une fois, sans insister) : étapes UMG, 1280 × 720, Screen Size « Téléphone », boutons devant le joystick, menu pause sans PAUSED, Mes projets, Widget Component et ses quatre étapes ; tout le chantier n° 4 (créer un niveau, Maps & Modes, une porte qui fait Open Level, un GameInstance qui survit à la porte, GameMode Override, les huit étapes) ; ses corrections (les trois Player Start de l'atelier et Choose Player Start, A4 et T6 revus) ; C8.
@@ -49,7 +49,7 @@ Historique des états successifs : la section « Reprise par un autre agent » c
 | 1 | ~~Fiabilité~~ **fait en V7.2** (sauf H4) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
 | 2 | ~~Autonomie et transfert vers UE~~ **fait** : pilote en V7.3, puis plan du parcours (V7.10 à V7.18) | Guidé → transfert → autonomie différée ; prérequis et « Montre-moi ». La passerelle vers Unreal est passée dans « Prochains chantiers », plus tard | ★★★ | M à L |
 | 3 | **Entrées et interaction** (Enhanced Input fait) | Regard indépendant du déplacement, interaction plus complète, Tick maîtrisé ; le reste d'Enhanced Input (Axis2D, modificateurs, Tap…) | ★★★ | M |
-| 4 | Navigation et prise en main | Recherche et filtres dans les 149 étapes, gestes guidés | ★★★ | M |
+| 4 | Navigation et prise en main | Recherche et filtres dans les 152 étapes, gestes guidés | ★★★ | M |
 | 5 | ~~Composition~~ **fait en V7.19 à V7.22** | Actor Components : santé, inventaire, interaction, énergie (chantier n° 1) | ★★★ | L |
 | 6 | ~~Cycle de vie et niveaux~~ **fait** | Plusieurs niveaux, Open Level, GameInstance, vrai GameMode, plusieurs Player Start, pion choisi par le GameMode. **Chantier n° 4** (V7.46 à V7.51), revu et corrigé (V7.52 à V7.54), E40 (V7.55, V7.56) : voir « Reprise par un autre agent » | ★★★ | L |
 | 7 | Interface de jeu | **Chantier n° 3, fait** : Designer réduit fidèle à UE, widgets à l'écran, Bindings, boutons et modes d'entrée faits (V7.33 à V7.35), douze étapes (V7.36, V7.37) : **fait** | ★★★ | L |
@@ -412,6 +412,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.61 (21 novembre 2026), revue de la progression, trois entraînements mélangés : M3 Le monte-charge (Intermédiaire), M4 Le stand de tir (Confirmé), M5 Le marché de la station (Avancé). 152 étapes. La revue est entièrement faite.
 - V7.60 (21 novembre 2026), revue de la progression, les synthèses : S2 (porte en Timeline, la clé à l'écran), S3 (fin d'alerte par un bouton à l'écran, modes d'entrée), S4 refaite pour l'Avancé (deux niveaux et GameInstance, Line Trace, Actor Component, écran, sauvegarde).
 - V7.59 (21 novembre 2026), revue de la progression, les messages à l'écran : WBP_Messages dans « Le terminal » et M2 (écran en notion visée), vraie boîte de dialogue dans « Le dialogue en Data Table » ; les vérifications lisent ce que Set Text a écrit (CheckContext.shown).
 - V7.58 (21 novembre 2026), revue de la progression, les commandes : dans les 16 étapes après « Interagir comme dans UE5 » où un objet écoutait une touche, BP_PlayerController reçoit l'action et appelle un Custom Event de l'objet ; l'apprenant écrit cette ligne dans six d'entre elles.

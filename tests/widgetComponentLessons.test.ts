@@ -32,7 +32,8 @@ describe('the Widget Component steps (V7.43)', () => {
     const ids = LESSONS.map((l) => l.id);
     const t4 = ids.indexOf('t4-energie');
     expect(ids.slice(t4 + 1, t4 + 3)).toEqual(['l-barre-ennemi', 'l-barre-par-ennemi']);
-    expect(ids[ids.indexOf('a4-reprendre') + 1]).toBe('d26-barre-figee');
+    // V7.61: M5 « Le marché de la station » sits between A4 and D26.
+    expect(ids[ids.indexOf('a4-reprendre') + 2]).toBe('d26-barre-figee');
     expect(ids[ids.indexOf('s4-fusibles') - 1]).toBe('t5-noms');
     for (const id of ['l-barre-ennemi', 'l-barre-par-ennemi', 'd26-barre-figee', 't5-noms']) {
       expect(lesson(id).level, id).toBe('avance');

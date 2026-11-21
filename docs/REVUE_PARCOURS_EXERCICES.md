@@ -111,3 +111,13 @@ Ensuite : X1 et X2 dans l'analyse du chantier n° 5 ; plus tard si demandé, des
 3. V7.59 : exiger l'écran ou l'accepter comme notion non bloquante ? Recommandé : exiger dans L67 et S4, notion non bloquante dans L51 et M2.
 4. S4 : refaite entièrement (recommandé) ou seulement complétée d'un composant et d'un Line Trace ?
 5. X1 et X2 traités dans l'analyse du chantier n° 5 ?
+
+## Suite donnée (21 novembre 2026)
+
+Tristan a pris les recommandations à 19 h 18 (« Ok pour tes recos, tu peux lancer ») : les cinq versions sont faites, V7.57 à V7.61. Écarts au plan :
+
+- **V7.58** : L49, D17 et L67 devaient passer par l'Event Interagir de R4, et L61 par le Line Trace. Leurs scénarios appuient sur E sans s'approcher ni viser : elles passent par le Player Controller comme les douze autres. L'apprenant écrit la ligne du Player Controller dans six étapes (L36, L53, L61, L66, C6, L72) au lieu de quatre.
+- **V7.59** : S4 n'a pas reçu WBP_Messages à part ; elle l'a eu en étant refaite (V7.60).
+- **V7.61** : M3 n'utilise pas d'Enum (un index et un modulo suffisent) ; M4 n'utilise pas de structure, mais E cache le tableau (Enhanced Input et Flip Flop, pour que l'écart des entrées reste sous 15).
+
+Écarts d'espacement après la V7.61 : `player-controller` 45 → 19, `umg` 40 → 31, `ui-input` 56 → 55, `input` et `actor-components` et `widget-component` sous 15. X1 et X2 restent à décider dans l'analyse du chantier n° 5.

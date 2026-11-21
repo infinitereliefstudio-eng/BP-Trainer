@@ -39,46 +39,46 @@ const KNOWN_GAPS: Record<string, number> = {
   // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45. V7.56 inserted C8 after T6:
   // the gaps that cross it grew by one. V7.58: the commands of the steps after R4 go through the Player Controller,
   // which counts as practising it; input came back under 15. V7.60: the syntheses S2, S3 and S4 write what their
-  // level taught (widgets, menus, Timeline, Line Trace, interfaces, GameInstance, Actor Components).
+  // level taught (widgets, menus, Timeline, Line Trace, interfaces, GameInstance, Actor Components). V7.61 inserted three
+  // mixed practices (M3, M4, M5): the gaps that cross them grew by one or two, actor-components and widget-component
+  // came under 15, destroy, functions and save-game came down.
   // V7.57: the widget nodes now count (umg, ui-input). Their gaps were there, unseen: the Intermédiaire's end and the
   // Confirmé's start (umg, L23 → « Le menu qui rend le contrôle »), and nothing after A3 for menus and input modes.
   umg: 31,
-  'ui-input': 54,
-  'actor-components': 18, // V7.51: the eight level steps sit in its gap
-  arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
+  'ui-input': 55,
+  arrays: 29, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4
-  components: 26,
-  construction: 45, // lot 3 added Confirmé steps inside this gap: lot 4
-  'data-tables': 66, // runs to the end of the path
-  destroy: 48,
+  components: 27,
+  construction: 46, // lot 3 added Confirmé steps inside this gap: lot 4
+  'data-tables': 67, // runs to the end of the path
+  destroy: 46,
   dispatchers: 27,
-  enum: 41,
-  'flow-memory': 29,
-  functions: 42, // lot 3 added Confirmé steps inside this gap: lot 4
-  hit: 29, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
-  inheritance: 38, // runs to the end of the path
-  interfaces: 21,
-  latent: 49, // runs to the end of the path
-  locals: 38, // lot 3 added Confirmé steps inside this gap: lot 4
+  enum: 42,
+  'flow-memory': 30,
+  functions: 39, // lot 3 added Confirmé steps inside this gap: lot 4
+  hit: 30, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
+  inheritance: 39, // runs to the end of the path
+  interfaces: 22,
+  latent: 50, // runs to the end of the path
+  locals: 39, // lot 3 added Confirmé steps inside this gap: lot 4
   loops: 22,
-  maps: 59, // lot 3 added Confirmé steps inside this gap: lot 4
+  maps: 61, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 25, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 20,
   'player-controller': 19, // V7.58: writing in the Player Controller counts (its commands in five steps after R4); the gap left is from « Le compteur à l’écran » to « Les cartes tirées sans remise »
-  random: 58, // lot 3 added Confirmé steps inside this gap: lot 4
-  rotation: 27,
-  'save-game': 41, // runs to the end of the path
-  sequence: 63, // runs to the end of the path
-  sets: 33, // lot 3 added Confirmé steps inside this gap: lot 4
-  spawn: 40, // lot 3 added Confirmé steps inside this gap: lot 4
-  structs: 59, // runs to the end of the path
-  switch: 39,
-  tick: 56, // runs to the end of the path
-  timeline: 48,
-  timers: 35,
-  trace: 21, // V7.50: the level steps sit between M2 and the end of the Avancé
-  visibility: 31, // runs to the end of the path
-  'widget-component': 17, // V7.51: the eight level steps sit in its gap
+  random: 59, // lot 3 added Confirmé steps inside this gap: lot 4
+  rotation: 28,
+  'save-game': 39, // runs to the end of the path
+  sequence: 64, // runs to the end of the path
+  sets: 34, // lot 3 added Confirmé steps inside this gap: lot 4
+  spawn: 41, // lot 3 added Confirmé steps inside this gap: lot 4
+  structs: 60, // runs to the end of the path
+  switch: 40,
+  tick: 58, // runs to the end of the path
+  timeline: 49,
+  timers: 36,
+  trace: 22, // V7.50: the level steps sit between M2 and the end of the Avancé
+  visibility: 32, // runs to the end of the path
 };
 
 const practised = LESSONS.map(practisedBy);

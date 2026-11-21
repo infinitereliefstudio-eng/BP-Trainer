@@ -100,7 +100,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
   // A game, as Play makes one: Open Level replaces its world (`game.world`), the Output Log stays.
   let game = new Game(project, { order, slots, levelId });
   // Prints and errors of the games before a restart.
-  const earlier: { prints: string[]; errors: string[] } = { prints: [], errors: [] };
+  const earlier: { prints: string[]; shown: string[]; errors: string[] } = { prints: [], shown: [], errors: [] };
   const cx: CheckContext = {
     get sim() {
       return game.world;
@@ -117,6 +117,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     actor: (label) => game.world.actors.find((a) => a.label === label),
     component: (label, name) => game.world.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),
     prints: () => [...earlier.prints, ...game.world.log.filter((l) => l.message !== undefined).map((l) => l.message!)],
+    shown: () => [...earlier.shown, ...game.world.umg.textLog],
     errors: () => [...earlier.errors, ...game.world.log.filter((l) => l.level === 'error').map((l) => l.text)],
     variable: (label, name) => {
       const a = label === 'Joueur' ? game.world.player : game.world.actors.find((x) => x.label === label);
@@ -169,6 +170,7 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
       // Stop, then Play: the game closes first, as Stop does (End Play, then the GameInstance's Event Shutdown).
       game.shutdown();
       earlier.prints = cx.prints();
+      earlier.shown = cx.shown();
       earlier.errors.push(...game.world.log.filter((l) => l.level === 'error').map((l) => l.text));
       const into = step.level ? findLevelByName(project, step.level)?.id : undefined;
       game = new Game(project, { order, slots, levelId: into ?? levelId });

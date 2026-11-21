@@ -9,10 +9,11 @@ import { addDataTable, addDataTableRow } from '../../operations/dataTableOps';
 import { removeNodes } from '../../operations/graphOps';
 import { addStruct, addStructMember, updateStructMember } from '../../operations/structOps';
 import { T, type PinType } from '../../types/pins';
-import { edit, ProjectBuilder, type ClassBuilder } from '../builder';
+import { ClassBuilder, edit, ProjectBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, normText, notion, PRESS_E, usesNode } from '../checks';
 import type { CheckContext, Lesson } from '../types';
-import { DEBUG_METHOD, editable, getVar, say, setVar } from './kit';
+import { DEBUG_METHOD, editable, fnDef, fnOf, getVar, say, setVar, varId } from './kit';
+import { addW, made, newClass, screenTexts, shown as shownW } from './umgKit';
 import { levelOf } from '../../model/project';
 
 /** A structure with these members; returns the member ids by name. */
@@ -307,6 +308,24 @@ const LINES: [string, string, string, string][] = [
 ];
 const SPOKEN = LINES.map(([, who, text]) => `${who} : ${text}`);
 
+/** WBP_Dialogue: a dark panel low on the screen, Txt_Nom and Txt_Replique (Is Variable), and Montrer (Personnage, Texte). */
+function dialogueWidget(p: Project): ClassBuilder {
+  const w = newClass(p, 'WBP_Dialogue', 'UserWidget');
+  const canvas = addW(p, w.cls, 'CanvasPanel', undefined);
+  const low = (y: number, width: number, height: number) => ({ anchors: { minX: 0.5, minY: 1, maxX: 0.5, maxY: 1 }, offsets: [0, y, width, height] as [number, number, number, number], alignX: 0.5, alignY: 0.5 });
+  addW(p, w.cls, 'Image', canvas.id, { name: 'Img_Fond', props: { color: '#0f172a' }, slot: low(-120, 1100, 180) });
+  addW(p, w.cls, 'TextBlock', canvas.id, { name: 'Txt_Nom', isVariable: true, props: { text: '', fontSize: 24, color: '#fbbf24' }, slot: low(-175, 1040, 40) });
+  addW(p, w.cls, 'TextBlock', canvas.id, { name: 'Txt_Replique', isVariable: true, props: { text: '', fontSize: 28, color: '#f8fafc' }, slot: low(-110, 1040, 90) });
+  const fn = fnDef(p, w, 'Montrer', [['Personnage', T.string], ['Texte', T.string]], [], false);
+  const name = fn.f.node('widget.setText', {}, {}, [420, 96]);
+  const line = fn.f.node('widget.setText', {}, {}, [760, 96]);
+  const get = (n: string, at: [number, number]) => fn.f.node('var.widget', { widget: w.cls.widgets!.find((x) => x.name === n)!.id }, {}, at);
+  fn.f.link(fn.entry, 'then', name, 'exec').link(get('Txt_Nom', [220, 300]), 'value', name, 'target').link(fn.entry, fn.pin.Personnage, name, 'text');
+  fn.f.link(name, 'then', line, 'exec').link(get('Txt_Replique', [560, 300]), 'value', line, 'target').link(fn.entry, fn.pin.Texte, line, 'text');
+  fn.f.link(line, 'then', fn.ret, 'exec');
+  return w;
+}
+
 function dialogueProject() {
   const pb = new ProjectBuilder('Le dialogue en Data Table');
   const ids = makeStruct(pb.project, 'S_Replique', [
@@ -321,41 +340,64 @@ function dialogueProject() {
     ids,
     LINES.map(([row, who, text, next]) => [row, { Personnage: who, Texte: text, Suivante: next }]),
   );
+  // V7.59: the lines go to a dialogue box on the screen, not to the Output Log.
+  dialogueWidget(pb.project);
   const b = pb.blueprint('BP_Radio');
   b.component('StaticMesh', 'Radio', { sizeX: 60, sizeY: 40, color: '#475569' });
   b.cls.autoReceiveInput = true;
   b.variable('Ligne', T.name, 'Debut');
+  b.variable('Boite', T.object('WBP_Dialogue'));
   pb.place(b, 0, 0);
   pb.playerStart(-300, 0);
   return pb.project;
 }
 
 /**
- * E → Get Data Table Row (Ligne) → Found: Print « Personnage : Texte » → Set Ligne = Suivante ;
- * Not Found: « Fin de la conversation ». `endEarly` is the trap: the end is tested on the
- * current line's Suivante (Is None) before it is said, so the last line is never heard.
+ * Parler → Get Data Table Row (Ligne) → Found: the box, made once (Is Valid on Boite, else Create Widget →
+ * Set Boite → Add to Viewport) → Montrer (Personnage, Texte) → Set Ligne = Suivante ; Not Found: Remove from
+ * Parent. `endEarly` is the trap: the end is tested on the current line's Suivante (Is None) before it is
+ * shown, so the last line is never seen.
  */
 export function solveDialogue(p: Project, endEarly = false): void {
   const b = edit(p, 'BP_Radio');
-  const key = b.node('event.inputKey', { key: 'E' }, {}, [64, 96]);
+  const w = p.classes.find((c) => c.name === 'WBP_Dialogue')!;
+  const montrer = fnOf(new ClassBuilder(w, p), 'Montrer');
+  // On the lesson's own project the radio has its Custom Event Parler (the Player Controller calls it); in the key form, E.
+  const parler = Object.values(b.graph.nodes).find((n) => n.def === 'event.custom' && n.config.name === 'Parler');
+  const [ev, out] = parler ? [parler.id, 'then'] : [b.node('event.inputKey', { key: 'E' }, {}, [64, 96]), 'pressed'];
+  const boite = varId(b, 'Boite');
   const get = b.node('dataTable.getRow', { table: tableId(p, 'DT_Dialogue') }, {}, [360, 96]);
-  const brk = b.node('struct.break', { struct: 'S_Replique' }, {}, [560, 400]);
-  const text = b.node('string.append', { inputs: 3 }, { in1: ' : ' }, [860, 420]);
-  const show = say(b, [1000, 96]);
-  const next = setVar(b, 'Ligne', [1300, 96]);
+  const brk = b.node('struct.break', { struct: 'S_Replique' }, {}, [560, 520]);
+  const valid = b.node('flow.isValid', {}, {}, [700, 96]);
+  const create = b.node('widget.create', {}, { class: w.id }, [1000, 300]);
+  const keep = b.node('var.set', { variable: boite }, {}, [1300, 300]);
+  const add = b.node('widget.addToViewport', {}, {}, [1600, 300]);
+  const show = b.node('call.function', { owner: w.id, graph: montrer.graph.id }, {}, [1900, 96]);
+  const next = setVar(b, 'Ligne', [2200, 96]);
   const m = (n: string) => memberId(p, 'S_Replique', n);
-  b.link(key, 'pressed', get, 'exec').link(getVar(b, 'Ligne', [200, 300]), 'value', get, 'rowName');
-  b.link(get, 'row', brk, 'struct').link(brk, m('Personnage'), text, 'in0').link(brk, m('Texte'), text, 'in2').link(text, 'result', show, 'text');
-  b.link(brk, m('Suivante'), next, 'value');
-  const end = say(b, [1000, 360], 'Fin de la conversation');
+  const box = (at: [number, number]) => b.node('var.get', { variable: boite }, {}, at);
+  b.link(ev, out, get, 'exec').link(getVar(b, 'Ligne', [200, 300]), 'value', get, 'rowName');
+  b.link(get, 'row', brk, 'struct').link(brk, m('Personnage'), show, montrer.pin.Personnage).link(brk, m('Texte'), show, montrer.pin.Texte).link(brk, m('Suivante'), next, 'value');
+  b.link(box([560, 300]), 'value', valid, 'object').link(valid, 'valid', show, 'exec').link(valid, 'notValid', create, 'exec');
+  b.link(b.node('player.getController', {}, {}, [860, 500]), 'result', create, 'owner').link(create, 'then', keep, 'exec').link(create, 'result', keep, 'value');
+  b.link(keep, 'then', add, 'exec').link(box([1450, 500]), 'value', add, 'target').link(add, 'then', show, 'exec');
+  b.link(box([1750, 300]), 'value', show, 'target').link(show, 'then', next, 'exec');
+  const end = b.node('widget.removeFromParent', {}, {}, [700, 700]);
+  b.link(box([500, 860]), 'value', end, 'target');
   if (endEarly) {
-    const br = b.node('flow.branch', {}, {}, [700, 96]);
-    const none = b.node('name.isNone', {}, {}, [700, 600]);
+    const br = b.node('flow.branch', {}, {}, [520, 96]);
+    const none = b.node('name.isNone', {}, {}, [400, 400]);
     b.link(get, 'found', br, 'exec').link(brk, m('Suivante'), none, 'in').link(none, 'result', br, 'condition');
-    b.link(br, 'true', end, 'exec').link(br, 'false', show, 'exec').link(show, 'then', next, 'exec');
-  } else b.link(get, 'found', show, 'exec').link(show, 'then', next, 'exec');
+    b.link(br, 'true', end, 'exec').link(br, 'false', valid, 'exec');
+  } else b.link(get, 'found', valid, 'exec');
   b.link(get, 'notFound', end, 'exec');
 }
+
+/** The lines the box showed, in order: what Set Text wrote, minus the characters' names. */
+const boxLines = (cx: CheckContext): string[] => {
+  const names = new Set(LINES.map(([, who]) => normText(who)));
+  return cx.shown().map(normText).filter((t) => t !== '' && !names.has(t));
+};
 
 export const lessonDialogueTable: Lesson = {
   id: 'l-dialogue-table',
@@ -363,17 +405,20 @@ export const lessonDialogueTable: Lesson = {
   level: 'avance',
   number: 0,
   title: 'Le dialogue en Data Table',
+  // V7.59: a dialogue box on the screen (WBP_Dialogue), made by the radio, instead of Print String.
+  revision: 2,
+  recalls: ['umg', 'player-controller'],
   situation:
-    'La radio diffuse un dialogue écrit dans la Data Table DT_Dialogue : chaque réplique dit qui parle, ce qu’il dit, et le Row Name de la suivante. Chaque appui sur E affiche la réplique en cours et passe à la suivante. Après la dernière : « Fin de la conversation ».',
-  notions: ['Data Table', 'Get Data Table Row', 'Name', 'Dialogue par les données'],
+    'La radio diffuse un dialogue écrit dans la Data Table DT_Dialogue : chaque réplique dit qui parle, ce qu’il dit, et le Row Name de la suivante. Chaque appui sur E montre la réplique en cours dans une boîte de dialogue, en bas de l’écran, et passe à la suivante. Après la dernière, la boîte disparaît.',
+  notions: ['Data Table', 'Get Data Table Row', 'Name', 'Dialogue par les données', 'Create Widget', 'Is Valid'],
   remember:
     'Un dialogue en Data Table : le Blueprint ne garde que le Row Name de la réplique en cours. Chaque ligne nomme la suivante ; une ligne vide (None) finit la conversation. Ajouter des répliques ne demande aucun nœud.',
   cards: [
     {
       title: 'Ce qui est en place',
       body:
-        '- La structure **S_Replique** : **Personnage** (String), **Texte** (String), **Suivante** (Name).\n- La Data Table **DT_Dialogue** : trois lignes, **Debut**, **Station** et **Fenetre**. Debut nomme Station comme suivante, Station nomme Fenetre, et Fenetre n’a pas de suivante (None).\n- **BP_Radio** entend IA_Interagir (la touche E) et a une variable **Ligne** (Name) qui vaut **Debut**.\n\n' +
-        'Le graphe est vide. « L’interrogatoire » faisait la même chose avec une Map : c’est ici la façon de faire d’un vrai projet.',
+        '- La structure **S_Replique** : **Personnage** (String), **Texte** (String), **Suivante** (Name).\n- La Data Table **DT_Dialogue** : trois lignes, **Debut**, **Station** et **Fenetre**. Debut nomme Station comme suivante, Station nomme Fenetre, et Fenetre n’a pas de suivante (None).\n- **WBP_Dialogue** : un fond sombre en bas de l’écran, deux Text (**Txt_Nom**, **Txt_Replique**) et une fonction **Montrer** (Personnage, Texte) qui les remplit. Il n’est créé par personne.\n- **BP_Radio** entend IA_Interagir (la touche E) et a deux variables : **Ligne** (Name), qui vaut **Debut**, et **Boite** (une référence vers un WBP_Dialogue, vide).\n\n' +
+        'Le graphe est vide. « L’interrogatoire » faisait la même chose avec une Map, et disait ses répliques par Print String : ici, c’est la façon de faire d’un vrai projet, une table et une boîte à l’écran.',
     },
     {
       title: 'Une liste chaînée',
@@ -385,55 +430,84 @@ export const lessonDialogueTable: Lesson = {
     {
       title: 'Les nœuds',
       body:
-        '- **Get Data Table Row (DT_Dialogue)** : Row Name = Get Ligne.\n- **Break S_Replique** sur Out Row : Personnage, Texte, Suivante.\n- **Append** (trois entrées, réglables dans Details) : Personnage, « : », Texte.\n- **Set Ligne** = Suivante.',
+        '- **Get Data Table Row (DT_Dialogue)** : Row Name = Get Ligne.\n- **Break S_Replique** sur Out Row : Personnage, Texte, Suivante.\n- **Montrer** (sur Boite) : Personnage, Texte.\n- **Set Ligne** = Suivante.',
+    },
+    {
+      title: 'La boîte, créée une fois',
+      body:
+        'Print String sert à déboguer : dans un jeu livré, il n’apparaît pas. Ce que le joueur lit passe par un widget.\n\n' +
+        'La boîte se crée à la **première** réplique, pas à chaque appui : sinon les boîtes s’empilent à l’écran. **Is Valid** (Boite) le dit :\n\n' +
+        '- **Is Not Valid** (pas encore de boîte) → **Create Widget** (Class = WBP_Dialogue, Owning Player = **Get Player Controller**) → **Set Boite** → **Add to Viewport** (Boite), puis Montrer.\n- **Is Valid** → directement Montrer.\n\n' +
+        'Et à la fin, **Remove from Parent** (Boite) retire la boîte de l’écran.',
     },
     {
       title: 'Le plan',
       body:
         '**IA_Interagir** (Started) → **Get Data Table Row** (Row Name = Ligne) :\n\n' +
-        '1. **Row Found** → **Print String** (Personnage : Texte) → **Set Ligne** = Suivante.\n2. **Row Not Found** → **Print String** « Fin de la conversation ».\n\n' +
+        '1. **Row Found** → la boîte (créée si besoin) → **Montrer** (Personnage, Texte) → **Set Ligne** = Suivante.\n2. **Row Not Found** → **Remove from Parent** (Boite).\n\n' +
         'Le test appuie quatre fois : trois répliques, puis la fin.',
     },
     {
       title: 'Le piège',
       body:
-        'Tester la fin **sur la réplique en cours** : « si Suivante est None, c’est fini » (Branch sur Is None), avant de l’afficher. La dernière réplique a justement Suivante = None : elle n’est jamais dite, le joueur entend « Fin » trop tôt.\n\n' +
+        'Tester la fin **sur la réplique en cours** : « si Suivante est None, c’est fini » (Branch sur Is None), avant de l’afficher. La dernière réplique a justement Suivante = None : elle n’est jamais montrée, la boîte disparaît trop tôt.\n\n' +
         'La fin se constate au tour **d’après** : on dit la réplique, on avance sur None, et c’est le prochain Get Data Table Row qui ne trouve rien. Row Not Found fait ce travail tout seul.\n\n' +
         'Dans Station enterrée comme dans tout jeu narratif, la même table peut porter un son, une émotion, un choix : chaque colonne ajoutée à la structure arrive dans le Break, sans toucher au reste.',
     },
   ],
   objectives: [
-    'Chaque E sur la radio affiche la réplique suivante de DT_Dialogue : « Personnage : Texte ».',
-    'Après la dernière : « Fin de la conversation ».',
+    'Chaque E sur la radio montre la réplique suivante de DT_Dialogue dans WBP_Dialogue : le Personnage et le Texte.',
+    'La boîte est créée une seule fois, à la première réplique (Is Valid).',
+    'Après la dernière : la boîte disparaît (Remove from Parent).',
     'Touche Vérifier : quatre appuis sur E.',
   ],
   hints: [
-    'Quel est le seul état du dialogue ? Le reste est-il bien dans la table ?',
-    'Nœuds : IA_Interagir, Get Ligne, Get Data Table Row (DT_Dialogue), Break S_Replique, Append (3 entrées), Print String, Set Ligne, un second Print String.',
-    'Solution : IA_Interagir → Get Data Table Row (Ligne) ; Row Found → Print String (Append(Personnage, « : », Texte)) → Set Ligne = Suivante ; Row Not Found → Print String « Fin de la conversation ».',
+    'Quel est le seul état du dialogue ? Le reste est-il bien dans la table ? Et la boîte : qui la crée, et combien de fois ?',
+    'Nœuds : IA_Interagir, Get Ligne, Get Data Table Row (DT_Dialogue), Break S_Replique, Is Valid, Create Widget, Get Player Controller, Set Boite, Add to Viewport, Montrer, Set Ligne, Remove from Parent.',
+    'Solution : IA_Interagir → Get Data Table Row (Ligne) ; Row Found → Is Valid (Boite) : Is Not Valid → Create Widget (WBP_Dialogue, Owning Player = Get Player Controller) → Set Boite → Add to Viewport (Boite) → Montrer ; Is Valid → Montrer (Target = Boite, Personnage, Texte) → Set Ligne = Suivante ; Row Not Found → Remove from Parent (Boite).',
   ],
   challenge: 'Ajoute à S_Replique un membre Duree (Float) et fais attendre la radio Duree secondes avant d’accepter l’appui suivant. Puis ajoute une réplique entre Station et Fenetre, sans toucher au graphe.',
   setup: dialogueProject,
-  scenario: [{ wait: 0.2 }, ...PRESS_E, ...PRESS_E, ...PRESS_E, { checkpoint: 'trois' }, ...PRESS_E],
+  scenario: [{ wait: 0.2 }, ...PRESS_E, { checkpoint: 'un' }, ...PRESS_E, ...PRESS_E, { checkpoint: 'trois' }, ...PRESS_E],
   checks: [
     {
+      id: 'box',
+      label: '1er appui : la boîte de dialogue est à l’écran, avec Oren',
+      at: 'un',
+      test: (cx) => {
+        if (!shownW(cx, 'WBP_Dialogue').length) {
+          if (countPrints(cx, LINES[0][2])) return 'La réplique passe par Print String : le joueur ne la verrait pas dans un jeu livré. Crée WBP_Dialogue (Create Widget, Add to Viewport) et donne-lui la réplique par Montrer.';
+          return made(cx, 'WBP_Dialogue').length ? 'WBP_Dialogue est créé mais pas à l’écran : Add to Viewport, avec Target = Boite.' : 'Aucune boîte à l’écran : au premier appui, crée WBP_Dialogue (Create Widget), garde-le dans Boite, puis Add to Viewport.';
+        }
+        const texts = screenTexts(cx).map(normText);
+        return texts.includes(normText(LINES[0][1])) && texts.includes(normText(LINES[0][2])) ? true : 'La boîte est là, mais ne montre pas la première réplique : appelle Montrer sur Boite, avec le Personnage et le Texte de la ligne trouvée.';
+      },
+    },
+    {
       id: 'lines',
-      label: 'Les trois répliques, dans l’ordre',
+      label: 'Les trois répliques, dans l’ordre, dans une seule boîte',
       at: 'trois',
       test: (cx) => {
-        const said = cx.prints().map(normText);
-        const want = SPOKEN.map(normText);
-        if (said.slice(0, 3).join('|') === want.join('|')) return true;
-        if (said[2] === normText('Fin de la conversation')) return 'La dernière réplique n’est jamais dite : la fin est testée sur sa Suivante (None) avant de l’afficher. Dis la réplique, avance, et laisse Row Not Found constater la fin au tour suivant.';
-        return `Affiché : ${cx.prints().join(' / ') || 'rien'}. Il fallait « ${SPOKEN.join(' » puis « ')} ».`;
+        const want = LINES.map(([, , t]) => normText(t));
+        const seen = boxLines(cx);
+        if (seen.slice(0, 3).join('|') !== want.join('|')) {
+          if (seen.length === 2 && !shownW(cx, 'WBP_Dialogue').length) return 'La dernière réplique n’est jamais montrée : la fin est testée sur sa Suivante (None) avant de la montrer. Montre la réplique, avance, et laisse Row Not Found constater la fin au tour suivant.';
+          return `Montré : ${seen.join(' / ') || 'rien'}. Il fallait « ${SPOKEN.join(' » puis « ')} ».`;
+        }
+        const n = made(cx, 'WBP_Dialogue').length;
+        return n === 1 ? true : `${n} boîtes créées pour trois répliques : elles s’empilent à l’écran. Crée la boîte une seule fois, quand Boite n’est pas encore valide (Is Valid).`;
       },
     },
     {
       id: 'end',
-      label: '4e appui : « Fin de la conversation »',
-      test: (cx) => (countPrints(cx, 'fin de la conversation') === 1 ? true : 'Après la dernière réplique, Suivante vaut None : Get Data Table Row sort par Row Not Found, qui doit afficher « Fin de la conversation ».'),
+      label: '4e appui : la boîte disparaît',
+      test: (cx) => (shownW(cx, 'WBP_Dialogue').length === 0 ? true : 'Après la dernière réplique, Suivante vaut None : Get Data Table Row sort par Row Not Found, qui doit retirer la boîte (Remove from Parent, Target = Boite).'),
     },
-    noEmptyLine('Une ligne vide s’affiche : Out Row est lu sur le chemin Row Not Found.'),
+    {
+      id: 'no-empty',
+      label: 'Aucune réplique vide',
+      test: (cx) => (cx.shown().some((t) => t.trim() === '') ? 'Une réplique vide est montrée : Out Row est lu sur le chemin Row Not Found.' : true),
+    },
     notion(usesNode('row', 'BP_Radio', ['dataTable.getRow'], 'Les répliques viennent de la Data Table', 'Lis la réplique dans DT_Dialogue avec Get Data Table Row.')),
     noRuntimeErrors(),
   ],

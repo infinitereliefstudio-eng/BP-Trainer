@@ -228,6 +228,7 @@ export class Game {
     const saves = this.forgetOldWorld(old);
     this.world = this.make(this.target);
     this.world.move = move;
+    this.world.umg.textLog.push(...old.umg.textLog);
     // A SaveGame object is not in the level: kept by the GameInstance, it survives the travel.
     this.world.objects.push(...saves);
     this.world.engineLog(

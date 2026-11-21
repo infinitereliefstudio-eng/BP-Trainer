@@ -12,11 +12,12 @@ import { implementInterface } from '../../operations/classOps';
 import { addClass, addInterface, addInterfaceFunction } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import { ClassBuilder, edit, ProjectBuilder } from '../builder';
-import { countPrints, noRuntimeErrors } from '../checks';
+import { countPrints, noRuntimeErrors, notion } from '../checks';
 import type { CheckContext, Lesson, LessonCard } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
 import { editable, goTo, tap, varId } from './kit';
 import { playerBlueprint } from './props';
+import { afficherViaController, countTold, messageWidget, onScreen, ownMessages, told } from './messageHud';
 
 const MODULE = 'Entraînement mélangé';
 
@@ -217,6 +218,8 @@ function dispenserProject(): Project {
   addInterfaceFunction(p, r.value.id, 'Interagir');
   // V7.22: the player's graph is the learner's (a Line Trace, recalled); E acts on what the player looks at.
   ensurePlayerInput(p, ['E'], { E: 'IA_Interagir' });
+  // V7.59: the Player Controller makes WBP_Messages at BeginPlay; what the dispenser tells the player goes there.
+  ownMessages(edit(p, 'BP_PlayerController'), messageWidget(p));
   const box = pb.blueprint('BP_Distributeur');
   box.component('StaticMesh', 'Caisson', { sizeX: 120, sizeY: 80, color: '#475569' });
   box.component('BoxCollision', 'Zone', { sizeX: 260, sizeY: 260 });
@@ -256,7 +259,8 @@ export const mixedDispenser: Lesson = {
   level: 'avance',
   number: 0,
   title: 'Le distributeur',
-  revision: 2,
+  // V7.59: WBP_Messages, the dispenser's counts on the screen.
+  revision: 3,
   recalls: ['random', 'arrays', 'spawn', 'maps', 'trace', 'input', 'enhanced-input'],
   situation:
     'Le distributeur garde cinq objets en stock. À chaque E sur le distributeur (celui que le joueur regarde, pas la poubelle derrière lui), il en tire un au hasard, le fait apparaître devant lui et le retire du stock ; il tient le compte de ce qu’il a donné, par sorte. Vide, il le dit.',
@@ -267,25 +271,26 @@ export const mixedDispenser: Lesson = {
     {
       title: 'Cahier des charges',
       body:
-        'Déjà là : **BPI_Interactif** (Interagir), **IA_Interagir** (E) ; **BP_Joueur** a un graphe vide. **BP_Distributeur** a un **Stock** (tableau de Name) : Pile, Fusible, Pile, Cle, Pile. Juste derrière le joueur, à portée de main, **BP_Poubelle** répond « Poubelle » à Interagir.\n\n' +
+        'Déjà là : **BPI_Interactif** (Interagir), **IA_Interagir** (E) ; **BP_Joueur** a un graphe vide. **BP_Distributeur** a un **Stock** (tableau de Name) : Pile, Fusible, Pile, Cle, Pile. Juste derrière le joueur, à portée de main, **BP_Poubelle** répond « Poubelle » à Interagir. **BP_PlayerController** crée au BeginPlay **WBP_Messages**, une ligne de texte en bas de l’écran (sa variable **Messages**, sa fonction **Afficher**).\n\n' +
         '0. E agit sur **ce que le joueur regarde**, à 3 m au plus : le distributeur. La poubelle ne reçoit rien.\n' +
         '1. Crée **BP_Objet** : une petite forme, et un **Nom** (Name) qu’il reçoit **à sa naissance** et affiche à son BeginPlay.\n' +
         '2. E près du distributeur : il tire **au hasard** un objet du Stock, le fait **apparaître** devant lui (un BP_Objet avec ce Nom), et le **retire** du Stock.\n' +
-        '3. Il compte ce qu’il a donné **par sorte**, et l’affiche : par exemple `Pile x2`.\n' +
-        '4. Stock vide : il affiche `Vide`, et ne crée plus rien.',
+        '3. Il compte ce qu’il a donné **par sorte**, et l’affiche **à l’écran**, pour le joueur : par exemple `Pile x2`.\n' +
+        '4. Stock vide : il affiche `Vide` à l’écran, et ne crée plus rien.\n\n' +
+        'Ce que dit un objet à sa naissance est une trace pour toi, pas pour le joueur : un Print String suffit.',
     },
     MIXED,
   ],
   objectives: [
     'E agit sur ce que le joueur regarde : la poubelle, derrière lui, ne dit jamais « Poubelle ».',
     'Cinq E : cinq BP_Objet apparaissent, chacun affiche son Nom à sa naissance ; le stock se vide.',
-    'Chaque fois, le distributeur affiche combien il a donné de cette sorte (« Pile x2 »…).',
+    'Chaque fois, le distributeur affiche à l’écran combien il a donné de cette sorte (« Pile x2 »…).',
     'Au sixième E : « Vide », et rien de plus.',
   ],
   hints: [
-    'Cinq questions : comment désigner ce que le joueur regarde, et pas tout ce qui est à portée ? Comment tirer une position au hasard dans une liste qui raccourcit ? Comment un acteur reçoit-il une valeur avant son BeginPlay ? Où ranger un nombre par sorte d’objet ?',
-    'Line Trace By Channel, Get Actor Location, Get Actor Forward Vector, Interagir (Message) ; Is Empty, Random Integer in Range, Last Index, Get (a copy), Remove Index, Spawn Actor (Expose on Spawn), Map : Find, Add, Append, Print String.',
-    'Solution : BP_Joueur : IA_Interagir (Started) → Line Trace By Channel (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300) → Interagir (Message), Target = Out Hit Hit Actor. BP_Objet : variable Nom (Name, Instance Editable, Expose on Spawn) ; BeginPlay → Print String (Nom). BP_Distributeur implémente BPI_Interactif ; variable Donnes (Map Name → Integer). Event Interagir → Branch (Is Empty (Stock)) : True → Print « Vide » ; False → Set Index = Random Integer in Range (0, Last Index) → Set Tire = Get (Stock, Index) → Remove Index → Spawn Actor BP_Objet (Nom = Tire, devant le distributeur) → Set Compte = Find (Donnes, Tire) + 1 → Add (Donnes, Tire, Compte) → Print (Tire + « x » + Compte).',
+    'Cinq questions : comment désigner ce que le joueur regarde, et pas tout ce qui est à portée ? Comment tirer une position au hasard dans une liste qui raccourcit ? Comment un acteur reçoit-il une valeur avant son BeginPlay ? Où ranger un nombre par sorte d’objet ? Et comment le distributeur atteint-il le widget du Player Controller ?',
+    'Line Trace By Channel, Get Actor Location, Get Actor Forward Vector, Interagir (Message) ; Is Empty, Random Integer in Range, Last Index, Get (a copy), Remove Index, Spawn Actor (Expose on Spawn), Map : Find, Add, Append, Print String ; Get Player Controller, Cast To BP_PlayerController, Messages, Afficher.',
+    'Solution : BP_Joueur : IA_Interagir (Started) → Line Trace By Channel (Start = Get Actor Location, End = Start + Get Actor Forward Vector × 300) → Interagir (Message), Target = Out Hit Hit Actor. BP_Objet : variable Nom (Name, Instance Editable, Expose on Spawn) ; BeginPlay → Print String (Nom). BP_Distributeur implémente BPI_Interactif ; variable Donnes (Map Name → Integer). Event Interagir → Branch (Is Empty (Stock)) : True → Afficher « Vide » (Get Player Controller → Cast To BP_PlayerController → Messages) ; False → Set Index = Random Integer in Range (0, Last Index) → Set Tire = Get (Stock, Index) → Remove Index → Spawn Actor BP_Objet (Nom = Tire, devant le distributeur) → Set Compte = Find (Donnes, Tire) + 1 → Add (Donnes, Tire, Compte) → Afficher (Tire + « x » + Compte).',
   ],
   challenge: 'Remets le stock à son contenu de départ quand il est vide, et fais que chaque objet apparaisse à côté du précédent plutôt qu’au même endroit.',
   setup: dispenserProject,
@@ -333,7 +338,7 @@ export const mixedDispenser: Lesson = {
       label: 'Chaque objet affiche son Nom à sa naissance : trois Pile, un Fusible, une Cle',
       at: 'cinq',
       test: (cx) => {
-        const said = cx.prints().map((t) => t.trim());
+        const said = told(cx).map((t) => t.trim());
         const got = ['Pile', 'Fusible', 'Cle'].map((n) => said.filter((t) => t === n).length);
         if (got.join(',') === '3,1,1') return true;
         if (said.some((t) => t === 'None' || t === '')) return 'Un objet affiche un Nom vide à son BeginPlay : il doit le recevoir à sa naissance (Expose on Spawn), pas après.';
@@ -345,13 +350,18 @@ export const mixedDispenser: Lesson = {
       label: 'Le compte par sorte : « Pile x3 » au bout du compte',
       at: 'cinq',
       test: (cx) =>
-        countPrints(cx, 'Pile x3') && countPrints(cx, 'Fusible x1') && countPrints(cx, 'Cle x1') ? true : 'Le distributeur doit afficher, à chaque objet, combien il en a donné de cette sorte : « Pile x1 », « Pile x2 », « Pile x3 », « Fusible x1 », « Cle x1 ».',
+        countTold(cx, 'Pile x3') && countTold(cx, 'Fusible x1') && countTold(cx, 'Cle x1') ? true : 'Le distributeur doit afficher, à chaque objet, combien il en a donné de cette sorte : « Pile x1 », « Pile x2 », « Pile x3 », « Fusible x1 », « Cle x1 ».',
     },
     {
       id: 'empty',
       label: 'Au sixième E : « Vide », et rien de plus',
-      test: (cx) => (dispensed(cx).length === 5 && countPrints(cx, 'Vide') === 1 ? true : `Au sixième E : ${dispensed(cx).length} objets, ${countPrints(cx, 'Vide')} message « Vide ». Il fallait 5 objets et un « Vide ».`),
+      test: (cx) => (dispensed(cx).length === 5 && countTold(cx, 'Vide') === 1 ? true : `Au sixième E : ${dispensed(cx).length} objets, ${countTold(cx, 'Vide')} message « Vide ». Il fallait 5 objets et un « Vide ».`),
     },
+    notion({
+      id: 'ecran',
+      label: 'Le joueur lit le compte à l’écran (WBP_Messages)',
+      test: (cx) => (onScreen(cx, 'Pile x') ? true : 'Le compte passe par Print String : le joueur ne le verrait pas dans un jeu livré. Envoie-le à Afficher, sur la variable Messages du Player Controller.'),
+    }),
     noRuntimeErrors(),
   ],
   solve(p) {
@@ -377,7 +387,9 @@ export const mixedDispenser: Lesson = {
     const empty = b.node('array.isEmpty', {}, {}, [240, 300]);
     const br = b.node('flow.branch', {}, {}, [360, 96]);
     b.link(ev, 'then', br, 'exec').link(get(stock, [64, 300]), 'value', empty, 'array').link(empty, 'result', br, 'condition');
-    b.link(br, 'true', b.node('debug.printString', {}, { text: 'Vide' }, [640, -60]), 'exec');
+    const empty0 = afficherViaController(p, b, [640, -260]);
+    b.graph.nodes[empty0.call].defaults[empty0.pin] = 'Vide';
+    b.link(br, 'true', empty0.first, 'exec');
     const last = b.node('array.lastIndex', {}, {}, [520, 360]);
     const rand = b.node('math.randomIntInRange', {}, { min: 0 }, [720, 360]);
     const setI = b.node('var.set', { variable: index }, {}, [700, 96]);
@@ -399,8 +411,8 @@ export const mixedDispenser: Lesson = {
     b.link(keep, 'then', add, 'exec').link(get(given, [2050, 260]), 'value', add, 'map').link(get(tire, [2050, 300]), 'value', add, 'key').link(get(count, [2050, 340]), 'value', add, 'value');
     const t1 = b.node('string.append', {}, { in1: ' x' }, [2400, 360]);
     const t2 = b.node('string.append', {}, {}, [2600, 360]);
-    const say = b.node('debug.printString', {}, {}, [2500, 96]);
-    b.link(get(tire, [2250, 560]), 'value', t1, 'in0').link(t1, 'result', t2, 'in0').link(get(count, [2250, 640]), 'value', t2, 'in1').link(t2, 'result', say, 'text');
-    b.link(add, 'then', say, 'exec');
+    const say = afficherViaController(p, b, [2500, 96]);
+    b.link(get(tire, [2250, 560]), 'value', t1, 'in0').link(t1, 'result', t2, 'in0').link(get(count, [2250, 640]), 'value', t2, 'in1').link(t2, 'result', say.call, say.pin);
+    b.link(add, 'then', say.first, 'exec');
   },
 };

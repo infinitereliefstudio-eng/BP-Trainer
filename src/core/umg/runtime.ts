@@ -89,6 +89,12 @@ export class Umg {
   version = 0;
   /** Calls of each Binding: "object:widget:prop" → count (shown by the debugger). */
   readonly bindingCalls: Record<string, number> = {};
+  /**
+   * Every text a Set Text wrote, in order (not Bindings): what the screen said
+   * during the game, read by the checks of lessons that show messages (V7.59).
+   * The game carries it over an Open Level, like the Output Log.
+   */
+  readonly textLog: string[] = [];
   private added = 0;
   /** The Button held down by a finger: its widget object and id, and its layout path (drawn pressed). */
   pressed?: { obj: string; id: string; path: string };
@@ -218,6 +224,7 @@ export class Umg {
     const key = 'id' in t ? t.id : '';
     t.obj.widget!.state[key] ??= {};
     const st = t.obj.widget!.state[key];
+    if (!fromBinding && patch.text !== undefined) this.textLog.push(String(patch.text));
     for (const [k, v] of Object.entries(patch) as [keyof WidgetProps, WidgetProps[keyof WidgetProps]][]) {
       if (!fromBinding) t.obj.widget!.broken[`${key}:${k}`] = true;
       if (st[k] === v) continue;

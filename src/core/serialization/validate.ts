@@ -62,7 +62,7 @@ function record(o: Obj, key: string, where: string): Obj {
   return v as Obj;
 }
 
-const OVERRIDABLE = ['ChoosePlayerStart'];
+const OVERRIDABLE = ['ChoosePlayerStart', 'GetDefaultPawnClassForController'];
 
 function checkGraph(g: unknown, owner: string): void {
   const graph = named(g, `Un graphe de « ${owner} »`);

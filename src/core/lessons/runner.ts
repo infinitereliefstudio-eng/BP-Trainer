@@ -9,7 +9,7 @@
  * one frame): a solution that only works with instant presses fails too.
  */
 import { compileClass, type CompileMessage } from '../compiler/validate';
-import { defaultLevel, type Project } from '../model/project';
+import { defaultLevel, findLevelByName, type Project } from '../model/project';
 import { Game } from '../runtime/game';
 import { type ActorOrder, Simulation, STEP } from '../runtime/simulation';
 import type { Check, CheckContext, Lesson, RobustnessCase, ScenarioStep } from './types';
@@ -170,7 +170,8 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
       game.shutdown();
       earlier.prints = cx.prints();
       earlier.errors.push(...game.world.log.filter((l) => l.level === 'error').map((l) => l.text));
-      game = new Game(project, { order, slots, levelId });
+      const into = step.level ? findLevelByName(project, step.level)?.id : undefined;
+      game = new Game(project, { order, slots, levelId: into ?? levelId });
       game.start();
       seen = 0;
     } else if ('fps' in step) dt = 1 / step.fps;

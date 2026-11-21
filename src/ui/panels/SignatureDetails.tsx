@@ -165,7 +165,10 @@ function OverrideFunctionDetails({ graphId, openOverlay }: { graphId: string; op
               openOverlay({
                 kind: 'confirm',
                 title: `Supprimer ${g.name} ?`,
-                text: 'Le GameMode reprendra le choix d’UE : un Player Start libre, au hasard s’il y en a plusieurs.',
+                text:
+                  g.override === 'ChoosePlayerStart'
+                    ? 'Le GameMode reprendra le choix d’UE : un Player Start libre, au hasard s’il y en a plusieurs.'
+                    : 'Le GameMode reprendra sa Default Pawn Class (Class Defaults).',
                 confirmLabel: 'Supprimer',
                 onConfirm: () => {
                   if (store.graphId === graphId) store.openGraph(cls.graphs[0].id);
@@ -182,10 +185,18 @@ function OverrideFunctionDetails({ graphId, openOverlay }: { graphId: string; op
         <p>
           Une fonction <b>surchargée</b> (Override) : c’est le moteur qui l’appelle, par son nom. Son nom et ses paramètres sont ceux de la classe parente.
         </p>
-        <p>
-          <b>Choose Player Start</b> : le GameMode l’appelle à chaque niveau, avant les BeginPlay, pour savoir où faire apparaître le joueur. Rends un acteur
-          (souvent un Player Start, trouvé par Get All Actors Of Class et son Player Start Tag). None : dans UE, le joueur n’apparaît pas.
-        </p>
+        {g.override === 'ChoosePlayerStart' ? (
+          <p>
+            <b>Choose Player Start</b> : le GameMode l’appelle à chaque niveau, avant les BeginPlay, pour savoir où faire apparaître le joueur. Rends un acteur
+            (souvent un Player Start, trouvé par Get All Actors Of Class et son Player Start Tag). None : dans UE, le joueur n’apparaît pas.
+          </p>
+        ) : (
+          <p>
+            <b>Get Default Pawn Class For Controller</b> : le GameMode l’appelle à chaque niveau, avant les BeginPlay, pour savoir quel pion créer. Rends une
+            classe de Pawn (par exemple celle choisie dans un menu et gardée dans le GameInstance), avec un repli si rien n’est choisi. Le GameMode crée un seul
+            pion, de cette classe : pas besoin de Spawn Actor. None : dans UE, le joueur n’a pas de pion.
+          </p>
+        )}
       </AppHelp>
     </>
   );

@@ -31,7 +31,8 @@ export type ScenarioStep =
    * Stop the game and press Play again: a new game on the same project, whose
    * save slots are kept (Save Game). Checks after it see the new game.
    */
-  | { restart: true };
+  /** Stop, then Play again; `level`: in that level (by name) rather than the Game Default Map, as Play from a level open in the editor. */
+  | { restart: true; level?: string };
 
 export interface CheckContext {
   /** The world being played: the latest one after a restart step, the new level's after an Open Level. */

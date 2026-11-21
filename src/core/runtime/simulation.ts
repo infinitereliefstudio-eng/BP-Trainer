@@ -9,8 +9,8 @@
  * class orders them and answers the interpreter (WorldApi).
  */
 import { explainRuntime } from '../explain/runtime';
-import { inheritedView, isA, lineage } from '../model/inheritance';
-import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Level, type Project, type SavedGame, levelOf, playerStartsOf } from '../model/project';
+import { inheritedView, isA, lineage, rootParent } from '../model/inheritance';
+import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type Graph, type NodeInstance, type Level, type OverridableFunction, type Project, type SavedGame, levelOf, playerStartsOf } from '../model/project';
 import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
@@ -278,7 +278,8 @@ export class Simulation implements InterpreterHost {
    * BeginPlay: this is also what the editor's level view shows.
    */
   private construct(): void {
-    for (const a of this.scripted()) this.interp.construct(a);
+    // The pawn is not there yet: the GameMode makes it after Event Init (placePlayer), its Construction Script then.
+    for (const a of this.scripted()) if (a !== this.player) this.interp.construct(a);
     this.interp.drain(true);
   }
 
@@ -424,16 +425,62 @@ export class Simulation implements InterpreterHost {
    * a lesson's check is seeded, so it is the same every time).
    */
   private placePlayer(): void {
+    // As UE's RestartPlayer: the Player Start first (FindPlayerStart), then the pawn's class (SpawnDefaultPawnFor).
     const spot = this.choosePlayerStart();
-    if (!spot) return;
-    this.player.x = spot.x;
-    this.player.y = spot.y;
-    this.player.yaw = spot.yaw;
+    this.choosePawnClass();
+    if (spot) {
+      this.player.x = spot.x;
+      this.player.y = spot.y;
+      this.player.yaw = spot.yaw;
+    }
+    // The pawn is spawned now: its Construction Script runs, before every BeginPlay.
+    this.interp.construct(this.player);
+  }
+
+  /** The GameMode's override of a native function (Functions › Override), its own or inherited. */
+  private gameModeOverride(which: OverridableFunction): { gm: BlueprintClass; graph: Graph } | undefined {
+    const gm = this.gameMode.classId ? findClass(this.project, this.gameMode.classId) : undefined;
+    const graph = gm ? lineage(this.project, gm).flatMap((c) => c.graphs).find((g) => g.override === which) : undefined;
+    return gm && graph?.fn ? { gm, graph } : undefined;
+  }
+
+  /**
+   * UE's AGameModeBase::GetDefaultPawnClassForController: with a Blueprint
+   * override, the class it returns replaces the Default Pawn Class. The pawn
+   * object was prepared with the Default Pawn Class; it is made again here,
+   * before its Construction Script and BeginPlay run (V7.55), so the game
+   * has one pawn only, of the class chosen.
+   */
+  private choosePawnClass(): void {
+    const o = this.gameModeOverride('GetDefaultPawnClassForController');
+    if (!o) return;
+    const input = o.graph.fn!.inputs[0];
+    const out = this.interp.evaluate(this.gameMode, o.graph.id, input ? { [input.id]: { ref: 'actor', id: this.controller.id } } : {});
+    const ret = o.graph.fn!.outputs[0];
+    const id = ret ? out[ret.id] : undefined;
+    const cls = typeof id === 'string' && id ? findClass(this.project, id) : undefined;
+    if (!cls || rootParent(this.project, cls) !== 'Pawn') {
+      this.journal.warning(
+        this.time,
+        `SpawnDefaultPawnFor: Get Default Pawn Class For Controller de ${o.gm.name} a rendu ${cls ? `${cls.name}, qui n’est pas un Pawn` : 'None'} : dans UE, le joueur n’aurait aucun pion. Ici il garde la Default Pawn Class.`,
+      );
+      return;
+    }
+    if (cls.id === this.player.classId) return;
+    // The pawn of the Default Pawn Class goes, without an event: in UE it was never made.
+    for (let i = this.objects.length - 1; i >= 0; i--) if (this.objects[i].owner === this.player.id) this.objects.splice(i, 1);
+    const fresh = { ...createPlayer(inheritedView(cls, this.project, true)), x: this.player.x, y: this.player.y, yaw: this.player.yaw };
+    for (const k of Object.keys(this.player) as (keyof ActorRT)[]) if (!(k in fresh)) delete this.player[k];
+    Object.assign(this.player, fresh);
+    this.counters.set(cls.id, Math.max(this.counters.get(cls.id) ?? 0, 1));
+    this.markClass(cls.id);
+    this.attachComponents(this.player);
   }
 
   private choosePlayerStart(): ActorRT | undefined {
-    const gm = this.gameMode.classId ? findClass(this.project, this.gameMode.classId) : undefined;
-    const override = gm ? lineage(this.project, gm).flatMap((c) => c.graphs).find((g) => g.override === 'ChoosePlayerStart') : undefined;
+    const o = this.gameModeOverride('ChoosePlayerStart');
+    const gm = o?.gm;
+    const override = o?.graph;
     if (override?.fn) {
       const player = override.fn.inputs[0];
       const out = this.interp.evaluate(this.gameMode, override.id, player ? { [player.id]: { ref: 'actor', id: this.controller.id } } : {});

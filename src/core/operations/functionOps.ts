@@ -128,28 +128,44 @@ export function removeFunction(p: Project, cls: BlueprintClass, graphId: string)
   pruneBindings(cls);
 }
 
-/** What a Blueprint can override, by its native root: a GameMode chooses where the player appears. */
+/** The signature of each overridable function, as UE declares it on AGameModeBase. */
+const OVERRIDES: Record<OverridableFunction, { inputs: Omit<Param, 'id'>[]; outputs: Omit<Param, 'id'>[]; description: string }> = {
+  ChoosePlayerStart: {
+    inputs: [{ name: 'Player', type: { category: 'object', subtype: 'Controller' } }],
+    outputs: [{ name: 'Return Value', type: { category: 'object', subtype: 'Actor' } }],
+    description: 'Choisit l’acteur où le joueur apparaît (souvent un Player Start). Appelée par le GameMode à chaque niveau, avant les BeginPlay.',
+  },
+  GetDefaultPawnClassForController: {
+    inputs: [{ name: 'In Controller', type: { category: 'object', subtype: 'Controller' } }],
+    outputs: [{ name: 'Return Value', type: { category: 'class', subtype: 'Pawn' } }],
+    description: 'Choisit la classe du pion que le GameMode fait apparaître pour ce joueur (sinon sa Default Pawn Class). Appelée à chaque niveau, avant les BeginPlay.',
+  },
+};
+
+/** What a Blueprint can override, by its native root: a GameMode chooses where the player appears, and as what. */
 export function overridableFunctions(p: Project, cls: BlueprintClass): OverridableFunction[] {
-  return rootParent(p, cls) === 'GameModeBase' ? ['ChoosePlayerStart'] : [];
+  return rootParent(p, cls) === 'GameModeBase' ? ['ChoosePlayerStart', 'GetDefaultPawnClassForController'] : [];
 }
 
 /**
- * Functions › Override › Choose Player Start, as UE's: a function graph with
- * the parent's name and signature (Player, a Controller; Return Value, an
- * Actor), already wired from its entry to its Return Node. The engine calls it
- * when the GameMode makes the player appear (core/runtime/simulation.ts).
+ * Functions › Override, as UE's: a function graph with the parent's name and
+ * signature (Choose Player Start: Player → an Actor; Get Default Pawn Class
+ * For Controller: In Controller → a Pawn class), already wired from its entry
+ * to its Return Node. The engine calls it when the GameMode makes the player
+ * appear (core/runtime/simulation.ts).
  */
 export function overrideFunction(p: Project, cls: BlueprintClass, which: OverridableFunction): OpResult<Graph> {
   if (!overridableFunctions(p, cls).includes(which)) return { ok: false, reason: `${cls.name} n’a pas de fonction ${which} à surcharger : c’est une fonction des GameMode.` };
   if (cls.graphs.some((g) => g.override === which)) return { ok: false, reason: `${which} est déjà surchargée dans ${cls.name}.` };
   if (cls.graphs.some((g) => g.name === which)) return { ok: false, reason: `${cls.name} a déjà une fonction nommée ${which} : renomme-la d’abord.` };
+  const sig = OVERRIDES[which];
   const g = createGraph(which, 'function');
   g.override = which;
   g.fn = {
-    inputs: [{ id: newId('pa'), name: 'Player', type: { category: 'object', subtype: 'Controller' } }],
-    outputs: [{ id: newId('pa'), name: 'Return Value', type: { category: 'object', subtype: 'Actor' } }],
+    inputs: sig.inputs.map((x) => ({ ...x, id: newId('pa') })),
+    outputs: sig.outputs.map((x) => ({ ...x, id: newId('pa') })),
     pure: false,
-    description: 'Choisit l’acteur où le joueur apparaît (souvent un Player Start). Appelée par le GameMode à chaque niveau, avant les BeginPlay.',
+    description: sig.description,
   };
   cls.graphs.push(g);
   const entry = addNode(g, 'fn.entry', 0, 0, { graph: g.id });

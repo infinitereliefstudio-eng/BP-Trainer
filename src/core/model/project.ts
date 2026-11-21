@@ -71,8 +71,8 @@ export interface Graph {
   override?: OverridableFunction;
 }
 
-/** The parent-class functions a Blueprint can override (Functions › Override). */
-export type OverridableFunction = 'ChoosePlayerStart';
+/** The parent-class functions a Blueprint can override (Functions › Override): a GameMode's, so far. */
+export type OverridableFunction = 'ChoosePlayerStart' | 'GetDefaultPawnClassForController';
 
 export interface FunctionSignature {
   inputs: Param[];

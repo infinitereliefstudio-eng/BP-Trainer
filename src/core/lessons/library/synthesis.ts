@@ -7,6 +7,10 @@ import { T } from '../../types/pins';
 import { edit, ProjectBuilder } from '../builder';
 import { noRuntimeErrors, normText, visible } from '../checks';
 import type { CheckContext, Lesson } from '../types';
+import { readTimeline, timelineConfig, trackPin } from '../../nodes/library/timeline';
+import { ensurePlayerInput } from '../ue5Input';
+import { told } from './messageHud';
+import { addW, controller, newClass, screenTexts } from './umgKit';
 import { doorBlueprint, keyBlueprint, playerBlueprint } from './props';
 
 // ------------------------------------------------------- S1 Le passage (Débutant)
@@ -189,8 +193,13 @@ function storeroomProject() {
   pb.place(keyBlueprint(pb, false), ...KEY_AT);
   doorBlueprint(pb);
   pb.playerStart(-500, 0);
+  // V7.60: the project is set up as UE5's template (BP_PlayerController), where the learner makes the widget.
+  ensurePlayerInput(pb.project, []);
   return pb.project;
 }
+
+/** On the screen, a text that speaks of the key and says `word` (« oui », « non »). */
+const keyOnScreen = (cx: CheckContext, word: string) => screenTexts(cx).some((t) => normText(t).includes('cle') && normText(t).includes(word));
 
 /** Door angle in [-180, 180). */
 function doorYaw(cx: CheckContext): number {
@@ -216,26 +225,29 @@ export const synthesis2: Lesson = {
   level: 'intermediaire',
   number: 0,
   title: 'La réserve',
+  // V7.60 (review of the path's progression): the key on the screen, the door turns smoothly (Timeline).
+  revision: 2,
   situation:
-    'La porte de la réserve ne s’ouvre qu’au joueur qui a la clé, et se referme d’elle-même. La clé traîne un peu plus loin.',
-  notions: ['Cast To', 'Variable d’un autre Blueprint', 'Destroy Actor', 'Delay'],
+    'La porte de la réserve ne s’ouvre qu’au joueur qui a la clé : elle pivote en douceur, puis se referme d’elle-même. La clé traîne un peu plus loin, et un petit texte à l’écran dit au joueur s’il l’a.',
+  notions: ['Cast To', 'Variable d’un autre Blueprint', 'Destroy Actor', 'Delay', 'Timeline', 'Widget Blueprint'],
   remember:
     'Une règle qui dépend de qui agit commence par un Cast. Ce que le joueur possède vit chez lui (une variable de BP_Joueur) : la clé l’écrit, la porte le lit. Ce qui doit arriver plus tard passe par un Delay, sur le même fil.',
   cards: [
     {
       title: 'Cahier des charges',
       body:
-        '**BP_Joueur** a une variable `bACle` (Boolean, faux au départ). **BP_Cle** (la Cle et sa Zone) et **BP_Porte** (la Porte, qui pivote sur son gond, et sa Zone) ont des graphes vides.\n\n' +
+        '**BP_Joueur** a une variable `bACle` (Boolean, faux au départ). **BP_Cle** (la Cle et sa Zone) et **BP_Porte** (la Porte, qui pivote sur son gond, et sa Zone) ont des graphes vides. **BP_PlayerController** est le Player Controller du jeu, comme dans le template d’UE5. Aucun Widget Blueprint.\n\n' +
         '- Le joueur qui arrive à la porte **sans la clé** voit un message avec le mot « clé », et la porte reste fermée. Ce message ne s’affiche **qu’une fois**, même s’il revient.\n' +
         '- Quand le joueur touche la clé, elle **disparaît** et il la **possède**.\n' +
-        '- **Avec la clé**, la porte s’ouvre (Yaw 90) quand il arrive.\n' +
-        '- **2 secondes** après s’être ouverte, elle se **referme** toute seule (Yaw 0).',
+        '- **Avec la clé**, la porte s’ouvre quand il arrive : elle **pivote en douceur** jusqu’à Yaw 90, en une demi-seconde.\n' +
+        '- **2 secondes** après s’être ouverte, elle se **referme** toute seule, en douceur aussi (Yaw 0).\n' +
+        '- Dès le lancement, un texte **à l’écran** dit `Clé : non` ; quand le joueur prend la clé, il dit `Clé : oui`.',
     },
     {
       title: 'Comment t’y prendre',
       body:
         'Une synthèse reprend l’Intermédiaire, sans liste de nœuds. Une règle à la fois :\n\n' +
-        '1. Quel Blueprint réagit, et à quel événement ?\n2. Comment être sûr que c’est le joueur ?\n3. Où vit l’information « il a la clé », et qui l’écrit, qui la lit ?\n4. Que faut-il faire attendre, et sur quel fil ?\n\n' +
+        '1. Quel Blueprint réagit, et à quel événement ?\n2. Comment être sûr que c’est le joueur ?\n3. Où vit l’information « il a la clé », et qui l’écrit, qui la lit ?\n4. Que faut-il faire attendre, et sur quel fil ?\n5. Qui crée le texte à l’écran, et comment la clé le prévient-elle ?\n\n' +
         'Teste chaque règle avec ▶ Play. Les indices s’ouvrent après un premier essai.',
     },
     {
@@ -246,12 +258,13 @@ export const synthesis2: Lesson = {
   objectives: [
     'Sans la clé : un message avec le mot « clé », une seule fois, et la porte reste fermée.',
     'La clé disparaît quand le joueur la touche, et il la possède.',
-    'Avec la clé : la porte s’ouvre, puis se referme seule 2 s plus tard.',
+    'Avec la clé : la porte pivote en douceur jusqu’à 90°, puis se referme seule, en douceur, 2 s plus tard.',
+    'À l’écran : « Clé : non » dès le lancement, puis « Clé : oui ».',
   ],
   hints: [
-    'Deux Blueprints à écrire : la clé (comme « Ramasser un objet ») et la porte (comme « La porte verrouillée », puis « La porte qui se referme »).',
-    'La clé : overlap, Cast To BP_Joueur, Set bACle, Destroy Actor. La porte : overlap, Cast To BP_Joueur, Get bACle, Branch, Set Relative Rotation, Delay, DoOnce, Print String.',
-    'Solution — BP_Cle : ActorBeginOverlap → Cast To BP_Joueur → Set bACle (coché) → Destroy Actor. BP_Porte : ActorBeginOverlap → Cast To BP_Joueur → Branch (As BP_Joueur › bACle) ; True → Set Relative Rotation (Porte, Yaw 90) → Delay 2 → Set Relative Rotation (Porte, Yaw 0) ; False → DoOnce → Print String « Il faut la clé ».',
+    'Trois Blueprints à écrire et un à créer : la clé (comme « Ramasser un objet »), la porte (comme « La porte verrouillée », puis « La porte qui glisse »), le widget et le Player Controller (comme « Le compteur à l’écran »).',
+    'La clé : overlap, Cast To BP_Joueur, Set bACle, Get Player Controller, Cast To BP_PlayerController, un Custom Event du widget, Destroy Actor. La porte : overlap, Cast To BP_Joueur, Branch, Sequence, Timeline, Lerp, Make Rotator, Set Relative Rotation, Delay, DoOnce, Print String. Le widget : Text (Is Variable), Custom Event, SetText. BP_PlayerController : Create Widget, Set, Add to Viewport.',
+    'Solution — WBP_Cle : Txt_Cle (Is Variable, « Clé : non ») ; Custom Event AvoirCle → SetText (Txt_Cle, « Clé : oui »). BP_PlayerController : après Add Mapping Context → Create WBP_Cle Widget (Owning Player = Self) → Set Hud → Add to Viewport. BP_Cle : ActorBeginOverlap → Cast To BP_Joueur → Set bACle (coché) → Cast To BP_PlayerController (Get Player Controller) → AvoirCle (Target = Hud) → Destroy Actor. BP_Porte : ActorBeginOverlap → Cast To BP_Joueur → Branch (As BP_Joueur › bACle) ; True → Sequence : Then 0 → Timeline (0,5 s, Alpha de 0 à 1) Play from Start, Update → Set Relative Rotation (Porte, Make Rotator (Yaw = Lerp (0, 90, Alpha))) ; Then 1 → Delay 2,5 → Reverse ; False → DoOnce → Print String « Il faut la clé ».',
   ],
   challenge: 'Fais que la porte reste ouverte tant que le joueur est dans sa Zone, et ne se referme que 2 s après son départ (Event ActorEndOverlap, Retriggerable Delay).',
   setup: storeroomProject,
@@ -273,10 +286,12 @@ export const synthesis2: Lesson = {
     { teleport: away },
     { wait: 0.3 },
     { teleport: atDoor },
-    { wait: 0.3 },
+    { wait: 0.15 },
+    { checkpoint: 'pivote' },
+    { wait: 0.55 },
     { checkpoint: 'ouverte' },
     { teleport: away },
-    { wait: 2.2 },
+    { wait: 2.6 },
     { checkpoint: 'refermee' },
   ],
   checks: [
@@ -286,7 +301,7 @@ export const synthesis2: Lesson = {
       at: 'sans-cle',
       test: (cx) => {
         if (!doorIsClosed(cx)) return 'La porte s’ouvre au joueur qui n’a pas la clé.';
-        return cx.prints().some((t) => normText(t).includes('cle')) ? true : 'Le joueur arrive sans la clé, mais aucun message ne parle de la clé.';
+        return told(cx).some((t) => normText(t).includes('cle') && !normText(t).includes('cle : ')) ? true : 'Le joueur arrive sans la clé, mais aucun message ne parle de la clé.';
       },
     },
     {
@@ -294,7 +309,7 @@ export const synthesis2: Lesson = {
       label: 'Revenu sans la clé : pas de second message',
       at: 'encore',
       test: (cx) => {
-        const n = cx.prints().filter((t) => normText(t).includes('cle')).length;
+        const n = told(cx).filter((t) => normText(t).includes('cle') && !normText(t).includes('cle : ')).length;
         return n <= 1 ? true : `Le message sur la clé s’est affiché ${n} fois : une seule suffit.`;
       },
     },
@@ -305,6 +320,32 @@ export const synthesis2: Lesson = {
       test: (cx) => {
         if (keyLeft(cx)) return 'Le joueur a touché la clé, mais elle est toujours là.';
         return cx.variable('Joueur', 'bACle') === true ? true : 'La clé a disparu, mais bACle du joueur est toujours faux : c’est chez lui que l’information doit vivre.';
+      },
+    },
+    {
+      id: 'hud',
+      label: 'Dès le lancement, l’écran dit « Clé : non »',
+      at: 'sans-cle',
+      test: (cx) => {
+        if (keyOnScreen(cx, 'non')) return true;
+        if (!cx.project.classes.some((c) => c.parent === 'UserWidget')) return 'Aucun Widget Blueprint : crée-en un (Content Drawer › + Add › User Interface), avec un Text « Clé : non ».';
+        return cx.sim.umg.viewport().length ? 'Un widget est à l’écran, mais aucun texte n’y dit « Clé : non ».' : 'Le widget n’est pas à l’écran : BP_PlayerController le crée (Create Widget) et l’ajoute au viewport (Add to Viewport) à son BeginPlay.';
+      },
+    },
+    {
+      id: 'hud-yes',
+      label: 'Clé prise : l’écran dit « Clé : oui »',
+      at: 'cle',
+      test: (cx) => (keyOnScreen(cx, 'oui') ? true : 'Le joueur a pris la clé, mais l’écran ne dit pas « Clé : oui » : la clé doit prévenir le widget (un de ses Custom Events, que le Player Controller garde dans une variable).'),
+    },
+    {
+      id: 'smooth',
+      label: 'Avec la clé, la porte pivote en douceur',
+      at: 'pivote',
+      test: (cx) => {
+        const yaw = Math.abs(doorYaw(cx));
+        if (yaw > 3 && yaw < 87) return true;
+        return yaw >= 87 ? 'La porte saute d’un coup à 90° : fais-la pivoter en une demi-seconde, avec un Timeline (Alpha de 0 à 1, Lerp de 0 à 90).' : 'Le joueur a la clé, mais la porte n’a pas commencé à s’ouvrir.';
       },
     },
     {
@@ -336,14 +377,49 @@ export const synthesis2: Lesson = {
     const cast = d.node('cast.to', { class: player.cls.id }, {}, [360, 96]);
     const get = d.node('var.getExternal', { owner: player.cls.id, variable: has }, {}, [420, 340]);
     const br = d.node('flow.branch', {}, {}, [720, 96]);
-    const open = d.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 90 } }, [1000, 0]);
-    const wait = d.node('time.delay', {}, { duration: 2 }, [1320, 0]);
-    const close = d.node('component.setRelativeRotation', {}, { rotation: { x: 0, y: 0, z: 0 } }, [1600, 0]);
+    const seq = d.node('flow.sequence', {}, {}, [1000, 0]);
+    const tl = d.node('timeline.node', {}, {}, [1300, -200]);
+    const data = readTimeline(d.graph.nodes[tl]);
+    data.name = 'Pivot';
+    data.length = 0.5;
+    data.tracks[0].keys = [
+      { t: 0, v: 0 },
+      { t: 0.5, v: 1 },
+    ];
+    Object.assign(d.graph.nodes[tl].config, timelineConfig(data));
+    const lerp = d.node('math.lerp', {}, { a: 0, b: 90 }, [1600, 0]);
+    const rot = d.node('math.makeRotator', {}, {}, [1800, 0]);
+    const turn = d.node('component.setRelativeRotation', {}, {}, [2000, -200]);
+    const wait = d.node('time.delay', {}, { duration: 2.5 }, [1300, 160]);
     const once = d.node('flow.doOnce', {}, {}, [1000, 360]);
     const say = d.node('debug.printString', {}, { text: 'Il faut la clé' }, [1300, 360]);
     d.link(e, 'then', cast, 'exec').link(e, 'other', cast, 'object').link(cast, 'then', br, 'exec');
     d.link(cast, 'as', get, 'target').link(get, 'value', br, 'condition');
-    d.link(br, 'true', open, 'exec').target('Porte', open).link(open, 'then', wait, 'exec').link(wait, 'completed', close, 'exec').target('Porte', close);
+    d.link(br, 'true', seq, 'exec').link(seq, 'then0', tl, 'playFromStart').link(seq, 'then1', wait, 'exec').link(wait, 'completed', tl, 'reverse');
+    d.link(tl, 'update', turn, 'exec').target('Porte', turn).link(tl, trackPin(data.tracks[0].id), lerp, 'alpha').link(lerp, 'result', rot, 'yaw').link(rot, 'result', turn, 'rotation');
+    // The widget, made by the Player Controller; the key tells it.
+    const w = newClass(p, 'WBP_Cle', 'UserWidget');
+    const canvas = addW(p, w.cls, 'CanvasPanel', undefined);
+    const txt = addW(p, w.cls, 'TextBlock', canvas.id, { name: 'Txt_Cle', isVariable: true, props: { text: 'Clé : non', fontSize: 26 }, slot: { offsets: [40, 30, 300, 50] } });
+    const got = w.node('event.custom', { name: 'AvoirCle' }, {}, [64, 96]);
+    const yes = w.node('widget.setText', {}, { text: 'Clé : oui' }, [400, 96]);
+    w.link(got, 'then', yes, 'exec').link(w.node('var.widget', { widget: txt.id }, {}, [200, 300]), 'value', yes, 'target');
+    const { b: pc, last } = controller(p);
+    const hud = pc.variable('Hud', T.object('WBP_Cle'));
+    const create = pc.node('widget.create', {}, { class: w.cls.id }, [1100, 96]);
+    const keep = pc.node('var.set', { variable: hud }, {}, [1440, 96]);
+    const show = pc.node('widget.addToViewport', {}, {}, [1760, 96]);
+    pc.link(last, 'then', create, 'exec').link(pc.node('actor.self', {}, {}, [1000, 300]), 'self', create, 'owner');
+    pc.link(create, 'then', keep, 'exec').link(create, 'result', keep, 'value');
+    pc.link(keep, 'then', show, 'exec').link(pc.node('var.get', { variable: hud }, {}, [1600, 300]), 'value', show, 'target');
+    const pcId = pc.cls.id;
+    for (const l of Object.values(key.graph.links)) if (l.from.node === ks && l.from.pin === 'then') delete key.graph.links[l.id];
+    const castPc = key.node('cast.to', { class: pcId }, {}, [1000, 300]);
+    const tell = key.node('call.custom', { owner: w.cls.id, event: 'AvoirCle' }, {}, [1400, 300]);
+    key.link(ks, 'then', castPc, 'exec').link(key.node('player.getController', {}, {}, [800, 500]), 'result', castPc, 'object');
+    key.link(castPc, 'as', key.node('var.getExternal', { owner: pcId, variable: hud }, {}, [1200, 500]), 'target');
+    const readHud = Object.values(key.graph.nodes).find((n) => n.def === 'var.getExternal' && n.config.variable === hud)!.id;
+    key.link(readHud, 'value', tell, 'target').link(castPc, 'then', tell, 'exec').link(tell, 'then', kd, 'exec');
     d.link(br, 'false', once, 'exec').link(once, 'completed', say, 'exec');
   },
 };

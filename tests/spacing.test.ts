@@ -38,11 +38,12 @@ const KNOWN_GAPS: Record<string, number> = {
   // and actor-components, enhanced-input, input and widget-component went just over 15. V7.54: T6 writes Get Player Controller and
   // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45. V7.56 inserted C8 after T6:
   // the gaps that cross it grew by one. V7.58: the commands of the steps after R4 go through the Player Controller,
-  // which counts as practising it; input came back under 15.
+  // which counts as practising it; input came back under 15. V7.60: the syntheses S2, S3 and S4 write what their
+  // level taught (widgets, menus, Timeline, Line Trace, interfaces, GameInstance, Actor Components).
   // V7.57: the widget nodes now count (umg, ui-input). Their gaps were there, unseen: the Intermédiaire's end and the
   // Confirmé's start (umg, L23 → « Le menu qui rend le contrôle »), and nothing after A3 for menus and input modes.
-  umg: 40,
-  'ui-input': 56,
+  umg: 31,
+  'ui-input': 54,
   'actor-components': 18, // V7.51: the eight level steps sit in its gap
   arrays: 28, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4
@@ -56,14 +57,14 @@ const KNOWN_GAPS: Record<string, number> = {
   functions: 42, // lot 3 added Confirmé steps inside this gap: lot 4
   hit: 29, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
   inheritance: 38, // runs to the end of the path
-  interfaces: 22,
+  interfaces: 21,
   latent: 49, // runs to the end of the path
   locals: 38, // lot 3 added Confirmé steps inside this gap: lot 4
   loops: 22,
   maps: 59, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 25, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 20,
-  'player-controller': 28, // V7.58: writing in the Player Controller counts (its commands in five steps after R4); the gap left is from « Le compteur à l’écran » to « Les cartes tirées sans remise »
+  'player-controller': 19, // V7.58: writing in the Player Controller counts (its commands in five steps after R4); the gap left is from « Le compteur à l’écran » to « Les cartes tirées sans remise »
   random: 58, // lot 3 added Confirmé steps inside this gap: lot 4
   rotation: 27,
   'save-game': 41, // runs to the end of the path
@@ -73,9 +74,9 @@ const KNOWN_GAPS: Record<string, number> = {
   structs: 59, // runs to the end of the path
   switch: 39,
   tick: 56, // runs to the end of the path
-  timeline: 51,
+  timeline: 48,
   timers: 35,
-  trace: 24, // V7.50: the level steps sit between M2 and the end of the Avancé
+  trace: 21, // V7.50: the level steps sit between M2 and the end of the Avancé
   visibility: 31, // runs to the end of the path
   'widget-component': 17, // V7.51: the eight level steps sit in its gap
 };

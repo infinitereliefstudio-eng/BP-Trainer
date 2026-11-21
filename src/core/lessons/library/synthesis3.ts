@@ -19,6 +19,10 @@ import { ensurePlayerInput } from '../ue5Input';
 import { editable, goTo, tap, varId } from './kit';
 import { playerBlueprint } from './props';
 import { levelOf } from '../../model/project';
+import { updateVariable } from '../../operations/classOps';
+import { button, menuPanel, modeLabel, newClass, onButton, shown as shownW } from './umgKit';
+
+const PANEL = 'WBP_Alerte';
 
 const CONSOLE: [number, number] = [300, 0];
 const BADGE: [number, number] = [-300, 260];
@@ -44,6 +48,9 @@ function project(): Project {
   pb.playerStart(-300, -100);
   const p = pb.project;
   ensurePlayerInput(p, ['E'], { E: 'IA_Interagir' });
+  // V7.60: the alert ends from a panel on the screen. Its Designer is drawn; its graph is the learner's.
+  const w = newClass(p, PANEL, 'UserWidget');
+  button(p, w.cls, menuPanel(p, w.cls, 'Alerte', { back: '#450a0a', title: '#fca5a5' }), 'Btn_Fin', 'Fin d’alerte', 0, 100);
   return p;
 }
 
@@ -78,19 +85,22 @@ export const synthesis3: Lesson = {
   level: 'confirme',
   number: 0,
   title: 'Le poste de garde',
+  // V7.60 (review of the path's progression): the alert ends from a button on the screen, not a second E.
+  revision: 2,
   situation:
-    'Un badge au sol, un pupitre, trois gyrophares sans lumière et une porte ouverte. Avec le badge, E au pupitre déclenche l’alerte : les gyrophares s’allument, la porte se ferme en douceur. E encore : fin d’alerte.',
-  recalls: ['destroy', 'cast', 'other-bp', 'flow-memory', 'timeline', 'rotation', 'interfaces', 'dispatchers', 'overlap'],
-  notions: ['Choisir Cast, Dispatcher ou Interface', 'Timeline', 'DoOnce', 'Destroy Actor'],
+    'Un badge au sol, un pupitre, trois gyrophares sans lumière et une porte ouverte. Avec le badge, E au pupitre déclenche l’alerte : les gyrophares s’allument, la porte se ferme en douceur, et un panneau s’affiche à l’écran. Son bouton « Fin d’alerte » remet tout en ordre.',
+  recalls: ['destroy', 'cast', 'other-bp', 'flow-memory', 'timeline', 'rotation', 'interfaces', 'dispatchers', 'overlap', 'umg', 'ui-input'],
+  notions: ['Choisir Cast, Dispatcher ou Interface', 'Timeline', 'DoOnce', 'Destroy Actor', 'Create Widget', 'Set Input Mode Game and UI', 'Expose on Spawn'],
   remember:
     'Pour chaque lien entre deux Blueprints, la même question : qui connaît qui ? Le joueur ne connaît pas le pupitre (interface), le pupitre ne connaît pas ceux qui réagissent (dispatcher), et celui qui a besoin d’une variable du joueur le reconnaît (Cast).',
   cards: [
     {
       title: 'Cahier des charges',
       body:
-        'Le projet est réglé comme le template UE5 : **IMC_Joueur** (E → IA_Interagir), ajouté par BP_PlayerController. Tous les graphes sont vides, aucune variable n’existe.\n\n' +
+        'Le projet est réglé comme le template UE5 : **IMC_Joueur** (E → IA_Interagir), ajouté par BP_PlayerController. Tous les graphes sont vides, aucune variable n’existe. **WBP_Alerte** est dessiné (un panneau, un bouton **Btn_Fin**), son graphe est vide.\n\n' +
         '- **BP_Badge** : quand le joueur le touche, il **disparaît** et le joueur **l’a**.\n' +
-        '- **BP_Pupitre** : **E** près de lui. Sans le badge : `Badge requis`, **une seule fois** dans la partie. Avec le badge : E déclenche l’alerte, E à nouveau y met fin, et ainsi de suite.\n' +
+        '- **BP_Pupitre** : **E** près de lui. Sans le badge : `Badge requis`, **une seule fois** dans la partie. Avec le badge : E déclenche l’alerte.\n' +
+        '- **Pendant l’alerte**, WBP_Alerte est à l’écran et le **curseur** apparaît : le joueur peut cliquer. Son bouton **Fin d’alerte** y met fin : le panneau disparaît, le curseur se cache, le jeu reprend comme avant (Game Only).\n' +
         '- **BP_Gyrophare** (trois posés) : ajoute-lui une **Point Light**, éteinte au lancement. Pendant l’alerte elle est allumée, après l’alerte éteinte.\n' +
         '- **BP_Porte** : ouverte au lancement (Yaw 90). Au début de l’alerte, elle se **ferme en 1 seconde** (Yaw 0), en douceur ; à la fin, elle se rouvre de la même façon.',
     },
@@ -99,27 +109,29 @@ export const synthesis3: Lesson = {
       body:
         '- **BP_Joueur ne fait aucun Cast** : il ne sait pas ce qu’est le pupitre. Demain, d’autres objets réagiront à E sans le modifier.\n' +
         '- **BP_Pupitre ne connaît ni les gyrophares ni la porte** : on en ajoutera sans le toucher.\n' +
-        '- Le pupitre, lui, a le droit de reconnaître le joueur pour savoir s’il a le badge.\n\n' +
+        '- Le pupitre, lui, a le droit de reconnaître le joueur pour savoir s’il a le badge, et le panneau a le droit de connaître le pupitre (il lui dit quand on clique).\n\n' +
         'Pour chaque lien, pose-toi la question de « Choisis ton outil » : qui connaît qui ?',
     },
     {
       title: 'Comment t’y prendre',
       body:
-        'Une synthèse reprend le Confirmé, sans liste de nœuds. Une règle à la fois, et teste chacune avec ▶ Play avant de passer à la suivante : le badge, puis le pupitre et son message, puis l’alerte et les gyrophares, puis la porte.\n\n' +
+        'Une synthèse reprend le Confirmé, sans liste de nœuds. Une règle à la fois, et teste chacune avec ▶ Play avant de passer à la suivante : le badge, puis le pupitre et son message, puis l’alerte et les gyrophares, puis la porte, puis le panneau.\n\n' +
         'Conseillée, pas obligatoire : rien n’est bloqué si tu passes à l’Avancé sans elle. Les indices s’ouvrent après un premier essai.',
     },
   ],
   objectives: [
     'Le badge disparaît quand le joueur le touche, et le joueur l’a.',
     'Sans le badge, E au pupitre affiche « Badge requis », une seule fois.',
-    'Avec le badge, E déclenche l’alerte : gyrophares allumés, porte fermée en douceur. E à nouveau : tout revient.',
+    'Avec le badge, E déclenche l’alerte : gyrophares allumés, porte fermée en douceur, panneau à l’écran et curseur visible.',
+    'Le bouton Fin d’alerte : tout revient, le panneau disparaît, le jeu repasse en Game Only, curseur caché.',
     'Le joueur ne fait aucun Cast ; le pupitre ne connaît ni les gyrophares ni la porte.',
   ],
   hints: [
-    'Quatre liens : badge → joueur (une variable du joueur), joueur → pupitre (sans savoir ce qu’il est), pupitre → gyrophares et porte (sans savoir qui écoute), et un mouvement doux pour la porte.',
-    'Cast To BP_Joueur et Destroy Actor (badge) ; une Blueprint Interface, Get Overlapping Actors et For Each Loop (joueur) ; Get Player Pawn, Cast, Branch, DoOnce, un Event Dispatcher avec un paramètre Boolean (pupitre) ; une Point Light et Bind Event (gyrophares) ; Bind Event, Timeline, Play et Reverse, Lerp, Make Rotator, Set Relative Rotation (porte).',
+    'Cinq liens : badge → joueur (une variable du joueur), joueur → pupitre (sans savoir ce qu’il est), pupitre → gyrophares et porte (sans savoir qui écoute), un mouvement doux pour la porte, et panneau → pupitre (le panneau naît en sachant qui l’a créé).',
+    'Cast To BP_Joueur et Destroy Actor (badge) ; une Blueprint Interface, Get Overlapping Actors et For Each Loop (joueur) ; Get Player Pawn, Cast, Branch, DoOnce, un Event Dispatcher avec un paramètre Boolean (pupitre) ; une Point Light et Bind Event (gyrophares) ; Bind Event, Timeline, Play et Reverse, Lerp, Make Rotator, Set Relative Rotation (porte) ; Create Widget avec une variable Expose on Spawn, Add to Viewport, Set Input Mode Game and UI, Set Show Mouse Cursor, On Clicked, Remove from Parent, Set Input Mode Game Only (panneau).',
     'Solution. BP_Joueur : variable bBadge ; IA_Interagir (Started) → Get Overlapping Actors → For Each Loop → Interagir (Message). BP_Badge : ActorBeginOverlap → Cast To BP_Joueur → Set bBadge (coché) → Destroy Actor.\n' +
-      'BPI_Interactif (fonction Interagir), implémentée par BP_Pupitre : Event Interagir → Get Player Pawn → Cast To BP_Joueur → Branch (bBadge) ; True → Set bAlerte = NOT bAlerte → Call OnAlerte (bAlerte) ; False → DoOnce → Print String « Badge requis ».\n' +
+      'BPI_Interactif (fonction Interagir), implémentée par BP_Pupitre : Event Interagir → Get Player Pawn → Cast To BP_Joueur → Branch (bBadge) ; True → Branch (NOT bAlerte) → Set bAlerte (coché) → Call OnAlerte (vrai) → Create WBP_Alerte Widget (Owning Player = Get Player Controller, Pupitre = Self) → Set Panneau → Add to Viewport → Set Input Mode Game and UI → Set Show Mouse Cursor (coché) ; False → DoOnce → Print String « Badge requis ». Custom Event FinAlerte → Set bAlerte (décoché) → Call OnAlerte (faux) → Remove from Parent (Panneau) → Set Input Mode Game Only → Set Show Mouse Cursor (décoché).\n' +
+      'WBP_Alerte : variable Pupitre (BP_Pupitre, Instance Editable, Expose on Spawn) ; On Clicked (Btn_Fin) → FinAlerte (Target = Pupitre).\n' +
       'BP_Gyrophare : Point Light Lumiere (Visible décoché), variable Pupitre (Instance Editable, réglée sur les trois) ; BeginPlay → Bind Event to OnAlerte ← Custom Event → Set Visibility (Lumiere, le paramètre).\n' +
       'BP_Porte : variable Pupitre ; BeginPlay → Bind Event to OnAlerte ← Custom Event → Branch (paramètre) : True → Timeline Play, False → Reverse ; Update → Set Relative Rotation (Porte, Make Rotator Yaw = Lerp (90, 0, Alpha)).',
   ],
@@ -141,7 +153,7 @@ export const synthesis3: Lesson = {
     { checkpoint: 'alerte' },
     { wait: 1 },
     { checkpoint: 'fermee' },
-    ...tap('E'),
+    { click: `${PANEL}/Btn_Fin` },
     { wait: 1.3 },
     { checkpoint: 'fin' },
   ],
@@ -179,6 +191,16 @@ export const synthesis3: Lesson = {
       },
     },
     {
+      id: 'panel',
+      label: 'Pendant l’alerte : le panneau à l’écran, le curseur visible',
+      at: 'alerte',
+      test: (cx) => {
+        if (!shownW(cx, PANEL).length) return 'L’alerte a commencé, mais WBP_Alerte n’est pas à l’écran : le pupitre le crée (Create Widget) et l’ajoute (Add to Viewport) au début de l’alerte.';
+        if (!cx.sim.showMouseCursor) return 'Le panneau est là, mais le curseur est caché : Set Show Mouse Cursor (coché) sur le Player Controller.';
+        return cx.sim.inputMode === 'GameOnly' ? 'Le panneau est là, mais le jeu est resté en Game Only : ses boutons ne recevraient pas le doigt. Set Input Mode Game and UI.' : true;
+      },
+    },
+    {
       id: 'smooth',
       label: 'La porte se ferme en douceur',
       at: 'alerte',
@@ -196,11 +218,21 @@ export const synthesis3: Lesson = {
     },
     {
       id: 'end',
-      label: 'E à nouveau : fin d’alerte, gyrophares éteints et porte rouverte',
+      label: 'Fin d’alerte : gyrophares éteints et porte rouverte',
       at: 'fin',
       test: (cx) => {
         if (lit(cx).length) return `Après la fin d’alerte, encore allumé(s) : ${lit(cx).join(', ')}.`;
         return doorYaw(cx) > 85 ? true : `Après la fin d’alerte, la porte a un Yaw de ${Math.round(doorYaw(cx))} au lieu de 90.`;
+      },
+    },
+    {
+      id: 'back',
+      label: 'Fin d’alerte : le panneau disparaît, Game Only, curseur caché',
+      at: 'fin',
+      test: (cx) => {
+        if (shownW(cx, PANEL).length) return 'Après Fin d’alerte, le panneau est toujours à l’écran : Remove from Parent.';
+        if (cx.sim.inputMode !== 'GameOnly') return `Après Fin d’alerte, le jeu est resté en ${modeLabel(cx)} : Set Input Mode Game Only.`;
+        return cx.sim.showMouseCursor ? 'Après Fin d’alerte, le curseur est resté visible : Set Show Mouse Cursor (décoché).' : true;
       },
     },
     {
@@ -253,14 +285,41 @@ export const synthesis3: Lesson = {
     const read = desk.node('var.getExternal', { owner: player.cls.id, variable: has }, {}, [520, 320]);
     const br = desk.node('flow.branch', {}, {}, [700, 96]);
     const not = desk.node('logic.not', {}, {}, [900, 320]);
-    const set = desk.node('var.set', { variable: alert }, {}, [1000, 40]);
-    const call = desk.node('dispatcher.call', { owner: desk.cls.id, dispatcher: d.id }, {}, [1320, 40]);
+    const idle = desk.node('flow.branch', {}, {}, [860, 40]);
+    const set = desk.node('var.set', { variable: alert }, { value: true }, [1000, 40]);
+    const call = desk.node('dispatcher.call', { owner: desk.cls.id, dispatcher: d.id }, { [d.params[0].id]: true }, [1320, 40]);
     const once = desk.node('flow.doOnce', {}, {}, [1000, 260]);
     const refuse = desk.node('debug.printString', {}, { text: 'Badge requis' }, [1320, 260]);
     desk.link(asked, 'then', castP, 'exec').link(pawn, 'result', castP, 'object').link(castP, 'then', br, 'exec');
     desk.link(castP, 'as', read, 'target').link(read, 'value', br, 'condition');
-    desk.link(desk.node('var.get', { variable: alert }, {}, [760, 420]), 'value', not, 'a').link(not, 'result', set, 'value');
-    desk.link(br, 'true', set, 'exec').link(set, 'then', call, 'exec').link(set, 'out', call, param);
+    desk.link(desk.node('var.get', { variable: alert }, {}, [760, 420]), 'value', not, 'a').link(not, 'result', idle, 'condition');
+    desk.link(br, 'true', idle, 'exec').link(idle, 'true', set, 'exec').link(set, 'then', call, 'exec');
+    // The panel: made with a reference to the console (Expose on Spawn), shown, the cursor and the clicks given to it.
+    const w = edit(p, PANEL);
+    const back = w.variable('Pupitre', T.object('BP_Pupitre'));
+    updateVariable(w.cls, back, { instanceEditable: true, exposeOnSpawn: true });
+    const panel = desk.variable('Panneau', T.object(PANEL));
+    const create = desk.node('widget.create', {}, { class: w.cls.id }, [1640, 40]);
+    const keep = desk.node('var.set', { variable: panel }, {}, [1960, 40]);
+    const show = desk.node('widget.addToViewport', {}, {}, [2280, 40]);
+    const ui = desk.node('input.setModeGameAndUI', {}, {}, [2600, 40]);
+    const on = desk.node('input.setShowMouseCursor', {}, { show: true }, [2920, 40]);
+    const pc = (x: number) => desk.node('player.getController', {}, {}, [x, 320]);
+    const getPanel = (x: number, y: number) => desk.node('var.get', { variable: panel }, {}, [x, y]);
+    desk.link(call, 'then', create, 'exec').link(pc(1500), 'result', create, 'owner').link(desk.node('actor.self', {}, {}, [1500, 440]), 'self', create, `expose:${back}`);
+    desk.link(create, 'then', keep, 'exec').link(create, 'result', keep, 'value').link(keep, 'then', show, 'exec').link(getPanel(2120, 300), 'value', show, 'target');
+    desk.link(show, 'then', ui, 'exec').link(pc(2440), 'result', ui, 'controller').link(ui, 'then', on, 'exec').link(pc(2760), 'result', on, 'target');
+    const end = desk.node('event.custom', { name: 'FinAlerte' }, {}, [64, 700]);
+    const off = desk.node('var.set', { variable: alert }, { value: false }, [360, 700]);
+    const calm = desk.node('dispatcher.call', { owner: desk.cls.id, dispatcher: d.id }, { [d.params[0].id]: false }, [680, 700]);
+    const remove = desk.node('widget.removeFromParent', {}, {}, [1000, 700]);
+    const game = desk.node('input.setModeGameOnly', {}, {}, [1320, 700]);
+    const hide = desk.node('input.setShowMouseCursor', {}, { show: false }, [1640, 700]);
+    desk.link(end, 'then', off, 'exec').link(off, 'then', calm, 'exec').link(calm, 'then', remove, 'exec').link(getPanel(860, 900), 'value', remove, 'target');
+    desk.link(remove, 'then', game, 'exec').link(desk.node('player.getController', {}, {}, [1180, 900]), 'result', game, 'controller').link(game, 'then', hide, 'exec').link(desk.node('player.getController', {}, {}, [1500, 900]), 'result', hide, 'target');
+    const click = onButton(w, 'Btn_Fin');
+    const tell = w.node('call.custom', { owner: desk.cls.id, event: 'FinAlerte' }, {}, [400, 96]);
+    w.link(click, 'then', tell, 'exec').link(w.node('var.get', { variable: back }, {}, [200, 300]), 'value', tell, 'target');
     desk.link(br, 'false', once, 'exec').link(once, 'completed', refuse, 'exec');
 
     // Who reacts subscribes: a reference to the console, set on each placed actor.

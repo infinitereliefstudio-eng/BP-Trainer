@@ -302,9 +302,9 @@ export const LESSON_QUIZ: QuizQuestion[] = [
   ),
   q(
     's4-fusibles',
-    'Au lancement, un fusible doit savoir s’il a déjà été pris dans une partie précédente. Que doit-il faire ?',
-    ['Relire lui-même la sauvegarde à son BeginPlay', 'Lire la liste du joueur à son BeginPlay', 'Attendre que le joueur le touche', 'Rien : un acteur détruit le reste d’une partie à l’autre'],
-    'L’ordre des BeginPlay n’est pas garanti : le joueur n’a peut-être pas encore chargé. Chaque acteur qui dépend de la sauvegarde la relit lui-même.',
+    'Des fusibles ramassés dans le couloir doivent encore compter dans la salle, derrière un Open Level. Où garder leur compte ?',
+    ['Dans le GameInstance : un seul objet de Play à Stop', 'Dans une variable du joueur', 'Dans une variable du sas', 'Dans le GameMode du couloir'],
+    'Open Level refait tout à neuf : le joueur, le GameMode et les acteurs du couloir disparaissent. Seul le GameInstance traverse ; une sauvegarde, elle, survit même à la fermeture du jeu.',
   ),
   q(
     'x1-radio',

@@ -86,29 +86,38 @@ describe('Le sas', () => {
   });
 });
 
-describe('Les fusibles (S4)', () => {
-  it('a fuse that trusts the player to have loaded first comes back in one of the two orders', () => {
-    const l = lesson('s4-fusibles');
-    const p = solved(l, (p) => {
-      // The fuse reads the player's list instead of the save.
-      const fuse = edit(p, 'BP_Fusible');
-      const load = Object.values(fuse.graph.nodes).find((n) => n.def === 'save.fromSlot')!;
-      const player = p.classes.find((c) => c.name === 'BP_Joueur')!;
-      const mine = player.variables.find((v) => v.name === 'Fusibles')!.id;
-      const cast = Object.values(fuse.graph.nodes).find((n) => n.def === 'cast.to' && n.config.class !== player.id)!;
-      const has = Object.values(fuse.graph.nodes).find((n) => n.def === 'set.contains')!;
-      const begin = Object.values(fuse.graph.nodes).find((n) => n.def === 'event.beginPlay')!;
-      const br = Object.values(fuse.graph.nodes).find((n) => n.def === 'flow.branch')!;
-      const saved = Object.values(fuse.graph.nodes).find((n) => n.def === 'var.getExternal' && n.config.owner !== player.id)!;
-      removeNodes(fuse.graph, [load.id, cast.id, saved.id]);
-      const pawn = fuse.node('actor.getPlayerPawn', {}, {}, [200, 300]);
-      const castP = fuse.node('cast.to', { class: player.id }, {}, [400, 96]);
-      const read = fuse.node('var.getExternal', { owner: player.id, variable: mine }, {}, [600, 320]);
-      fuse.link(begin.id, 'then', castP, 'exec').link(pawn, 'result', castP, 'object').link(castP, 'then', br.id, 'exec').link(castP, 'as', read, 'target').link(read, 'value', has.id, 'set');
+describe('Les fusibles (S4, made again in V7.60)', () => {
+  const l = () => lesson('s4-fusibles');
+
+  it('without the Game Instance Class, the fuses of the corridor are lost behind the door', () => {
+    const p = solved(l(), (p) => {
+      delete p.mapsModes!.gameInstanceClass;
     });
-    const run = runLesson(l, p);
-    expect(run.compileErrors).toEqual([]);
-    expect(run.results.filter((r) => !r.ok).map((r) => r.check.id)).toContain('resume');
+    expect(failed(l(), p)).toContain('missing');
+  });
+
+  it('a panel that does not read the save at its BeginPlay starts the next game unpowered', () => {
+    const p = solved(l(), (p) => {
+      const b = edit(p, 'BP_Tableau');
+      removeNodes(b.graph, Object.values(b.graph.nodes).filter((n) => n.def === 'event.beginPlay').map((n) => n.id));
+    });
+    expect(failed(l(), p)).toEqual(['resume']);
+  });
+
+  it('E sent to everything within reach, not to what the player looks at, answers with his back turned', () => {
+    const p = solved(l(), (p) => {
+      const b = edit(p, 'BP_Joueur');
+      const trace = Object.values(b.graph.nodes).find((n) => n.def === 'trace.lineByChannel')!;
+      const msg = Object.values(b.graph.nodes).find((n) => n.def === 'iface.message')!;
+      const ev = Object.values(b.graph.nodes).find((n) => n.def === 'input.action')!;
+      removeNodes(b.graph, [trace.id]);
+      const over = b.node('actor.getOverlappingActors', {}, {}, [300, 600]);
+      const loop = b.node('flow.forEachLoop', {}, {}, [600, 600]);
+      b.link(ev.id, 'started', over, 'exec').link(over, 'then', loop, 'exec').link(over, 'actors', loop, 'array').link(loop, 'body', msg.id, 'exec').link(loop, 'element', msg.id, 'target');
+      // Within reach: the panel gets a zone around the player's spot.
+      edit(p, 'BP_Tableau').component('BoxCollision', 'Zone', { sizeX: 600, sizeY: 600 });
+    });
+    expect(failed(l(), p)).toContain('aim');
   });
 });
 

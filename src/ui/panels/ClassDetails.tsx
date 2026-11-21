@@ -155,6 +155,42 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
     );
   }
 
+  if (root === 'GameInstance') {
+    const chosen = project.mapsModes?.gameInstanceClass === cls.id;
+    return (
+      <>
+        <Group title="Class Options">
+          <Field label="Parent Class">
+            <select class="field" value={cls.parentClassId ?? cls.parent} onChange={(e) => setParent((e.target as HTMLSelectElement).value)}>
+              <option value="GameInstance">GameInstance</option>
+              {project.classes
+                .filter((c) => c.id !== cls.id && c.parent === 'GameInstance' && !isA(project, c.id, cls.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+          <Field label="Game Instance Class">
+            <span class="dbg-val">{chosen ? 'oui (Maps & Modes)' : 'non : choisis-le dans Project Settings › Maps & Modes'}</span>
+          </Field>
+        </Group>
+        {blueprint}
+        <AppHelp>
+          <p>
+            Un GameInstance n’est pas un acteur : pas de composants, pas de place dans le niveau, ni BeginPlay ni Tick. Le jeu en crée <strong>un seul</strong>, au
+            lancement, et le garde jusqu’à la fermeture : ses variables traversent les Open Level. <b>Event Init</b> au lancement, <b>Event Shutdown</b> à la fermeture.
+          </p>
+          <p>
+            Pour l’utiliser : Get Game Instance, puis Cast To {cls.name}. Sans Game Instance Class réglée sur {cls.name} (menu ⋮ › Project Settings), le jeu crée un
+            GameInstance ordinaire et ce Cast échoue.
+          </p>
+        </AppHelp>
+      </>
+    );
+  }
+
   if (root === 'SaveGame') {
     return (
       <>

@@ -67,7 +67,9 @@ export function LiveOutliner({ session }: Props) {
   const actors = [...sim.actors.filter((a) => !a.destroyed), sim.player];
   // Widget objects are not actors: UE lists them in its Widget Reflector, here under the actors.
   const widgets = sim.umg.widgetObjects().filter((o) => !o.widget!.placedIn);
-  const picked = [...actors, ...widgets].find((a) => a.id === session.selected);
+  // The GameInstance is no actor either: one object for the whole game, kept through Open Level.
+  const gi = session.game.gameInstance;
+  const picked = [...actors, ...widgets, gi].find((a) => a.id === session.selected);
 
   if (!picked) {
     return (
@@ -79,6 +81,11 @@ export function LiveOutliner({ session }: Props) {
             <span class="mb-sub">{a.className}</span>
           </button>
         ))}
+        <div class="dbg-sub">Toute la partie</div>
+        <button class="mb-main outliner-row" onClick={() => session.select(gi.id)}>
+          <span class="mb-label">{gi.objectName}</span>
+          <span class="mb-sub">{gi.classId ? gi.className : 'GameInstance (aucune Game Instance Class)'}</span>
+        </button>
         {widgets.length > 0 && <div class="dbg-sub">Widgets (UMG)</div>}
         {widgets.map((o) => (
           <button key={o.id} class="mb-main outliner-row" onClick={() => session.select(o.id)}>
@@ -90,7 +97,34 @@ export function LiveOutliner({ session }: Props) {
     );
   }
   if (picked.widget) return <LiveWidget session={session} obj={picked} />;
+  if (picked.id === gi.id) return <LiveGameInstance session={session} obj={gi} />;
   return <LiveDetails session={session} actor={picked} />;
+}
+
+/** The GameInstance during Play: its variables, the same in every level of the game. */
+function LiveGameInstance({ session, obj }: { session: PlaySession; obj: ActorRT }) {
+  return (
+    <div class="outliner">
+      <div class="row-buttons flush outliner-back">
+        <button class="btn" onClick={() => session.select(undefined)}>
+          ‹ Outliner
+        </button>
+        <strong>{obj.objectName}</strong>
+        <span class="muted small">{obj.className}</span>
+      </div>
+      <Group title="GameInstance">
+        <Field label="Niveaux joués">
+          <span class="dbg-val">{session.game.visited.join(' → ')}</span>
+        </Field>
+      </Group>
+      {obj.classId ? (
+        <LiveVariables session={session} obj={obj} title="Variables (en direct)" />
+      ) : (
+        <p class="hint">Aucune Game Instance Class dans Project Settings › Maps & Modes : le jeu a créé un GameInstance ordinaire, sans variables.</p>
+      )}
+      <p class="hint">Le même objet de Play à Stop : Open Level change de niveau, pas de GameInstance. Ces modifications ne valent que pour cette partie.</p>
+    </div>
+  );
 }
 
 /** Where a widget object is: on the screen (viewport, or in a panel) or only created. */

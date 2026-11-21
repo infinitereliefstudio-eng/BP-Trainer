@@ -46,11 +46,19 @@ it('generates a Widget Component project', async () => {
   writeFileSync(new URL('widget-component.json', OUT), serializeProject(pb.project));
 });
 
-/** V7.47: two levels. The player starts on a door of Lvl_Principal, whose overlap opens Lvl_Atelier; there, a Print of Get Current Level Name. */
+/**
+ * V7.47: two levels. The player starts on a door of Lvl_Principal, whose overlap opens Lvl_Atelier; there, a Print of Get Current Level Name.
+ * V7.48: BP_Jeu, the Game Instance Class, with Visites set to 1 by Event Init.
+ */
 it('generates an Open Level project', async () => {
   const { ProjectBuilder } = await import('../../src/core/lessons/builder');
-  const { addLevel } = await import('../../src/core/operations/levelAssetOps');
+  const { addLevel, setGameInstanceClass } = await import('../../src/core/operations/levelAssetOps');
+  const { T } = await import('../../src/core/types/pins');
   const pb = new ProjectBuilder('Deux niveaux');
+  const jeu = pb.blueprint('BP_Jeu', 'GameInstance');
+  const visites = jeu.variable('Visites', T.int, 0);
+  jeu.link(jeu.node('event.gameInit', {}, {}, [0, 0]), 'then', jeu.node('var.set', { variable: visites }, { value: 1 }, [260, 0]), 'exec');
+  setGameInstanceClass(pb.project, jeu.cls.id);
   const porte = pb.blueprint('BP_Porte');
   porte.component('StaticMesh', 'Cadre', { sizeX: 60, sizeY: 120, blocks: false, color: '#c08a3e' });
   porte.component('BoxCollision', 'Zone', { sizeX: 140, sizeY: 140 });

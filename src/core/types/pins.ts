@@ -151,6 +151,7 @@ export const BUILTIN_HIERARCHY: Record<string, string | undefined> = {
   PlayerController: 'Controller',
   EnhancedInputLocalPlayerSubsystem: 'Object',
   SaveGame: 'Object',
+  GameInstance: 'Object',
   ActorComponent: 'Object',
   SceneComponent: 'ActorComponent',
   PrimitiveComponent: 'SceneComponent',

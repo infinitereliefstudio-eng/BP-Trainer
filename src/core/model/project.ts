@@ -177,20 +177,32 @@ export interface ComponentProps {
  * input stack and owns the Enhanced Input Local Player Subsystem.
  * UserWidget is a Widget Blueprint (UMG): an interface drawn over the game,
  * made of a widget tree (its Designer) and a graph; created by Create Widget.
+ * GameInstance is UE's UGameInstance: one object for the whole game, made
+ * before the first level and kept through Open Level (Game Instance Class
+ * in Maps & Modes); never placed, no components, no BeginPlay.
  */
-export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent' | 'UserWidget';
+export type ParentClass = 'Actor' | 'Pawn' | 'PlayerController' | 'SaveGame' | 'ActorComponent' | 'UserWidget' | 'GameInstance';
 
 /** Native parents a Blueprint can be created from. */
-export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent', 'UserWidget'];
+export const NATIVE_PARENTS: ParentClass[] = ['Actor', 'Pawn', 'PlayerController', 'SaveGame', 'ActorComponent', 'UserWidget', 'GameInstance'];
 
 /**
- * Four families that never mix: actors (Actor, Pawn, PlayerController),
- * SaveGame objects, Actor Components (added to actors, never placed) and
- * Widget Blueprints (on the screen, never in the level).
+ * Five families that never mix: actors (Actor, Pawn, PlayerController),
+ * SaveGame objects, Actor Components (added to actors, never placed),
+ * Widget Blueprints (on the screen, never in the level) and the GameInstance
+ * (one object for the whole game).
  */
-export type ClassFamily = 'actor' | 'save' | 'component' | 'widget';
+export type ClassFamily = 'actor' | 'save' | 'component' | 'widget' | 'instance';
 export const familyOf = (parent: ParentClass): ClassFamily =>
-  parent === 'SaveGame' ? 'save' : parent === 'ActorComponent' ? 'component' : parent === 'UserWidget' ? 'widget' : 'actor';
+  parent === 'SaveGame'
+    ? 'save'
+    : parent === 'ActorComponent'
+      ? 'component'
+      : parent === 'UserWidget'
+        ? 'widget'
+        : parent === 'GameInstance'
+          ? 'instance'
+          : 'actor';
 
 /** Can instances of this native class be placed in the level or spawned? */
 export const isPlaceableParent = (parent: ParentClass): boolean => parent === 'Actor' || parent === 'Pawn';
@@ -277,6 +289,8 @@ export interface Level {
 export interface MapsModes {
   /** Game Default Map: the level the game starts in (a level id). The lessons' checks start there too. */
   gameDefaultMap?: string;
+  /** Game Instance Class: a Blueprint of parent GameInstance (a class id). Unset: UE's plain GameInstance, which no Cast To BP_… accepts. */
+  gameInstanceClass?: string;
 }
 
 /** A user Enum asset: named entries, stored as their index (Byte in UE). */
@@ -411,7 +425,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 15;
+export const PROJECT_FORMAT = 16;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

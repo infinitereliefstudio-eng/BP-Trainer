@@ -107,6 +107,12 @@ function playScenario(lesson: Pick<Lesson, 'scenario' | 'checks' | 'slots' | 'ki
     },
     level: () => game.level.name,
     levels: () => [...game.visited],
+    gameInstance: (name) => {
+      const gi = game.gameInstance;
+      const v = gi.classId ? game.world.classOf(gi)?.variables.find((x) => x.name === name) : undefined;
+      return v ? gi.vars[v.id] : undefined;
+    },
+    quitted: () => game.quitted,
     project,
     actor: (label) => game.world.actors.find((a) => a.label === label),
     component: (label, name) => game.world.actors.find((a) => a.label === label)?.components.find((c) => c.name === name),

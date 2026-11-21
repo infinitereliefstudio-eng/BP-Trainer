@@ -306,14 +306,19 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
 
   const stop = () => {
     if (!session) return;
+    // As UE's Stop: the widgets' Destruct, End Play (End Play In Editor), then the GameInstance's Event Shutdown.
+    session.game.shutdown();
     setLastRun(session.sim);
     session.dispose();
     if (session.game.slotsChanged) store.saveSlotsChanged();
     setSession(null);
+    if (session.game.quitted) store.info('Quit Game : la partie s’est fermée, comme avec Stop.');
     if (session.sim.runtimeErrors) {
       store.warn(`Session terminée avec ${session.sim.runtimeErrors} erreur(s) d’exécution : voir l’Output Log.`);
     }
   };
+  // Quit Game closes Play as Stop does.
+  useEffect(() => session?.onQuit(() => stop()), [session]);
 
   const close = () => setOverlay(null);
   /** The Designer of a Widget Blueprint is shown (in place of the Viewport). */

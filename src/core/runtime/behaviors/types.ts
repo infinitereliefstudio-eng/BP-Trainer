@@ -99,6 +99,10 @@ export interface WorldApi {
   openLevel(level: string, absolute: boolean, options: string): void;
   /** The name of the level being played (Get Current Level Name, without prefix). */
   currentLevelName(): string;
+  /** The GameInstance of the game (Get Game Instance). */
+  readonly gameInstance: ActorRT;
+  /** Quit Game: the game closes at the start of the next frame (core/runtime/game.ts). */
+  quitGame(): void;
 }
 
 export interface ValueCx {

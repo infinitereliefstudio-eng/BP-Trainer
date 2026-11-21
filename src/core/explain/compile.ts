@@ -141,6 +141,18 @@ const COMPILE: Record<CompileCode, Explanation> = {
       'Pour suivre une valeur du jeu : l’acteur appelle un Event Dispatcher, le widget s’y abonne dans Event Construct.',
     ],
   },
+  notInGameInstance: {
+    why: 'Un GameInstance est un seul objet pour toute la partie, hors de tout niveau : ce n’est pas un acteur. Il n’a ni BeginPlay ni Tick, ni overlap, ni entrées, ni composants.',
+    fixes: [
+      'Pour démarrer : Event Init (une fois, au lancement du jeu).',
+      'Pour finir : Event Shutdown (à la fermeture du jeu).',
+      'Pour agir dans le niveau : un acteur fait Get Game Instance, Cast To, puis lit ou change ses variables.',
+    ],
+  },
+  gameInstanceOnly: {
+    why: 'Event Init et Event Shutdown appartiennent au GameInstance : un acteur, un composant ou un widget ne les reçoit jamais.',
+    fixes: ['Dans un acteur : Event BeginPlay et Event End Play.', 'Pour un GameInstance : crée un Blueprint de classe parente GameInstance, puis choisis-le dans Project Settings › Maps & Modes.'],
+  },
   widgetOnly: {
     why: 'Event Construct, Pre Construct, Destruct et On Initialized appartiennent aux Widget Blueprints : un acteur ne les reçoit jamais.',
     fixes: ['Dans un acteur : Event BeginPlay.', 'Pour une interface : crée un Widget Blueprint (Content Drawer › + Add › User Interface › Widget Blueprint).'],

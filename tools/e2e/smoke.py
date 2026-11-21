@@ -1482,6 +1482,18 @@ async def main():
         if 'Lvl_Atelier' not in msgs:
             errs.append(f'Open Level : messages à l’écran {msgs}')
         await shot('115_open_level_after')
+        # V7.48: the GameInstance in the live Outliner, with its variable kept through Open Level.
+        await page.locator('.pb-btn[aria-label="Outliner"]').tap()
+        await page.wait_for_timeout(300)
+        gi_row = page.locator('.outliner-row', has_text='BP_Jeu_C_0')
+        if not await gi_row.count():
+            errs.append('GameInstance absent de l’Outliner en direct')
+        else:
+            await gi_row.first.tap()
+            await page.wait_for_timeout(300)
+            if 'Lvl_Principal → Lvl_Atelier' not in await page.locator('.outliner').first.inner_text():
+                errs.append('GameInstance : niveaux joués absents')
+        await shot('116_game_instance_outliner')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

@@ -74,6 +74,16 @@ export function createController(cls: BlueprintClass | undefined): ActorRT {
   return { ...base, receivesInput: true };
 }
 
+/**
+ * The GameInstance: an instance of the Game Instance Class, or UE's plain
+ * GameInstance. One for the whole game (core/runtime/game.ts), never in a level.
+ */
+export function createGameInstance(cls: BlueprintClass | undefined): ActorRT {
+  return cls ? createActor(GAME_INSTANCE_ID, 'GameInstance', `${cls.name}_C_0`, cls, {}) : blank(GAME_INSTANCE_ID, 'GameInstance', 'GameInstance_0', 'GameInstance');
+}
+
+export const GAME_INSTANCE_ID = 'gameInstance';
+
 /** The player's Enhanced Input Local Player Subsystem: an object, never in the level. */
 export function createInputSubsystem(): ActorRT {
   return blank('inputSubsystem', 'EnhancedInputLocalPlayerSubsystem', 'EnhancedInputLocalPlayerSubsystem_0', 'EnhancedInputLocalPlayerSubsystem');

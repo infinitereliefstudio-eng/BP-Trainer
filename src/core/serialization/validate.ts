@@ -190,6 +190,8 @@ function checkLevels(p: Obj, classIds: Set<string>): void {
   need(isObj(p.mapsModes), 'Maps & Modes mal formé.');
   const mm = p.mapsModes as Obj;
   if (!ids.has(mm.gameDefaultMap as string)) mm.gameDefaultMap = (levels[0] as Obj).id;
+  // A Game Instance Class that is gone, or no longer a GameInstance: back to UE's plain GameInstance.
+  if (mm.gameInstanceClass !== undefined && !(p.classes as Obj[]).some((c) => c.id === mm.gameInstanceClass && c.parent === 'GameInstance')) delete mm.gameInstanceClass;
 }
 
 function checkLevel(level: Obj, classIds: Set<string>): void {

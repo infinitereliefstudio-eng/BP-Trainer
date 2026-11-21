@@ -41,6 +41,10 @@ export interface CheckContext {
   level(): string;
   /** The levels played in this game, in order (the first, then one per Open Level). A restart starts the list again. */
   levels(): string[];
+  /** A variable of the GameInstance, by name (undefined if it has none of that name). A restart makes a new GameInstance. */
+  gameInstance(name: string): RValue | undefined;
+  /** Did Quit Game close the game? */
+  quitted(): boolean;
   actor(label: string): ActorRT | undefined;
   component(actorLabel: string, componentName: string): ComponentRT | undefined;
   /** Texts printed with Print String so far (every game of the scenario, after a restart too). */

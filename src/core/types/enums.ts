@@ -19,6 +19,8 @@ export const BUILTIN_ENUMS: Record<string, string[]> = {
   ESlateVisibility: SLATE_VISIBILITY_LABEL,
   /** Set Input Mode UI Only / Game and UI: how the mouse is kept in the window (nothing to lock on a phone). */
   EMouseLockMode: ['Do Not Lock', 'Lock On Capture', 'Lock Always', 'Lock in Fullscreen'],
+  /** Quit Game: close the game, or only send it to the background (on a phone). */
+  EQuitPreference: ['Quit', 'Background'],
 };
 
 /** Entries of an enum by name, or undefined if it does not exist. */

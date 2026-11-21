@@ -16,7 +16,7 @@ export function pruneProject(p: Project): void {
   }
 }
 
-const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self', 'UserWidget', 'Widget'];
+const BUILTIN_NAMES = ['Object', 'Actor', 'Pawn', 'Controller', 'PlayerController', 'EnhancedInputLocalPlayerSubsystem', 'SaveGame', 'ActorComponent', 'SceneComponent', 'Self', 'UserWidget', 'Widget', 'GameInstance'];
 
 export function addClass(p: Project, name = 'BP_NewBlueprint', parent: ParentClass = 'Actor'): OpResult<BlueprintClass> {
   const taken = [...p.classes.map((c) => c.name), ...(p.enums ?? []).map((e) => e.name), ...BUILTIN_NAMES];
@@ -57,6 +57,7 @@ export function removeClass(p: Project, id: string): OpResult {
   for (const level of p.levels) level.actors = level.actors.filter((a) => a.classId !== id);
   if (p.playerClassId === id) delete p.playerClassId;
   if (p.playerControllerClassId === id) delete p.playerControllerClassId;
+  if (p.mapsModes?.gameInstanceClass === id) delete p.mapsModes.gameInstanceClass;
   return { ok: true, value: undefined };
 }
 
@@ -65,6 +66,7 @@ const FAMILY_REFUSAL: Record<ClassFamily, string> = {
   component: 'Un Actor Component ne peut hériter que d’ActorComponent ou d’un autre Actor Component.',
   actor: 'Un acteur ne peut hériter ni d’un SaveGame, ni d’un Actor Component, ni d’un Widget Blueprint : crée un Blueprint à part (Content Drawer › + Add › Blueprint Class).',
   widget: 'Un Widget Blueprint garde UserWidget pour parent : l’appli ne gère pas l’héritage entre Widget Blueprints.',
+  instance: 'Un GameInstance ne peut hériter que de GameInstance ou d’un autre Blueprint GameInstance.',
 };
 
 /**
@@ -82,7 +84,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
   // Simplification of the app: a Widget Blueprint stays a direct child of UserWidget.
   if (family === 'widget') return parent === 'UserWidget' ? { ok: true, value: undefined } : { ok: false, reason: FAMILY_REFUSAL.widget };
   const saveFamily = family === 'save';
-  if (parent === 'SaveGame' || parent === 'ActorComponent') {
+  if (parent === 'SaveGame' || parent === 'ActorComponent' || parent === 'GameInstance') {
     delete cls.parentClassId;
     cls.parent = parent;
     for (const c of descendants(p, cls)) c.parent = parent;
@@ -108,7 +110,7 @@ export function setParentClass(p: Project, classId: string, parent: string): OpR
       }
     }
   }
-  if (!saveFamily && family !== 'component' && !cls.parentClassId && cls.components.filter(isSceneComponent).every((c) => !!c.parent)) {
+  if (!saveFamily && family !== 'component' && family !== 'instance' && !cls.parentClassId && cls.components.filter(isSceneComponent).every((c) => !!c.parent)) {
     // Back to a native parent: a root of its own again.
     const root = { id: newId('cmp'), name: 'DefaultSceneRoot', kind: 'Scene' as const, props: componentDefaults('Scene') };
     for (const c of cls.components) if (isSceneComponent(c) && !cls.components.some((o) => o.id === c.parent)) c.parent = root.id;

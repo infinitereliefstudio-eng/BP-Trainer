@@ -130,7 +130,17 @@ function EnumValue({ type, value, onChange }: { type: PinType; value: Value; onC
 function ClassValue({ base, value, onChange }: { base?: string; value: Value; onChange: (v: Value) => void }) {
   const store = useStore();
   const family =
-    base === 'SaveGame' ? 'save' : base === 'ActorComponent' ? 'component' : base === 'UserWidget' ? 'widget' : base === 'Object' || !base ? undefined : 'actor';
+    base === 'SaveGame'
+      ? 'save'
+      : base === 'ActorComponent'
+        ? 'component'
+        : base === 'UserWidget'
+          ? 'widget'
+          : base === 'GameInstance'
+            ? 'instance'
+            : base === 'Object' || !base
+              ? undefined
+              : 'actor';
   const fits = (parent: ParentClass) => !family || familyOf(parent) === family;
   return (
     <select class="field" value={typeof value === 'string' ? value : ''} onChange={(e) => onChange((e.target as HTMLSelectElement).value || null)}>

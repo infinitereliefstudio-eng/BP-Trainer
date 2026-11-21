@@ -207,10 +207,10 @@ describe('format 15', () => {
   it('opens a format-14 project unchanged, refuses a newer one', () => {
     const { p } = setup();
     const file = (format: number) => JSON.stringify({ kind: 'bp-trainer-project', format, project: { ...p, format } });
-    expect(PROJECT_FORMAT).toBe(15);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(15);
     const back = parseProject(file(14));
-    expect(back.format).toBe(15);
+    expect(back.format).toBe(PROJECT_FORMAT);
     expect(back.levels.map((l) => l.name)).toEqual(['Lvl_Principal', 'Lvl_Atelier']);
-    expect(() => parseProject(file(16))).toThrow(/plus récente/);
+    expect(() => parseProject(file(PROJECT_FORMAT + 1))).toThrow(/plus récente/);
   });
 });

@@ -18,6 +18,7 @@ import {
 import { castClassName, classById, findCustomEvent } from '../nodes/library/communication';
 import { componentDispatcher, NOT_IN_COMPONENT, selfIs } from '../nodes/library/actorComponents';
 import { NOT_IN_WIDGET, WIDGET_ONLY, widgetVariable } from '../nodes/library/widgets';
+import { GAME_INSTANCE_ONLY, NOT_IN_GAME_INSTANCE } from '../nodes/library/gameInstance';
 import { interfaceMatch } from '../operations/interfaceOps';
 import { functionGraph } from '../nodes/library/functions';
 import type { NodeContext } from '../nodes/definition';
@@ -59,7 +60,9 @@ export type CompileCode =
   | 'interfaceFunction'
   | 'interfaceName'
   | 'selfType'
-  | 'notInComponent';
+  | 'notInComponent'
+  | 'notInGameInstance'
+  | 'gameInstanceOnly';
 
 export interface CompileMessage {
   severity: Severity;
@@ -181,6 +184,12 @@ function checkGraph(g: Graph, cls: BlueprintClass, ctx: NodeContext, out: Compil
     }
     if (WIDGET_ONLY.has(n.def) && !selfIs(ctx, 'UserWidget')) {
       out.push({ severity: 'error', code: 'widgetOnly', text: `${title} n’existe que dans un Widget Blueprint.`, ...at });
+    }
+    if (NOT_IN_GAME_INSTANCE[n.def] && selfIs(ctx, 'GameInstance')) {
+      out.push({ severity: 'error', code: 'notInGameInstance', text: `${title} n’est pas permis dans un GameInstance : ${NOT_IN_GAME_INSTANCE[n.def]}`, ...at });
+    }
+    if (GAME_INSTANCE_ONLY.has(n.def) && !selfIs(ctx, 'GameInstance')) {
+      out.push({ severity: 'error', code: 'gameInstanceOnly', text: `${title} n’existe que dans un Blueprint de classe parente GameInstance.`, ...at });
     }
     if (NOT_IN_COMPONENT[n.def] && selfIs(ctx, 'ActorComponent')) {
       out.push({ severity: 'error', code: 'notInComponent', text: `${title} n’est pas permis dans un Actor Component : ${NOT_IN_COMPONENT[n.def]}`, ...at });

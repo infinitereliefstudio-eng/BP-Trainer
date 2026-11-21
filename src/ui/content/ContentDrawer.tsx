@@ -123,7 +123,9 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
       parent === 'UserWidget' ? 'Nouveau Widget Blueprint' : `Nouveau Blueprint (parent : ${parentName})`,
       parent === 'SaveGame'
         ? 'BP_Sauvegarde'
-        : parent === 'PlayerController'
+        : parent === 'GameInstance'
+          ? 'BP_GameInstance'
+          : parent === 'PlayerController'
           ? 'BP_PlayerController'
           : parent === 'ActorComponent'
             ? 'BP_NewComponent'
@@ -420,6 +422,10 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
               <button class="palette-item" onClick={() => createBlueprint('SaveGame', 'SaveGame')}>
                 <span class="pi-title">SaveGame</span>
                 <span class="pi-desc">Un objet qui ne contient que des variables, écrit dans un slot par Save Game to Slot.</span>
+              </button>
+              <button class="palette-item" onClick={() => createBlueprint('GameInstance', 'GameInstance')}>
+                <span class="pi-title">GameInstance</span>
+                <span class="pi-desc">Un seul objet pour toute la partie, gardé d’un niveau à l’autre. À choisir dans Project Settings › Maps & Modes › Game Instance Class.</span>
               </button>
               {/* A Widget Blueprint is made from + Add › User Interface; the app has no inheritance between them. */}
               {store.project.classes.filter((c) => c.parent !== 'UserWidget').map((c) => (

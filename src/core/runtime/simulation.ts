@@ -15,7 +15,7 @@ import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
-import { createActor, createController, createInputSubsystem, createPlayer } from './actorFactory';
+import { createActor, createController, createGameInstance, createInputSubsystem, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { EnhancedInput } from './enhancedInput';
 import { buildInputStack, keyKept, sendAction, sendKey } from './inputStack';
@@ -61,8 +61,9 @@ export interface TraceEntry {
 
 const TRACE_MAX = 400;
 
-/** EEndPlayReason::LevelTransition (the order of the enum in core/types/enums.ts). */
+/** EEndPlayReason (the order of the enum in core/types/enums.ts). */
 const LEVEL_TRANSITION = 1;
+const END_PLAY_IN_EDITOR = 2;
 
 export interface SimulationOptions {
   seed?: number;
@@ -75,6 +76,10 @@ export interface SimulationOptions {
   levelId?: string;
   /** The Output Log and on-screen messages: a Game passes its own, kept from one level to the next. */
   journal?: Journal;
+  /** The GameInstance, kept from one level to the next by the Game. Unset: UE's plain GameInstance, of this world alone. */
+  gameInstance?: ActorRT;
+  /** The first world of a game: Event Init of the GameInstance runs before the first BeginPlay. */
+  initGameInstance?: boolean;
 }
 
 /** What Open Level asked for: done by the Game at the start of the next frame (core/runtime/game.ts). */
@@ -144,6 +149,11 @@ export class Simulation implements InterpreterHost {
   private ending = false;
   /** End Play has run everywhere: the Game can make the next world. */
   ended = false;
+  /** Quit Game was called: the Game closes at the start of the next frame. */
+  quit = false;
+  /** The GameInstance (Get Game Instance): the same object in every world of a game. */
+  readonly gameInstance: ActorRT;
+  private readonly initGameInstance: boolean;
   private interp: Interpreter;
   private site: NodeSite | undefined;
   private rng: number;
@@ -177,6 +187,8 @@ export class Simulation implements InterpreterHost {
     opts: SimulationOptions = {},
   ) {
     this.journal = opts.journal ?? new Journal();
+    this.gameInstance = opts.gameInstance ?? createGameInstance(undefined);
+    this.initGameInstance = !!opts.initGameInstance;
     this.level = project.levels.find((l) => l.id === opts.levelId) ?? levelOf(project);
     this.rng = opts.seed ?? 12345;
     this.slots = opts.slots ?? {};
@@ -381,6 +393,8 @@ export class Simulation implements InterpreterHost {
         `Ordre des BeginPlay pour cette partie : ${first.map((a) => a.label).join(', ')}. Il change à chaque Play : UE ne garantit pas l'ordre entre acteurs.`,
       );
     }
+    // Event Init: once, at the launch of the game, before any BeginPlay (UE: UGameInstance::Init).
+    if (this.initGameInstance) this.fire(this.gameInstance, (n) => n.def === 'event.gameInit', 'then');
     for (const a of this.scripted()) this.interp.autoPlayTimelines(a);
     for (const a of this.scripted()) {
       // An actor's Widget Components make their widget as they begin play, before the actor's own Event BeginPlay.
@@ -394,8 +408,8 @@ export class Simulation implements InterpreterHost {
   advance(seconds: number): void {
     if (this.paused) return;
     this.accumulator += Math.min(seconds, 0.25);
-    // After Open Level, no more frame of this world: the Game travels first.
-    while (this.accumulator >= STEP && !this.paused && !this.travel && !this.ending) {
+    // After Open Level or Quit Game, no more frame of this world: the Game travels (or closes) first.
+    while (this.accumulator >= STEP && !this.paused && !this.travel && !this.quit && !this.ending) {
       this.accumulator -= STEP;
       this.step();
     }
@@ -552,6 +566,12 @@ export class Simulation implements InterpreterHost {
     this.travel = { level, absolute, options };
   }
 
+  /** Quit Game: remembered until the next frame, when the Game closes (core/runtime/game.ts). */
+  quitGame(): void {
+    if (this.ending) return;
+    this.quit = true;
+  }
+
   /** Get Current Level Name. */
   currentLevelName(): string {
     return this.level.name;
@@ -576,22 +596,46 @@ export class Simulation implements InterpreterHost {
   endForTravel(): void {
     if (this.ending) return;
     this.ending = true;
-    const isEndPlay = (n: NodeInstance) => n.def === 'event.endPlay';
     this.phases.push(
-      () => {
-        for (const e of this.umg.tearDown()) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
-      },
-      () => {
-        for (const a of this.scripted().filter((o) => !o.owner)) {
-          this.fire(a, isEndPlay, 'then', { reason: LEVEL_TRANSITION });
-          for (const c of this.componentsOf(a)) this.fire(c, isEndPlay, 'then', { reason: LEVEL_TRANSITION });
-        }
-      },
+      () => this.fireDestructAll(),
+      () => this.fireEndPlayAll(LEVEL_TRANSITION),
       () => {
         this.ended = true;
       },
     );
     this.runPhases();
+  }
+
+  /**
+   * The game closes (Stop, or Quit Game): at once, breakpoints ignored, as
+   * UE's Stop aborts the paused script. The widgets' Destruct, Event End Play
+   * (End Play In Editor) on every actor and its components, then Event
+   * Shutdown of the GameInstance.
+   */
+  endGame(): void {
+    if (this.ended) return;
+    this.interp.abandon();
+    this.phases.length = 0;
+    this.ending = true;
+    this.travel = undefined;
+    this.fireDestructAll();
+    this.fireEndPlayAll(END_PLAY_IN_EDITOR);
+    this.fire(this.gameInstance, (n) => n.def === 'event.gameShutdown', 'then');
+    this.interp.drain(true);
+    this.ended = true;
+  }
+
+  private fireDestructAll(): void {
+    for (const e of this.umg.tearDown()) this.fire(e.obj, (n) => n.def === e.def, 'then', e.outputs);
+  }
+
+  /** Event End Play on each actor, then its Actor Components (the Player Controller and the player included). */
+  private fireEndPlayAll(reason: number): void {
+    const isEndPlay = (n: NodeInstance) => n.def === 'event.endPlay';
+    for (const a of this.scripted().filter((o) => !o.owner)) {
+      this.fire(a, isEndPlay, 'then', { reason });
+      for (const c of this.componentsOf(a)) this.fire(c, isEndPlay, 'then', { reason });
+    }
   }
 
   /** A line of the engine in the Output Log (LoadMap…). */
@@ -779,11 +823,18 @@ export class Simulation implements InterpreterHost {
    * the controller and the player, the objects of its Actor Components and its widget objects.
    */
   instancesOf(classId: string): ActorRT[] {
-    const all = [...this.actors, this.player, ...(this.controller.classId ? [this.controller] : []), ...this.objects.filter((o) => o.owner || o.widget)];
+    const all = [
+      ...this.actors,
+      this.player,
+      ...(this.controller.classId ? [this.controller] : []),
+      ...this.objects.filter((o) => o.owner || o.widget),
+      ...(this.gameInstance.classId ? [this.gameInstance] : []),
+    ];
     return all.filter((a) => !a.destroyed && this.isA(a, classId));
   }
 
   private findActor(id: string): ActorRT | undefined {
+    if (id === this.gameInstance.id) return this.gameInstance;
     if (id === this.player.id) return this.player;
     if (id === this.controller.id) return this.controller;
     if (id === this.subsystem.id) return this.subsystem;
@@ -940,6 +991,10 @@ export class Simulation implements InterpreterHost {
     }
     if (cls.parent === 'ActorComponent') {
       this.runtimeError(`SpawnActor : ${cls.name} est un Actor Component, pas un acteur. On l’ajoute dans les Components d’un acteur.`);
+      return null;
+    }
+    if (cls.parent === 'GameInstance') {
+      this.runtimeError(`SpawnActor : ${cls.name} est un GameInstance, pas un acteur. Le jeu en crée un seul (Game Instance Class) : Get Game Instance le donne.`);
       return null;
     }
     if (!isPlaceableParent(cls.parent)) {

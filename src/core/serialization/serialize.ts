@@ -152,6 +152,11 @@ function migrate(p: Project, from: number): Project {
     // from opening a project whose graphs use them.
     cur = 15;
   }
+  if (cur === 15) {
+    // v16: the GameInstance (parent class, Game Instance Class in Maps & Modes, Event Init, Get Game Instance, Quit Game).
+    // Nothing to convert: the number keeps an older app from opening a project that uses them.
+    cur = 16;
+  }
   p.format = cur;
   return p;
 }

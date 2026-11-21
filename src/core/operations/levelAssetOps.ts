@@ -47,6 +47,16 @@ export function removeLevel(p: Project, id: string, openId: string): OpResult {
   return { ok: true, value: undefined };
 }
 
+/** Project Settings › Maps & Modes › Game Instance Class: a GameInstance Blueprint, or '' for UE's plain GameInstance. */
+export function setGameInstanceClass(p: Project, classId: string): OpResult {
+  if (classId && p.classes.find((c) => c.id === classId)?.parent !== 'GameInstance') return { ok: false, reason: 'Choisis un Blueprint de classe parente GameInstance.' };
+  const mm = { ...p.mapsModes };
+  if (classId) mm.gameInstanceClass = classId;
+  else delete mm.gameInstanceClass;
+  p.mapsModes = mm;
+  return { ok: true, value: undefined };
+}
+
 /** Project Settings › Maps & Modes › Game Default Map. */
 export function setGameDefaultMap(p: Project, id: string): OpResult {
   if (!p.levels.some((l) => l.id === id)) return { ok: false, reason: 'Niveau introuvable.' };

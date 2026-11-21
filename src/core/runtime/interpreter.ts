@@ -310,6 +310,15 @@ export class Interpreter {
     this.stepping = false;
   }
 
+  /** Stop (UE aborts the paused script): the stack and the waiting events are dropped, nothing is paused any more. */
+  abandon(): void {
+    this.stack = [];
+    this.queue = [];
+    this.paused = null;
+    this.stepping = false;
+    this.skipBreak = false;
+  }
+
   /** Run the paused node and stop before the next node that runs. */
   step(): void {
     if (!this.paused) return;

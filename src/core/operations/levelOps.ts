@@ -15,6 +15,9 @@ export function placeActor(p: Project, classId: string, x: number, y: number): O
   const cls = p.classes.find((c) => c.id === classId);
   if (!cls) return { ok: false, reason: 'Blueprint introuvable.' };
   if (cls.parent === 'SaveGame') return { ok: false, reason: `${cls.name} est un SaveGame : un objet, pas un acteur, il ne se pose pas dans le niveau.` };
+  if (cls.parent === 'GameInstance') {
+    return { ok: false, reason: `${cls.name} est un GameInstance : un seul objet pour toute la partie, hors de tout niveau. On le choisit dans Project Settings › Maps & Modes › Game Instance Class.` };
+  }
   if (cls.parent === 'ActorComponent') {
     return { ok: false, reason: `${cls.name} est un Actor Component : il ne se pose pas dans le niveau, on l’ajoute dans les Components d’un acteur (+ Add).` };
   }

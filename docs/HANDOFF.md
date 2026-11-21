@@ -6,7 +6,7 @@ Ce fichier suffit pour reprendre le travail sans l'historique des conversations.
 
 ## Reprise rapide (2026-11-21, après la V7.56)
 
-**Reprise par un autre agent : lire d'abord la section « Reprise par un autre agent » de [BACKLOG.md](BACKLOG.md)** (état exact, ce qui reste au chantier n° 4 version par version, plan technique de la V7.47, piège du déploiement). Les puces ci-dessous sont l'historique de la journée du 20 novembre ; la plus récente est celle du chantier n° 4.
+**Reprise par un autre agent : lire d'abord la section « Reprise par un autre agent » de [BACKLOG.md](BACKLOG.md)** (état exact après la V7.56, ce qui attend Tristan, ce qui reste à vérifier dans UE, piège du déploiement). Les puces ci-dessous sont l'historique de la journée du 20 novembre ; la plus récente est celle du chantier n° 4.
 
 ### Où on en est
 

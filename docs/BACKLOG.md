@@ -22,6 +22,8 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | E40 du recueil (renvoyé en entier par Tristan) : Get Default Pawn Class For Controller surchargeable, pion construit après Event Init, `restart` dans un niveau donné | V7.55 | **fait** |
 | E40 : Complète C8 « Le personnage choisi » après T6 ; Get Class typé par son objet (format 19) | V7.56 | **fait** |
 
+**Revue de la progression des exercices** (21 novembre, 19 h 10, à sa demande) : [REVUE_PARCOURS_EXERCICES.md](REVUE_PARCOURS_EXERCICES.md), cinq versions proposées (V7.57 outillage, V7.58 entrées des anciennes étapes, V7.59 messages à l’écran, V7.60 synthèses, V7.61 trois entraînements mélangés) et cinq questions. Rien n’est lancé.
+
 **Ce qui attend Tristan** :
 1. **Ses essais sur téléphone**, en retard depuis la V7.33 (à lui rappeler une fois, sans insister) : étapes UMG, 1280 × 720, Screen Size « Téléphone », boutons devant le joystick, menu pause sans PAUSED, Mes projets, Widget Component et ses quatre étapes ; tout le chantier n° 4 (créer un niveau, Maps & Modes, une porte qui fait Open Level, un GameInstance qui survit à la porte, GameMode Override, les huit étapes) ; ses corrections (les trois Player Start de l'atelier et Choose Player Start, A4 et T6 revus) ; C8.
 2. **La suite** : le chantier n° 5, projet Expert final (tableau « Prochains chantiers »), analyse d'abord, sur son feu vert. Autres possibles s'il les demande : les mini-exercices « Niveaux et GameInstance » (promis avec C8, pas faits), Possess (« Aller plus loin après le chantier n° 4 »).

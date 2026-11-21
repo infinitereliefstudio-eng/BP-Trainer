@@ -10,19 +10,19 @@
  */
 import { explainRuntime } from '../explain/runtime';
 import { inheritedView, isA, lineage } from '../model/inheritance';
-import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Level, type Project, type SavedGame, levelOf } from '../model/project';
+import { COMPONENT_CLASS, findClass, isPlaceableParent, type BlueprintClass, type NodeInstance, type Level, type Project, type SavedGame, levelOf, playerStartsOf } from '../model/project';
 import { BUILTIN_HIERARCHY, makeHierarchy } from '../types/pins';
 import type { Value } from '../types/values';
 import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
 import { playerClassesFor } from '../model/gameMode';
-import { createActor, createController, createGameInstance, createGameMode, createInputSubsystem, createPlayer } from './actorFactory';
+import { blank, createActor, createController, createGameInstance, createGameMode, createInputSubsystem, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { EnhancedInput } from './enhancedInput';
 import { buildInputStack, keyKept, sendAction, sendKey } from './inputStack';
 import { Journal, nextId, type ScreenMessage, type SimLogEntry } from './journal';
 import { RunRecord, type NoteCode } from './runRecord';
-import { movePlayer, type BlockingHit } from './movement';
+import { blockedAt, movePlayer, type BlockingHit } from './movement';
 import { endOverlapsWith, updateOverlaps, type Broadcast, type Fire } from './overlaps';
 import { TimerSet } from './timers';
 import { lineTrace, type DebugLine, type TraceHit } from './trace';
@@ -160,6 +160,8 @@ export class Simulation implements InterpreterHost {
   ended = false;
   /** Quit Game was called: the Game closes at the start of the next frame. */
   quit = false;
+  /** The level's Player Starts, as actors of the native class PlayerStart (V7.53). */
+  private readonly starts: ActorRT[];
   /** Event Init is running: no GameMode, Player Controller nor pawn yet, as in UE. */
   beforePlayers = false;
   /** Actors (and components) that already got Event End Play: never twice. */
@@ -242,6 +244,15 @@ export class Simulation implements InterpreterHost {
       run: () => this.runPhases(),
       step: () => this.step(),
     });
+    // The Player Starts: actors without collision nor graph, PlayerStart_0, PlayerStart_1…
+    this.starts = playerStartsOf(this.level).map((s, i) => ({
+      ...blank(s.id, s.name, `PlayerStart_${i}`, 'PlayerStart'),
+      x: s.x,
+      y: s.y,
+      yaw: s.yaw,
+      playerStartTag: s.tag ?? '',
+    }));
+    // The pawn is made at the first one; the GameMode's Choose Player Start places it before BeginPlay (start()).
     const ps = this.level.playerStart;
     // The level's GameMode (GameMode Override, else Default GameMode) says which pawn and Player Controller to make.
     const { gameMode, pawn, controller: pcClass } = playerClassesFor(project, this.level);
@@ -398,6 +409,49 @@ export class Simulation implements InterpreterHost {
     for (const a of this.scripted()) this.fire(a, match, pin, outputs);
   }
 
+  // -------------------------------------------------------- player start
+
+  /** The level's Player Starts (Get All Actors Of Class › PlayerStart). */
+  playerStarts(): ActorRT[] {
+    return this.starts;
+  }
+
+  /**
+   * UE's AGameModeBase::ChoosePlayerStart: a Blueprint override if the
+   * GameMode has one (Functions › Override › Choose Player Start), called
+   * with the Player Controller; else UE's own choice, a Player Start not
+   * blocked by a mesh, at random when there are several (the first world of
+   * a lesson's check is seeded, so it is the same every time).
+   */
+  private placePlayer(): void {
+    const spot = this.choosePlayerStart();
+    if (!spot) return;
+    this.player.x = spot.x;
+    this.player.y = spot.y;
+    this.player.yaw = spot.yaw;
+  }
+
+  private choosePlayerStart(): ActorRT | undefined {
+    const gm = this.gameMode.classId ? findClass(this.project, this.gameMode.classId) : undefined;
+    const override = gm ? lineage(this.project, gm).flatMap((c) => c.graphs).find((g) => g.override === 'ChoosePlayerStart') : undefined;
+    if (override?.fn) {
+      const player = override.fn.inputs[0];
+      const out = this.interp.evaluate(this.gameMode, override.id, player ? { [player.id]: { ref: 'actor', id: this.controller.id } } : {});
+      const ret = override.fn.outputs[0];
+      const chosen = ret ? this.tryActor(out[ret.id]) : undefined;
+      if (chosen && !chosen.destroyed) return chosen;
+      this.journal.warning(
+        this.time,
+        `RestartPlayer: Player start not found. Choose Player Start de ${gm!.name} a rendu None : dans UE, le joueur n’apparaîtrait pas. Ici il reste au premier Player Start.`,
+      );
+      return undefined;
+    }
+    if (this.starts.length < 2) return this.starts[0];
+    const free = this.starts.filter((s) => !blockedAt(s.x, s.y, this.actors));
+    const pool = free.length ? free : this.starts;
+    return pool[Math.floor(this.random() * pool.length) % pool.length];
+  }
+
   // ---------------------------------------------------------------- time
 
   /** Fire BeginPlay on every actor, in event order. */
@@ -420,6 +474,8 @@ export class Simulation implements InterpreterHost {
     }
     this.phases.push(() => {
       this.beforePlayers = false;
+      // The login: the GameMode chooses where the player appears (UE: RestartPlayer → FindPlayerStart → ChoosePlayerStart).
+      this.placePlayer();
       for (const a of this.scripted()) this.interp.autoPlayTimelines(a);
       for (const a of this.scripted()) {
         // An actor's Widget Components make their widget as they begin play, before the actor's own Event BeginPlay.
@@ -868,6 +924,8 @@ export class Simulation implements InterpreterHost {
 
   private findActor(id: string): ActorRT | undefined {
     if (id === this.gameInstance.id) return this.gameInstance;
+    const start = this.starts.find((s) => s.id === id);
+    if (start) return start;
     if (id === this.gameMode.id) return this.gameMode;
     if (id === this.player.id) return this.player;
     if (id === this.controller.id) return this.controller;
@@ -1017,6 +1075,10 @@ export class Simulation implements InterpreterHost {
   }
 
   spawn(classId: string, x: number, y: number, yaw: number): ActorRT | null {
+    if (classId === 'PlayerStart') {
+      this.runtimeError('SpawnActor : un Player Start se pose dans le niveau (Place Actors), avant le lancement : le GameMode les cherche pour faire apparaître le joueur.');
+      return null;
+    }
     const cls = findClass(this.project, classId);
     if (!cls) return null;
     if (cls.parent === 'SaveGame') {

@@ -62,12 +62,16 @@ function record(o: Obj, key: string, where: string): Obj {
   return v as Obj;
 }
 
+const OVERRIDABLE = ['ChoosePlayerStart'];
+
 function checkGraph(g: unknown, owner: string): void {
   const graph = named(g, `Un graphe de « ${owner} »`);
   const where = `Graphe « ${graph.name} » de « ${owner} »`;
   need(GRAPH_KINDS.includes(graph.kind as string), `${where} : type de graphe inconnu.`);
   const nodes = record(graph, 'nodes', where);
   const links = record(graph, 'links', where);
+  // Format 18: a function overriding the parent's (a GameMode's ChoosePlayerStart). Unknown: an ordinary function.
+  if (graph.override !== undefined && !(graph.kind === 'function' && OVERRIDABLE.includes(graph.override as string))) delete graph.override;
   for (const [id, n] of Object.entries(nodes)) {
     need(isObj(n) && isStr(n.id) && isStr(n.def), `${where} : un nœud est incomplet.`);
     const node = n as Obj;
@@ -215,6 +219,21 @@ function checkLevel(level: Obj, classIds: Set<string>): void {
   const start = level.playerStart;
   need(isObj(start), 'Player Start mal formé.');
   for (const k of ['x', 'y', 'yaw']) numberOr(start as Obj, k, 0, 'Player Start');
+  if ((start as Obj).tag !== undefined && !isStr((start as Obj).tag)) delete (start as Obj).tag;
+  // Format 18: more Player Starts. A malformed one is dropped, as an actor of a lost class.
+  if (level.otherStarts !== undefined) {
+    need(Array.isArray(level.otherStarts), 'Player Starts mal formés.');
+    const seen = new Set<string>();
+    level.otherStarts = (level.otherStarts as unknown[]).filter((s): s is Obj => {
+      if (!isObj(s) || !isStr(s.id) || !(s.id as string).startsWith('ps_') || seen.has(s.id as string)) return false;
+      seen.add(s.id as string);
+      if (!isStr(s.name)) s.name = 'PlayerStart';
+      for (const k of ['x', 'y', 'yaw']) numberOr(s, k, 0, 'Player Start');
+      if (s.tag !== undefined && !isStr(s.tag)) delete s.tag;
+      return true;
+    });
+    if (!(level.otherStarts as unknown[]).length) delete level.otherStarts;
+  }
 }
 
 /** Refuses what cannot be opened, repairs what can safely be dropped. */

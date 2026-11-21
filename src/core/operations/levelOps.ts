@@ -1,6 +1,6 @@
 /** Level mutators: placing, moving and configuring actor instances. */
 import { newId } from '../model/ids';
-import { isPlaceableParent, type LevelActor, type Project, levelOf } from '../model/project';
+import { isPlaceableParent, MAIN_START_ID, type LevelActor, type PlacedPlayerStart, type PlayerStartSpot, playerStartsOf, type Project, levelOf } from '../model/project';
 import type { Value } from '../types/values';
 import type { OpResult } from './graphOps';
 
@@ -107,7 +107,52 @@ export function duplicateActor(p: Project, id: string): OpResult<LevelActor> {
   return res;
 }
 
-export function movePlayerStart(p: Project, x: number, y: number): void {
-  levelOf(p).playerStart.x = Math.round(x);
-  levelOf(p).playerStart.y = Math.round(y);
+/** A Player Start of the level open in the editor, by its id (MAIN_START_ID: the first one). */
+export function findPlayerStart(p: Project, id = MAIN_START_ID): PlayerStartSpot | undefined {
+  const level = levelOf(p);
+  return id === MAIN_START_ID ? level.playerStart : level.otherStarts?.find((s) => s.id === id);
+}
+
+export function movePlayerStart(p: Project, x: number, y: number, id = MAIN_START_ID): void {
+  const s = findPlayerStart(p, id);
+  if (!s) return;
+  s.x = Math.round(x);
+  s.y = Math.round(y);
+}
+
+/** Details of a Player Start: Location, Rotation, Player Start Tag (an empty tag is None, as UE's Name). */
+export function setPlayerStart(p: Project, id: string, patch: Partial<PlayerStartSpot>): OpResult {
+  const s = findPlayerStart(p, id);
+  if (!s) return { ok: false, reason: 'Player Start introuvable.' };
+  if (patch.tag !== undefined) {
+    const tag = patch.tag.trim();
+    if (tag) s.tag = tag;
+    else delete s.tag;
+  }
+  for (const k of ['x', 'y', 'yaw'] as const) if (patch[k] !== undefined) s[k] = Math.round(patch[k]!);
+  return { ok: true, value: undefined };
+}
+
+/**
+ * Place Actors › Player Start: one more spot where the GameMode may make the
+ * player appear (PlayerStart2, PlayerStart3…, as UE labels them).
+ */
+export function addPlayerStart(p: Project, x: number, y: number): OpResult<PlacedPlayerStart> {
+  const level = levelOf(p);
+  const taken = new Set(playerStartsOf(level).map((s) => s.name));
+  let n = 2;
+  while (taken.has(`PlayerStart${n}`)) n++;
+  const s: PlacedPlayerStart = { id: newId('ps'), name: `PlayerStart${n}`, x: Math.round(x), y: Math.round(y), yaw: 0 };
+  level.otherStarts = [...(level.otherStarts ?? []), s];
+  return { ok: true, value: s };
+}
+
+/** Delete a Player Start; the first one stays (the app keeps one per level). */
+export function removePlayerStart(p: Project, id: string): OpResult {
+  const level = levelOf(p);
+  if (id === MAIN_START_ID) return { ok: false, reason: 'Le premier Player Start reste : chaque niveau en garde au moins un dans l’appli. Déplace-le plutôt.' };
+  if (!level.otherStarts?.some((s) => s.id === id)) return { ok: false, reason: 'Player Start introuvable.' };
+  level.otherStarts = level.otherStarts.filter((s) => s.id !== id);
+  if (!level.otherStarts.length) delete level.otherStarts;
+  return { ok: true, value: undefined };
 }

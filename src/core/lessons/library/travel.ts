@@ -14,8 +14,10 @@
  *   BP_Jeu fails without a word.
  */
 import type { Project } from '../../model/project';
-import { playerClassesFor } from '../../model/gameMode';
-import { setGameModeDefault, setGameModeOverride } from '../../operations/gameModeOps';
+import { gameModeOf, playerClassesFor } from '../../model/gameMode';
+import { ensureDefaultGameMode, setGameModeDefault, setGameModeOverride } from '../../operations/gameModeOps';
+import { overrideFunction } from '../../operations/functionOps';
+import { lineage } from '../../model/inheritance';
 import { setGameInstanceClass } from '../../operations/levelAssetOps';
 import { addClass, setPlayerClass } from '../../operations/projectOps';
 import { T } from '../../types/pins';
@@ -495,11 +497,6 @@ export const debug27: Lesson = {
 
 // =================================================================== V7.51
 
-/** Is the pawn within 60 of an actor of that label? */
-const pawnAt = (cx: CheckContext, label: string) => {
-  const a = cx.actor(label);
-  return !!a && Math.hypot(cx.sim.player.x - a.x, cx.sim.player.y - a.y) < 60;
-};
 
 // ------------------------------------------- Arriver par la bonne porte
 
@@ -511,31 +508,37 @@ const WORKSHOP_START: [number, number] = [-300, 0];
 
 /**
  * Two doors at the end of the corridor (Sortie: Nord, Sud), both to the
- * workshop; two arrivals there (Porte: Nord, Sud), graph empty. BP_Jeu, the
- * Game Instance Class, has Arrivee (Name).
+ * workshop. The workshop has three Player Starts: the first in the middle,
+ * then PlayerStart2 (tag Nord) and PlayerStart3 (tag Sud). BP_Jeu, the Game
+ * Instance Class, has Arrivee (Name); BP_GameMode, the Default GameMode, is empty.
  */
 function doorsProject(): Project {
   const pb = new ProjectBuilder('Arriver par la bonne porte');
   const jeu = pb.blueprint('BP_Jeu', 'GameInstance');
   jeu.variable('Arrivee', T.name, '');
   setGameInstanceClass(pb.project, jeu.cls.id);
+  const gm = ensureDefaultGameMode(pb.project);
+  if (!gm.ok) throw new Error(gm.reason);
   const door = doorClass(pb);
   const exit = editable(door, 'Sortie', T.name, 'Nord');
   openOnOverlap(door);
   pb.place(door, ...DOOR_N);
   override(pb, pb.place(door, ...DOOR_S), exit, 'Sud');
   pb.playerStart(...START);
-  const arrival = pb.blueprint('BP_Arrivee');
-  arrival.component('StaticMesh', 'Dalle', { sizeX: 90, sizeY: 90, color: '#16a34a', blocks: false });
-  const side = editable(arrival, 'Porte', T.name, 'Nord');
   pb.level(WORKSHOP, (q) => {
-    q.place(arrival, ...ARRIVAL_N);
-    override(q, q.place(arrival, ...ARRIVAL_S), side, 'Sud');
     q.playerStart(...WORKSHOP_START);
+    q.morePlayerStart(...ARRIVAL_N, 90, 'Nord');
+    q.morePlayerStart(...ARRIVAL_S, 270, 'Sud');
   });
   return pb.project;
 }
 
+/**
+ * The door writes its Sortie into BP_Jeu before Open Level. BP_GameMode
+ * overrides Choose Player Start: Get All Actors Of Class (PlayerStart) →
+ * Cast To BP_Jeu → For Each → Branch (Get Player Start Tag == Arrivee) →
+ * Return Node (the element); Completed → Return Node (the first one).
+ */
 function solveDoors(p: Project): void {
   const jeu = cls(p, 'BP_Jeu').id;
   const arrivee = vid(p, 'BP_Jeu', 'Arrivee');
@@ -547,37 +550,55 @@ function solveDoors(p: Project): void {
   const set = door.node('var.setExternal', { owner: jeu, variable: arrivee }, {}, [640, 300]);
   door.link(ov, 'then', cast, 'exec').link(door.node('game.getGameInstance', {}, {}, [120, 420]), 'result', cast, 'object');
   door.link(cast, 'then', set, 'exec').link(cast, 'as', set, 'target').link(getVar(door, 'Sortie', [420, 480]), 'value', set, 'value').link(set, 'then', open, 'exec');
-  const arrival = edit(p, 'BP_Arrivee');
-  const begin = arrival.node('event.beginPlay', {}, {}, [64, 96]);
-  const acast = arrival.node('cast.to', { class: jeu }, {}, [340, 96]);
-  const get = arrival.node('var.getExternal', { owner: jeu, variable: arrivee }, {}, [480, 300]);
-  const same = arrival.node('name.equal', {}, {}, [700, 300]);
-  const branch = arrival.node('flow.branch', {}, {}, [700, 96]);
-  const move = arrival.node('actor.setLocation', {}, {}, [1000, 96]);
-  arrival.link(begin, 'then', acast, 'exec').link(arrival.node('game.getGameInstance', {}, {}, [120, 300]), 'result', acast, 'object');
-  arrival.link(acast, 'as', get, 'target').link(get, 'value', same, 'a').link(getVar(arrival, 'Porte', [480, 420]), 'value', same, 'b');
-  arrival.link(acast, 'then', branch, 'exec').link(same, 'result', branch, 'condition').link(branch, 'true', move, 'exec');
-  arrival.link(arrival.node('actor.getPlayerPawn', {}, {}, [760, 420]), 'result', move, 'target').link(arrival.node('actor.getLocation', {}, {}, [760, 520]), 'result', move, 'location');
+  const gmCls = cls(p, 'BP_GameMode');
+  const made = overrideFunction(p, gmCls, 'ChoosePlayerStart');
+  if (!made.ok) throw new Error(made.reason);
+  const g = made.value;
+  const b = new ClassBuilder(gmCls, p).inGraph(g.id);
+  const entry = nodeOf(g, 'fn.entry');
+  const ret = nodeOf(g, 'fn.return');
+  const out = g.fn!.outputs[0].id;
+  for (const id of Object.keys(g.links)) delete g.links[id];
+  const all = b.node('actor.getAllOfClass', {}, { class: 'PlayerStart' }, [300, 0]);
+  const gcast = b.node('cast.to', { class: jeu }, {}, [600, 0]);
+  const each = b.node('flow.forEachLoop', {}, {}, [900, 0]);
+  const tag = b.node('playerStart.getTag', {}, {}, [900, 300]);
+  const get = b.node('var.getExternal', { owner: jeu, variable: arrivee }, {}, [900, 420]);
+  const same = b.node('name.equal', {}, {}, [1150, 300]);
+  const branch = b.node('flow.branch', {}, {}, [1200, 0]);
+  const first = b.node('array.get', {}, { index: 0 }, [1200, 520]);
+  const fallback = b.node('fn.return', { graph: g.id }, {}, [1500, 400]);
+  b.link(entry, 'then', all, 'exec').link(all, 'then', gcast, 'exec').link(b.node('game.getGameInstance', {}, {}, [400, 200]), 'result', gcast, 'object');
+  b.link(gcast, 'then', each, 'exec').link(all, 'actors', each, 'array').link(each, 'body', branch, 'exec');
+  b.link(each, 'element', tag, 'target').link(tag, 'result', same, 'a').link(gcast, 'as', get, 'target').link(get, 'value', same, 'b').link(same, 'result', branch, 'condition');
+  b.link(branch, 'true', ret, 'exec').link(each, 'element', ret, out);
+  b.link(each, 'completed', fallback, 'exec').link(all, 'actors', first, 'array').link(first, 'item', fallback, out);
 }
 
-/** After going through the door `side`: in the workshop, on the arrival of that side. */
+/** After going through the door `side`: in the workshop, on the Player Start of that side. */
 function arrivedBy(side: 'Nord' | 'Sud', at?: string): Check {
-  const mine = side === 'Nord' ? 'BP_Arrivee' : 'BP_Arrivee2';
-  const other = side === 'Nord' ? 'BP_Arrivee2' : 'BP_Arrivee';
+  const mine = side === 'Nord' ? ARRIVAL_N : ARRIVAL_S;
+  const other = side === 'Nord' ? ARRIVAL_S : ARRIVAL_N;
+  const near = (cx: CheckContext, [x, y]: [number, number]) => Math.hypot(cx.sim.player.x - x, cx.sim.player.y - y) < 60;
   return {
     id: side === 'Nord' ? 'nord' : 'sud',
-    label: `Par la porte ${side.toLowerCase()}, le joueur arrive sur l’arrivée ${side.toLowerCase()}`,
+    label: `Par la porte ${side.toLowerCase()}, le joueur arrive au Player Start ${side}`,
     at,
     test: (cx) => {
       const where = reachedWorkshop(cx);
       if (where !== true) return where;
-      if (pawnAt(cx, mine)) return true;
-      if (pawnAt(cx, other))
-        return `Passé par la porte ${side.toLowerCase()}, le joueur arrive au ${side === 'Nord' ? 'sud' : 'nord'} : chaque porte doit noter sa propre Sortie (la variable de l’instance posée), et chaque arrivée se comparer à sa propre Porte.`;
-      const p = cx.sim.player;
-      if (Math.hypot(p.x - WORKSHOP_START[0], p.y - WORKSHOP_START[1]) < 60)
-        return 'Le joueur est resté sur le Player Start de l’atelier : rien ne l’a déplacé. Au BeginPlay, chaque BP_Arrivee compare Arrivee (dans le GameInstance) à sa Porte et, si c’est la sienne, y place le pion (Get Player Pawn, Set Actor Location).';
-      return `Le joueur est arrivé ailleurs que sur l’arrivée ${side.toLowerCase()} : Set Actor Location doit le mettre à l’emplacement de l’arrivée (Get Actor Location de Self).`;
+      if (near(cx, mine)) return true;
+      const level = cx.project.levels.find((l) => l.name === WORKSHOP)!;
+      const gm = gameModeOf(cx.project, level);
+      if (!gm || !lineage(cx.project, gm).some((c) => c.graphs.some((g) => g.override === 'ChoosePlayerStart')))
+        return 'Le GameMode a choisi un Player Start au hasard, comme UE le fait sans consigne : surcharge sa fonction Choose Player Start (BP_GameMode › My Blueprint › Functions › Override) et rends le Player Start dont le Player Start Tag vaut Arrivee.';
+      if (near(cx, other))
+        return `Passé par la porte ${side.toLowerCase()}, le joueur arrive au ${side === 'Nord' ? 'sud' : 'nord'} : chaque porte doit noter sa propre Sortie (la variable de l’instance posée), et Choose Player Start chercher le Player Start dont le tag vaut Arrivee.`;
+      if (near(cx, WORKSHOP_START))
+        return cx.sim.log.some((l) => l.text.includes('Player start not found'))
+          ? 'Choose Player Start a rendu None : dans UE, le joueur n’apparaîtrait pas. Rends le Player Start trouvé, et sur Completed un repli (le premier, Get index 0).'
+          : 'Le joueur est arrivé sur le premier Player Start de l’atelier, au milieu : Choose Player Start n’a pas trouvé de Player Start dont le tag vaut Arrivee. La porte écrit-elle Arrivee avant Open Level ?';
+      return `Le joueur est arrivé ailleurs qu’au Player Start ${side} : Choose Player Start doit rendre ce Player Start lui-même (Array Element de la boucle).`;
     },
   };
 }
@@ -587,27 +608,29 @@ export const lessonRightDoor: Lesson = {
   module: LEVELS_MODULE,
   level: 'avance',
   number: 0,
+  // V7.53: several Player Starts and Choose Player Start (before: the pawn moved by BP_Arrivee at BeginPlay).
+  revision: 2,
   title: 'Arriver par la bonne porte',
   situation:
-    'Le couloir a maintenant deux portes vers l’atelier, au nord et au sud. Quelle que soit la porte, le joueur arrive au Player Start de l’atelier, au milieu. Il doit arriver du côté par lequel il est entré.',
+    'Le couloir a deux portes vers l’atelier, au nord et au sud, et l’atelier trois Player Start : au milieu, au nord, au sud. Quelle que soit la porte, le joueur apparaît sur l’un d’eux, au hasard. Il doit arriver du côté par lequel il est entré.',
   chain: { notion: 'levels', step: 'guided' },
   recalls: ['other-bp'],
-  notions: ['GameInstance', 'Name', 'Instance Editable', 'Set Actor Location'],
+  notions: ['GameInstance', 'Player Start Tag', 'Choose Player Start', 'Get All Actors Of Class'],
   remember:
-    'Le niveau suivant ne sait rien du précédent : pour lui dire d’où l’on vient, on écrit une donnée simple (un Name) dans le GameInstance avant Open Level, et on la relit au BeginPlay du nouveau niveau.',
+    'C’est le GameMode qui choisit où le joueur apparaît : sa fonction Choose Player Start, surchargée, cherche le Player Start dont le tag correspond. Le niveau suivant ne sait rien du précédent : la porte laisse un Name dans le GameInstance avant Open Level.',
   cards: [
     {
       title: 'Ce qui est en place',
       body:
         `- **${MAIN}** : deux **BP_Porte**, au nord et au sud. Chacune a une variable **Sortie** (Name, Instance Editable) : Nord pour l’une, Sud pour l’autre. Leur graphe fait déjà Open Level vers ${WORKSHOP}.\n` +
-        `- **${WORKSHOP}** : deux **BP_Arrivee** (des dalles vertes), avec **Porte** = Nord et Sud. Graphe vide.\n` +
-        '- **BP_Jeu**, la Game Instance Class, a une variable **Arrivee** (Name), vide au départ.',
+        `- **${WORKSHOP}** : trois **Player Start**. Le premier au milieu, **PlayerStart2** au nord avec **Player Start Tag** = Nord, **PlayerStart3** au sud avec Sud (touche-les dans l’Outliner de l’atelier pour voir leurs Details).\n` +
+        '- **BP_Jeu**, la Game Instance Class, a une variable **Arrivee** (Name), vide au départ. **BP_GameMode**, le Default GameMode, est vide.',
     },
     {
-      title: 'L’idée',
+      title: 'L’idée : c’est le GameMode qui choisit',
       body:
-        'Rien de l’ancien niveau ne passe la porte, sauf le GameInstance. La porte y laisse un mot avant de partir ; l’atelier le lit en arrivant.\n\n' +
-        'On ne garde pas l’acteur porte lui-même : il sera détruit avec le couloir, et la référence vaudrait None. On garde un **Name**, une simple étiquette : « Sud ». Elle a le même sens dans les deux niveaux.',
+        'À chaque niveau, avant les BeginPlay, le GameMode fait apparaître le joueur. Il appelle sa fonction **Choose Player Start** : par défaut, elle prend un Player Start libre, au hasard. On la **surcharge** pour choisir soi-même.\n\n' +
+        'Rien de l’ancien niveau ne passe la porte, sauf le GameInstance. La porte y laisse un **Name** avant de partir (« Sud »), et Choose Player Start cherche le Player Start qui porte ce tag. On ne garde pas l’acteur porte : il disparaît avec le couloir.',
     },
     {
       title: 'La porte : noter d’où l’on part',
@@ -617,20 +640,20 @@ export const lessonRightDoor: Lesson = {
         'Chaque porte posée a sa propre Sortie : un seul graphe suffit pour les deux.',
     },
     {
-      title: 'L’arrivée : placer le joueur',
+      title: 'Le GameMode : choisir le Player Start',
       body:
-        'Dans **BP_Arrivee**, à l’**Event BeginPlay** :\n\n' +
-        '1. **Get Game Instance** → **Cast To BP_Jeu**, puis **Get Arrivee**.\n2. **Equal (Name)** : Arrivee == **Porte** (celle de cette dalle). → **Branch**.\n3. Sur True : **Set Actor Location**, Target = **Get Player Pawn**, New Location = **Get Actor Location** (de Self, la dalle).\n\n' +
-        'Au BeginPlay des acteurs posés, le pion du joueur existe déjà : le GameMode l’a fait apparaître sur le Player Start.',
+        'Ouvre **BP_GameMode** › My Blueprint › Functions › **Override › ChoosePlayerStart**. Le graphe a déjà son entrée (Player) et son **Return Node** (Return Value) :\n\n' +
+        '1. **Get All Actors Of Class** (Actor Class = **PlayerStart**), puis **Get Game Instance** → **Cast To BP_Jeu**.\n2. **For Each Loop** sur Out Actors. Dans Loop Body : **Branch**, Condition = **Equal (Name)** entre **Get Player Start Tag** (Array Element) et **Arrivee**.\n3. Sur True : **Return Node**, Return Value = Array Element. La boucle s’arrête là.\n4. Sur **Completed** (rien trouvé) : un second Return Node avec le premier Player Start (**Get** index 0). Ne rends jamais None : dans UE, le joueur n’apparaîtrait pas.\n\n' +
+        'Au couloir, Arrivee est vide : le premier Player Start, sans tag, correspond aussi.',
     },
   ],
-  objectives: ['La porte sud mène à l’arrivée sud.', 'La porte nord mène à l’arrivée nord.', 'Touche Vérifier : deux parties, une par porte.'],
+  objectives: ['La porte sud mène au Player Start Sud.', 'La porte nord mène au Player Start Nord.', 'Touche Vérifier : deux parties, une par porte.'],
   hints: [
-    'Qu’est-ce qui survit au changement de niveau, et quelle donnée simple dit « je viens du sud » ?',
-    'Get Game Instance ; Cast To BP_Jeu ; Set Arrivee (= Sortie) ; Equal (Name) ; Branch ; Get Player Pawn ; Set Actor Location ; Get Actor Location.',
-    'Solution : BP_Porte, Overlap → Cast To BP_Jeu (Get Game Instance) → Set Arrivee = Sortie → Open Level. BP_Arrivee, BeginPlay → Cast To BP_Jeu → Branch (Arrivee == Porte) → Set Actor Location (Get Player Pawn, Get Actor Location).',
+    'Qui fait apparaître le joueur dans un niveau, et quelle fonction lui demande où ? Quelle donnée simple dit « je viens du sud » ?',
+    'Get Game Instance ; Cast To BP_Jeu ; Set Arrivee (= Sortie) ; Override › Choose Player Start ; Get All Actors Of Class (PlayerStart) ; For Each Loop ; Get Player Start Tag ; Equal (Name) ; Branch ; Return Node.',
+    'Solution : BP_Porte, Overlap → Cast To BP_Jeu (Get Game Instance) → Set Arrivee = Sortie → Open Level. BP_GameMode › Override › Choose Player Start : Get All Actors Of Class (PlayerStart) → Cast To BP_Jeu → For Each Loop → Branch (Get Player Start Tag == Arrivee) → Return Node (Array Element) ; Completed → Return Node (Get index 0).',
   ],
-  challenge: 'Fais aussi tourner le joueur dans le sens de la dalle (Set Actor Rotation), et vide Arrivee une fois utilisée : que se passerait-il sinon en lançant le jeu directement dans l’atelier ?',
+  challenge: 'Vide Arrivee une fois le joueur placé : que se passerait-il sinon en revenant au couloir par une porte qui n’a pas de Player Start à son nom ? Et si tu lançais Play directement dans l’atelier ?',
   setup: doorsProject,
   scenario: [{ wait: 0.3 }, { teleport: DOOR_S }, { wait: 0.4 }, { checkpoint: 'sud' }, { restart: true }, { wait: 0.3 }, { teleport: DOOR_N }, { wait: 0.4 }],
   checks: [
@@ -641,10 +664,25 @@ export const lessonRightDoor: Lesson = {
       label: 'Le GameInstance garde la porte d’arrivée',
       test: (cx) => (normText(String(cx.gameInstance('Arrivee') ?? '')) === 'nord' ? true : 'Arrivee, dans BP_Jeu, doit valoir la Sortie de la porte prise (Nord à la fin) : la porte l’écrit avant Open Level.'),
     }),
+    notion({
+      id: 'choose',
+      label: 'Le GameMode choisit le Player Start (Choose Player Start)',
+      test: (cx) => {
+        const level = cx.project.levels.find((l) => l.name === WORKSHOP)!;
+        const gm = gameModeOf(cx.project, level);
+        const overridden = gm && lineage(cx.project, gm).some((c) => c.graphs.some((g) => g.override === 'ChoosePlayerStart'));
+        return overridden ? true : 'Le joueur doit être placé par le GameMode de l’atelier : surcharge Choose Player Start (My Blueprint › Functions › Override), plutôt que de le déplacer après coup.';
+      },
+    }),
     noRuntimeErrors(),
   ],
   solve: solveDoors,
   avoid: [
+    {
+      defs: ['actor.setLocation'],
+      label: 'Déplacer le pion après son apparition',
+      why: 'Set Actor Location sur le pion au BeginPlay marche, mais le joueur est d’abord apparu ailleurs (et ses BeginPlay ont vu ce premier endroit). Dans UE, on laisse le GameMode le faire apparaître au bon Player Start : Choose Player Start.',
+    },
     {
       defs: ['save.toSlot'],
       label: 'Écrire la porte dans un Save Game',

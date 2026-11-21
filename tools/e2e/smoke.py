@@ -1309,6 +1309,31 @@ async def main():
         if await page.locator('.success').count() == 0:
             errs.append('Arriver par la bonne porte : la solution de référence ne passe pas dans l’appli')
         await shot('121_lesson_right_door_passed')
+        # V7.53: the workshop's three Player Starts, PlayerStart3's Details (its Player Start Tag), then BP_GameMode's Choose Player Start.
+        await page.locator('.btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate('() => { const s = window.bpStore; const l = s.project.levels.find(l => l.name === "Lvl_Atelier"); s.openLevel(l.id); s.setFocus({ kind: "none" }); }')
+        await page.wait_for_timeout(400)
+        await page.locator('.edge-handle[aria-label="Ouvrir Details"]').tap()
+        await page.wait_for_timeout(300)
+        rows = ' '.join(await page.locator('.outliner-pick').all_inner_texts())
+        if 'PlayerStart2' not in rows or 'PlayerStart3' not in rows:
+            errs.append(f'Player Starts absents de l’Outliner ({rows[:160]})')
+        else:
+            await page.locator('.outliner-pick', has_text='PlayerStart3').first.tap()
+            await page.wait_for_timeout(300)
+            await page.locator('.drawer-tab', has_text='Details').first.tap()
+            await page.wait_for_timeout(300)
+            if not await page.get_by_text('Player Start Tag').count():
+                errs.append('Player Start : pas de Player Start Tag dans les Details')
+        await shot('122_player_starts')
+        await page.evaluate('() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === "BP_GameMode"); s.openClass(c.id); s.openGraph(c.graphs.find(g => g.override === "ChoosePlayerStart").id); }')
+        await page.wait_for_timeout(400)
+        await page.locator('.doc-tab', has_text='BP_GameMode').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate('() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === "BP_GameMode"); s.openGraph(c.graphs.find(g => g.override === "ChoosePlayerStart").id); }')
+        await page.wait_for_timeout(600)
+        await shot('123_choose_player_start')
         await page.goto(home)
         await page.wait_for_timeout(500)
 

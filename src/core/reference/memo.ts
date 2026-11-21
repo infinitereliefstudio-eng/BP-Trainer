@@ -136,7 +136,7 @@ export const MEMO: MemoCard[] = [
       'Tout le reste est recréé à chaque chargement de niveau : une variable du GameMode ou du personnage repart de zéro après **Open Level**.\n\n' +
       'On règle le GameMode d’un niveau dans **World Settings › GameMode Override**, ou pour tout le projet dans Project Settings › Maps & Modes.\n\n' +
       'Trois durées de vie : **le niveau** (acteurs, pion, Player Controller, GameMode, widgets : refaits à chaque Open Level), **la partie** (le GameInstance, de Play à Stop), **au-delà** (un Save Game, sur le disque).\n\n' +
-      'Dans BP Trainer : le GameMode, le GameInstance et Open Level sont simulés. Un GameMode se crée par Pick Parent Class › Game Mode Base, ses classes dans ses **Class Defaults** ; Maps & Modes a Default GameMode, Selected GameMode et Game Instance Class ; la ligne **WorldSettings** de l’Outliner d’un niveau a son GameMode Override. Pendant Play, l’Outliner montre le GameMode du niveau et le GameInstance. GameState, PlayerState et HUD ne sont pas simulés.',
+      'Dans BP Trainer : le GameMode, le GameInstance et Open Level sont simulés. Un GameMode se crée par Pick Parent Class › Game Mode Base, ses classes dans ses **Class Defaults** ; Maps & Modes a Default GameMode, Selected GameMode et Game Instance Class ; la ligne **WorldSettings** de l’Outliner d’un niveau a son GameMode Override. Un niveau peut avoir plusieurs **Player Start**, chacun avec son **Player Start Tag** ; le GameMode en choisit un, et sa fonction **Choose Player Start** se surcharge (My Blueprint › Functions › Override). Pendant Play, l’Outliner montre le GameMode du niveau et le GameInstance. GameState, PlayerState et HUD ne sont pas simulés.',
   },
   {
     id: 'm-enhanced-input',
@@ -190,7 +190,7 @@ export const MEMO: MemoCard[] = [
     body:
       '**Open Level (by Name)** quitte le niveau au début de l’image suivante (la chaîne en cours finit) : tous ses acteurs reçoivent Event End Play (Level Transition) et disparaissent, pion compris, puis le nouveau niveau démarre comme au premier Play. **Get Current Level Name** dit où l’on est.\n\n' +
       'Ce qui doit traverser va dans le **GameInstance** (Get Game Instance, puis Cast To vers ta classe, choisie dans Maps & Modes › Game Instance Class). Son **Event Init** a lieu au lancement, son **Event Shutdown** à la fermeture (Stop, Quit Game) : le bon endroit pour relire et écrire un slot.\n\n' +
-      'Pour dire au niveau suivant d’où l’on vient, ou ce qui a été ramassé : une donnée simple (un Name, un Set of Name) dans le GameInstance. Une référence d’acteur y devient None au changement de niveau.\n\n' +
+      'Pour dire au niveau suivant d’où l’on vient, ou ce qui a été ramassé : une donnée simple (un Name, un Set of Name) dans le GameInstance. Une référence d’acteur y devient None au changement de niveau. Pour arriver à la bonne porte : un Player Start par porte, avec son Player Start Tag, et Choose Player Start du GameMode qui cherche celui qui correspond.\n\n' +
       'Pour garder des données après la fermeture du jeu, on crée une classe **SaveGame** : un Blueprint qui ne contient que des variables (position, inventaire, quêtes).\n\n' +
       '- Sauver : **Create Save Game Object**, remplir ses variables, puis **Save Game to Slot** (un nom de slot, un index utilisateur).\n' +
       '- Charger : **Does Save Game Exist**, puis **Load Game from Slot**, **Cast To** ta classe SaveGame, et lire ses variables.\n\n' +

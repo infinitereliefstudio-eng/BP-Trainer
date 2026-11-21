@@ -198,8 +198,8 @@ describe('format 17', () => {
   it('moves Default Pawn and Player Controller into a BP_GameMode, the Default GameMode', () => {
     const { text, j, c } = legacy();
     const p = parseProject(text);
-    expect(PROJECT_FORMAT).toBe(17);
-    expect(p.format).toBe(17);
+    expect(PROJECT_FORMAT).toBeGreaterThanOrEqual(17);
+    expect(p.format).toBe(PROJECT_FORMAT);
     const gm = p.classes.find((x) => x.id === p.mapsModes?.defaultGameMode)!;
     expect([gm.name, gm.parent]).toEqual(['BP_GameMode', 'GameModeBase']);
     expect(gm.gameMode).toEqual({ defaultPawnClass: j.cls.id, playerControllerClass: c.cls.id });

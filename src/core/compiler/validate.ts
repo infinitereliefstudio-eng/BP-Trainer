@@ -282,7 +282,9 @@ function nodeChecks(n: NodeInstance, g: Graph, ctx: NodeContext): [CompileCode, 
   }
   if ((n.def === 'actor.spawn' || n.def === 'actor.getAllOfClass' || n.def === 'actor.getOfClass') && !linked('class')) {
     const id = n.defaults.class;
-    if (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id)) out.push(['pickClass', 'choisis une classe sur la pin Class.']);
+    // A Blueprint, or the native PlayerStart for the two Get Actor(s) Of Class nodes (Spawn Actor places no Player Start).
+    const native = id === 'PlayerStart' && n.def !== 'actor.spawn';
+    if (!native && (typeof id !== 'string' || !ctx.project?.classes.some((c) => c.id === id))) out.push(['pickClass', 'choisis une classe sur la pin Class.']);
   }
   if (n.def === 'flow.switchEnum' && !enumEntries(String(n.config.enum ?? ''), ctx.project)) out.push(['pickEnum', "choisis l'Enum dans Details."]);
   if (n.def.startsWith('dataTable.') && !(ctx.project?.dataTables ?? []).some((t) => t.id === n.config.table)) out.push(['pickTable', 'choisis la Data Table dans Details.']);

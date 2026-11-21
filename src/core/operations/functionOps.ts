@@ -1,6 +1,7 @@
 /** Mutators for user functions: graphs with a signature, and their callers. */
 import { newId } from '../model/ids';
-import { createGraph, findGraph, uniqueName, type BlueprintClass, type Graph, type Param, type Project } from '../model/project';
+import { rootParent } from '../model/inheritance';
+import { createGraph, findGraph, uniqueName, type BlueprintClass, type Graph, type OverridableFunction, type Param, type Project } from '../model/project';
 import { contextFor } from '../nodes/registry';
 import type { PinType } from '../types/pins';
 import { validateName } from './classOps';
@@ -13,6 +14,12 @@ const CALLS = ['call.function', 'call.pureFunction'];
 function fnGraph(cls: BlueprintClass, graphId: string): Graph | undefined {
   const g = findGraph(cls, graphId);
   return g?.kind === 'function' && g.fn ? g : undefined;
+}
+
+/** A function whose name and signature the learner may change: not an override, the engine calls those by name. */
+function ownFnGraph(cls: BlueprintClass, graphId: string): Graph | undefined {
+  const g = fnGraph(cls, graphId);
+  return g && !g.override ? g : undefined;
 }
 
 /** Every call node of a function, in every Blueprint. */
@@ -37,7 +44,8 @@ export function addFunction(cls: BlueprintClass, name = 'NewFunction'): Graph {
 }
 
 export function renameFunction(cls: BlueprintClass, graphId: string, name: string): OpResult {
-  const g = fnGraph(cls, graphId);
+  if (fnGraph(cls, graphId)?.override) return { ok: false, reason: 'Une fonction surchargée garde le nom de la classe parente : le moteur l’appelle par ce nom.' };
+  const g = ownFnGraph(cls, graphId);
   if (!g) return { ok: false, reason: 'Fonction introuvable.' };
   if (/\s/.test(name.trim())) return { ok: false, reason: "Un nom de fonction ne peut pas contenir d'espace." };
   const err = validateName(name, cls.graphs.filter((x) => x.id !== graphId).map((x) => x.name));
@@ -53,7 +61,7 @@ export function setFunctionDescription(cls: BlueprintClass, graphId: string, tex
 
 /** Pure ↔ impure: call nodes change kind, and lose their exec wires. */
 export function setFunctionPure(p: Project, cls: BlueprintClass, graphId: string, pure: boolean): OpResult {
-  const g = fnGraph(cls, graphId);
+  const g = ownFnGraph(cls, graphId);
   if (!g?.fn) return { ok: false, reason: 'Fonction introuvable.' };
   g.fn.pure = pure;
   for (const { graph, ids } of callers(p, cls, graphId)) {
@@ -67,7 +75,7 @@ export type ParamSide = 'inputs' | 'outputs';
 
 /** Add a parameter. The first output also creates a Return Node, like UE. */
 export function addFunctionParam(p: Project, cls: BlueprintClass, graphId: string, side: ParamSide, type: PinType = { category: 'bool' }): Param | undefined {
-  const g = fnGraph(cls, graphId);
+  const g = ownFnGraph(cls, graphId);
   if (!g?.fn) return undefined;
   const all = [...g.fn.inputs, ...g.fn.outputs];
   const param: Param = { id: newId('pa'), name: uniqueName(side === 'inputs' ? 'NewParam' : 'ReturnValue', all.map((x) => x.name)), type };
@@ -88,7 +96,7 @@ export function updateFunctionParam(
   paramId: string,
   patch: { name?: string; type?: PinType },
 ): OpResult {
-  const g = fnGraph(cls, graphId);
+  const g = ownFnGraph(cls, graphId);
   const list = g?.fn ? [...g.fn.inputs, ...g.fn.outputs] : [];
   const param = list.find((x) => x.id === paramId);
   if (!param) return { ok: false, reason: 'Paramètre introuvable.' };
@@ -105,7 +113,7 @@ export function updateFunctionParam(
 }
 
 export function removeFunctionParam(p: Project, cls: BlueprintClass, graphId: string, paramId: string): void {
-  const g = fnGraph(cls, graphId);
+  const g = ownFnGraph(cls, graphId);
   if (!g?.fn) return;
   g.fn.inputs = g.fn.inputs.filter((x) => x.id !== paramId);
   g.fn.outputs = g.fn.outputs.filter((x) => x.id !== paramId);
@@ -118,4 +126,34 @@ export function removeFunction(p: Project, cls: BlueprintClass, graphId: string)
   cls.graphs = cls.graphs.filter((g) => g.id !== graphId);
   // A widget property bound to it goes back to its own value.
   pruneBindings(cls);
+}
+
+/** What a Blueprint can override, by its native root: a GameMode chooses where the player appears. */
+export function overridableFunctions(p: Project, cls: BlueprintClass): OverridableFunction[] {
+  return rootParent(p, cls) === 'GameModeBase' ? ['ChoosePlayerStart'] : [];
+}
+
+/**
+ * Functions › Override › Choose Player Start, as UE's: a function graph with
+ * the parent's name and signature (Player, a Controller; Return Value, an
+ * Actor), already wired from its entry to its Return Node. The engine calls it
+ * when the GameMode makes the player appear (core/runtime/simulation.ts).
+ */
+export function overrideFunction(p: Project, cls: BlueprintClass, which: OverridableFunction): OpResult<Graph> {
+  if (!overridableFunctions(p, cls).includes(which)) return { ok: false, reason: `${cls.name} n’a pas de fonction ${which} à surcharger : c’est une fonction des GameMode.` };
+  if (cls.graphs.some((g) => g.override === which)) return { ok: false, reason: `${which} est déjà surchargée dans ${cls.name}.` };
+  if (cls.graphs.some((g) => g.name === which)) return { ok: false, reason: `${cls.name} a déjà une fonction nommée ${which} : renomme-la d’abord.` };
+  const g = createGraph(which, 'function');
+  g.override = which;
+  g.fn = {
+    inputs: [{ id: newId('pa'), name: 'Player', type: { category: 'object', subtype: 'Controller' } }],
+    outputs: [{ id: newId('pa'), name: 'Return Value', type: { category: 'object', subtype: 'Actor' } }],
+    pure: false,
+    description: 'Choisit l’acteur où le joueur apparaît (souvent un Player Start). Appelée par le GameMode à chaque niveau, avant les BeginPlay.',
+  };
+  cls.graphs.push(g);
+  const entry = addNode(g, 'fn.entry', 0, 0, { graph: g.id });
+  const ret = addNode(g, 'fn.return', 900, 0, { graph: g.id });
+  if (entry.ok && ret.ok) connect(g, { node: entry.value.id, pin: 'then' }, { node: ret.value.id, pin: 'exec' }, contextFor(cls, p));
+  return { ok: true, value: g };
 }

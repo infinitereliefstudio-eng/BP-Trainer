@@ -131,10 +131,11 @@ describe('Le sac qui suit and D27', () => {
 });
 
 describe('the last four level steps (V7.51)', () => {
-  it('Arriver par la bonne porte: unsolved, the player stays on the Player Start; one fixed Sortie puts him on the wrong side', () => {
+  it('Arriver par la bonne porte: unsolved, the GameMode picks at random; one fixed Sortie puts him on the wrong side', () => {
     const l = lesson('l-bonne-porte');
     const start = run(l, () => {}, false);
-    expect(reason(start, 'sud')).toContain('resté sur le Player Start');
+    expect(reason(start, 'choose')).toContain('Choose Player Start');
+    expect(start.passed).toBe(false);
     const fixed = run(l, (p) => {
       const door = edit(p, 'BP_Porte');
       const set = nodeOf(p, 'BP_Porte', 'var.setExternal');

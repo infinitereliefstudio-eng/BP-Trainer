@@ -4,8 +4,8 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import { inheritedView } from '@core/model/inheritance';
-import { findClass, type Project, levelOf } from '@core/model/project';
-import { moveActor, movePlayerStart, snapActor } from '@core/operations/levelOps';
+import { findClass, isPlayerStartId, MAIN_START_ID, playerStartsOf, type Project, levelOf } from '@core/model/project';
+import { findPlayerStart, moveActor, movePlayerStart, snapActor } from '@core/operations/levelOps';
 import { componentShape, overlaps } from '@core/runtime/physics';
 import { Simulation } from '@core/runtime/simulation';
 import { PLAYER_RADIUS, type ActorRT } from '@core/runtime/world';
@@ -16,6 +16,9 @@ import type { Hit } from '../hit';
 import type { PlaySession } from './playSession';
 import { actorRadius, renderWorld, widgetNames } from './worldRender';
 import { BOTTOM_BAR, FAB_RAIL } from '../framing';
+
+/** What the Details show for a tap on the level: a Player Start (by id) or an actor. */
+const focusOf = (id: string) => (isPlayerStartId(id) ? ({ kind: 'playerStart', id } as const) : ({ kind: 'actor', id } as const));
 
 export interface WorldRequests {
   openActorMenu(actorId: string, sx: number, sy: number): void;
@@ -73,6 +76,13 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       y0 = ps.y - 200,
       x1 = ps.x + 200,
       y1 = ps.y + 200;
+    // Every Player Start is in view too (the first one sets the starting frame).
+    for (const s of playerStartsOf(levelOf(store.project))) {
+      x0 = Math.min(x0, s.x - 80);
+      y0 = Math.min(y0, s.y - 80);
+      x1 = Math.max(x1, s.x + 80);
+      y1 = Math.max(y1, s.y + 80);
+    }
     for (const a of actors()) {
       const r = actorRadius(a);
       x0 = Math.min(x0, a.x - r);
@@ -105,12 +115,12 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
         actors: actors(),
         player: s?.sim.player,
         // During Play, the level being played (Open Level may have changed it).
-        playerStart: (s?.sim.level ?? levelOf(store.project)).playerStart,
+        playerStarts: playerStartsOf(s?.sim.level ?? levelOf(store.project)),
         camera: camera(),
         width: l.size.w,
         height: l.size.h,
         playing: !!s,
-        selectedId: s ? s.selected : f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : undefined,
+        selectedId: s ? s.selected : f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? (f.id ?? MAIN_START_ID) : undefined,
         debugLines: s?.sim.debugLines,
         references: s ? undefined : levelReferences(store.project),
         widgetNames: widgetNames(store.project),
@@ -168,8 +178,9 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       hitAt(sx, sy): Hit {
         const w = camera().toWorld(sx, sy);
         if (!live.current.session) {
-          const ps = levelOf(store.project).playerStart;
-          if (Math.hypot(w.x - ps.x, w.y - ps.y) < Math.max(PLAYER_RADIUS, 24 / camera().zoom)) return { kind: 'node', node: 'playerStart' };
+          const r = Math.max(PLAYER_RADIUS, 24 / camera().zoom);
+          const ps = playerStartsOf(levelOf(store.project)).find((s) => Math.hypot(w.x - s.x, w.y - s.y) < r);
+          if (ps) return { kind: 'node', node: ps.id };
         }
         const id = actorAt(w.x, w.y);
         return id ? { kind: 'node', node: id } : { kind: 'empty' };
@@ -179,23 +190,23 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
         const s = live.current.session;
         if (s) {
           // Tapping an actor clicks it (Event ActorOnClicked) and picks it in the Outliner.
-          if (hit.kind === 'node' && hit.node !== 'playerStart') {
+          if (hit.kind === 'node' && !isPlayerStartId(hit.node)) {
             s.sim.click(hit.node);
             s.select(hit.node);
           }
           return;
         }
         if (hit.kind !== 'node') return store.setFocus({ kind: 'none' });
-        store.setFocus(hit.node === 'playerStart' ? { kind: 'playerStart' } : { kind: 'actor', id: hit.node });
+        store.setFocus(focusOf(hit.node));
       },
       onDoubleTap(hit) {
         if (live.current.session || hit.kind !== 'node') return;
-        store.setFocus(hit.node === 'playerStart' ? { kind: 'playerStart' } : { kind: 'actor', id: hit.node });
+        store.setFocus(focusOf(hit.node));
         live.current.requests.openDetails();
       },
       onLongPress(hit, sx, sy) {
         if (live.current.session) return;
-        if (hit.kind === 'node' && hit.node !== 'playerStart') {
+        if (hit.kind === 'node' && !isPlayerStartId(hit.node)) {
           store.setFocus({ kind: 'actor', id: hit.node });
           live.current.requests.openActorMenu(hit.node, sx, sy);
         } else if (hit.kind === 'empty') {
@@ -215,8 +226,8 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       onNodeDragStart(id) {
         if (live.current.session) return;
         live.current.dragId = id;
-        store.setFocus(id === 'playerStart' ? { kind: 'playerStart' } : { kind: 'actor', id });
-        store.begin(id === 'playerStart' ? 'Déplacer le Player Start' : 'Déplacer un acteur', { kind: 'project' });
+        store.setFocus(focusOf(id));
+        store.begin(isPlayerStartId(id) ? 'Déplacer le Player Start' : 'Déplacer un acteur', { kind: 'project' });
       },
       onNodeDrag(dsx, dsy) {
         const id = live.current.dragId;
@@ -226,10 +237,12 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
           return;
         }
         const z = camera().zoom;
-        if (id === 'playerStart') {
-          const ps = levelOf(store.project).playerStart;
-          ps.x += dsx / z;
-          ps.y += dsy / z;
+        if (isPlayerStartId(id)) {
+          const ps = findPlayerStart(store.project, id);
+          if (ps) {
+            ps.x += dsx / z;
+            ps.y += dsy / z;
+          }
         } else {
           const a = levelOf(store.project).actors.find((x) => x.id === id);
           if (a) moveActor(store.project, id, a.x + dsx / z, a.y + dsy / z);
@@ -241,9 +254,9 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
         const id = live.current.dragId;
         live.current.dragId = undefined;
         if (!id) return;
-        if (id === 'playerStart') {
-          const ps = levelOf(store.project).playerStart;
-          movePlayerStart(store.project, Math.round(ps.x / 10) * 10, Math.round(ps.y / 10) * 10);
+        if (isPlayerStartId(id)) {
+          const ps = findPlayerStart(store.project, id);
+          if (ps) movePlayerStart(store.project, Math.round(ps.x / 10) * 10, Math.round(ps.y / 10) * 10, id);
         } else snapActor(store.project, id);
         store.commit();
       },
@@ -266,8 +279,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
 
   useEffect(() => {
     if (!center || live.current.session) return;
-    const ps = levelOf(store.project).playerStart;
-    const a = center.id === 'playerStart' ? ps : actors().find((x) => x.id === center.id);
+    const a = isPlayerStartId(center.id) ? findPlayerStart(store.project, center.id) : actors().find((x) => x.id === center.id);
     const { w, h } = live.current.size;
     if (!a || !w) return;
     const cam = camera();

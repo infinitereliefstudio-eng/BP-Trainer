@@ -12,6 +12,8 @@ const TRANSFORM = 'Transformation';
  */
 function pickedClass(n: { defaults: Record<string, unknown> }, ctx: NodeContext): string {
   const id = n.defaults.class;
+  // A Blueprint by id, or a native actor class by name (PlayerStart).
+  if (id === 'PlayerStart') return id;
   return (typeof id === 'string' && ctx.project && findClass(ctx.project, id)?.name) || 'Actor';
 }
 

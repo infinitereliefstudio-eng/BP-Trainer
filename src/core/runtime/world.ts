@@ -94,6 +94,8 @@ export interface ActorRT {
    * class) → id of the object that runs its logic.
    */
   logic?: Record<string, string>;
+  /** A Player Start of the level (native PlayerStart): its Player Start Tag. */
+  playerStartTag?: string;
   /** A widget object (UMG): its widgets ticked Is Variable, by widget id → their reference on the screen. */
   widgetRefs?: Record<string, RValue>;
   /** A widget object (an instance of a Widget Blueprint, made by Create Widget): its state on the screen. */

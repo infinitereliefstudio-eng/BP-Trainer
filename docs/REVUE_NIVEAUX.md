@@ -31,7 +31,7 @@ Note pédagogique, sans lot : T6 est la première étape où l'élève crée un 
 | --- | --- | --- | --- |
 | 1 | R1, G1, G2, E1, E2 : ce que la partie a fait suivi sur toute la partie (« Pourquoi ? », « Montre-moi », Execution Trace) ; Event Init avant le GameMode, le Player Controller et le pion (Get Player Pawn, Get Player Controller et Get Game Mode rendent None pendant Init) ; timers du GameInstance qui survivent à Open Level ; un seul End Play par acteur ; SaveGame gardés seulement s'ils sont référencés. Un test chacun | V7.52 | fait |
 | 2 | P1, P2, L1, D1 : A4 sauve à la porte (et à Event Shutdown en complément), « À retenir », mémo et note « Dans UE » sur le téléphone ; un rappel court de Player Controller dans une des huit étapes, `KNOWN_GAPS` redescendus ; T6 vérifie le Default GameMode ; docs à jour | V7.54 | à faire |
-| L2 | Plusieurs Player Start par niveau, Player Start Tag, Choose Player Start du GameMode (défaut d'UE et surcharge en Blueprint) ; « Arriver par la bonne porte » refaite avec | V7.53 | à faire |
+| L2 | Plusieurs Player Start par niveau, Player Start Tag, Choose Player Start du GameMode (défaut d'UE et surcharge en Blueprint) ; « Arriver par la bonne porte » refaite avec | V7.53 | fait |
 
 ## Questions à trancher
 

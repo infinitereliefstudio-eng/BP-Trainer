@@ -42,7 +42,7 @@ export type Focus =
   | { kind: 'inputAction'; id: string }
   | { kind: 'mappingContext'; id: string }
   | { kind: 'actor'; id: string }
-  | { kind: 'playerStart' }
+  | { kind: 'playerStart'; id?: string }
   /** The World Settings of the level open in the editor (its GameMode Override). */
   | { kind: 'worldSettings' };
 

@@ -150,6 +150,8 @@ function ClassValue({ base, value, onChange }: { base?: string; value: Value; on
           {c.name}
         </option>
       ))}
+      {/* UE's native actor classes that the app has: the level's Player Starts (Get All Actors Of Class). */}
+      {family === 'actor' && <option value="PlayerStart">PlayerStart</option>}
       {family === 'component' &&
         NATIVE_COMPONENT_CLASSES.map((n) => (
           <option key={n} value={n}>

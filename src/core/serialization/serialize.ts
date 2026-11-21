@@ -175,6 +175,11 @@ function migrate(p: Project, from: number): Project {
     }
     cur = 17;
   }
+  if (cur === 17) {
+    // v18: several Player Starts per level (Level.otherStarts) and the Player Start Tag; the GameMode's
+    // Choose Player Start (Graph.override). Nothing to convert: the number keeps an older app from losing them.
+    cur = 18;
+  }
   p.format = cur;
   return p;
 }

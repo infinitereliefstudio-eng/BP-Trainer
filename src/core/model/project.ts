@@ -63,7 +63,16 @@ export interface Graph {
    * is kept equal to the interface's by operations/interfaceOps.
    */
   iface?: { interface: string; fn: string };
+  /**
+   * A native function of the parent class that this graph overrides, as UE's
+   * My Blueprint › Functions › Override (V7.53: a GameMode's ChoosePlayerStart).
+   * Its name and signature are fixed: the engine calls it.
+   */
+  override?: OverridableFunction;
 }
+
+/** The parent-class functions a Blueprint can override (Functions › Override). */
+export type OverridableFunction = 'ChoosePlayerStart';
 
 export interface FunctionSignature {
   inputs: Param[];
@@ -297,10 +306,41 @@ export interface Level {
   /** Its asset name, the one Open Level (by Name) asks for: Lvl_Couloir. */
   name: string;
   actors: LevelActor[];
-  playerStart: { x: number; y: number; yaw: number };
+  /** Its first Player Start (« PlayerStart » in the Outliner), always there. */
+  playerStart: PlayerStartSpot;
+  /** More Player Starts (format 18): PlayerStart2, PlayerStart3… The GameMode chooses one (Choose Player Start). */
+  otherStarts?: PlacedPlayerStart[];
   /** World Settings › GameMode Override: a GameModeBase Blueprint (class id) used in this level instead of the Default GameMode. */
   gameModeOverride?: string;
 }
+
+/** A Player Start: where the GameMode may make the player appear. */
+export interface PlayerStartSpot {
+  x: number;
+  y: number;
+  yaw: number;
+  /** Player Start Tag (a Name): what a GameMode's Choose Player Start can look for. */
+  tag?: string;
+}
+
+/** A Player Start placed after the first one. */
+export interface PlacedPlayerStart extends PlayerStartSpot {
+  /** Starts with « ps_ » (MAIN_START_ID is the first one's). */
+  id: string;
+  /** Its label in the Outliner: PlayerStart2… */
+  name: string;
+}
+
+/** The id of a level's first Player Start, in the Outliner and the runtime. */
+export const MAIN_START_ID = 'playerStart';
+
+/** Every Player Start of a level, the first one first, with its id and label. */
+export function playerStartsOf(level: Level): PlacedPlayerStart[] {
+  return [{ ...level.playerStart, id: MAIN_START_ID, name: 'PlayerStart' }, ...(level.otherStarts ?? [])];
+}
+
+/** Is this Outliner or runtime id a Player Start's? */
+export const isPlayerStartId = (id: string | undefined): boolean => id === MAIN_START_ID || !!id?.startsWith('ps_');
 
 /** Project Settings › Maps & Modes. */
 export interface MapsModes {
@@ -440,7 +480,7 @@ export interface Project {
   updatedAt: number;
 }
 
-export const PROJECT_FORMAT = 17;
+export const PROJECT_FORMAT = 18;
 
 const DEFAULT_PROPS: Record<ComponentKind, Partial<ComponentProps>> = {
   Scene: {},

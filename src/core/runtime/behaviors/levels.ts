@@ -11,6 +11,9 @@ export const levelBehaviors: Record<string, Behavior> = {
       return ['then'];
     },
   },
+  'playerStart.getTag': {
+    pure: (cx) => ({ result: cx.world.actor(cx.in('target'), 'Target')?.playerStartTag ?? '' }),
+  },
   'level.currentName': {
     pure: (cx) => {
       const name = cx.world.currentLevelName() ?? '';

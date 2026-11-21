@@ -48,3 +48,18 @@ export function movePlayer(player: ActorRT, move: { x: number; y: number }, acto
   player.y = ny;
   return [...hits.values()];
 }
+
+/** Would the pawn, standing at this spot, be inside a mesh that blocks it (UE: an occupied Player Start)? */
+export function blockedAt(x: number, y: number, actors: ActorRT[]): boolean {
+  for (const a of actors) {
+    if (a.destroyed) continue;
+    for (const c of a.components) {
+      if (c.kind !== 'StaticMesh' || !c.props.blocks || !collisionBlocks(c.props.collision)) continue;
+      const s = componentShape(a, c);
+      if (!s) continue;
+      const [px, py] = pushOut(x, y, PLAYER_RADIUS, s);
+      if (Math.hypot(px - x, py - y) > 1e-6) return true;
+    }
+  }
+  return false;
+}

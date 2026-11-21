@@ -37,4 +37,14 @@ export const levelNodes: NodeDefinition[] = [
     keywords: ['current level', 'level name', 'niveau', 'nom du niveau', 'map', 'ou suis-je'],
     pins: [dataIn('removePrefix', 'Remove Prefix String', T.bool, { default: true }), dataOut('result', 'Return Value', T.string)],
   },
+  {
+    id: 'playerStart.getTag',
+    title: 'Get Player Start Tag',
+    category: CAT,
+    kind: 'pure',
+    description:
+      'Le Player Start Tag d’un Player Start (un Name, réglé dans ses Details) : ce qu’un GameMode regarde dans Choose Player Start pour savoir où faire apparaître le joueur. None si rien n’est réglé.',
+    keywords: ['player start tag', 'tag', 'player start', 'point de depart', 'apparition', 'spawn point'],
+    pins: [dataIn('target', 'Target', T.object('PlayerStart'), { required: true }), dataOut('result', 'Player Start Tag', T.name)],
+  },
 ];

@@ -3,7 +3,7 @@ import type { ComponentChildren } from 'preact';
 import { COMPONENT_LABEL, familyOf, isSceneComponent, type Component, type ComponentKind } from '@core/model/project';
 import { addActorComponent, addComponent, addDispatcher, addVariable } from '@core/operations/classOps';
 import { ensureConstructionScript } from '@core/operations/constructionOps';
-import { addFunction } from '@core/operations/functionOps';
+import { addFunction, overrideFunction, overridableFunctions } from '@core/operations/functionOps';
 import { addLocalVariable } from '@core/operations/localOps';
 import type { Value } from '@core/types/values';
 import { PIN_COLOR } from '@editor/theme';
@@ -166,7 +166,7 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
           <Row
             key={g.id}
             label={g.name}
-            sub={g.fn?.pure ? 'pure' : undefined}
+            sub={g.override ? 'override' : g.fn?.pure ? 'pure' : undefined}
             selected={store.graphId === g.id || (focus.kind === 'function' && focus.id === g.id)}
             onClick={() => {
               store.openGraph(g.id);
@@ -176,6 +176,19 @@ export function MyBlueprint({ openOverlay, placeNode, onOpenDetails }: Props) {
             actions={[{ label: 'Appeler', onClick: () => placeNode(g.fn?.pure ? 'call.pureFunction' : 'call.function', { owner: cls.id, graph: g.id }) }]}
           />
         ))}
+        {/* As UE's Functions › Override: the parent-class functions this Blueprint can redefine (a GameMode's Choose Player Start). */}
+        {overridableFunctions(store.project, cls)
+          .filter((which) => !view.graphs.some((g) => g.override === which))
+          .map((which) => {
+            const doOverride = () => {
+              const res = store.applyProject(`Surcharger ${which}`, (p) => overrideFunction(p, store.cls, which));
+              if (!res.ok) return store.warn(res.reason);
+              store.openGraph(res.value.id);
+              store.setFocus({ kind: 'function', id: res.value.id });
+              onOpenDetails();
+            };
+            return <Row key={which} label={`Override › ${which}`} sub="classe parente" onClick={doOverride} actions={[{ label: 'Override', onClick: doOverride }]} />;
+          })}
         {inherited.functions.map((g) => (
           <Row
             key={g.id}

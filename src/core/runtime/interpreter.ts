@@ -675,12 +675,13 @@ export class Interpreter {
   /**
    * Run a function graph of `actor` to its end, outside any chain, and give
    * its outputs by parameter id (a widget's Binding, called by Slate every
-   * frame). Breakpoints are not checked inside it.
+   * frame; a GameMode's Choose Player Start, called by the engine with its
+   * inputs in `params`, by parameter id). Breakpoints are not checked inside it.
    */
-  evaluate(actor: ActorRT, graphId: string): Record<string, RValue> {
+  evaluate(actor: ActorRT, graphId: string, params: Record<string, RValue> = {}): Record<string, RValue> {
     const entry = this.functionEntry(actor, graphId, true);
     if (!entry) return {};
-    entry.outputs = {};
+    entry.outputs = { ...params };
     const scope: Scope = { outputs: {}, state: {}, locals: {} };
     const base = this.stack.length;
     this.stack.push({ actor, scope, gi: entry.gi, node: '__binding', mode: 'ret', pin: '' }, entry);

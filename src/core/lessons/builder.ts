@@ -7,7 +7,7 @@ import { contextFor } from '../nodes/registry';
 import { addActorComponent, addComponent, addVariable, updateComponentProps } from '../operations/classOps';
 import { ensureConstructionScript } from '../operations/constructionOps';
 import { addNode, connect } from '../operations/graphOps';
-import { placeActor } from '../operations/levelOps';
+import { addPlayerStart, placeActor } from '../operations/levelOps';
 import { addClass } from '../operations/projectOps';
 import { addLevel } from '../operations/levelAssetOps';
 import type { PinType } from '../types/pins';
@@ -118,6 +118,15 @@ export class ProjectBuilder {
   playerStart(x: number, y: number, yaw = 0): this {
     levelOf(this.project).playerStart = { x, y, yaw };
     return this;
+  }
+
+  /** One more Player Start in the level open in the editor (PlayerStart2…), with its Player Start Tag. Returns its id. */
+  morePlayerStart(x: number, y: number, yaw = 0, tag?: string): string {
+    const r = addPlayerStart(this.project, x, y);
+    if (!r.ok) throw new Error(r.reason);
+    r.value.yaw = yaw;
+    if (tag) r.value.tag = tag;
+    return r.value.id;
   }
 
   /**

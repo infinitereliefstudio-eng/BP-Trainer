@@ -1,9 +1,9 @@
 /** Details of what is selected in the level: an actor instance or the Player Start. */
 import { inheritedView, isA, rootParent } from '@core/model/inheritance';
-import { findClass, type Variable, levelOf } from '@core/model/project';
+import { findClass, MAIN_START_ID, type PlayerStartSpot, playerStartsOf, type Variable, levelOf } from '@core/model/project';
 import { gameModeOf } from '@core/model/gameMode';
 import { setGameModeOverride } from '@core/operations/gameModeOps';
-import { actorRefValue, removeActor, setActorOverride, setComponentOverride, updateActor } from '@core/operations/levelOps';
+import { actorRefValue, findPlayerStart, removeActor, removePlayerStart, setActorOverride, setComponentOverride, setPlayerStart, updateActor } from '@core/operations/levelOps';
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
@@ -135,10 +135,20 @@ function VariableField({ v, actorId, value, onChange }: { v: Variable; actorId: 
   );
 }
 
-export function PlayerStartDetails() {
+export function PlayerStartDetails({ id = MAIN_START_ID }: { id?: string }) {
   const store = useStore();
-  const ps = levelOf(store.project).playerStart;
-  const set = (patch: Partial<typeof ps>) => store.applyProject('Régler le Player Start', () => Object.assign(levelOf(store.project).playerStart, patch));
+  const ps = findPlayerStart(store.project, id);
+  if (!ps) return <p class="hint">Ce Player Start n’est plus dans le niveau.</p>;
+  const set = (patch: Partial<PlayerStartSpot>) => {
+    const res = store.applyProject('Régler le Player Start', (p) => setPlayerStart(p, id, patch));
+    if (!res.ok) store.warn(res.reason);
+  };
+  const remove = () => {
+    const res = store.applyProject('Supprimer le Player Start', (p) => removePlayerStart(p, id));
+    if (!res.ok) store.warn(res.reason);
+    else store.setFocus({ kind: 'none' });
+  };
+  const several = playerStartsOf(levelOf(store.project)).length > 1;
   return (
     <>
     <Group title="Transform">
@@ -152,8 +162,26 @@ export function PlayerStartDetails() {
         <NumberField value={ps.yaw} unit="°" onCommit={(yaw) => set({ yaw })} />
       </Field>
     </Group>
+    <Group title="Object">
+      <Field label="Player Start Tag">
+        <TextCommit value={ps.tag ?? ''} onCommit={(tag) => set({ tag })} />
+      </Field>
+    </Group>
+    {id !== MAIN_START_ID && (
+      <button class="btn danger" onClick={remove}>
+        Supprimer ce Player Start
+      </button>
+    )}
     <AppHelp>
-      <p>Player Start : l’endroit où le joueur apparaît quand tu lances Play.</p>
+      <p>Player Start : un endroit où le joueur peut apparaître. Au lancement d’un niveau, c’est le GameMode qui choisit.</p>
+      {several ? (
+        <p>
+          Ce niveau en a plusieurs : sans rien de plus, le GameMode en prend un au hasard, comme UE. Pour choisir, surcharge sa fonction <b>Choose Player Start</b>{' '}
+          (My Blueprint › Functions › Override) et compare le <b>Player Start Tag</b> de chacun (Get All Actors Of Class › PlayerStart, Get Player Start Tag).
+        </p>
+      ) : (
+        <p>Place Actors › Placer un Player Start en ajoute un autre : par exemple un par porte d’arrivée, chacun avec son Player Start Tag.</p>
+      )}
     </AppHelp>
     </>
   );

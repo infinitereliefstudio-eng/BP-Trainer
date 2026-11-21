@@ -111,6 +111,8 @@ export interface WorldApi {
    * Get Player Controller and Get Game Mode give None).
    */
   readonly beforePlayers: boolean;
+  /** The Player Starts of the level (actors of the native class PlayerStart). */
+  playerStarts(): ActorRT[];
 }
 
 export interface ValueCx {

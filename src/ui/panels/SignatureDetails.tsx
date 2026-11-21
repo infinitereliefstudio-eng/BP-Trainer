@@ -68,6 +68,7 @@ export function FunctionDetails({ id, openOverlay }: { id: string; openOverlay: 
   const g = findGraph(cls, id);
   if (!g?.fn) return null;
   if (g.iface) return <InterfaceFunctionDetails graphId={id} />;
+  if (g.override) return <OverrideFunctionDetails graphId={id} openOverlay={openOverlay} />;
   const fn = g.fn;
   const param = (side: ParamSide) => (
     <ParamList
@@ -127,6 +128,63 @@ export function FunctionDetails({ id, openOverlay }: { id: string; openOverlay: 
         </p>
         <p>
           <b>Inputs</b> deviennent des pins de sortie du nœud d’entrée et des pins d’entrée du nœud d’appel ; <b>Outputs</b> sont les pins du nœud Return Node.
+        </p>
+      </AppHelp>
+    </>
+  );
+}
+
+/** A function that overrides the parent's (a GameMode's Choose Player Start): UE gives its name and signature. */
+function OverrideFunctionDetails({ graphId, openOverlay }: { graphId: string; openOverlay: OpenOverlay }) {
+  const store = useStore();
+  const cls = store.cls;
+  const g = findGraph(cls, graphId);
+  if (!g?.fn) return null;
+  const sig = (side: 'inputs' | 'outputs') => g.fn![side].map((p) => `${p.name} (${p.type.subtype ?? p.type.category})`).join(', ') || 'aucun';
+  return (
+    <>
+      <Group title="Graph">
+        <Field label="Function Name">
+          <span class="dbg-val">{g.name}</span>
+        </Field>
+        <Field label="Inputs">
+          <span class="dbg-val">{sig('inputs')}</span>
+        </Field>
+        <Field label="Outputs">
+          <span class="dbg-val">{sig('outputs')}</span>
+        </Field>
+      </Group>
+      <Group title="Fonction" app>
+        <div class="row-buttons">
+          <button class="btn" onClick={() => store.openGraph(graphId)}>
+            Ouvrir le graphe
+          </button>
+          <button
+            class="btn danger"
+            onClick={() =>
+              openOverlay({
+                kind: 'confirm',
+                title: `Supprimer ${g.name} ?`,
+                text: 'Le GameMode reprendra le choix d’UE : un Player Start libre, au hasard s’il y en a plusieurs.',
+                confirmLabel: 'Supprimer',
+                onConfirm: () => {
+                  if (store.graphId === graphId) store.openGraph(cls.graphs[0].id);
+                  store.applyProject('Supprimer la surcharge', (p) => removeFunction(p, cls, graphId));
+                },
+              })
+            }
+          >
+            Supprimer
+          </button>
+        </div>
+      </Group>
+      <AppHelp>
+        <p>
+          Une fonction <b>surchargée</b> (Override) : c’est le moteur qui l’appelle, par son nom. Son nom et ses paramètres sont ceux de la classe parente.
+        </p>
+        <p>
+          <b>Choose Player Start</b> : le GameMode l’appelle à chaque niveau, avant les BeginPlay, pour savoir où faire apparaître le joueur. Rends un acteur
+          (souvent un Player Start, trouvé par Get All Actors Of Class et son Player Start Tag). None : dans UE, le joueur n’apparaît pas.
         </p>
       </AppHelp>
     </>

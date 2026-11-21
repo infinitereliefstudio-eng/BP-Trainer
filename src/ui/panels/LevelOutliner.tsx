@@ -7,7 +7,7 @@
 import { useState } from 'preact/hooks';
 import { outlinerRows } from '@core/model/outliner';
 import { useStore } from '../hooks';
-import { levelOf } from '@core/model/project';
+import { isPlayerStartId, levelOf, MAIN_START_ID, playerStartsOf } from '@core/model/project';
 
 interface Props {
   /** Bring the item into the middle of the level view. */
@@ -20,13 +20,13 @@ export function LevelOutliner({ onCenter, onDetails }: Props) {
   const [search, setSearch] = useState('');
   const rows = outlinerRows(store.project, search);
   const f = store.focus;
-  const selected = f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? 'playerStart' : f.kind === 'worldSettings' ? 'worldSettings' : undefined;
+  const selected = f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? (f.id ?? MAIN_START_ID) : f.kind === 'worldSettings' ? 'worldSettings' : undefined;
   const pick = (id: string) => {
     if (id === 'worldSettings') {
       store.setFocus({ kind: 'worldSettings' });
       return;
     }
-    store.setFocus(id === 'playerStart' ? { kind: 'playerStart' } : { kind: 'actor', id });
+    store.setFocus(isPlayerStartId(id) ? { kind: 'playerStart', id } : { kind: 'actor', id });
     onCenter(id);
   };
   return (
@@ -51,7 +51,7 @@ export function LevelOutliner({ onCenter, onDetails }: Props) {
           )}
         </div>
       ))}
-      <p class="outliner-count">{levelOf(store.project).actors.length + 1} actors</p>
+      <p class="outliner-count">{levelOf(store.project).actors.length + playerStartsOf(levelOf(store.project)).length} actors</p>
     </div>
   );
 }

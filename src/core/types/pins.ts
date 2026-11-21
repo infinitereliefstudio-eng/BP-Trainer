@@ -154,6 +154,8 @@ export const BUILTIN_HIERARCHY: Record<string, string | undefined> = {
   GameInstance: 'Object',
   Info: 'Actor',
   GameModeBase: 'Info',
+  // A Player Start of the level: where the GameMode may make the player appear (V7.53).
+  PlayerStart: 'Actor',
   ActorComponent: 'Object',
   SceneComponent: 'ActorComponent',
   PrimitiveComponent: 'SceneComponent',

@@ -667,6 +667,14 @@ export const GLOSSARY: GlossaryEntry[] = [
     pattern: 'Get Game Instance → Cast To BP_Jeu → Get / Set Pieces',
   },
   {
+    title: 'Player Start et Choose Player Start',
+    names: ['Player Start', 'Player Start Tag', 'Choose Player Start', 'Get Player Start Tag', 'Get All Actors Of Class'],
+    what: 'Un Player Start marque un endroit où le joueur peut apparaître ; un niveau peut en avoir plusieurs, chacun avec son Player Start Tag (un Name). Au lancement du niveau, le GameMode en choisit un : par défaut un libre, au hasard. Surcharger sa fonction Choose Player Start (My Blueprint › Functions › Override) permet de choisir soi-même.',
+    when: 'Pour faire arriver le joueur à la bonne porte, au dernier checkpoint, ou dans une zone d’équipe : chaque Player Start reçoit un tag, le GameMode cherche celui qui correspond.',
+    trap: 'Rendre None depuis Choose Player Start : dans UE, le joueur n’apparaît pas du tout. Garde toujours un repli (le premier Player Start, par exemple).',
+    pattern: 'Choose Player Start : Get All Actors Of Class (PlayerStart) → For Each Loop → Branch (Get Player Start Tag == Arrivee) → Return Node',
+  },
+  {
     title: 'Pion du joueur et GameMode',
     names: ['Pion du joueur', 'Default Pawn Class', 'GameMode', 'GameMode Override', 'World Settings'],
     what: 'Le GameMode est l’acteur des règles d’un niveau. Le jeu en crée un par niveau (World Settings › GameMode Override, sinon le Default GameMode de Maps & Modes), et c’est lui qui fait apparaître le joueur : son pion (Default Pawn Class) et son Player Controller (Player Controller Class), réglés dans ses Class Defaults.',

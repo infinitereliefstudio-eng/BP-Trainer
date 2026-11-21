@@ -14,7 +14,7 @@ const roughMeasure = (text: string, font: string) => text.length * (font.include
 import { isPlaceableParent, type PinRef, levelOf } from '@core/model/project';
 import type { PinSpec } from '@core/nodes/definition';
 import type { EditorStore } from '@core/store/editorStore';
-import { duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
+import { addPlayerStart, duplicateActor, placeActor, removeActor } from '@core/operations/levelOps';
 import { checkProjectName } from '@core/projects/list';
 import { exportProject, pickProjectFile } from '@storage/persistence';
 import { createProject, importProject, listProjects, nextProjectName } from '@storage/projects';
@@ -372,13 +372,25 @@ export function actorMenu(store: EditorStore, actorId: string, openClass: (class
 /** Long press on empty floor: place an instance of a Blueprint. */
 export function placeMenu(store: EditorStore, world: { x: number; y: number }): MenuItem[] {
   // A SaveGame is an object, a PlayerController is made by the game: neither is placed.
-  return store.project.classes.filter((c) => isPlaceableParent(c.parent)).map((c) => ({
-    label: `Placer ${c.name}`,
-    action: () => {
-      const res = store.applyProject(`Placer ${c.name}`, (p) => placeActor(p, c.id, Math.round(world.x / 10) * 10, Math.round(world.y / 10) * 10));
-      if (res.ok) store.setFocus({ kind: 'actor', id: res.value.id });
+  const x = Math.round(world.x / 10) * 10,
+    y = Math.round(world.y / 10) * 10;
+  return [
+    ...store.project.classes.filter((c) => isPlaceableParent(c.parent)).map((c) => ({
+      label: `Placer ${c.name}`,
+      action: () => {
+        const res = store.applyProject(`Placer ${c.name}`, (p) => placeActor(p, c.id, x, y));
+        if (res.ok) store.setFocus({ kind: 'actor', id: res.value.id });
+      },
+    })),
+    {
+      // UE's Place Actors › Basic › Player Start: one more spot where the GameMode may make the player appear.
+      label: 'Placer un Player Start',
+      action: () => {
+        const res = store.applyProject('Placer un Player Start', (p) => addPlayerStart(p, x, y));
+        if (res.ok) store.setFocus({ kind: 'playerStart', id: res.value.id });
+      },
     },
-  }));
+  ];
 }
 
 export function enterFullscreen(): void {

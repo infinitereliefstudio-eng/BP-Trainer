@@ -11,7 +11,8 @@ const ref = (a: ActorRT): RValue => ({ ref: 'actor', id: a.id });
 function ofClass(cx: ValueCx): ActorRT[] {
   const id = cx.in('class');
   if (typeof id !== 'string' || !id) return [];
-  return cx.world.allActors().filter((a) => cx.world.isA(a, id));
+  // The level's Player Starts are actors too (Get All Actors Of Class › PlayerStart), with no collision.
+  return [...cx.world.allActors(), ...cx.world.playerStarts()].filter((a) => cx.world.isA(a, id));
 }
 
 export const actorBehaviors: Record<string, Behavior> = {

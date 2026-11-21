@@ -33,7 +33,8 @@ export function widgetNames(p: { classes: { id: string; name: string; parent: st
 export interface WorldScene {
   actors: ActorRT[];
   player?: ActorRT;
-  playerStart?: { x: number; y: number; yaw: number };
+  /** The level's Player Starts (the first one first), drawn in the editor only. */
+  playerStarts?: { id: string; x: number; y: number; yaw: number; tag?: string }[];
   camera: Camera;
   width: number;
   height: number;
@@ -89,7 +90,7 @@ export function renderWorld(c: CanvasRenderingContext2D, s: WorldScene, dpr: num
 
   if (s.viewport) drawViewportSelection(c, s);
   if (!s.playing && s.references?.length) drawReferences(c, s);
-  if (!s.playing && s.playerStart) drawPlayerStart(c, s.playerStart, cam.zoom, s.selectedId === 'playerStart');
+  if (!s.playing) for (const ps of s.playerStarts ?? []) drawPlayerStart(c, ps, cam.zoom, s.selectedId === ps.id);
   if (player) drawPlayer(c, player);
   if (s.playing && s.debugLines?.length) drawDebugLines(c, s.debugLines, cam.zoom);
 }
@@ -400,7 +401,7 @@ function drawPlayer(c: CanvasRenderingContext2D, p: ActorRT): void {
   c.restore();
 }
 
-function drawPlayerStart(c: CanvasRenderingContext2D, ps: { x: number; y: number; yaw: number }, z: number, selected: boolean): void {
+function drawPlayerStart(c: CanvasRenderingContext2D, ps: { x: number; y: number; yaw: number; tag?: string }, z: number, selected: boolean): void {
   c.save();
   c.strokeStyle = selected ? WORLD.selected : WORLD.start;
   c.lineWidth = 2.5 / z;
@@ -418,7 +419,8 @@ function drawPlayerStart(c: CanvasRenderingContext2D, ps: { x: number; y: number
   c.font = `${12 / z}px system-ui, sans-serif`;
   c.textAlign = 'center';
   c.textBaseline = 'top';
-  c.fillText('Player Start', ps.x, ps.y + PLAYER_RADIUS + 6 / z);
+  // Its Player Start Tag under it, as a reminder of what Choose Player Start can look for.
+  c.fillText(ps.tag ? `Player Start · ${ps.tag}` : 'Player Start', ps.x, ps.y + PLAYER_RADIUS + 6 / z);
   c.restore();
 }
 

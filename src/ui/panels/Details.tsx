@@ -71,7 +71,7 @@ export function Details({ openOverlay, onOpenClass, onOpenGraph, run, onFocusNod
   else if (f.kind === 'class') body = <ClassDetails openOverlay={openOverlay} />;
   else if (f.kind === 'classDefaults') body = <ClassDefaults />;
   else if (f.kind === 'actor') body = <ActorDetails id={f.id} onOpenClass={onOpenClass} />;
-  else if (f.kind === 'playerStart') body = <PlayerStartDetails />;
+  else if (f.kind === 'playerStart') body = <PlayerStartDetails id={f.id} />;
   else if (f.kind === 'worldSettings') body = <WorldSettingsDetails />;
   else if (f.kind === 'function') body = <FunctionDetails id={f.id} openOverlay={openOverlay} />;
   else if (f.kind === 'dispatcher') body = <DispatcherDetails id={f.id} openOverlay={openOverlay} />;

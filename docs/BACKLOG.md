@@ -11,7 +11,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 
 **À lire d'abord**, dans cet ordre : CLAUDE.md, [HANDOFF.md](HANDOFF.md) (« Reprise rapide », les sections V7.46 à V7.56 et « Méthode de travail »), [PLAN_NIVEAUX.md](PLAN_NIVEAUX.md) et [REVUE_NIVEAUX.md](REVUE_NIVEAUX.md) (le dernier chantier et sa revue), puis cette section. Tristan parle français, teste sur son téléphone (APK liée au site : un push sur `main` est une mise en production) et donne son feu vert version par version.
 
-**Où on en est** : version en ligne **7.57.0** (déployée, page de test à jour). 149 étapes, 179 questions de révision. Rien n'est commencé au-delà ; aucune branche, aucun fichier non poussé.
+**Où on en est** : version en ligne **7.58.0** (déployée, page de test à jour). 149 étapes, 179 questions de révision. Rien n'est commencé au-delà ; aucune branche, aucun fichier non poussé.
 
 | Quoi | Versions | État |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | E40 du recueil (renvoyé en entier par Tristan) : Get Default Pawn Class For Controller surchargeable, pion construit après Event Init, `restart` dans un niveau donné | V7.55 | **fait** |
 | E40 : Complète C8 « Le personnage choisi » après T6 ; Get Class typé par son objet (format 19) | V7.56 | **fait** |
 
-**Revue de la progression des exercices** (21 novembre, 19 h 10, à sa demande) : [REVUE_PARCOURS_EXERCICES.md](REVUE_PARCOURS_EXERCICES.md), cinq versions proposées (V7.57 outillage, V7.58 entrées des anciennes étapes, V7.59 messages à l’écran, V7.60 synthèses, V7.61 trois entraînements mélangés) et cinq questions. Lancée par Tristan à 19 h 18 (« Ok pour tes recos, tu peux lancer ») : **V7.57 faite**.
+**Revue de la progression des exercices** (21 novembre, 19 h 10, à sa demande) : [REVUE_PARCOURS_EXERCICES.md](REVUE_PARCOURS_EXERCICES.md), cinq versions proposées (V7.57 outillage, V7.58 entrées des anciennes étapes, V7.59 messages à l’écran, V7.60 synthèses, V7.61 trois entraînements mélangés) et cinq questions. Lancée par Tristan à 19 h 18 (« Ok pour tes recos, tu peux lancer ») : **V7.57 faite**, **V7.58 faite**.
 
 **Ce qui attend Tristan** :
 1. **Ses essais sur téléphone**, en retard depuis la V7.33 (à lui rappeler une fois, sans insister) : étapes UMG, 1280 × 720, Screen Size « Téléphone », boutons devant le joystick, menu pause sans PAUSED, Mes projets, Widget Component et ses quatre étapes ; tout le chantier n° 4 (créer un niveau, Maps & Modes, une porte qui fait Open Level, un GameInstance qui survit à la porte, GameMode Override, les huit étapes) ; ses corrections (les trois Player Start de l'atelier et Choose Player Start, A4 et T6 revus) ; C8.
@@ -412,6 +412,7 @@ Dans tous les cas : demander l'autorisation après une première leçon réussie
 
 ## Déjà fait, noté ici auparavant
 
+- V7.58 (21 novembre 2026), revue de la progression, les commandes : dans les 16 étapes après « Interagir comme dans UE5 » où un objet écoutait une touche, BP_PlayerController reçoit l'action et appelle un Custom Event de l'objet ; l'apprenant écrit cette ligne dans six d'entre elles.
 - V7.57 (21 novembre 2026), revue de la progression des exercices, outillage : le test d'espacement compte l'UMG et les menus (umg, ui-input), conseil de construction « Un objet du décor écoute les touches ».
 - V7.56 (21 novembre 2026), E40 du recueil : Complète C8 « Le personnage choisi » après T6 (menu, vitrines, le choix gardé en Class Reference dans le GameInstance, Get Default Pawn Class For Controller du GameMode, un seul pion) ; Get Class typé par son objet (format 19). 149 étapes.
 - V7.55 (21 novembre 2026), E40 du recueil, moteur : Get Default Pawn Class For Controller surchargeable dans un GameMode (un seul pion, de la classe rendue) ; le pion est construit après Event Init dans tous les cas ; le pas `restart` du correcteur peut relancer dans un niveau donné. Possess noté au backlog.

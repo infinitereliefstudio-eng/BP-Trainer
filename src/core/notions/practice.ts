@@ -74,13 +74,15 @@ export function notionsOfNode(def: string): string[] {
  * many nodes in Construction Scripts. Counted per Blueprint: moving a chain
  * to another Blueprint (a refactor) is writing it there.
  */
-function census(p: Project): { defs: Map<string, number>; construction: number; parentCalls: number } {
+function census(p: Project): { defs: Map<string, number>; construction: number; parentCalls: number; controller: number } {
   const defs = new Map<string, number>();
   let construction = 0,
-    parentCalls = 0;
+    parentCalls = 0,
+    controller = 0;
   for (const c of p.classes) {
     for (const g of c.graphs) {
       for (const n of Object.values(g.nodes)) {
+        if (c.parent === 'PlayerController') controller++;
         const key = `${c.name}|${n.def}`;
         defs.set(key, (defs.get(key) ?? 0) + 1);
         if (g.kind === 'construction' && n.def !== 'cs.entry') construction++;
@@ -88,7 +90,7 @@ function census(p: Project): { defs: Map<string, number>; construction: number; 
       }
     }
   }
-  return { defs, construction, parentCalls };
+  return { defs, construction, parentCalls, controller };
 }
 
 /** The notions whose nodes the solution adds to the starting project. */
@@ -104,6 +106,8 @@ export function writtenNotions(start: Project, solved: Project): Set<string> {
   }
   if (b.construction > a.construction) out.add('construction');
   if (b.parentCalls > a.parentCalls) out.add('inheritance');
+  // Writing in the Player Controller is practising it, whatever the nodes (V7.58: the commands it receives).
+  if (b.controller > a.controller) out.add('player-controller');
   return out;
 }
 

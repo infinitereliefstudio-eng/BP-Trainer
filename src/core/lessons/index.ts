@@ -90,6 +90,7 @@ import { AVOID } from './library/avoid';
 import { QUALITY } from './library/quality';
 import { isNumbered, type Lesson } from './types';
 import { asEnhancedInput } from './ue5Input';
+import { asPlayerCommands, type CommandSpec } from './playerCommands';
 import type { KeyName } from '../model/project';
 
 export const LESSONS: Lesson[] = [
@@ -312,6 +313,37 @@ const UE5_INPUT: Record<string, Partial<Record<KeyName, string>>> = {
 for (const [i, l] of LESSONS.entries()) {
   const names = UE5_INPUT[l.id];
   if (names) LESSONS[i] = asEnhancedInput(l, names);
+}
+
+/**
+ * Steps after « Interagir comme dans UE5 » whose objects listened to the keys
+ * themselves (UE4's reflex that step undoes): their commands go through the
+ * Player Controller, which calls a Custom Event on the object (V7.58,
+ * playerCommands.ts). `learnerWrites`: the learner writes that line.
+ * tests/playerCommands.test.ts checks that no step after R4 is missed.
+ */
+const PLAYER_COMMANDS: Record<string, CommandSpec> = {
+  'l-cartes': { learnerWrites: ['IA_Tirer'] },
+  'l-meme-donne': {},
+  'd11-four': {},
+  'd3-tourelle': { events: { IA_Interagir: 'Abattre' } },
+  'l-tirelire': { events: { IA_Interagir: 'AjouterPiece' } },
+  'd17-premiere-partie': { events: { IA_Interagir: 'AjouterPiece' } },
+  'd18-record': {},
+  'l-standard': { learnerWrites: ['IA_Demonter'] },
+  'c4-viseur': {},
+  'l-miroirs': { learnerWrites: ['IA_Pivoter'] },
+  'd15-grille': {},
+  'd14-atelier': {},
+  'l-interrogatoire': { learnerWrites: ['IA_Choix1', 'IA_Choix2'] },
+  'l-dialogue-table': { events: { IA_Interagir: 'Parler' } },
+  'c6-annuler': { learnerWrites: ['IA_Annuler'] },
+  'l-reseau': { events: { IA_Recalculer: 'DemanderRecalcul' }, learnerWrites: ['IA_Recalculer'] },
+};
+
+for (const [i, l] of LESSONS.entries()) {
+  const spec = PLAYER_COMMANDS[l.id];
+  if (spec) LESSONS[i] = asPlayerCommands(l, spec);
 }
 
 /** A step of the path, or a drill of the « À retravailler en Blueprint » queue (core/drills). */

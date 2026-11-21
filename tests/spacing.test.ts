@@ -37,7 +37,8 @@ const KNOWN_GAPS: Record<string, number> = {
   // V7.51 added the four last ones (La bonne porte, D28, T6, A4): the gaps that cross the eight grew by up to four more,
   // and actor-components, enhanced-input, input and widget-component went just over 15. V7.54: T6 writes Get Player Controller and
   // Add Mapping Context (recalls): enhanced-input is back under 15, player-controller down to 45. V7.56 inserted C8 after T6:
-  // the gaps that cross it grew by one.
+  // the gaps that cross it grew by one. V7.58: the commands of the steps after R4 go through the Player Controller,
+  // which counts as practising it; input came back under 15.
   // V7.57: the widget nodes now count (umg, ui-input). Their gaps were there, unseen: the Intermédiaire's end and the
   // Confirmé's start (umg, L23 → « Le menu qui rend le contrôle »), and nothing after A3 for menus and input modes.
   umg: 40,
@@ -55,7 +56,6 @@ const KNOWN_GAPS: Record<string, number> = {
   functions: 42, // lot 3 added Confirmé steps inside this gap: lot 4
   hit: 29, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
   inheritance: 38, // runs to the end of the path
-  input: 17, // V7.51: the eight level steps sit in its gap
   interfaces: 22,
   latent: 49, // runs to the end of the path
   locals: 38, // lot 3 added Confirmé steps inside this gap: lot 4
@@ -63,7 +63,7 @@ const KNOWN_GAPS: Record<string, number> = {
   maps: 59, // lot 3 added Confirmé steps inside this gap: lot 4
   'other-bp': 25, // lot 3 added Confirmé steps inside this gap: lot 4
   overlap: 20,
-  'player-controller': 45, // V7.36: Get Owning Player in the Confirmé menus; V7.54: T6's drone adds its Mapping Context through Get Player Controller (the gap left is before it)
+  'player-controller': 28, // V7.58: writing in the Player Controller counts (its commands in five steps after R4); the gap left is from « Le compteur à l’écran » to « Les cartes tirées sans remise »
   random: 58, // lot 3 added Confirmé steps inside this gap: lot 4
   rotation: 27,
   'save-game': 41, // runs to the end of the path

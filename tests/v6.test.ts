@@ -290,14 +290,13 @@ describe('the traps of the new lessons', () => {
     const r = spoiled('d11-four', (p) => {
       const b = edit(p, 'BP_Four');
       const g = b.graph;
-      // UE5 input since lot 1: E is IA_Lancer's action event, Started for Pressed.
-      const lancer = p.inputActions.find((x) => x.name === 'IA_Lancer')!.id;
-      const e = only(Object.values(g.nodes).filter((n) => n.def === 'input.action' && n.config.action === lancer)).id;
+      // UE5 input since lot 1, through the Player Controller since V7.58: E calls the oven's Custom Event Lancer.
+      const e = only(Object.values(g.nodes).filter((n) => n.def === 'event.custom' && n.config.name === 'Lancer')).id;
       const guard = Object.values(g.links).find((l) => l.from.node === e)!.to.node;
       const next = Object.values(g.links).find((l) => l.from.node === guard && l.from.pin === 'true')!.to;
       for (const l of Object.values(g.links)) if (l.from.node === guard && l.from.pin === 'true') delete g.links[l.id];
       for (const l of Object.values(g.links)) if (l.from.node === e) delete g.links[l.id];
-      b.link(e, 'started', next.node, next.pin);
+      b.link(e, 'then', next.node, next.pin);
     });
     expect(r.passed).toBe(false);
     expect(reasons(r)).toContain('second appui');

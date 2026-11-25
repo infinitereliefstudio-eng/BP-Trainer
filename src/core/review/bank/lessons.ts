@@ -417,6 +417,30 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     2,
   ),
   q(
+    'x6-reveil',
+    'Le générateur redémarre : trois lampes s’allument et la porte du couloir peut s’ouvrir. Demain, un terminal devra aussi s’allumer. Quelle organisation demande le moins de changements ?',
+    [
+      'Le générateur appelle un Event Dispatcher ; un composant BP_Alimente, posé sur chaque acteur concerné, l’écoute et prévient son acteur',
+      'Le générateur fait Get All Actors Of Class pour chaque sorte d’acteur, puis les allume',
+      'Chaque lampe et chaque porte regarde à chaque Tick si le générateur est allumé',
+      'Le générateur garde un tableau des lampes et des portes, réglé dans le niveau',
+    ],
+    'Le générateur annonce sans savoir qui écoute. Un terminal de plus, c’est un composant à poser et une réaction à écrire dans le terminal ; le générateur ne change pas. Les autres façons l’obligent à connaître chaque sorte d’acteur, ou font travailler tout le monde à chaque image.',
+    3,
+  ),
+  q(
+    'x6-reveil',
+    'BP_Porte_Badge et BP_Porte_Energie sont des enfants de BP_Porte_Base, qui fait glisser le battant avec un Timeline. Que doit écrire chaque enfant ?',
+    [
+      'Seulement sa condition, en redéfinissant la fonction PeutOuvrir du parent, et son message de refus dans ses Class Defaults',
+      'Son propre Timeline, réglé à sa vitesse',
+      'Un nouvel Event Interagir qui remplace celui du parent',
+      'Rien : un enfant ne peut pas changer le comportement de son parent',
+    ],
+    'Le parent fait ce qui est commun et appelle PeutOuvrir sans savoir quelle version répondra ; la redéfinition de l’enfant gagne. Une troisième porte, à code, ne demande qu’une condition de plus.',
+    4,
+  ),
+  q(
     'x1-radio',
     'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
     ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],

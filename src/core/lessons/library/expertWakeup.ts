@@ -15,165 +15,79 @@
  * 3. Le menu et la sauvegarde: Lvl_Menu (Nouvelle partie, Continuer greyed
  *    without a save, Quitter), the terminal saves when it closes, Continuer
  *    goes back to the saved level with the inventory, through the GameInstance.
- * L'énergie and La salle de contrôle come next (V7.71).
+ * V7.71 adds the last three: Le générateur and Le courant et les portes
+ * (expertWakeupPower.ts), La salle de contrôle (expertWakeupControl.ts).
+ * What they share is in expertWakeupKit.ts.
  *
- * The checks of milestones 1 and 2 play Lvl_Dortoir directly (Play from the
- * level open in the editor), so they still hold once the menu is the Game Default Map.
+ * The checks of milestones 1, 2, 4 and 5 play Lvl_Dortoir directly (Play from
+ * the level open in the editor), so they still hold once the menu is the Game
+ * Default Map; 3 and 6 play from the menu.
  */
 import { levelOf, type Project } from '../../model/project';
 import { VIS_COLLAPSED, VIS_VISIBLE } from '../../model/widgets';
 import { implementInterface } from '../../operations/classOps';
 import { addInputAction, addMapping, addMappingContext } from '../../operations/inputOps';
-import { addLevel, renameLevel, setGameDefaultMap, setGameInstanceClass } from '../../operations/levelAssetOps';
+import { addLevel, setGameDefaultMap, setGameInstanceClass } from '../../operations/levelAssetOps';
 import { placeActor } from '../../operations/levelOps';
 import { addInterface, addInterfaceFunction } from '../../operations/projectOps';
-import type { RValue } from '../../runtime/world';
 import { T } from '../../types/pins';
-import { edit, type ClassBuilder, ProjectBuilder } from '../builder';
+import { edit } from '../builder';
 import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../checks';
 import { withMilestones } from '../milestones';
-import type { Check, CheckContext, Lesson, ScenarioStep } from '../types';
-import { ensurePlayerInput } from '../ue5Input';
-import { EXPERT_RULES, expertScenery } from './expertRadio';
-import { fnDef, tap } from './kit';
-import { playerBlueprint } from './props';
-import { makeStruct, makeTable } from './tables';
-import { addW, button, centred, drawnProp, getW, menuPanel, modeLabel, newClass, onButton, screenTexts } from './umgKit';
-
-export const DORM = 'Lvl_Dortoir';
-export const MENU = 'Lvl_Menu';
-const SLOT = 'Reveil';
-const PROMPT = 'E : examiner';
-const REACH = 250;
-const CASIER_AT: [number, number] = [-450, -200];
-const TERMINAL_AT: [number, number] = [450, -200];
-const CAISSON_AT: [number, number] = [0, 60];
-const START: [number, number] = [0, 250];
-const BADGE = 'Badge';
-const FACT = 'CodeControle';
-const TAKEN = 'Badge récupéré';
-const EMPTY = 'Le casier est vide';
-const NOTED = `Noté : ${FACT}`;
-const SAVED = 'Partie sauvegardée';
-const MENU_WBP = 'WBP_Menu';
-const NEW = 'Btn_Nouvelle';
-const RESUME = 'Btn_Continuer';
-const QUIT = 'Btn_Quitter';
-
-/** The journal of the dormitory's terminal: row, author, text, next page, fact given. */
-export const PAGES: [string, string, string, string, string][] = [
-  ['J1', 'Dr Morel', 'Jour 212. Le réacteur a lâché cette nuit. On met l’équipage en stase.', 'J2', ''],
-  ['J2', 'Dr Morel', 'Si tout est noir à votre réveil : la salle de contrôle s’ouvre avec le code 4-1-7.', 'J3', FACT],
-  ['J3', 'Cheffe Laurent', 'Les fusibles sont à l’atelier. Sans eux, le générateur ne repartira pas.', '', ''],
-];
-
-// -------------------------------------------------------------- the setup
-
-function project(): Project {
-  const pb = new ProjectBuilder('Le réveil');
-  playerBlueprint(pb);
-  const p = pb.project;
-  const lv = renameLevel(p, levelOf(p).id, DORM);
-  if (!lv.ok) throw new Error(lv.reason);
-  expertScenery(pb, [
-    [CASIER_AT, 'C'],
-    [TERMINAL_AT, 'T'],
-  ]);
-  // The stasis pod the player wakes up in: scenery, solid, not interactive.
-  const pod = pb.blueprint('BP_Caisson');
-  pod.component('StaticMesh', 'Cuve', { sizeX: 220, sizeY: 110, color: '#155e75' });
-  pod.component('TextRender', 'Panneau', { y: -80, text: 'Caisson de stase' });
-  pb.place(pod, ...CAISSON_AT);
-  const ids = makeStruct(p, 'S_Journal', [
-    ['Auteur', T.string],
-    ['Texte', T.string],
-    ['Suivante', T.name],
-    ['Donne', T.name],
-  ]);
-  makeTable(
-    p,
-    'DT_Journaux',
-    'S_Journal',
-    ids,
-    PAGES.map(([row, who, text, next, gives]) => [row, { Auteur: who, Texte: text, Suivante: next, Donne: gives }]),
-  );
-  ensurePlayerInput(p, ['E'], { E: 'IA_Interagir' });
-  pb.playerStart(START[0], START[1], -90);
-  return p;
-}
-
-// ------------------------------------------------------------------ helpers
-
-const cls = (p: Project, name: string) => p.classes.find((c) => c.name === name);
-const v = (b: ClassBuilder, name: string) => b.cls.variables.find((x) => x.name === name)!.id;
-const nodeWhere = (b: ClassBuilder, ok: (n: { def: string; config: Record<string, unknown>; x: number; y: number }) => boolean) => Object.values(b.graph.nodes).find(ok)!;
-
-/** Get Player Pawn → Get Component by Class (BP_Inventaire): the player's inventory. */
-function inventoryOfPlayer(b: ClassBuilder, inv: string, at: [number, number]): string {
-  const find = b.node('actor.getComponentByClass', {}, { componentClass: inv }, at);
-  b.link(b.node('actor.getPlayerPawn', {}, {}, [at[0] - 200, at[1] + 60]), 'result', find, 'target');
-  return find;
-}
-
-/** Get Player Controller → Enhanced Input Local Player Subsystem → Add or Remove IMC_Dialogue, after `from`. */
-function dialogueContext(b: ClassBuilder, ctx: string, def: 'input.addMappingContext' | 'input.removeMappingContext', from: string, pin: string, at: [number, number]): string {
-  const node = b.node(def, { context: ctx }, def === 'input.addMappingContext' ? { priority: 1 } : {}, at);
-  const sub = b.node('input.subsystem', {}, {}, [at[0] - 200, at[1] + 220]);
-  b.link(b.node('player.getController', {}, {}, [at[0] - 420, at[1] + 220]), 'result', sub, 'controller').link(sub, 'result', node, 'target').link(from, pin, node, 'exec');
-  return node;
-}
-
-/** Get Game Instance → Cast To BP_Partie, after `from`. */
-function partie(b: ClassBuilder, p: Project, from: string, pin: string, at: [number, number]): string {
-  const cast = b.node('cast.to', { class: cls(p, 'BP_Partie')!.id }, {}, at);
-  b.link(from, pin, cast, 'exec').link(b.node('game.getGameInstance', {}, {}, [at[0] - 160, at[1] + 200]), 'result', cast, 'object');
-  return cast;
-}
-
-// ------------------------------------------------------------------ reading
-
-/** Every list the player carries in its Actor Components (the inventory's Objets, Faits…). */
-function carriedLists(cx: CheckContext): RValue[][] {
-  return cx.sim.componentsOf(cx.sim.player).flatMap((o) => Object.values(o.vars).filter((x): x is RValue[] => Array.isArray(x)));
-}
-/** How many times `item` is in the lists the player's components carry. */
-const carried = (cx: CheckContext, item: string) => carriedLists(cx).flat().filter((x) => x === item).length;
-/** The player itself keeps it, in a variable of BP_Joueur. */
-const inPlayer = (cx: CheckContext, item: string) => Object.values(cx.sim.player.vars).some((x) => x === item || (Array.isArray(x) && x.includes(item)));
-
-const promptShown = (cx: CheckContext) => screenTexts(cx).some((t) => normText(t) === normText(PROMPT));
-const onScreen = (cx: CheckContext, text: string) => screenTexts(cx).some((t) => normText(t).includes(normText(text)));
-const everShown = (cx: CheckContext, text: string) => cx.shown().some((t) => normText(t).includes(normText(text)));
-const pageText = (i: number) => PAGES[i][2];
-const pagesOnScreen = (cx: CheckContext) => PAGES.map((_, i) => i).filter((i) => onScreen(cx, pageText(i)));
-const placedNear = (cx: CheckContext, name: string, at: [number, number]) =>
-  (cx.project.levels.find((l) => l.name === DORM) ?? levelOf(cx.project)).actors.some((a) => cx.project.classes.find((c) => c.id === a.classId)?.name === name && Math.hypot(a.x - at[0], a.y - at[1]) <= 80);
+import type { Check, CheckContext, ScenarioStep } from '../types';
+import type { Lesson } from '../types';
+import { EXPERT_RULES } from './expertRadio';
+import { controlMilestone } from './expertWakeupControl';
+import {
+  BADGE,
+  CASIER_AT,
+  carried,
+  cls,
+  DORM,
+  dialogueContext,
+  EMPTY,
+  everShown,
+  FACT,
+  FRONT_CASIER,
+  FRONT_TERMINAL,
+  inPlayer,
+  inventoryOfPlayer,
+  MENU,
+  MENU_WBP,
+  NEW,
+  nodeWhere,
+  NOTED,
+  onScreen,
+  PAGES,
+  PLAY_DORM,
+  pageText,
+  pagesOnScreen,
+  partie,
+  placedNear,
+  playerOnly,
+  PROMPT,
+  press,
+  project,
+  promptShown,
+  QUIT,
+  READ_TERMINAL,
+  REACH,
+  RESUME,
+  SAVED,
+  SLOT,
+  START,
+  standAt,
+  TAKE_BADGE,
+  TAKEN,
+  TERMINAL_AT,
+  v,
+} from './expertWakeupKit';
+import { generatorMilestone, powerMilestone } from './expertWakeupPower';
+import { fnDef } from './kit';
+import { addW, button, centred, drawnProp, getW, menuPanel, modeLabel, newClass, onButton } from './umgKit';
 
 /** No error while playing. */
 const noErrors = () => noRuntimeErrors();
-
-/** Only the player (and the Player Controller the project came with) listens to the inputs. */
-const playerOnly: Check = {
-  id: 'player-only',
-  label: 'Seul le joueur écoute les touches',
-  test: (cx) => {
-    const own = cx.project.classes.filter((c) => !['BP_Joueur', 'BP_PlayerController'].includes(c.name) && cx.nodes(c.name).some((n) => n.def === 'input.action' || n.def === 'event.inputKey'));
-    return own.length
-      ? `${own.map((c) => c.name).join(', ')} écoute${own.length > 1 ? 'nt' : ''} une entrée : c’est le joueur qui appuie sur E ; ce qu’il regarde reçoit seulement Interagir.`
-      : true;
-  },
-};
-
-// ------------------------------------------------------------- milestone 1
-
-/** Stop, Play again, in Lvl_Dortoir: the checks of milestones 1 and 2 play the dormitory directly. */
-const PLAY_DORM: ScenarioStep[] = [{ restart: true, level: DORM }, { wait: 0.3 }];
-/** Stand at `at`, turned to `yaw` (−90: north, towards the top of the screen). */
-const standAt = (at: [number, number], yaw: number, wait = 0.2): ScenarioStep[] => [{ teleport: at }, { look: yaw }, { wait }];
-const press = (key: 'E' | 'F'): ScenarioStep[] => [...tap(key), { wait: 0.1 }];
-/** In front of the locker and of the terminal, 200 cm south of them, within reach. */
-const FRONT_CASIER: [number, number] = [CASIER_AT[0], CASIER_AT[1] + 200];
-const FRONT_TERMINAL: [number, number] = [TERMINAL_AT[0], TERMINAL_AT[1] + 200];
 
 function solveLook(p: Project): void {
   // BPI_Interactif: what E can act on.
@@ -687,7 +601,7 @@ function solveMenu(p: Project): void {
 }
 
 /** Take the badge, read the terminal up to the fact, close it with F. */
-const PLAY_THROUGH: ScenarioStep[] = [...standAt(FRONT_CASIER, -90, 0.1), ...press('E'), ...standAt(FRONT_TERMINAL, -90, 0.1), ...press('E'), ...press('E'), ...press('F')];
+const PLAY_THROUGH: ScenarioStep[] = [...TAKE_BADGE, ...READ_TERMINAL];
 
 const MENU_SCENARIO: ScenarioStep[] = [
   { wait: 0.3 },
@@ -818,19 +732,20 @@ export const expertWakeup: Lesson = withMilestones(
     number: 0,
     title: 'Le réveil',
     situation:
-      'Le joueur sort de stase dans le dortoir d’une station plongée dans le noir. Il regarde autour de lui, fouille un casier, lit ce que racontent les terminaux. Un menu lance une nouvelle partie ou reprend la dernière sauvegarde. La suite, l’énergie et la salle de contrôle, viendra dans une prochaine version.',
-    recalls: ['trace', 'interfaces', 'tick', 'actor-components', 'functions', 'sets', 'cast', 'umg', 'enhanced-input', 'player-controller', 'data-tables', 'structs', 'save-game', 'game-instance', 'levels', 'ui-input'],
-    notions: ['Projet Expert', 'Line Trace By Channel', 'Blueprint Interface', 'Actor Component', 'Mapping Context de dialogue', 'Data Table', 'SaveGame', 'GameInstance', 'Open Level (by Name)'],
+      'Le joueur sort de stase dans le dortoir d’une station plongée dans le noir. Il regarde autour de lui, fouille un casier, lit ce que racontent les terminaux, remet le générateur en marche avec les fusibles de l’atelier, et gagne la salle de contrôle. Un menu lance une nouvelle partie ou reprend la dernière sauvegarde.',
+    recalls: ['trace', 'interfaces', 'tick', 'actor-components', 'functions', 'sets', 'cast', 'umg', 'enhanced-input', 'player-controller', 'data-tables', 'structs', 'save-game', 'game-instance', 'levels', 'ui-input', 'dispatchers', 'inheritance', 'timeline', 'loops', 'destroy', 'widget-component', 'overlap'],
+    notions: ['Projet Expert', 'Line Trace By Channel', 'Blueprint Interface', 'Actor Component', 'Mapping Context de dialogue', 'Data Table', 'SaveGame', 'GameInstance', 'Open Level (by Name)', 'Event Dispatcher', 'Classe parente', 'Timeline', 'Widget Component'],
     remember:
-      'Le joueur regarde et envoie Interagir, sans savoir à qui ; chaque objet y répond à sa façon. Ce qu’il porte vit dans un composant. La Save Game garde la partie d’une séance à l’autre, le GameInstance la porte d’un niveau à l’autre, et un objet qui demande à l’inventaire plutôt qu’à sa mémoire reste juste après une reprise.',
+      'Le joueur regarde et envoie Interagir, sans savoir à qui ; chaque objet y répond à sa façon. Ce qu’il porte vit dans un composant. Le générateur annonce sans savoir qui écoute, et un composant fait réagir ce qui le porte. Une famille de portes écrit le mouvement une fois. La Save Game garde la partie d’une séance à l’autre, le GameInstance la porte d’un niveau à l’autre, et chaque niveau relit en commençant ce qui doit durer.',
     cards: [EXPERT_RULES],
     hints: [
       'Qui regarde, qui répond, qui se souvient de quoi, et pendant combien de temps (une image, un niveau, une partie) ?',
-      'Line Trace By Channel, Get Actor Forward Vector, Blueprint Interface (Message), Does Implement Interface, Set Visibility ; Actor Component, Set (Add, Contains), Get Component by Class ; Get Data Table Row, Add / Remove Mapping Context ; Save Game, Does Save Game Exist, Set Is Enabled, GameInstance, Open Level, Quit Game.',
+      'Line Trace By Channel, Get Actor Forward Vector, Blueprint Interface (Message), Does Implement Interface, Set Visibility ; Actor Component, Set (Add, Contains), Get Component by Class ; Get Data Table Row, Add / Remove Mapping Context ; Save Game, Does Save Game Exist, Set Is Enabled, GameInstance, Open Level, Quit Game ; Instance Editable, Destroy Actor, For Each Loop, Widget Component, Event Dispatcher, Parent Class, Timeline, Delete Game in Slot.',
       'Solution : voir la solution de référence, ouverte une fois le projet réussi.',
     ],
     challenge:
-      'Pose un second terminal qui commence à J3 sans toucher à son graphe (Premiere) ; puis fais que l’invite dise « E : lire » devant un terminal et « E : fouiller » devant le casier, sans que le joueur connaisse l’un ou l’autre.',
+      'Pose un second terminal dans la salle de contrôle, avec son propre journal, sans toucher au graphe (Premiere et de nouvelles lignes de DT_Journaux) ; fais que l’invite dise « E : lire » devant un terminal et « E : ouvrir » devant une porte, sans que le joueur les connaisse ; et allume l’écran des terminaux quand le courant revient, avec un BP_Alimente de plus.',
+    revision: 2,
     setup: project,
   },
   [
@@ -925,6 +840,9 @@ export const expertWakeup: Lesson = withMilestones(
       checks: menuChecks,
       solve: solveMenu,
     },
+    generatorMilestone,
+    powerMilestone,
+    controlMilestone,
   ],
 );
 

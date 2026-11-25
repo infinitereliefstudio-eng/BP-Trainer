@@ -10,6 +10,7 @@ import { milestoneView } from '../src/core/lessons/milestones';
 import { runLesson } from '../src/core/lessons/runner';
 import { levelOf, type Graph, type NodeInstance, type Project } from '../src/core/model/project';
 import { removeNodes } from '../src/core/operations/graphOps';
+import { setParentClass } from '../src/core/operations/projectOps';
 import { T } from '../src/core/types/pins';
 
 const wakeup = LESSONS.find((l) => l.id === 'x6-reveil')!;
@@ -36,11 +37,11 @@ const unlinkIn = (g: Graph, node: string, pin: string) => {
 const linkTo = (g: Graph, node: string, pin: string) => Object.values(g.links).find((l) => l.from.node === node && l.from.pin === pin)!.to;
 
 describe('X6 Le réveil', () => {
-  it('three milestones, after Le réseau; the whole project passes', { timeout: 30000 }, () => {
-    expect(wakeup.milestones?.map((m) => m.id)).toEqual(['regarder', 'terminal', 'menu']);
+  it('six milestones, after Le réseau; the whole project passes', { timeout: 60000 }, () => {
+    expect(wakeup.milestones?.map((m) => m.id)).toEqual(['regarder', 'terminal', 'menu', 'generateur', 'courant', 'controle']);
     const ids = LESSONS.map((l) => l.id);
     expect(ids.indexOf('x6-reveil')).toBe(ids.indexOf('x5-reseau') + 1);
-    const r = runLesson(wakeup, solved(2));
+    const r = runLesson(wakeup, solved(5));
     expect(r.passed, JSON.stringify(r.results.filter((x) => !x.ok))).toBe(true);
   });
 
@@ -172,5 +173,106 @@ describe('X6 Le réveil', () => {
     expect(p.levels.map((l) => l.name)).toEqual(expect.arrayContaining(['Lvl_Dortoir', 'Lvl_Menu']));
     expect(levelOf(p).name).toBe('Lvl_Dortoir');
     for (const i of [0, 1]) expect(run(i, p).passed).toBe(true);
+  });
+
+  it('milestone 4: three fuses with the same name make one in the inventory, and the reason says Instance Editable', () => {
+    const p = solved(3, (p) => {
+      for (const a of levelOf(p).actors) if (p.classes.find((c) => c.id === a.classId)?.name === 'BP_Fusible') a.overrides = {};
+    });
+    expect(failed(3, p)).toContain('fuses');
+    expect(reason(3, p, 'fuses')).toContain('Instance Editable');
+  });
+
+  it('milestone 4: a generator that leaves the fuses in the inventory is caught', () => {
+    const p = solved(3, (p) => {
+      const g = graphOf(p, 'BP_Generateur');
+      const take = nodes(g, 'call.function').find((n) => p.classes.find((c) => c.name === 'BP_Inventaire')!.graphs.find((x) => x.id === n.config.graph)?.name === 'Retirer')!;
+      const from = Object.values(g.links).find((l) => l.to.node === take.id && l.to.pin === 'exec')!.from;
+      const to = linkTo(g, take.id, 'then');
+      removeNodes(g, [take.id]);
+      edit(p, 'BP_Generateur').link(from.node, from.pin, to.node, to.pin);
+    });
+    expect(failed(3, p)).toContain('partial');
+  });
+
+  it('milestone 5: a door that opens at once is told about the Timeline', () => {
+    const p = solved(4, (p) => {
+      // The leaf set at its open place in one go, right after Ouverte: no Timeline in between.
+      const g = graphOf(p, 'BP_Porte_Base');
+      const tl = nodes(g, 'timeline.node')[0];
+      const slide = nodes(g, 'component.setRelativeLocation')[0];
+      const far = nodes(g, 'math.multiplyFloat')[0];
+      const set = Object.values(g.links).find((l) => l.to.node === tl.id && l.to.pin === 'play')!.from;
+      unlinkIn(g, slide.id, 'exec');
+      unlinkIn(g, far.id, 'a');
+      far.defaults.a = 1;
+      edit(p, 'BP_Porte_Base').link(set.node, set.pin, slide.id, 'exec');
+    });
+    expect(failed(4, p)).toContain('smooth');
+    expect(reason(4, p, 'smooth')).toContain('Timeline');
+  });
+
+  it('milestone 5: a generator that lights the lamps itself is told it should not know them', () => {
+    const p = solved(4, (p) => {
+      const lamp = p.classes.find((c) => c.name === 'BP_Lampe')!;
+      edit(p, 'BP_Generateur').node('actor.getAllOfClass', {}, { class: lamp.id }, [2600, 900]);
+    });
+    expect(failed(4, p)).toContain('dispatch');
+    expect(reason(4, p, 'dispatch')).toContain('BP_Lampe');
+  });
+
+  it('milestone 5: a door that is not a child of BP_Porte_Base is caught', () => {
+    const p = solved(4, (p) => {
+      const badge = p.classes.find((c) => c.name === 'BP_Porte_Badge')!;
+      setParentClass(p, badge.id, 'Actor');
+    });
+    expect(failed(4, p)).toContain('family');
+  });
+
+  it('milestone 6: lamps that do not read the GameInstance stay dark in the control room', () => {
+    const p = solved(5, (p) => {
+      const g = graphOf(p, 'BP_Alimente');
+      removeNodes(g, nodes(g, 'call.custom').map((n) => n.id));
+    });
+    expect(failed(5, p)).toContain('arrive');
+    expect(reason(5, p, 'arrive')).toContain('GameInstance');
+  });
+
+  it('milestone 6: a passage that forgets the facts loses the code on the way', () => {
+    const p = solved(5, (p) => {
+      const g = graphOf(p, 'BP_Passage');
+      const level = nodes(g, 'level.open')[0];
+      const sets = nodes(g, 'var.setExternal');
+      const last = sets.find((n) => Object.values(g.links).some((l) => l.from.node === n.id && l.to.node === level.id))!;
+      const first = sets.find((n) => n.id !== last.id)!;
+      removeNodes(g, [last.id]);
+      edit(p, 'BP_Passage').link(first.id, 'then', level.id, 'exec');
+    });
+    expect(failed(5, p)).toContain('arrive-fact');
+  });
+
+  it('milestone 6: a save without the power resumes in the dark', () => {
+    const p = solved(5, (p) => {
+      const g = graphOf(p, 'BP_Terminal');
+      const keep = nodes(g, 'var.setExternal').find((n) => p.classes.find((c) => c.name === 'BP_Sauvegarde')!.variables.find((x) => x.id === n.config.variable)?.name === 'Energie')!;
+      const from = Object.values(g.links).find((l) => l.to.node === keep.id && l.to.pin === 'exec')!.from;
+      const to = linkTo(g, keep.id, 'then');
+      removeNodes(g, [keep.id]);
+      edit(p, 'BP_Terminal').link(from.node, from.pin, to.node, to.pin);
+    });
+    expect(failed(5, p)).toContain('resume-power');
+  });
+
+  it('milestone 6: an end that keeps the save leaves Continuer enabled', () => {
+    const p = solved(5, (p) => {
+      const g = graphOf(p, 'BP_Console');
+      const del = nodes(g, 'save.delete')[0];
+      const from = Object.values(g.links).find((l) => l.to.node === del.id && l.to.pin === 'exec')!.from;
+      const to = linkTo(g, del.id, 'then');
+      removeNodes(g, [del.id]);
+      edit(p, 'BP_Console').link(from.node, from.pin, to.node, to.pin);
+    });
+    expect(failed(5, p)).toContain('back');
+    expect(reason(5, p, 'back')).toContain('Delete Game in Slot');
   });
 });

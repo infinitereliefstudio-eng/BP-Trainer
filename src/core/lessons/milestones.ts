@@ -16,6 +16,23 @@ import type { Lesson, LessonCard, Milestone } from './types';
 /** The index of a project's last milestone (0 for a lesson without). */
 export const lastMilestone = (l: Lesson): number => Math.max(0, (l.milestones?.length ?? 1) - 1);
 
+/**
+ * Where a project opens, from the progress: `passed`, the milestones passed
+ * (progress.milestones), and whether the project is in `done`. A project is
+ * complete when it is done and every one of its milestones is passed (since
+ * V7.71, passing the last one records them all). A project that grew after
+ * it was done (Le réveil, three milestones in V7.70, six in V7.71) is not
+ * complete: it opens at the first new one. Done without a record (a project
+ * of one milestone passed before V7.71) is complete; done before V7.71 with
+ * several, the record stopped one short: it opens at its last milestone, and
+ * Vérifier, which replays them all, completes it again.
+ */
+export function openedMilestone(l: Lesson, done: boolean, passed: number | undefined): { at: number; complete: boolean } {
+  const last = lastMilestone(l);
+  const complete = done && (passed === undefined || passed > last);
+  return { at: complete ? last : Math.min(passed ?? 0, last), complete };
+}
+
 /** « Jalon 2/4 « L'énergie » ». */
 export const milestoneName = (l: Lesson, i: number): string => `Jalon ${i + 1}/${l.milestones?.length ?? 1} « ${l.milestones?.[i]?.title ?? ''} »`;
 

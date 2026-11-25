@@ -1468,6 +1468,16 @@ async def main():
         await shot('98p_wakeup_new_game')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
+        # V7.71: the control room, played directly: its lamps, the code door, the console.
+        await page.evaluate('() => { const s = window.bpStore; const l = s.project.levels.find(l => l.name === "Lvl_Controle"); s.openLevel(l.id); }')
+        await page.wait_for_timeout(300)
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1200)
+        if await page.locator('.tb', has_text='Lvl_Controle').count() == 0 and await page.get_by_text('Lvl_Controle').count() == 0:
+            errs.append('Le réveil : Play dans Lvl_Controle ne montre pas ce niveau')
+        await shot('98q_wakeup_control')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
 
         # V7.50: « Le sac qui suit » solved: Vérifier passes (two levels, the GameInstance), the Content Drawer shows both levels.
         await page.evaluate(PUT, ['project:lesson:l-sac-qui-suit', (HERE / 'out' / 'l-sac-qui-suit.json').read_text()])

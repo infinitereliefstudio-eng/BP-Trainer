@@ -127,6 +127,16 @@ const MAX_PURE_DEPTH = 64;
 /** Nodes run by the interpreter itself rather than by a behaviour. */
 export const CONSTRUCTION_ENTRY = 'cs.entry';
 
+/** The same values, read by position under the ids of `from`, written under the ids of `to`. */
+function byPosition(values: Record<string, RValue>, from: { id: string }[] | undefined, to: { id: string }[] | undefined): Record<string, RValue> {
+  if (!from || !to) return values;
+  const out = { ...values };
+  from.forEach((p, i) => {
+    if (to[i] && p.id in values) out[to[i].id] = values[p.id];
+  });
+  return out;
+}
+
 export const INTERPRETER_NODES = new Set(['var.get', 'var.getLocal', 'var.component', 'var.widget', 'actor.self', 'fn.entry', 'fn.return', 'call.pureFunction', 'util.comment']);
 
 /** Events and function entries: where a chain starts. */
@@ -559,7 +569,7 @@ export class Interpreter {
         const entry = this.functionEntry(target, graphId, virtual);
         if (!entry) return;
         calls.push(entry, { actor, scope, gi, node: node.id, mode: 'ret', pin: '' });
-        entry.outputs = params;
+        entry.outputs = this.toOverride(params, graphId, entry, 'inputs');
       },
       timeline: () => {
         actor.timelines[node.id] ??= newTimelineState(gi.graph.id);
@@ -626,10 +636,25 @@ export class Interpreter {
     while (this.stack.length) {
       const f = this.stack.pop()!;
       if (f.mode === 'ret') {
-        f.scope.outputs[f.node] = values;
+        // A child's override returns under its own parameter ids: give them back under the ones the caller asked for.
+        const call = f.gi.graph.nodes[f.node];
+        const called = call && (call.def === 'call.function' || call.def === 'call.pureFunction') ? String(call.config.graph) : undefined;
+        const asked = called && called !== gi.graph.id ? this.graphs.get(called)?.graph.fn?.outputs : undefined;
+        f.scope.outputs[f.node] = asked ? byPosition(values, gi.graph.fn?.outputs, asked) : values;
         return;
       }
     }
+  }
+
+  /**
+   * The parameters of a call, under the ids of the function that runs. A
+   * child's redefinition has its own parameter ids; its signature matches its
+   * parent's position by position (Compile checks it), as UE's overrides keep
+   * the parent's parameters.
+   */
+  private toOverride(params: Record<string, RValue>, calledId: string, entry: Frame, side: 'inputs'): Record<string, RValue> {
+    if (entry.gi.graph.id === calledId) return params;
+    return byPosition(params, this.graphs.get(calledId)?.graph.fn?.[side], entry.gi.graph.fn?.[side]);
   }
 
   private defaultOutputs(ret: Frame): Record<string, RValue> {
@@ -656,7 +681,7 @@ export class Interpreter {
     for (const spec of resolvePins(call, gi.ctx)) {
       if (spec.dir === 'in' && spec.id !== 'target') params[spec.id] = cx.in(spec.id);
     }
-    entry.outputs = params;
+    entry.outputs = this.toOverride(params, String(call.config.graph), entry, 'inputs');
     const base = this.stack.length;
     this.stack.push({ actor, scope, gi, node: call.id, mode: 'ret', pin: '' }, entry);
     let steps = 0;

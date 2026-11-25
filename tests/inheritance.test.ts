@@ -6,6 +6,7 @@ import { inheritedView } from '../src/core/model/inheritance';
 import { addFunction, addFunctionParam } from '../src/core/operations/functionOps';
 import { removeClass, setParentClass } from '../src/core/operations/projectOps';
 import { Simulation } from '../src/core/runtime/simulation';
+import { fnDef } from '../src/core/lessons/library/kit';
 import { T } from '../src/core/types/pins';
 
 const prints = (s: Simulation) => s.log.filter((l) => l.message !== undefined).map((l) => l.message);
@@ -129,5 +130,43 @@ describe('Blueprint inheritance', () => {
     expect(setParentClass(pb.project, child.cls.id, 'Pawn').ok).toBe(true);
     expect(child.cls.parentClassId).toBeUndefined();
     expect(removeClass(pb.project, parent.cls.id).ok).toBe(true);
+  });
+
+  it('V7.71: a child’s redefinition with inputs and outputs gets the parent’s call’s values and gives back its own', () => {
+    // BP_Porte: BeginPlay → Peut (Qui) → Print; Peut returns Qui == "parent". BP_Badge redefines Peut: Qui == "enfant".
+    const pb = new ProjectBuilder('t');
+    const door = pb.blueprint('BP_Porte');
+    const decide = (b: ClassBuilder, who: string, pure: boolean) => {
+      const f = fnDef(pb.project, b, 'Peut', [['Qui', T.string]], [['Oui', T.bool]], false);
+      f.graph.fn!.pure = pure;
+      const eq = f.f.node('string.equal', {}, { b: who }, [300, 200]);
+      f.f.link(f.entry, f.pin.Qui, eq, 'a').link(eq, 'result', f.ret, f.pin.Oui);
+      return f;
+    };
+    for (const pure of [false, true]) {
+      door.cls.graphs = door.cls.graphs.filter((g) => g.kind !== 'function');
+      door.cls.graphs[0].nodes = {};
+      door.cls.graphs[0].links = {};
+      const base = decide(door, 'parent', pure);
+      const begin = door.node('event.beginPlay');
+      const call = door.node(pure ? 'call.pureFunction' : 'call.function', { graph: base.graph.id }, { [base.pin.Qui]: 'enfant' });
+      const say = door.node('debug.printString');
+      const text = door.node('conv.boolToString');
+      door.link(call, base.pin.Oui, text, 'in').link(text, 'result', say, 'text');
+      if (pure) door.link(begin, 'then', say, 'exec');
+      else door.link(begin, 'then', call, 'exec').link(call, 'then', say, 'exec');
+      const badge = pb.blueprint(pure ? 'BP_BadgePur' : 'BP_Badge');
+      const r = setParentClass(pb.project, badge.cls.id, door.cls.id);
+      if (!r.ok) throw new Error(r.reason);
+      decide(badge, 'enfant', pure);
+      expect(compileErrors(pb, badge)).toEqual([]);
+      pb.project.levels[0].actors = [];
+      pb.place(door, 0, 0);
+      pb.place(badge, 200, 0);
+      const s = new Simulation(pb.project);
+      s.step();
+      // The parent itself: "enfant" is not "parent"; the child: its own version, with the parent's input.
+      expect(prints(s)).toEqual(['false', 'true']);
+    }
   });
 });

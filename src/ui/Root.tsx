@@ -1,7 +1,7 @@
 /** Top level: home screen, or one open workspace (a lesson or free play). */
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { getLesson } from '@core/lessons';
-import { lastMilestone, milestoneView } from '@core/lessons/milestones';
+import { lastMilestone, milestoneView, openedMilestone } from '@core/lessons/milestones';
 import { flushSaves, startAutosave } from '@storage/persistence';
 import { watchForUpdates } from '../updates';
 import { App } from './App';
@@ -183,9 +183,11 @@ export function Root() {
   const altOf = ws.ref.kind === 'alternative' ? getLesson(ws.ref.lessonId) : undefined;
   const solutionOf = ws.ref.kind === 'solution' ? getLesson(ws.ref.lessonId) : undefined;
   const base = checked ? getLesson(checked) : solutionOf;
-  const lessonDone = !!lessonId && progress.done.includes(lessonId);
   // A project in milestones opens at the one reached (V7.65): its briefs so far, its checks; all of it once passed.
-  const reached = base?.milestones && lessonId ? (lessonDone ? lastMilestone(base) : Math.min(progress.milestones?.[lessonId] ?? 0, lastMilestone(base))) : undefined;
+  // One that grew after it was passed (V7.71) opens at its first new milestone, not as passed.
+  const openAt = base?.milestones && lessonId ? openedMilestone(base, progress.done.includes(lessonId), progress.milestones?.[lessonId]) : undefined;
+  const lessonDone = !!lessonId && progress.done.includes(lessonId) && (openAt?.complete ?? true);
+  const reached = openAt?.at;
   const lesson = base && reached !== undefined ? milestoneView(base, reached) : base;
   return (
     <>
@@ -205,6 +207,8 @@ export function Root() {
         onLessonPassed={() => {
           // A milestone short of the last: the next one opens, the project is not passed yet.
           if (lessonId && base && reached !== undefined && reached < lastMilestone(base)) changeProgress((p) => withMilestones(p, lessonId, reached + 1));
+          // The last one: every milestone passed is recorded too, so a project that grows later is known not complete.
+          else if (lessonId && base && reached !== undefined) changeProgress((p) => withPassed(withMilestones(p, lessonId, reached + 1), lessonId));
           else if (lessonId) changeProgress((p) => withPassed(p, lessonId));
           // A practice passed: the next one starts from scratch.
           if (practiceId) changeProgress((p) => withPracticeOpen(p, practiceId, false));

@@ -10,7 +10,7 @@ import { LESSONS } from '../src/core/lessons';
 import { edit } from '../src/core/lessons/builder';
 import { noRuntimeErrors, printed } from '../src/core/lessons/checks';
 import { lesson1 } from '../src/core/lessons/library/module1';
-import { lastMilestone, milestoneView, withMilestones as inMilestones } from '../src/core/lessons/milestones';
+import { lastMilestone, milestoneView, openedMilestone, withMilestones as inMilestones } from '../src/core/lessons/milestones';
 import { runLesson } from '../src/core/lessons/runner';
 import type { Lesson } from '../src/core/lessons/types';
 import { checkProgress, emptyProgress, withMilestones } from '../src/core/progress/progress';
@@ -95,6 +95,21 @@ describe('projects in milestones (V7.65)', () => {
     expect(p.milestones?.['x-test-jalons']).toBe(2);
     expect(checkProgress(p)).toEqual([]);
     expect(checkProgress({ ...p, milestones: { a: 'deux' } })).not.toEqual([]);
+  });
+
+  it('V7.71: where a project opens; one that grew after it was passed opens at its first new milestone', () => {
+    // Not passed: at the milestone reached.
+    expect(openedMilestone(project, false, undefined)).toEqual({ at: 0, complete: false });
+    expect(openedMilestone(project, false, 1)).toEqual({ at: 1, complete: false });
+    // Passed: whole when every milestone is recorded (since V7.71), or nothing is (one milestone, before V7.71).
+    for (const passed of [2, undefined]) expect(openedMilestone(project, true, passed)).toEqual({ at: 1, complete: true });
+    // Passed before V7.71, the record one short: its last milestone, to check again.
+    expect(openedMilestone(project, true, 1)).toEqual({ at: 1, complete: false });
+    // Passed with two milestones, now four: at the third, not complete.
+    const grown = inMilestones({ ...project, milestones: undefined } as Lesson, [...project.milestones!, ...project.milestones!.map((m) => ({ ...m, id: `${m.id}2` }))]);
+    expect(openedMilestone(grown, true, 2)).toEqual({ at: 2, complete: false });
+    expect(openedMilestone(grown, true, 3)).toEqual({ at: 3, complete: false });
+    expect(openedMilestone(grown, true, 4)).toEqual({ at: 3, complete: true });
   });
 
   it('a project of one milestone (X2, V7.66) reads as a plain project: no « Jalon 1/1 » in its cards or its notes', () => {

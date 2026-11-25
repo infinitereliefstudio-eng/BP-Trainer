@@ -151,4 +151,56 @@ describe('lot 4b: the Expert projects', () => {
     });
     expect(failed(l, p)).toContain('dry');
   });
+
+  // V7.66: X2 enriched, the fuel in an Actor Component and the control panel.
+  const nodesOf = (p: Project, cls: string, def: string) => Object.values(edit(p, cls).graph.nodes).filter((n) => n.def === def);
+
+  it('X2: a panel left in Game Only ignores the touch on its button, and says why', () => {
+    const l = lesson('x2-atelier');
+    const p = solved(l, (p) => {
+      for (const n of nodesOf(p, 'BP_PlayerController', 'input.setModeGameAndUI')) n.def = 'input.setModeGameOnly';
+    });
+    const run = runLesson(l, p);
+    expect(failed(l, p)).toEqual(expect.arrayContaining(['panel', 'button']));
+    expect(run.results.find((r) => r.check.id === 'button')?.reason).toContain('Game Only');
+  });
+
+  it('X2: a row that never subscribes to its machine stays on Arrêt', () => {
+    const l = lesson('x2-atelier');
+    const p = solved(l, (p) => {
+      const row = edit(p, 'WBP_LigneMachine');
+      removeNodes(row.graph, nodesOf(p, 'WBP_LigneMachine', 'dispatcher.bind').map((n) => n.id));
+    });
+    expect(failed(l, p)).toEqual(expect.arrayContaining(['row-on', 'row-fan']));
+  });
+
+  it('X2: a row button that starts its machine without asking it skips the empty tank', () => {
+    const l = lesson('x2-atelier');
+    const p = solved(l, (p) => {
+      const row = edit(p, 'WBP_LigneMachine');
+      const ask = nodesOf(p, 'WBP_LigneMachine', 'iface.message')[0];
+      const base = p.classes.find((c) => c.name === 'BP_Machine')!;
+      ask.def = 'call.custom';
+      ask.config = { owner: base.id, event: 'Demarrer' };
+      void row;
+    });
+    expect(failed(l, p)).toContain('empty');
+  });
+
+  it('X2: the fuel kept in a variable of BP_Machine is refused, with the reason', () => {
+    const l = lesson('x2-atelier');
+    const p = solved(l, (p) => {
+      const base = edit(p, 'BP_Machine');
+      base.variable('Carburant', { category: 'float' }, 3);
+    });
+    const run = runLesson(l, p);
+    expect(failed(l, p)).toContain('component');
+    expect(run.results.find((r) => r.check.id === 'component')?.reason).toContain('le carburant est quelque chose que la machine a');
+  });
+
+  it('X2: the panel finds the machines in either order of the level (the scenario taps the row by its name)', () => {
+    const l = lesson('x2-atelier');
+    const p = solved(l, (p) => levelOf(p).actors.reverse());
+    expect(failed(l, p)).toEqual([]);
+  });
 });

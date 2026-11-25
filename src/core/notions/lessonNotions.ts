@@ -168,5 +168,5 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   's4-fusibles': N([], ['save-game', 'cast', 'other-bp', 'destroy', 'overlap', 'input', 'enhanced-input', 'trace', 'interfaces', 'game-instance', 'visibility', 'loops', 'actor-components', 'functions', 'player-controller']),
   // Expert
   'x1-radio': N(['input-mode'], ['player-controller', 'enhanced-input', 'data-tables', 'structs', 'sets', 'interfaces', 'cast']),
-  'x2-atelier': N(['inheritance'], ['tick', 'sequence', 'latent', 'interfaces', 'rotation', 'visibility']),
+  'x2-atelier': N(['inheritance'], ['tick', 'sequence', 'latent', 'interfaces', 'rotation', 'visibility', 'actor-components', 'instance-editable', 'functions', 'dispatchers', 'umg', 'ui-input', 'player-controller', 'loops', 'other-bp']),
 };

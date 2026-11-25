@@ -1283,6 +1283,53 @@ async def main():
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 
+        # V7.66: X2 « L'atelier des machines » solved: the panel has one row per machine, built in Play (Game and UI);
+        # the button of the Ventilateur row starts it, and its row says so. Vérifier passes in the app.
+        await page.evaluate(PUT, ['project:lesson:x2-atelier', (HERE / 'out' / 'x2-atelier.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='L’atelier des machines').first.scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='L’atelier des machines').first.tap()
+        await page.wait_for_timeout(500)
+        await page.locator('.doc-tab.level').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(800)
+        rows = page.locator('.umg-layer .umg-Button.hit')
+        if await rows.count() != 2:
+            errs.append(f'Atelier : {await rows.count()} boutons de ligne touchables au lieu de 2')
+        elif await page.locator('.umg-layer', has_text='Ventilateur').count() == 0 or await page.locator('.umg-layer', has_text='Pompe').count() == 0:
+            errs.append('Atelier : le panneau ne montre pas la pompe et le ventilateur')
+        else:
+            # The row of the fan, wherever the level put it: the widgets are drawn flat, a row is a band of the screen.
+            row_of = """(name) => {
+              const t = [...document.querySelectorAll('.umg-layer .umg-TextBlock')].find((e) => e.textContent.trim() === name);
+              if (!t) return { button: -1, texts: [] };
+              const r = t.getBoundingClientRect();
+              const y = r.y + r.height / 2;
+              const inBand = (e) => { const b = e.getBoundingClientRect(); return b.y <= y && y <= b.y + b.height; };
+              return {
+                button: [...document.querySelectorAll('.umg-layer .umg-Button.hit')].findIndex(inBand),
+                texts: [...document.querySelectorAll('.umg-layer .umg-TextBlock')].filter(inBand).map((e) => e.textContent.trim()),
+              };
+            }"""
+            fan = await page.evaluate(row_of, 'Ventilateur')
+            if fan['button'] < 0:
+                errs.append('Atelier : pas de bouton sur la ligne Ventilateur')
+            else:
+                await rows.nth(fan['button']).tap()
+                await page.wait_for_timeout(300)
+                fan = await page.evaluate(row_of, 'Ventilateur')
+                if 'En marche' not in fan['texts']:
+                    errs.append(f'Atelier : le bouton de la ligne Ventilateur ne le démarre pas ({fan["texts"]})')
+        await shot('98b_play_workshop')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('button', has_text='Vérifier').first.tap()
+        await page.wait_for_timeout(2500)
+        if await page.locator('.success').count() == 0:
+            errs.append('Atelier : la solution de référence ne passe pas dans l’appli')
+        await shot('98c_workshop_passed')
+
         # V7.50: « Le sac qui suit » solved: Vérifier passes (two levels, the GameInstance), the Content Drawer shows both levels.
         await page.evaluate(PUT, ['project:lesson:l-sac-qui-suit', (HERE / 'out' / 'l-sac-qui-suit.json').read_text()])
         await page.goto(home)

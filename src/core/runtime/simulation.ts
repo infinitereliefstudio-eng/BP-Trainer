@@ -923,9 +923,9 @@ export class Simulation implements InterpreterHost {
     this.touch.up({ x, y, component });
   }
 
-  /** A lesson's scenario taps a Button by name (the nth of that name, top to bottom, with `nth`). */
-  tapButton(widgetClass: string, button: string, nth?: number): TouchOutcome {
-    return this.touch.tap(widgetClass, button, nth);
+  /** A lesson's scenario taps a Button by name (the nth of that name, top to bottom, with `nth`; the one of the widget that shows `row`). */
+  tapButton(widgetClass: string, button: string, nth?: number, row?: string): TouchOutcome {
+    return this.touch.tap(widgetClass, button, nth, row);
   }
 
   teleportPlayer(x: number, y: number): void {

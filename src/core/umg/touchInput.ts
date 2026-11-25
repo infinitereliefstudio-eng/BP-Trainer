@@ -46,6 +46,9 @@ export interface TouchHost {
   step(): void;
 }
 
+/** A text as a row is looked up by (`tap` with `row`): case and accents ignored. */
+const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
 export class TouchInput {
   constructor(private readonly host: TouchHost) {}
 
@@ -93,10 +96,17 @@ export class TouchInput {
    * covers it there takes the touch, as for a finger. `nth`: the nth of these
    * buttons, top to bottom (« Lire » of the 2nd row); otherwise the front one.
    */
-  tap(widgetClass: string, button: string, nth?: number): TouchOutcome {
+  tap(widgetClass: string, button: string, nth?: number, row?: string): TouchOutcome {
     const width = DESIGN_W;
-    const named = (l: LaidOutWidget) => l.widget.kind === 'Button' && l.widget.name === button && l.drawn && this.host.umg.objectOf(l.path)?.className === widgetClass;
     const layers = this.host.umg.layer(width);
+    const shows = (obj: ActorRT | undefined) =>
+      row === undefined ||
+      layers.some((s) => s.laid.some((l) => l.widget.kind === 'TextBlock' && l.drawn && this.host.umg.objectOf(l.path) === obj && plain(String(l.props.text ?? '')).includes(plain(row))));
+    const named = (l: LaidOutWidget) => {
+      if (l.widget.kind !== 'Button' || l.widget.name !== button || !l.drawn) return false;
+      const obj = this.host.umg.objectOf(l.path);
+      return obj?.className === widgetClass && shows(obj);
+    };
     const target =
       nth !== undefined
         ? layers

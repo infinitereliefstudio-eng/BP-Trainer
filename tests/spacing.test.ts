@@ -48,7 +48,7 @@ const KNOWN_GAPS: Record<string, number> = {
   input: 16,
   'enhanced-input': 16,
   umg: 31,
-  'ui-input': 55,
+  'ui-input': 53,
   arrays: 29, // lot 3 added Confirmé steps inside this gap: lot 4
   cast: 29, // lot 3 added Confirmé steps inside this gap: lot 4
   components: 27,

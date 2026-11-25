@@ -148,3 +148,9 @@ Tristan trouve les quatre projets intéressants et a demandé les recommandation
 5. Sans objet : tout entre dans le parcours.
 
 Versions, une à la fois : **V7.65 les jalons** (la mise en place, lancée), puis X2 enrichi, L'arène, La ronde, Le réseau, Le réveil (deux versions), la reprise (X1 retiré, notions, révision, mémo, README). Chaque version attend son feu vert.
+
+## Suivi
+
+- **V7.65** (21 novembre) : les jalons.
+- **25 novembre** : Tristan confirme que ses essais sur téléphone sont bons, et prend la recommandation sur la question laissée ouverte à la V7.65 : la solution de référence d’un projet en jalons reste fermée jusqu’au projet entier ; le bilan s’affiche après chaque jalon.
+- **V7.66** (25 novembre, « ok pour ta reco ») : **X2 enrichi**, un jalon. Le carburant vit dans un Actor Component (**BP_Reservoir**, réglé machine par machine, fonction Consommer, OnVide) ; un **panneau de contrôle** à l’écran (WBP_Panneau, une **WBP_LigneMachine** par machine trouvée par Get All Actors Of Class, Expose on Spawn, Add Child to Vertical Box), qui suit l’état par un Event Dispatcher (OnEtat) et dont le bouton envoie le même message d’interface que E ; Game and UI et curseur. **87 nœuds** dans la solution de référence, au lieu des ≈ 70 estimés (le panneau et sa ligne en font 24, le composant 9) : X2 dépasse l’estimation de L’arène (≈ 80), à revoir au moment de la dimensionner.

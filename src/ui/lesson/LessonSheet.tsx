@@ -97,7 +97,8 @@ export function LessonSheet({
   const offers = helpOffers(lesson, { tried, fails, done });
   const cards = cardsFor(lesson, done);
   // A project in milestones, not finished: a passed check opened the next milestone (V7.65).
-  const midway = !!lesson.milestones && !done;
+  // A project of one milestone (X2) reads as a plain project.
+  const midway = (lesson.milestones?.length ?? 0) > 1 && !done;
   const shown = offers.filter((o) => o.index < hints);
   const nextOffer = offers.find((o) => o.index >= hints);
   const levelHelp = LEVELS.find((l) => l.id === lesson.level)?.help;

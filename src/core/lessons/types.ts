@@ -21,8 +21,10 @@ export type ScenarioStep =
   /**
    * A tap on a Button of a widget on the screen, "WBP_Pause/Btn_Reprendre" (a press, a frame, a release, at its centre).
    * With `nth`, the nth such button from the top of the screen (0 first): the « Lire » of a row in a list.
+   * With `row`, the one whose widget shows that text (case and accents ignored): the button of the « Pompe » row,
+   * wherever that row is in the list.
    */
-  | { click: string; nth?: number }
+  | { click: string; nth?: number; row?: string }
   /** Turn the player to face this yaw, in degrees (0 = +X, 90 = +Y, towards the bottom of the screen). */
   | { look: number }
   /** Frames per second from here on (60 by default): Delta Seconds changes with it, as on a slower device. */

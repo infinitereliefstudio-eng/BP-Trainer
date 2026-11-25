@@ -337,6 +337,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Un événement redéfini dans l’enfant masque celui du parent. Parent: Tick exécute la logique commune avant (ou après) ce que l’enfant ajoute.',
   ),
   q(
+    'x2-atelier',
+    'Le panneau de l’atelier a une ligne par machine, et chaque ligne doit dire « En marche » ou « Arrêt ». La façon UE5 ?',
+    [
+      'La machine annonce son état par un Event Dispatcher, et chaque ligne s’y abonne à sa construction',
+      'Un Binding sur le texte de la ligne, qui lit l’état de la machine',
+      'Un Event Tick dans la ligne, qui relit l’état de la machine',
+      'La machine cherche le panneau et réécrit toutes les lignes',
+    ],
+    'Un Binding ou un Tick relisent l’état à chaque image, même quand rien ne change. La machine sait quand elle change : elle l’annonce, et la ligne, qui garde une référence vers sa machine, s’abonne une fois.',
+    2,
+  ),
+  q(
     'l-menu-pause',
     'IA_Pause met le jeu en pause avec Set Game Paused. Le second appui sur Espace ne fait plus rien. Pourquoi ?',
     ['Trigger when Paused n’est pas coché sur IA_Pause', 'Set Game Paused ne peut être appelé qu’une fois', 'Le Player Controller est détruit en pause', 'Il faut un Delay avant de reprendre'],

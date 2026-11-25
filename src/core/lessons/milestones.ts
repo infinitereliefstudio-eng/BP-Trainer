@@ -19,9 +19,9 @@ export const lastMilestone = (l: Lesson): number => Math.max(0, (l.milestones?.l
 /** « Jalon 2/4 « L'énergie » ». */
 export const milestoneName = (l: Lesson, i: number): string => `Jalon ${i + 1}/${l.milestones?.length ?? 1} « ${l.milestones?.[i]?.title ?? ''} »`;
 
-/** The briefs of milestones 0 to `upTo`, each title marked with its milestone. */
+/** The briefs of milestones 0 to `upTo`, each title marked with its milestone (a project of one milestone keeps its titles: V7.66). */
 function briefs(ms: Milestone[], upTo: number): LessonCard[] {
-  return ms.slice(0, upTo + 1).flatMap((m, i) => m.cards.map((c) => ({ ...c, title: `Jalon ${i + 1}/${ms.length} · ${c.title}` })));
+  return ms.slice(0, upTo + 1).flatMap((m, i) => m.cards.map((c) => (ms.length > 1 ? { ...c, title: `Jalon ${i + 1}/${ms.length} · ${c.title}` } : c)));
 }
 
 /** The reference solution up to milestone `upTo`, built in order. */
@@ -96,5 +96,7 @@ export function runMilestones<R extends { passed: boolean; notes: string[] }>(le
     notes.push(`${milestoneName(lesson, i)} : réussi.`);
   }
   if (upTo < lastMilestone(lesson)) notes.push(`Le cahier du ${milestoneName(lesson, upTo + 1)} s’ouvre : c’est la suite du projet.`);
+  // A project of one milestone (X2) reads as a plain project: no « Jalon 1/1 ».
+  if ((lesson.milestones?.length ?? 0) < 2) return { run: run!, passed: upTo + 1 };
   return { run: { ...run!, notes: [...notes, ...run!.notes] }, passed: upTo + 1 };
 }

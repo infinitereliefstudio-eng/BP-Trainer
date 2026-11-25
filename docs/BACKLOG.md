@@ -250,6 +250,7 @@ Les retouches des V7.31 et V7.32 gardent ces principes : barres plus fines en pa
 | Architecture | « Le Blueprint qui fait tout » à découper. Fait : la même logique sortie dans un parent (L'héritage, Expert X2) ou dans un composant (R5 « La santé est partout », V7.20) | ★★★ | M |
 | Lecture de graphe | Un graphe touffu, trois questions dessus (que vaut X après Y ?) | ★★ | M |
 | Performance | Remplacer un Tick par un timer ou un événement, avec un compteur de nœuds exécutés par seconde | ★★ | M |
+| Déplacer un acteur entier avec un Timeline (demandé par Tristan le 25 novembre) | Tous les exercices au Timeline déplacent un composant dans son acteur (Set Relative Location, Lerp sur un seul axe : La porte qui glisse, Le monte-charge) ou le font tourner ; aucun ne déplace l'acteur entier entre deux positions avec **Lerp (Vector)** et **Set Actor Location**, le cas le plus courant dans UE (plateforme, ascenseur, navette). Le nœud Lerp (Vector) existe, aucune étape ne l'utilise. Idées : à l'Avancé, une plateforme ou une navette entre deux points (positions de départ et d'arrivée en Instance Editable, avec les courbes ci-dessus s'ils sont faits) ; en Expert, les portes du jalon 3 du Réveil (BP_Porte_Base, Timeline) peuvent s'y prêter | ★★★ | S à M (contenu) |
 | Plus de Prédis | Map sans test de Return Value, Event Hit répété, Lerp sur Tick, Select, For Loop with Break | ★★ | S chacun |
 | Défis vérifiés | Le défi de fin de fiche n'est vérifié par rien : en faire un second scénario, facultatif | ★★ | M |
 | Robustesse et autres façons de faire | 20 étapes ont un « Et si… », 6 une alternative : étendre à celles qui s'y prêtent | ★★ | M (contenu) |
@@ -278,7 +279,8 @@ Les leçons liées à une fonction (Enhanced Input, Save Game, niveaux) sont ran
 | Sons | Play Sound 2D avec quelques sons intégrés | ★★ | S à M |
 | Macros et Collapse | Macros de l'utilisateur, Collapse to Function, Collapse to Macro | ★★ | M à L |
 | Copier-coller entre graphes | Aujourd'hui seulement dans un même graphe | ★★ | M |
-| Timeline complet | Points clés Auto, pistes Vector, Color et Event, Play Rate, Set Timeline Length | ★★ | M |
+| Courbes du Timeline (demandé par Tristan le 25 novembre) | Aujourd'hui, entre deux points clés, la valeur varie toujours en ligne droite (`trackValue`, `timeline.ts`). Dans UE, une clé est en **Auto** par défaut (la courbe démarre et s'arrête en douceur), et se règle en **Linear** ou **Constant** (et User, Break). À faire : le mode d'interpolation par clé (Auto par défaut pour les nouvelles clés, comme UE ; les Timelines des étapes existantes gardées en Linear pour ne rien casser, ou repassées en Auto après vérification de leurs scénarios), son réglage dans l'éditeur de piste (appui long sur une clé), la courbe dessinée. Puis une fiche ou un Prédis : même Timeline, même graphe, une rampe ou une courbe qui accélère puis freine | ★★★ | S à M |
+| Timeline complet | Pistes Vector, Color et Event, courbe partagée entre plusieurs Timelines (asset Curve Float, External Curve), Set Play Rate, Set Timeline Length | ★★ | M |
 | Sweep et racine au choix | Sweep sur Set Actor Location et Add Actor World Offset ; choisir un Static Mesh comme racine | ★★ | M |
 | Collision Presets | Block, Overlap, Ignore par composant et par canal | ★★ | M |
 | Attach / Detach, caméras | Exercices E32 et E31 du recueil | ★★ | M |

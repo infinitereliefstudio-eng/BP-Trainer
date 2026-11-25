@@ -77,6 +77,7 @@ import { synthesis4 } from './library/synthesis4';
 import { expertArena } from './library/expertArena';
 import { expertRound } from './library/expertRound';
 import { expertNetwork } from './library/expertNetwork';
+import { expertWakeup } from './library/expertWakeup';
 import { expertRadio } from './library/expertRadio';
 import { expertWorkshop } from './library/expertWorkshop';
 import { predictComponentOrder } from './library/componentOrder';
@@ -267,6 +268,7 @@ export const LESSONS: Lesson[] = [
   expertArena,
   expertRound,
   expertNetwork,
+  expertWakeup,
 ];
 
 let n = 0;

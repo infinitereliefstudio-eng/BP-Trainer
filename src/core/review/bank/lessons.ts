@@ -394,6 +394,29 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     2,
   ),
   q(
+    'x6-reveil',
+    'Dans le dortoir, E doit agir sur l’objet que le joueur regarde, pas sur tout ce qui est autour de lui. Comment le joueur le trouve-t-il ?',
+    [
+      'Un Line Trace de sa position à quelques mètres devant lui (Forward Vector), puis Interagir (Message) à ce qu’il touche',
+      'Get Overlapping Actors sur une grande zone autour de lui, puis Interagir à chacun',
+      'Un Cast To BP_Casier, puis un Cast To BP_Terminal, à la suite',
+      'Chaque objet écoute E et teste si le joueur est assez près',
+    ],
+    'Le rayon dit ce que le joueur regarde, et s’arrête au premier obstacle : deux objets voisins ne répondent pas ensemble, et rien ne réagit dans son dos. Le message d’interface laisse le joueur ignorer à qui il parle, et seul le joueur écoute la touche.',
+  ),
+  q(
+    'x6-reveil',
+    'Continuer reprend la sauvegarde : le badge est déjà dans l’inventaire. Le casier, lui, n’est pas dans la sauvegarde. Comment ne redonne-t-il pas le badge ?',
+    [
+      'Il demande à l’inventaire du joueur s’il a déjà le badge, au lieu de se souvenir lui-même qu’il l’a donné',
+      'Il garde un Boolean Ouvert, mis à vrai quand il donne le badge',
+      'Il se détruit après avoir donné le badge',
+      'Le GameInstance garde une copie de chaque casier',
+    ],
+    'Un Boolean ou un Destroy Actor ne vivent que le temps du niveau : après Continuer, le casier repart de zéro et redonne le badge. L’inventaire, lui, est sauvé : en lui posant la question, le casier a raison sans rien sauver de plus.',
+    2,
+  ),
+  q(
     'x1-radio',
     'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
     ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],

@@ -294,9 +294,10 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 155:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 155")
-        await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
+        if await page.locator('.lesson-item').count() != 156:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 156")
+        # « la salle de contrôle » is also in X6’s situation: the step itself comes first.
+        await page.locator('.lesson-item', has_text='La salle de contrôle').first.tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
 
@@ -1426,6 +1427,45 @@ async def main():
             if await page.locator('.umg-layer', has_text='Coups :').count() == 0:
                 errs.append('Le réseau : Jouer dans le menu n’ouvre pas la grille')
             await shot('98l_network_from_menu')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+
+        # V7.70: X6 « Le réveil » solved: Vérifier passes the first milestone; Play in Lvl_Dortoir; Play in Lvl_Menu shows
+        # Nouvelle partie, Continuer (greyed: no save yet) and Quitter; Nouvelle partie opens the dormitory.
+        await page.evaluate(PUT, ['project:lesson:x6-reveil', (HERE / 'out' / 'x6-reveil.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        x6 = page.locator('.lesson-item').filter(has=page.locator('strong', has_text=re.compile(r'^Le réveil$')))
+        await x6.first.scroll_into_view_if_needed()
+        await x6.first.tap()
+        await page.wait_for_timeout(600)
+        await page.locator('button', has_text='Vérifier').first.tap()
+        await page.wait_for_timeout(4000)
+        if await page.get_by_text('Jalon réussi').count() == 0:
+            errs.append('Le réveil : le jalon 1 de la solution de référence ne passe pas dans l’appli')
+        await shot('98m_wakeup_milestone')
+        await page.locator('.btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.doc-tab.level').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1200)
+        await shot('98n_wakeup_play')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate('() => { const s = window.bpStore; const l = s.project.levels.find(l => l.name === "Lvl_Menu"); s.openLevel(l.id); }')
+        await page.wait_for_timeout(300)
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1200)
+        for label in ['Nouvelle partie', 'Continuer', 'Quitter']:
+            if await page.locator('.umg-layer', has_text=label).count() == 0:
+                errs.append(f'Le réveil : le menu ne montre pas « {label} »')
+        await shot('98o_wakeup_menu')
+        # The top button of the menu is Nouvelle partie.
+        await page.locator('.umg-layer .umg-Button.hit').first.tap()
+        await page.wait_for_timeout(1200)
+        if await page.locator('.umg-layer', has_text='Nouvelle partie').count():
+            errs.append('Le réveil : Nouvelle partie ne quitte pas le menu')
+        await shot('98p_wakeup_new_game')
         await page.locator('.tb', has_text='Stop').first.tap()
         await page.wait_for_timeout(300)
 

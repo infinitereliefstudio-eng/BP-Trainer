@@ -72,7 +72,9 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
             <>✕ Erreurs de compilation</>
           ) : run.passed ? (
             <>
-              ✓ Réussi{check?.quality && <span class="goal-stars"> {'★'.repeat(check.quality.verdict.stars)}{'☆'.repeat(3 - check.quality.verdict.stars)}</span>} · voir le bilan
+              {/* A milestone of a longer project (V7.67): the project itself is not done yet. */}
+              {(lesson.milestones?.length ?? 0) > 1 && !done ? '✓ Jalon réussi' : '✓ Réussi'}
+              {check?.quality && <span class="goal-stars"> {'★'.repeat(check.quality.verdict.stars)}{'☆'.repeat(3 - check.quality.verdict.stars)}</span>} · voir le bilan
             </>
           ) : (
             <>

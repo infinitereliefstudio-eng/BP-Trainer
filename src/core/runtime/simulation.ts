@@ -1157,7 +1157,9 @@ export class Simulation implements InterpreterHost {
     a.x = x;
     a.y = y;
     a.yaw = yaw;
+    a.spawnedAt = this.time;
     this.actors.push(a);
+    this.record.spawns.push(a);
     this.markClass(cls.id);
     this.attachComponents(a);
     return a;
@@ -1198,6 +1200,7 @@ export class Simulation implements InterpreterHost {
       return;
     }
     // Its Actor Components go with it, in the same chain of execution.
+    if (!actor.destroyed) actor.destroyedAt = this.time;
     for (const o of [actor, ...this.componentsOf(actor)]) {
       o.destroyed = true;
       o.destroyedInRun = this.interp.run;

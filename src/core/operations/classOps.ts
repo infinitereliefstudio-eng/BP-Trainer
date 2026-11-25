@@ -94,6 +94,20 @@ export function updateVariable(
   if (patch.instanceEditable === false) v.exposeOnSpawn = false;
 }
 
+/**
+ * Class Defaults of a child Blueprint (V7.67): the value an inherited variable starts with in `cls` (and its
+ * own children), as UE's child Class Defaults; `undefined` gives it back the parent's default.
+ */
+export function setInheritedDefault(cls: BlueprintClass, v: Variable, value: Value | undefined): void {
+  if (cls.variables.some((x) => x.id === v.id)) return;
+  if (value === undefined) {
+    if (cls.inheritedDefaults) delete cls.inheritedDefaults[v.id];
+    if (cls.inheritedDefaults && !Object.keys(cls.inheritedDefaults).length) delete cls.inheritedDefaults;
+    return;
+  }
+  cls.inheritedDefaults = { ...cls.inheritedDefaults, [v.id]: { value: structuredClone(value), type: structuredClone(v.type) } };
+}
+
 /** Deleting a variable also deletes its Get/Set nodes, as UE does. */
 export function removeVariable(cls: BlueprintClass, id: string): number {
   cls.variables = cls.variables.filter((v) => v.id !== id);

@@ -1,0 +1,11 @@
+
+/* Class Defaults: an inherited variable's value, and ↺ to take the parent's back (V7.67). */
+.inherited-default {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.inherited-default > :first-child {
+  flex: 1;
+  min-width: 0;
+}

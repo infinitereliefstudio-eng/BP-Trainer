@@ -8,7 +8,14 @@
  * The model keeps each class as written. `inheritedView` builds the merged
  * class that graphs, compilation and the runtime work with.
  */
-import { isSceneComponent, type BlueprintClass, type Component, type Graph, type NodeInstance, type ParentClass, type Project } from './project';
+import { sameType } from '../types/pins';
+import { isSceneComponent, type BlueprintClass, type Component, type Graph, type NodeInstance, type ParentClass, type Project, type Variable } from './project';
+
+/** An inherited variable as `cls` sees it: with the default `cls` gives it in its Class Defaults, if any (V7.67). */
+function withOwnDefault(cls: BlueprintClass, v: Variable): Variable {
+  const own = cls.inheritedDefaults?.[v.id];
+  return own && sameType(own.type, v.type) ? { ...v, defaultValue: structuredClone(own.value) } : v;
+}
 
 /** The Blueprint parent of `cls`, if any. */
 export function parentOf(p: Project | undefined, cls: BlueprintClass): BlueprintClass | undefined {
@@ -60,7 +67,8 @@ export function inheritedView(cls: BlueprintClass, p: Project | undefined, withP
     parent: base.parent,
     autoReceiveInput: cls.autoReceiveInput || base.autoReceiveInput,
     components: [...base.components, ...ownComponents],
-    variables: [...base.variables.filter((v) => withPrivate || !v.private), ...cls.variables],
+    // An inherited variable starts with the child's own Class Default, if it set one for this type (V7.67).
+    variables: [...base.variables.filter((v) => withPrivate || !v.private).map((v) => withOwnDefault(cls, v)), ...cls.variables],
     // Own graphs, then the parent's functions this class does not override (callable from here).
     graphs: [...cls.graphs, ...base.graphs.filter((g) => g.kind === 'function' && !ownNames.has(g.name))],
     dispatchers: [...base.dispatchers, ...cls.dispatchers],

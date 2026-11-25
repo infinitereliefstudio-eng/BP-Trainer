@@ -180,7 +180,8 @@ describe('attempt log: what a check found', () => {
 
   it('every step: the start fails with known check ids, the solution passes with none failed', () => {
     for (const lesson of LESSONS) {
-      const ids = new Set(lesson.checks.map((c) => c.id));
+      // A project in milestones stops at the first that fails: its ids are any milestone's.
+      const ids = new Set((lesson.milestones?.flatMap((m) => m.checks) ?? lesson.checks).map((c) => c.id));
       const start = lesson.setup();
       if (lesson.kind !== 'predict') {
         const out = checkOutcome(runLesson(lesson, start));

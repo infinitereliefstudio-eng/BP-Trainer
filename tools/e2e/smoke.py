@@ -294,8 +294,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 152:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 152")
+        if await page.locator('.lesson-item').count() != 153:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 153")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -1329,6 +1329,32 @@ async def main():
         if await page.locator('.success').count() == 0:
             errs.append('Atelier : la solution de référence ne passe pas dans l’appli')
         await shot('98c_workshop_passed')
+
+        # V7.67: X3 « L'arène » solved: Vérifier passes the first milestone and opens the second; BP_Blinde's Class Defaults
+        # show its inherited Vitesse and PV, its own values, with ↺ to take the parent's back.
+        await page.evaluate(PUT, ['project:lesson:x3-arene', (HERE / 'out' / 'x3-arene.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        await page.locator('.lesson-item', has_text='L’arène de maintenance').first.scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='L’arène de maintenance').first.tap()
+        await page.wait_for_timeout(600)
+        await page.locator('button', has_text='Vérifier').first.tap()
+        await page.wait_for_timeout(2500)
+        if await page.get_by_text('Jalon réussi').count() == 0:
+            errs.append('Arène : le jalon 1 de la solution de référence ne passe pas dans l’appli')
+        await shot('98d_arena_milestone')
+        await page.locator('.btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate(OPEN, 'BP_Blinde')
+        await page.wait_for_timeout(400)
+        await page.evaluate("() => window.bpStore.setFocus({ kind: 'classDefaults' })")
+        await page.wait_for_timeout(200)
+        if await page.locator('.edge-handle[aria-label="Ouvrir Details"]').count():
+            await page.locator('.edge-handle[aria-label="Ouvrir Details"]').first.tap()
+        await page.wait_for_timeout(400)
+        if await page.locator('.inherited-default').count() < 2 or await page.locator('.inherited-default .chip').count() < 2:
+            errs.append('Arène : les Class Defaults de BP_Blinde ne montrent pas Vitesse et PV réglés par l’enfant')
+        await shot('98e_child_class_defaults')
 
         # V7.50: « Le sac qui suit » solved: Vérifier passes (two levels, the GameInstance), the Content Drawer shows both levels.
         await page.evaluate(PUT, ['project:lesson:l-sac-qui-suit', (HERE / 'out' / 'l-sac-qui-suit.json').read_text()])

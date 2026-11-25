@@ -107,6 +107,11 @@ function checkClass(c: unknown): void {
   for (const v of list(cls, 'variables', where)) {
     need(isObj(named(v, `Une variable de « ${cls.name} »`).type), `${where} : une variable n’a pas de type.`);
   }
+  // A child's Class Defaults for inherited variables (V7.67): a malformed entry is dropped, the rest kept.
+  if (cls.inheritedDefaults !== undefined) {
+    if (!isObj(cls.inheritedDefaults)) delete cls.inheritedDefaults;
+    else for (const [k, d] of Object.entries(cls.inheritedDefaults)) if (!isObj(d) || !isObj(d.type) || !('value' in d)) delete (cls.inheritedDefaults as Obj)[k];
+  }
   const graphs = list(cls, 'graphs', where);
   need(graphs.length > 0, `${where} : aucun graphe (il faut au moins l’Event Graph).`);
   for (const g of graphs) checkGraph(g, String(cls.name));

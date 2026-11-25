@@ -272,6 +272,18 @@ export interface BlueprintClass {
   widgets?: WidgetNode[];
   /** A GameMode's Class Defaults (unset: inherited from its parent Blueprint, else UE's DefaultPawn and PlayerController). */
   gameMode?: GameModeDefaults;
+  /**
+   * A child Blueprint's Class Defaults for the variables it inherits (V7.67): variable id → the value it
+   * starts with in this class and its own children, and the type it was set for (a value set for another
+   * type, after the parent changed the variable, is ignored). Unset: the parent's default.
+   */
+  inheritedDefaults?: Record<string, InheritedDefault>;
+}
+
+/** A child's own default for an inherited variable: the value, and the variable's type when it was set. */
+export interface InheritedDefault {
+  value: Value;
+  type: PinType;
 }
 
 /** The Class Defaults of a GameModeBase Blueprint that the app simulates: what the game makes for the player. */

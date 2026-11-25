@@ -376,6 +376,13 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Redéfinir un événement remplace celui du parent : sans le nœud Parent: BeginPlay, ce que faisait le parent n’a plus lieu.',
   },
   {
+    title: 'Class Defaults d’un enfant',
+    names: ['Class Defaults d’un enfant', 'Variable héritée', 'Valeur du parent'],
+    what: 'Dans les Class Defaults d’un Blueprint enfant, les variables héritées du parent se règlent aussi : l’enfant part avec sa propre valeur, sans toucher au parent ni aux autres enfants. ↺ reprend la valeur du parent.',
+    when: 'Pour une famille d’ennemis, d’objets ou de machines qui ne diffèrent que par des valeurs (vitesse, points de vie, couleur) : un enfant par sorte, souvent sans un seul nœud.',
+    trap: 'Une valeur réglée dans le niveau (Instance Editable) passe encore devant : Class Defaults du parent, puis de l’enfant, puis l’acteur posé. Et une variable créée dans l’enfant n’existe pas pour le parent.',
+  },
+  {
     title: 'Line Trace',
     names: ['Line Trace By Channel', 'Out Hit', 'Out Hit Distance', 'Ignore Self', 'Draw Debug Type', 'Hit Normal', 'Event Hit'],
     what: 'Un Line Trace lance un rayon de Start à End et dit ce qu’il touche en premier : Out Hit donne l’acteur, le point, la normale, la distance. Event Hit, lui, se déclenche quand deux acteurs qui se bloquent se touchent.',

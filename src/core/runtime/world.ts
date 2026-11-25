@@ -89,6 +89,10 @@ export interface ActorRT {
   /** Set Actor Hidden In Game: not drawn, still colliding (as in UE). */
   hidden: boolean;
   destroyed: boolean;
+  /** Simulation time of its Spawn Actor (V7.67; unset for actors of the level): what lesson checks time things by. */
+  spawnedAt?: number;
+  /** Simulation time of its Destroy Actor (V7.67). */
+  destroyedAt?: number;
   /**
    * An actor's Actor Components made in Blueprint: component id (in its
    * class) → id of the object that runs its logic.

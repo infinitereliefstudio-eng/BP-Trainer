@@ -325,6 +325,29 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     'Open Level refait tout à neuf : le joueur, le GameMode et les acteurs du couloir disparaissent. Seul le GameInstance traverse ; une sauvegarde, elle, survit même à la fermeture du jeu.',
   ),
   q(
+    'x3-arene',
+    'Un Éclaireur rapide et un Blindé lent, enfants de BP_Drone, ne diffèrent que par Vitesse et PV. Où règle-t-on ces deux valeurs ?',
+    [
+      'Dans les Class Defaults de chaque enfant : les variables héritées y ont leur propre valeur',
+      'Dans le parent, une variable par sorte de drone (VitesseEclaireur, VitesseBlinde)',
+      'Dans l’Event BeginPlay de chaque enfant, avec deux Set',
+      'Sur chaque drone posé dans le niveau, une par une',
+    ],
+    'Un enfant reprend les variables du parent et peut leur donner sa propre valeur de départ, sans un nœud. Un Set au BeginPlay marcherait, mais cache la valeur dans un graphe ; et des drones qui apparaissent en jeu ne sont posés nulle part.',
+  ),
+  q(
+    'x3-arene',
+    'Le GameMode doit lancer la vague suivante quand le dernier drone de la vague a disparu, abattu ou arrivé au cœur. Qui prévient qui ?',
+    [
+      'Le drone prévient le GameMode quand il disparaît (Event Destroyed), quelle qu’en soit la raison',
+      'Le GameMode compte les drones avec Get All Actors Of Class à chaque Tick',
+      'Le joueur prévient le GameMode à chaque tir réussi',
+      'Le cœur prévient le GameMode à chaque drone arrivé',
+    ],
+    'Seul le drone sait qu’il s’en va, et Event Destroyed couvre toutes les raisons. Compter à chaque Tick coûte à chaque image ; le joueur et le cœur ne connaissent chacun qu’une des deux façons de disparaître.',
+    2,
+  ),
+  q(
     'x1-radio',
     'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
     ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],

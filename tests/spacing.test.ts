@@ -57,9 +57,9 @@ const KNOWN_GAPS: Record<string, number> = {
   destroy: 46,
   dispatchers: 27,
   enum: 42,
-  'flow-memory': 30,
+  'flow-memory': 31, // V7.67: X3 at the end of the path, the gap to the end grew by one
   functions: 39, // lot 3 added Confirmé steps inside this gap: lot 4
-  hit: 30, // V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
+  hit: 31, // V7.67: X3 at the end. V7.37: T4 sits after l-caisse (16 then), V7.43 put the Widget Component steps after it;, the only step that writes Event Hit; anywhere earlier it stretched input or events past 15
   inheritance: 39, // runs to the end of the path
   interfaces: 22,
   latent: 50, // runs to the end of the path
@@ -76,7 +76,7 @@ const KNOWN_GAPS: Record<string, number> = {
   sets: 34, // lot 3 added Confirmé steps inside this gap: lot 4
   spawn: 41, // lot 3 added Confirmé steps inside this gap: lot 4
   structs: 60, // runs to the end of the path
-  switch: 40,
+  switch: 41, // V7.67: X3 at the end of the path
   tick: 58, // runs to the end of the path
   timeline: 49,
   timers: 36,

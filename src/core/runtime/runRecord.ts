@@ -7,6 +7,8 @@
  * Unlike the Execution Trace it is not bounded: one counter per node and pin.
  */
 
+import type { ActorRT } from './world';
+
 /** A silent runtime event worth explaining. */
 export type NoteCode =
   | 'delay.ignored'
@@ -61,6 +63,8 @@ export class RunRecord {
   /** Actor ids clicked, and destroyed. */
   readonly clicked = new Set<string>();
   readonly destroyed = new Set<string>();
+  /** Every actor made by Spawn Actor, in order, kept after its Destroy Actor (V7.67: lesson checks read when it came and went). */
+  readonly spawns: ActorRT[] = [];
   /** "actor:variable" → last time a Blueprint read it. */
   readonly reads = new Map<string, { time: number; seq: number }>();
   private seq = 0;

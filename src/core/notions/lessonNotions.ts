@@ -169,6 +169,7 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   // Expert
   'x3-arene': N(['inheritance'], ['actor-components', 'dispatchers', 'tick', 'trace', 'data-tables', 'structs', 'random', 'spawn', 'timers', 'cast', 'umg', 'ui-input', 'save-game', 'game-mode', 'functions']),
   'x4-ronde': N(['enum', 'switch'], ['inheritance', 'actor-components', 'dispatchers', 'tick', 'trace', 'widget-component', 'interfaces', 'cast', 'umg', 'ui-input', 'game-instance', 'levels', 'arrays', 'instance-editable', 'functions', 'game-mode']),
+  'x5-reseau': N(['maps'], ['sets', 'arrays', 'loops', 'random', 'spawn', 'data-tables', 'structs', 'dispatchers', 'switch', 'enum', 'pure', 'cast', 'umg', 'ui-input', 'save-game', 'game-instance', 'levels', 'functions']),
   'x1-radio': N(['input-mode'], ['player-controller', 'enhanced-input', 'data-tables', 'structs', 'sets', 'interfaces', 'cast']),
   'x2-atelier': N(['inheritance'], ['tick', 'sequence', 'latent', 'interfaces', 'rotation', 'visibility', 'actor-components', 'instance-editable', 'functions', 'dispatchers', 'umg', 'ui-input', 'player-controller', 'loops', 'other-bp']),
 };

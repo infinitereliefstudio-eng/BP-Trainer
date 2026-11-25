@@ -371,6 +371,29 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     2,
   ),
   q(
+    'x5-reseau',
+    'Une grille de relais peut faire des boucles. Le courant se propage avec une liste de travail. Qu’est-ce qui garantit que le calcul finit ?',
+    [
+      'Un Set des relais déjà vus : un relais n’entre dans la liste qu’une fois, au pire autant de tours que de relais',
+      'Un Delay dans la boucle, pour laisser le moteur respirer',
+      'Monter Maximum Loop Iteration Count dans les Project Settings',
+      'Parcourir les relais dans l’ordre de Formes, une seule fois',
+    ],
+    'Sans mémoire des relais déjà vus, deux voisins se rajoutent l’un l’autre sans fin : Infinite loop detected. Monter la limite ne répare rien, et un Delay est refusé dans une boucle. Une seule passe dans l’ordre ne suit pas le courant qui revient en arrière.',
+  ),
+  q(
+    'x5-reseau',
+    'Les quarts de départ des relais sont tirés d’un Random Stream fait avec la Graine de la grille. Pourquoi pas Random Integer in Range ?',
+    [
+      'La même graine redonne la même grille : on peut comparer deux scores, et la tester',
+      'Random Integer in Range ne sait pas tirer entre 0 et 3',
+      'Un Random Stream est plus aléatoire',
+      'Random Integer in Range n’existe pas dans une boucle',
+    ],
+    'Un Random Stream donne toujours la même suite pour la même graine. Avec Random Integer in Range, chaque partie aurait sa grille, et un record n’aurait pas de sens. Attention : un tirage de plus, n’importe où avant, décale toute la suite.',
+    2,
+  ),
+  q(
     'x1-radio',
     'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
     ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],

@@ -33,6 +33,11 @@ jobs:
         with:
           name: dist
           path: dist
+      # The Pages artifact is uploaded here, minutes before deploy-pages looks for it: uploaded in the deploy job
+      # itself, it was sometimes not yet listed half a second later (« No artifacts named github-pages », 25 November 2026).
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
 
   # The built app on a simulated landscape phone (800x370, touch): screens, Play, Outliner.
   e2e:
@@ -68,13 +73,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/download-artifact@v7
-        with:
-          name: dist
-          path: dist
       - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: dist
       - id: deployment
         uses: actions/deploy-pages@v5

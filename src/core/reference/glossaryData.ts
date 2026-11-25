@@ -383,11 +383,19 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Une valeur réglée dans le niveau (Instance Editable) passe encore devant : Class Defaults du parent, puis de l’enfant, puis l’acteur posé. Et une variable créée dans l’enfant n’existe pas pour le parent.',
   },
   {
+    title: 'Find Look at Rotation',
+    names: ['Find Look at Rotation', 'Regarder vers'],
+    what: 'Find Look at Rotation donne la rotation qu’il faut pour regarder d’une position (Start) vers une autre (Target). Passée à Set Actor Rotation, l’acteur se tourne vers la cible, et sa Forward Vector pointe vers elle.',
+    when: 'Un garde tourné vers où il va, une tourelle vers sa cible, un personnage vers celui qui lui parle.',
+    trap: 'Start est la position de celui qui regarde, pas sa direction. Vue de dessus, seul le Yaw compte ; dans UE, si la cible est plus haute ou plus basse, la rotation penche aussi (Pitch).',
+    pattern: 'Set Actor Rotation (Find Look at Rotation (Get Actor Location, Cible))',
+  },
+  {
     title: 'Line Trace',
     names: ['Line Trace By Channel', 'Out Hit', 'Out Hit Distance', 'Ignore Self', 'Draw Debug Type', 'Hit Normal', 'Event Hit'],
     what: 'Un Line Trace lance un rayon de Start à End et dit ce qu’il touche en premier : Out Hit donne l’acteur, le point, la normale, la distance. Event Hit, lui, se déclenche quand deux acteurs qui se bloquent se touchent.',
     when: 'Line Trace pour viser : interagir avec ce qu’on regarde, voir si la voie est libre. Draw Debug Type le dessine pendant la mise au point.',
-    trap: 'End est une position, pas une direction : Start + Forward Vector × distance. Sans Ignore Self, le rayon touche d’abord l’acteur qui le lance.',
+    trap: 'End est une position, pas une direction : Start + Forward Vector × distance. Sans Ignore Self, le rayon touche d’abord l’acteur qui le lance (lancé depuis un Actor Component, c’est l’acteur qui le porte). Et Hidden In Game ne change rien : un acteur caché bloque toujours.',
     pattern: 'Start = Get Actor Location ; End = Start + Forward × 300',
   },
   {

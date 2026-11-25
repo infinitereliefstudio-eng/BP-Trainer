@@ -210,6 +210,8 @@ const vectors: NodeDefinition[] = [
   fn('math.reflectionVector', 'Get Reflection Vector', VEC, 'La direction d’un rebond : Direction renvoyée par une surface dont Surface Normal est la normale, comme un rayon sur un miroir. La longueur de Direction est gardée.', ['reflection', 'reflet', 'rebond', 'miroir', 'mirror', 'bounce', 'vector'], [['direction', 'Direction', T.vector], ['normal', 'Surface Normal', T.vector]], [['result', 'Return Value', T.vector]]),
   fn('math.makeRotator', 'Make Rotator', 'Math|Rotator', 'Construit une rotation à partir de Roll (X), Pitch (Y) et Yaw (Z), en degrés. Vue de dessus, seul Yaw se voit.', ['rotator', 'rotation', 'yaw', 'make'], [['roll', 'X (Roll)', T.float, 0], ['pitch', 'Y (Pitch)', T.float, 0], ['yaw', 'Z (Yaw)', T.float, 0]], [['result', 'Return Value', T.rotator]]),
   fn('math.breakRotator', 'Break Rotator', 'Math|Rotator', 'Sépare une rotation en Roll, Pitch et Yaw. Vue de dessus, seul Yaw compte.', ['rotator', 'rotation', 'yaw', 'break'], [['in', 'In Rot', T.rotator]], [['roll', 'X (Roll)', T.float], ['pitch', 'Y (Pitch)', T.float], ['yaw', 'Z (Yaw)', T.float]]),
+  // V7.68 (La ronde): a guard faces where it goes.
+  fn('math.findLookAtRotation', 'Find Look at Rotation', 'Math|Rotator', 'La rotation qu’il faut pour regarder de Start vers Target (deux positions) : passée à Set Actor Rotation, l’acteur se tourne vers la cible. Si les deux positions sont les mêmes, la rotation est nulle.', ['look at', 'regarder', 'orienter', 'tourner vers', 'viser', 'rotation', 'yaw', 'face'], [['start', 'Start', T.vector], ['target', 'Target', T.vector]], [['result', 'Return Value', T.rotator]]),
 ];
 
 const INTERP = 'Math|Interpolation';

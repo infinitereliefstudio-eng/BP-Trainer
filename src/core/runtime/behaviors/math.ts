@@ -225,6 +225,19 @@ export const mathBehaviors: Record<string, Behavior> = {
   },
   'time.getWorldDeltaSeconds': { pure: (cx) => ({ result: cx.world.deltaSeconds }) },
   'math.makeRotator': { pure: (cx) => ({ result: { x: cx.num('roll'), y: cx.num('pitch'), z: cx.num('yaw') } }) },
+  // UKismetMathLibrary::FindLookAtRotation: the rotation of the direction Target − Start (MakeRotFromX); none when they are the same.
+  'math.findLookAtRotation': {
+    pure: (cx) => {
+      const s = toVec(cx.in('start')),
+        t = toVec(cx.in('target'));
+      const dx = t.x - s.x,
+        dy = t.y - s.y,
+        dz = t.z - s.z;
+      if (dx * dx + dy * dy + dz * dz < 1e-8) return { result: { x: 0, y: 0, z: 0 } };
+      const deg = 180 / Math.PI;
+      return { result: { x: 0, y: Math.atan2(dz, Math.hypot(dx, dy)) * deg, z: Math.atan2(dy, dx) * deg } };
+    },
+  },
   'math.breakRotator': {
     pure: (cx) => {
       const r = toVec(cx.in('in'));

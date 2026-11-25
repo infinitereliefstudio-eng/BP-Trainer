@@ -294,8 +294,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 153:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 153")
+        if await page.locator('.lesson-item').count() != 154:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 154")
         await page.locator('.lesson-item', has_text='La salle de contrôle').tap()
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
@@ -1355,6 +1355,37 @@ async def main():
         if await page.locator('.inherited-default').count() < 2 or await page.locator('.inherited-default .chip').count() < 2:
             errs.append('Arène : les Class Defaults de BP_Blinde ne montrent pas Vitesse et PV réglés par l’enfant')
         await shot('98e_child_class_defaults')
+
+        # V7.68: X4 « La ronde » solved: Vérifier passes the first milestone and opens the second; the Sentinelle's Details
+        # show its two Points (an Instance Editable array of Vector); Play shows the guards, their visor and their gauge.
+        await page.evaluate(PUT, ['project:lesson:x4-ronde', (HERE / 'out' / 'x4-ronde.json').read_text()])
+        await page.goto(home)
+        await page.wait_for_timeout(500)
+        # « ronde » is also in another step's text: the item whose title is « La ronde ».
+        x4 = page.locator('.lesson-item').filter(has=page.locator('strong', has_text=re.compile(r'^La ronde$')))
+        await x4.first.scroll_into_view_if_needed()
+        await x4.first.tap()
+        await page.wait_for_timeout(600)
+        await page.locator('button', has_text='Vérifier').first.tap()
+        await page.wait_for_timeout(4000)
+        if await page.get_by_text('Jalon réussi').count() == 0:
+            errs.append('La ronde : le jalon 1 de la solution de référence ne passe pas dans l’appli')
+        await shot('98f_round_milestone')
+        await page.locator('.btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(300)
+        await page.evaluate('() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === "BP_Sentinelle"); const l = s.project.levels[0]; s.openLevel(l.id); const a = l.actors.find(a => a.classId === c.id); s.setFocus({ kind: "actor", id: a.id }); }')
+        await page.wait_for_timeout(400)
+        if await page.locator('.edge-handle[aria-label="Ouvrir Details"]').count():
+            await page.locator('.edge-handle[aria-label="Ouvrir Details"]').first.tap()
+        await page.wait_for_timeout(400)
+        if await page.locator('.container-row').count() < 2:
+            errs.append(f'La ronde : les Points de la Sentinelle ne sont pas dans son Details ({await page.locator(".container-row").count()} lignes)')
+        await shot('98g_round_points')
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1500)
+        await shot('98h_round_play')
+        await page.locator('.tb', has_text='Stop').first.tap()
+        await page.wait_for_timeout(300)
 
         # V7.50: « Le sac qui suit » solved: Vérifier passes (two levels, the GameInstance), the Content Drawer shows both levels.
         await page.evaluate(PUT, ['project:lesson:l-sac-qui-suit', (HERE / 'out' / 'l-sac-qui-suit.json').read_text()])

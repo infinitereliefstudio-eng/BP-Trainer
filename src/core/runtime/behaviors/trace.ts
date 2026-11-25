@@ -14,7 +14,11 @@ export const traceBehaviors: Record<string, Behavior> = {
       const ignore = new Set<string>();
       const list = cx.in('ignore');
       if (Array.isArray(list)) for (const r of list) if (isRef(r) && r.ref === 'actor') ignore.add(r.id);
-      if (cx.bool('ignoreSelf')) ignore.add(cx.actor.id);
+      // UE's bIgnoreSelf: the actor running the graph or, from an Actor Component, the actor that carries it (V7.68).
+      if (cx.bool('ignoreSelf')) {
+        ignore.add(cx.actor.id);
+        if (cx.actor.owner) ignore.add(cx.actor.owner);
+      }
       const hit = cx.world.lineTrace(start, end, toInt(cx.num('channel')), ignore);
       const debug = toInt(cx.num('debug'));
       if (debug > 0) {

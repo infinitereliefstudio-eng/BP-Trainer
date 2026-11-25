@@ -75,6 +75,7 @@ import { mixedDispenser, mixedSas } from './library/mixed';
 import { mixedLift, mixedMarket, mixedStand } from './library/mixed2';
 import { synthesis4 } from './library/synthesis4';
 import { expertArena } from './library/expertArena';
+import { expertRound } from './library/expertRound';
 import { expertRadio } from './library/expertRadio';
 import { expertWorkshop } from './library/expertWorkshop';
 import { predictComponentOrder } from './library/componentOrder';
@@ -263,6 +264,7 @@ export const LESSONS: Lesson[] = [
   expertWorkshop,
   expertRadio,
   expertArena,
+  expertRound,
 ];
 
 let n = 0;

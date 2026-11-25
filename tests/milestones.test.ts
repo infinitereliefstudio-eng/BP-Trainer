@@ -109,14 +109,15 @@ describe('projects in milestones (V7.65)', () => {
     expect(run.notes.some((n) => n.includes('Jalon'))).toBe(false);
   });
 
-  it('every project of the path in milestones: each fails from where the previous ends, and passes with its own part', () => {
-    for (const l of LESSONS.filter((x) => x.milestones)) {
+  // One test per project: a project in four milestones replays up to four scenarios each time (V7.68).
+  for (const l of LESSONS.filter((x) => x.milestones)) {
+    it(`${l.id} in milestones: each fails from where the previous ends, and passes with its own part`, { timeout: 30000 }, () => {
       for (let i = 0; i <= lastMilestone(l); i++) {
         const view = milestoneView(l, i);
         const before = i ? solvedUpTo(l, i - 1) : l.setup();
         expect(runLesson(view, before).passed, `${l.id}, jalon ${i + 1} au départ`).toBe(false);
         expect(runLesson(view, solvedUpTo(l, i)).passed, `${l.id}, jalon ${i + 1} résolu`).toBe(true);
       }
-    }
-  });
+    });
+  }
 });

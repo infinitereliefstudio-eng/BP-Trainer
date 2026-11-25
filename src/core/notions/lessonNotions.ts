@@ -168,6 +168,7 @@ export const LESSON_NOTIONS: Record<string, StepNotions> = {
   's4-fusibles': N([], ['save-game', 'cast', 'other-bp', 'destroy', 'overlap', 'input', 'enhanced-input', 'trace', 'interfaces', 'game-instance', 'visibility', 'loops', 'actor-components', 'functions', 'player-controller']),
   // Expert
   'x3-arene': N(['inheritance'], ['actor-components', 'dispatchers', 'tick', 'trace', 'data-tables', 'structs', 'random', 'spawn', 'timers', 'cast', 'umg', 'ui-input', 'save-game', 'game-mode', 'functions']),
+  'x4-ronde': N(['enum', 'switch'], ['inheritance', 'actor-components', 'dispatchers', 'tick', 'trace', 'widget-component', 'interfaces', 'cast', 'umg', 'ui-input', 'game-instance', 'levels', 'arrays', 'instance-editable', 'functions', 'game-mode']),
   'x1-radio': N(['input-mode'], ['player-controller', 'enhanced-input', 'data-tables', 'structs', 'sets', 'interfaces', 'cast']),
   'x2-atelier': N(['inheritance'], ['tick', 'sequence', 'latent', 'interfaces', 'rotation', 'visibility', 'actor-components', 'instance-editable', 'functions', 'dispatchers', 'umg', 'ui-input', 'player-controller', 'loops', 'other-bp']),
 };

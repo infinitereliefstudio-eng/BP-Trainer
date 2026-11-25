@@ -348,6 +348,29 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     2,
   ),
   q(
+    'x4-ronde',
+    'Un garde doit voir le joueur seulement s’il est devant lui. Avec sa Forward Vector et la direction vers le joueur (normalisée), que regarde-t-on ?',
+    [
+      'Leur Dot Product : près de 1, même sens ; au-dessus de 0,5, le joueur est dans un cône de 120°',
+      'La distance entre les deux : sous la Portee, il est devant',
+      'Le Yaw du garde : il doit valoir 0',
+      'Un Line Trace de 10 m droit devant : s’il touche le joueur, il est devant',
+    ],
+    'Deux directions de longueur 1 : leur Dot Product vaut 1 si elles vont dans le même sens, 0 à angle droit, −1 en sens contraire. Un seuil donne un cône. La distance dit « assez près », le Line Trace « rien entre » : trois questions différentes.',
+  ),
+  q(
+    'x4-ronde',
+    'Repéré, le joueur recommence : un Open Level rouvre le même niveau. Le compte des fois où il a été repéré doit continuer de monter. Où le garder ?',
+    [
+      'Dans le GameInstance : il traverse l’Open Level, le niveau rouvert repart de zéro',
+      'Dans le GameMode : c’est lui qui entend l’alerte',
+      'Dans le joueur : c’est lui qui est repéré',
+      'Dans une variable du garde qui l’a vu',
+    ],
+    'Open Level détruit tout le niveau, GameMode et joueur compris, et le recrée à neuf. Seul le GameInstance vit de Play à Stop. C’est d’ailleurs l’intérêt de rouvrir le niveau : les gardes et leur soupçon repartent d’eux-mêmes.',
+    2,
+  ),
+  q(
     'x1-radio',
     'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
     ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],

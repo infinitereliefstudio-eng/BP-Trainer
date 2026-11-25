@@ -675,7 +675,7 @@ const GAME_SCENARIO: ScenarioStep[] = [...WAVES_SCENARIO, { restart: true }, { w
  * The end screen's value for `label`: the number on the text that says it (« Score : 90 »), or on the
  * text drawn just right of it, on the same line (a label « Score : » and its value, as in UE).
  */
-function shownValue(cx: CheckContext, label: string): string | undefined {
+export function shownValue(cx: CheckContext, label: string): string | undefined {
   const laid = cx.sim.umg.layer(1280).flatMap((s) => s.laid).filter((l) => l.widget.kind === 'TextBlock' && l.drawn);
   const text = (l: (typeof laid)[number]) => String(l.props.text ?? '');
   const own = laid.find((l) => normText(text(l)).startsWith(normText(label)));

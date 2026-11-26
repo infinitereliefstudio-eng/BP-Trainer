@@ -63,9 +63,13 @@ function project(): Project {
   const f = choisir.f;
   const cast = f.node('cast.to', { class: jeu.cls.id }, {}, [300, 0]);
   const keep = f.node('var.setExternal', { owner: jeu.cls.id, variable: vid(p, 'BP_Jeu', 'Choix') }, {}, [620, 0]);
-  const open = f.node('level.open', {}, { level: GAME }, [980, 0]);
+  // The menu leaves with its level, its UI Only does not (V7.73): back to the game's controls before Open Level.
+  const owner = f.node('widget.getOwningPlayer', {}, {}, [900, 220]);
+  const gameOnly = f.node('input.setModeGameOnly', {}, {}, [980, 0]);
+  const open = f.node('level.open', {}, { level: GAME }, [1280, 0]);
   f.link(choisir.entry, 'then', cast, 'exec').link(f.node('game.getGameInstance', {}, {}, [80, 200]), 'result', cast, 'object');
-  f.link(cast, 'then', keep, 'exec').link(cast, 'as', keep, 'target').link(choisir.entry, choisir.pin.Vitrine, keep, 'value').link(keep, 'then', open, 'exec');
+  f.link(cast, 'then', keep, 'exec').link(cast, 'as', keep, 'target').link(choisir.entry, choisir.pin.Vitrine, keep, 'value').link(keep, 'then', gameOnly, 'exec');
+  f.link(owner, 'result', gameOnly, 'controller').link(gameOnly, 'then', open, 'exec');
   removeNodes(choisir.graph, [choisir.ret]);
   gap(f, 'Trou 2 : garder le choix sous une forme qui survit à Open Level (la vitrine reste dans le menu)', [580, -60], 340, 260);
   AVATARS.forEach((name, i) => {
@@ -123,12 +127,12 @@ function solve(p: Project): void {
   const choisir = { graph: g, f: w.inGraph(g.id), entry: nodeOf(g, 'fn.entry'), pin: { Vitrine: g.fn!.inputs[0].id } };
   const keep = Object.values(g.nodes).find((n) => n.def === 'var.setExternal')!;
   const cast = nodeOf(g, 'cast.to');
-  const open = nodeOf(g, 'level.open');
+  const gameOnly = nodeOf(g, 'input.setModeGameOnly');
   removeNodes(g, [keep.id]);
   const f = choisir.f;
   const set = f.node('var.setExternal', { owner: jeu, variable: vid(p, 'BP_Jeu', 'Avatar') }, {}, [620, 0]);
   const klass = f.node('actor.getClassName', {}, {}, [480, 200]);
-  f.link(cast, 'then', set, 'exec').link(cast, 'as', set, 'target').link(choisir.entry, choisir.pin.Vitrine, klass, 'object').link(klass, 'result', set, 'value').link(set, 'then', open, 'exec');
+  f.link(cast, 'then', set, 'exec').link(cast, 'as', set, 'target').link(choisir.entry, choisir.pin.Vitrine, klass, 'object').link(klass, 'result', set, 'value').link(set, 'then', gameOnly, 'exec');
 
   const gm = edit(p, 'BP_GameMode');
   const o = gm.cls.graphs.find((x) => x.override === OVERRIDE)!;
@@ -167,6 +171,17 @@ function playsAs(id: string, avatar: (typeof AVATARS)[number], label: string, at
   };
 }
 
+/** The menu was UI Only: the game level keeps the mode unless Game Only comes back (V7.73, as UE's viewport). */
+const playable: Check = {
+  id: 'game-only',
+  label: 'Dans le niveau de jeu, les commandes répondent',
+  at: 'drone',
+  test: (cx) =>
+    cx.sim.inputMode === 'GameOnly'
+      ? true
+      : `${GAME} est en ${cx.sim.inputMode === 'UIOnly' ? 'UI Only' : 'Game and UI'} : le mode réglé par le menu a suivi Open Level, comme dans UE. Garde Set Input Mode Game Only juste avant Open Level, dans Choisir.`,
+};
+
 const oneOnly: Check = {
   id: 'one',
   label: 'Un seul pion, fait par le GameMode',
@@ -186,6 +201,7 @@ export const complete8: Lesson = {
   module: LEVELS_MODULE,
   level: 'avance',
   number: 0,
+  revision: 2,
   title: 'Le personnage choisi',
   situation:
     'Au lancement, un menu propose deux personnages, l’Agent et le Drone, présentés en vitrine. Le bouton retient le choix puis ouvre le niveau de jeu. Mais quel que soit le choix, on y joue toujours l’Agent. Deux trous, dans les cadres jaunes.',
@@ -198,7 +214,7 @@ export const complete8: Lesson = {
       title: 'Ce qui est en place',
       body:
         `- **${MENU}** (Game Default Map) : deux vitrines, **BP_Agent** et **BP_Drone**. Son GameMode, **BP_GameModeMenu**, a pour Player Controller **BP_PCMenu**, qui affiche **WBP_Choix** (UI Only, curseur).\n` +
-        '- **WBP_Choix** : Btn_Agent et Btn_Drone trouvent leur vitrine (Get Actor Of Class) et appellent la fonction **Choisir (Vitrine)**. Choisir : Get Game Instance → Cast To BP_Jeu → **Set Choix** = Vitrine → Open Level (Lvl_Jeu).\n' +
+        '- **WBP_Choix** : Btn_Agent et Btn_Drone trouvent leur vitrine (Get Actor Of Class) et appellent la fonction **Choisir (Vitrine)**. Choisir : Get Game Instance → Cast To BP_Jeu → **Set Choix** = Vitrine → **Set Input Mode Game Only** → Open Level (Lvl_Jeu). Le Game Only est là parce que le mode d’entrée suit Open Level, comme dans UE : sans lui, le menu laisserait le jeu en UI Only, sans touches.\n' +
         '- **BP_Jeu** (Game Instance Class) : **Choix** (une référence d’acteur) et **Avatar** (une Class Reference de Pawn, BP_Agent par défaut).\n' +
         `- **${GAME}** : une porte qui ramène au menu. Son GameMode est **BP_GameMode** (Default Pawn Class : BP_Agent), dont la fonction **GetDefaultPawnClassForController** est déjà surchargée, mais vide.`,
     },
@@ -218,7 +234,7 @@ export const complete8: Lesson = {
       title: 'Les deux trous',
       body:
         '1. **BP_GameMode › GetDefaultPawnClassForController** : Get Game Instance → **Cast To BP_Jeu** → **Return Node**, Return Value = **Avatar** (As BP_Jeu).\n' +
-        '2. **WBP_Choix › Choisir** : remplace Set Choix par **Set Avatar**, valeur = **Get Class** (Object = Vitrine), puis Open Level comme avant.\n\n' +
+        '2. **WBP_Choix › Choisir** : remplace Set Choix par **Set Avatar**, valeur = **Get Class** (Object = Vitrine), puis Set Input Mode Game Only et Open Level comme avant.\n\n' +
         `Le test choisit le Drone, revient au menu par la porte, choisit l’Agent, puis relance le jeu directement dans ${GAME} : sans choix, Avatar garde sa valeur par défaut, l’Agent.`,
     },
   ],
@@ -246,6 +262,7 @@ export const complete8: Lesson = {
   checks: [
     playsAs('drone', 'BP_Drone', 'Choisir le Drone : on joue le Drone', 'drone'),
     oneOnly,
+    playable,
     playsAs('agent', 'BP_Agent', 'Retour au menu, choisir l’Agent : on joue l’Agent', 'agent'),
     {
       id: 'direct',

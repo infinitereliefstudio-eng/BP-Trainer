@@ -57,6 +57,8 @@ export class RunRecord {
   readonly pausedActions = new Set<string>();
   /** Input Actions and keys that did not reach the game because the input mode was UI Only. */
   readonly uiOnlyBlocked = new Set<string>();
+  /** Levels opened while the input mode was UI Only: the mode followed them, as UE's viewport does (V7.73). */
+  readonly uiOnlyCarried: string[] = [];
   /** Buttons that answered a touch ("WBP_Pause/Btn_Reprendre"), and touches on a button that were ignored (why). */
   readonly buttons: string[] = [];
   readonly ignoredTouches: { button: string; reason: string }[] = [];

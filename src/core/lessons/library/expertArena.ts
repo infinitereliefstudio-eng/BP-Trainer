@@ -728,7 +728,7 @@ const gameChecks = [
     label: 'Sans un tir : trois drones atteignent le cœur, chacun disparaît, « Le cœur est touché »',
     test: (cx: CheckContext) => {
       const n = countPrints(cx, HIT);
-      if (n === 0) return `Aucun « ${HIT} » dans la partie sans tir : les drones arrivent au cœur sans qu’il le sente. Un Static Mesh ne déclenche pas d’overlap : donne au drone une Box Collision, et au cœur son On Actor Begin Overlap.`;
+      if (n === 0) return `Aucun « ${HIT} » dans la partie sans tir : les drones arrivent au cœur sans qu’il le sente. Dans l’appli, seule une Box Collision chevauche (dans UE, un Static Mesh le peut aussi, avec un preset Overlap, mais une zone se fait d’habitude avec une Box Collision) : donne au drone une Box Collision, et au cœur son On Actor Begin Overlap.`;
       if (n !== 3) return `${n} « ${HIT} » dans la partie sans tir : on en attend 3, un par drone arrivé, jusqu’à ce que le cœur (Vie 3) tombe.`;
       const stuck = alive(cx).filter((a) => dist(a) < 150);
       return stuck.length ? `${stuck[0].label} est sur le cœur et toujours là : arrivé, il disparaît.` : true;
@@ -861,7 +861,7 @@ export const expertArena: Lesson = withMilestones(
         {
           title: 'Cahier des charges',
           body:
-            '1. Le **cœur** porte lui aussi BP_Sante, avec **3** points de vie. Un drone qui l’atteint (sa Zone) disparaît, affiche `Le cœur est touché`, et lui enlève 1 point de vie. Un Static Mesh ne déclenche pas d’overlap : le drone a besoin d’une **Box Collision**.\n' +
+            '1. Le **cœur** porte lui aussi BP_Sante, avec **3** points de vie. Un drone qui l’atteint (sa Zone) disparaît, affiche `Le cœur est touché`, et lui enlève 1 point de vie. Pour être senti, le drone a besoin d’une **Box Collision** : dans l’appli, seule elle chevauche (dans UE, un Static Mesh le pourrait avec un preset Overlap, mais une zone de contact se fait d’habitude avec une Box Collision).\n' +
             `2. Chaque drone abattu rapporte ses **Points** au GameMode : une variable de BP_Drone, réglée dans les Class Defaults (Éclaireur ${SCOUT.points}, Blindé ${HEAVY.points}). Un drone arrivé au cœur ne rapporte rien.\n` +
             '3. La partie finit quand le cœur tombe, ou après `L’arène est sauve`. Alors : plus aucun drone n’apparaît, et un écran de fin montre le **Score** et le **Record** (un texte « Score : » et, à sa droite, la valeur), en **UI Only**, curseur visible, jeu en **pause**.\n' +
             `4. Le **record** est le meilleur score de toutes les parties : gardé dans une **Save Game** (slot \`${SLOT}\`), relu au lancement.`,

@@ -1033,7 +1033,7 @@ export const expertRound: Lesson = withMilestones(
     },
     {
       id: 'vision',
-      title: 'La vision et l’alerte',
+      title: 'La vision',
       cards: [
         {
           title: 'Cahier des charges',

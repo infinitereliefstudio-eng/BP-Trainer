@@ -846,8 +846,12 @@ function solveMenu(p: Project): void {
   Object.assign(line.graph.nodes[click], { x: 64, y: 700 });
   const lgi = partie(line, click, 'then', [340, 700]);
   const choose = line.node('var.setExternal', { owner: gi.cls.id, variable: grille }, {}, [640, 700]);
-  const go = line.node('level.open', {}, { level: LEVEL }, [940, 700]);
-  line.link(lgi, 'then', choose, 'exec').link(lgi, 'as', choose, 'target').link(L([480, 900]), 'value', choose, 'value').link(choose, 'then', go, 'exec');
+  // The menu's UI Only would follow Open Level (V7.73, as UE's viewport): the game's controls back first.
+  const owner = line.node('widget.getOwningPlayer', {}, {}, [900, 900]);
+  const gameOnly = line.node('input.setModeGameOnly', {}, {}, [940, 700]);
+  const go = line.node('level.open', {}, { level: LEVEL }, [1240, 700]);
+  line.link(lgi, 'then', choose, 'exec').link(lgi, 'as', choose, 'target').link(L([480, 900]), 'value', choose, 'value').link(choose, 'then', gameOnly, 'exec');
+  line.link(owner, 'result', gameOnly, 'controller').link(gameOnly, 'then', go, 'exec');
 
   // WBP_Salles: one line per row of DT_Grilles, built in game.
   const rooms = newClass(p, 'WBP_Salles', 'UserWidget');
@@ -1059,7 +1063,12 @@ const menuChecks = [
     id: 'choose',
     label: `Jouer sur « ${G1.name} » ouvre ${LEVEL} avec la grille ${G1.row}`,
     at: 'salleA',
-    test: (cx: CheckContext) => (cx.level() !== LEVEL ? `Après Jouer sur « ${G1.name} », le jeu est dans ${cx.level()} : le bouton ouvre ${LEVEL} (Open Level).` : generated(G1)(cx)),
+    test: (cx: CheckContext) => {
+      if (cx.level() !== LEVEL) return `Après Jouer sur « ${G1.name} », le jeu est dans ${cx.level()} : le bouton ouvre ${LEVEL} (Open Level).`;
+      if (cx.sim.inputMode !== 'GameOnly')
+        return `${LEVEL} est en ${modeLabel(cx)} : le mode du menu a suivi Open Level, comme dans UE (il appartient au viewport, pas au niveau), et E n’y tourne rien. Set Input Mode Game Only avant Open Level.`;
+      return generated(G1)(cx);
+    },
   },
   {
     id: 'back',
@@ -1218,7 +1227,7 @@ export const expertNetwork: Lesson = withMilestones(
           title: 'Cahier des charges',
           body:
             `1. Un niveau **${MENU}**, la Game Default Map : au lancement, un menu avec une ligne **${ROW}** par ligne de DT_Grilles, construite en jeu ; chaque ligne montre le **Nom** de sa grille et un bouton **${PLAY}**. UI Only, curseur visible.\n` +
-            `2. ${PLAY} ouvre **${LEVEL}** avec la grille de sa ligne : BP_Reseau ne lit plus ${G1.row}, mais la grille choisie. Le choix doit traverser Open Level : il vit dans le **GameInstance** (BP_Partie, une variable Grille, ${G1.row} par défaut, pour qu’un Play dans ${LEVEL} marche encore).\n` +
+            `2. ${PLAY} ouvre **${LEVEL}** avec la grille de sa ligne : BP_Reseau ne lit plus ${G1.row}, mais la grille choisie. Le choix doit traverser Open Level : il vit dans le **GameInstance** (BP_Partie, une variable Grille, ${G1.row} par défaut, pour qu’un Play dans ${LEVEL} marche encore). Dans la grille, E tourne les relais comme avant.\n` +
             `3. 2 s après « ${FIXED} » ou « ${NO_MOVES} », retour au menu.`,
         },
         {
@@ -1228,7 +1237,7 @@ export const expertNetwork: Lesson = withMilestones(
         {
           title: 'Pour aller plus loin',
           body:
-            '**Ce qui survit à Open Level** : le niveau, ses acteurs et ses widgets disparaissent ; le GameInstance reste. Le menu y dépose la grille choisie, le réseau l’y lit.\n\n' +
+            '**Ce qui survit à Open Level** : le niveau, ses acteurs et ses widgets disparaissent ; le GameInstance reste. Le menu y dépose la grille choisie, le réseau l’y lit. Le **mode d’entrée** reste aussi : il appartient au viewport. Un menu en UI Only qui ouvre un niveau le laisse sans touches ; on remet Game Only juste avant Open Level.\n\n' +
             '**Une ligne par donnée** : ajouter une grille à DT_Grilles ajoute une ligne au menu, sans toucher à aucun graphe.',
         },
       ],

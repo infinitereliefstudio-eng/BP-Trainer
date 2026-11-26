@@ -114,6 +114,8 @@ export function runMilestones<R extends { passed: boolean; notes: string[] }>(le
   for (let i = 0; i <= upTo; i++) {
     run = play(milestoneStep(lesson, i), structuredClone(project));
     if (!run.passed) {
+      // A project of one milestone (X2) reads as a plain project, failed as passed (V7.73).
+      if ((lesson.milestones?.length ?? 0) < 2) return { run, passed: 0 };
       notes.push(`${milestoneName(lesson, i)} : pas encore réussi. Les vérifications ci-dessus sont les siennes.`);
       return { run: { ...run, notes: [...notes, ...run.notes] }, passed: i };
     }

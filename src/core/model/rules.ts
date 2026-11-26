@@ -53,6 +53,13 @@ export const RULE_CHANGES: readonly RuleChange[] = [
     text:
       'GameInstance : pendant Event Init, le pion, le Player Controller et le GameMode n’existent pas encore (Get Player Pawn, Get Player Controller et Get Game Mode rendent None), comme dans UE. Ses Delay et ses timers continuent après Open Level.',
   },
+  {
+    version: 7,
+    since: Date.parse('2026-11-26T10:20:00+01:00'),
+    app: '7.73',
+    text:
+      'Open Level garde le mode d’entrée, comme dans UE : Set Input Mode règle le viewport, qui survit au voyage. Un menu resté en UI Only laisse le niveau suivant sans touches tant que rien ne remet Game Only. Le curseur, lui, repart caché (il appartient au Player Controller, recréé).',
+  },
 ];
 
 export const RULES_VERSION = RULE_CHANGES[RULE_CHANGES.length - 1].version;

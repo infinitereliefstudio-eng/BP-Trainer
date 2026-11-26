@@ -1,6 +1,6 @@
 # Revue du chantier n° 5, projet Expert final, V7.65 à V7.72 (26 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) » : https://claude.ai/artifact/PrTvoTGE2owxrra3MESUPC. Demandée par Tristan le 26 novembre à 9 h 47 (« il faut passer à la review du dernier chantier »), en redonnant l'accès en écriture. **Rien n'est lancé** : ce fichier propose, Tristan choisit.
+Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) » : https://claude.ai/artifact/PrTvoTGE2owxrra3MESUPC. Demandée par Tristan le 26 novembre à 9 h 47 (« il faut passer à la review du dernier chantier »), en redonnant l'accès en écriture. Tristan a répondu le 26 novembre à 10 h 19 (« ok pour toutes tes reco, tu peux lancer ») : les quatre recommandations sont prises, les deux lots lancés, une version chacun. **V7.73 faite** (lot 1).
 
 État de départ : lint, types et build sans erreur, 1 986 tests, smoke test sans erreur (`errors []`). Chaque constat a été reproduit par un test jetable (non versionné), se lit dans le code, ou s'appuie sur les sources citées en bas.
 
@@ -36,7 +36,7 @@ Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) �
 
 | Lot | Contenu | Version |
 | --- | --- | --- |
-| 1 | **G1** : le mode d'entrée traverse Open Level, comme le viewport d'UE (le curseur, lui, appartient au Player Controller neuf et repart caché) ; « Pourquoi ? » explique des touches ignorées après un voyage ; C8 et X5 remettent Game Only (la vérification l'exige) ; fiche UE5 du Réveil précisée ; version des règles de simulation montée (avis dans les projets déjà commencés). **V1, J1, F1, N1**. Un test chacun | V7.73 |
+| 1 (fait) | **G1** : le mode d'entrée traverse Open Level, comme le viewport d'UE (le curseur, lui, appartient au Player Controller neuf et repart caché) ; « Pourquoi ? » explique des touches ignorées après un voyage ; C8 et X5 remettent Game Only (la vérification l'exige) ; fiche UE5 du Réveil précisée ; version des règles de simulation montée (avis dans les projets déjà commencés). **V1, J1, F1, N1**. Un test chacun | V7.73 |
 | 2 | **P1** : la durée du jalon en cours et le total du projet (en séances) au lieu de « ≈ 120 min » ; X2 en deux jalons. **P2** : solutions réécrites en fonctions (Recalculer en fonction à variables locales, le GameMode de L'arène, le terminal, le générateur). **P3** : un fusible posé ne revient pas après Continuer. **P4** : un GameMode de menu sans pion dans X5 et X6. **D1** | V7.74 |
 
 ## Questions à trancher
@@ -45,6 +45,8 @@ Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) �
 2. **X2 en deux jalons** (recommandé : 1. les machines et leur carburant en composant ; 2. le panneau de contrôle), ou un seul jalon comme aujourd'hui ?
 3. **Le réveil** : seulement les fusibles qui ne reviennent pas (recommandé : le projet fait déjà 285 nœuds, l'Avancé enseigne le Player Start Tag), ou aussi une seconde entrée avec Player Start Tag ?
 4. **Renuméroter X2 à X6 en X1 à X5** (question ouverte depuis la V7.72) : oui, dans le lot 2 (recommandé : la progression est gardée par l'identifiant de l'étape, pas par son code, et rien n'est encore commencé), ou garder les codes ?
+
+**Réponses (26 novembre, 10 h 19, « ok pour toutes tes reco »)** : 1. simuler comme UE ; 2. X2 en deux jalons ; 3. les fusibles seulement ; 4. renuméroter X1 à X5.
 
 ## Sources
 

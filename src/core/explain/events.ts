@@ -12,6 +12,14 @@ import { delegateSource, findNodes, titleOf, type Site } from './where';
 
 const KEY_NAMES: Record<string, string> = { E: 'E', F: 'F', SpaceBar: 'Espace' };
 
+/** A key or an action that reached nothing because the input mode was UI Only; said differently when it came from the level before (V7.73). */
+function uiOnlyWhy(cx: DiagnoseCx, what: string): string {
+  const carried = cx.record.uiOnlyCarried;
+  if (carried.length)
+    return `${what} en UI Only : le jeu ne reçoit rien. Le mode avait été réglé avant Open Level, et il a suivi dans ${carried[carried.length - 1]} : comme dans UE, il appartient au viewport, pas au niveau. Remets Set Input Mode Game Only avant Open Level (ou au début du niveau qui arrive).`;
+  return `${what} en UI Only : le jeu ne reçoit rien, seuls les widgets ont le doigt. Set Input Mode Game Only (ou Game and UI) pour rendre les touches au jeu.`;
+}
+
 export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], depth: number, seen: Set<string>): void {
   const { cls, node } = s;
   const say = (text: string) => steps.push(stepAt(s, text));
@@ -23,6 +31,10 @@ export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], 
     case 'event.inputKey': {
       const key = String(node.config.key ?? 'E');
       const isPlayer = isPlayerPawnClass(cx.project, cls.id);
+      if (cx.record.uiOnlyBlocked.has(key)) {
+        say(uiOnlyWhy(cx, `La touche ${KEY_NAMES[key] ?? key} a été pressée`));
+        return;
+      }
       if (!isPlayer && !cls.autoReceiveInput) {
         say(`Auto Receive Input est sur Disabled dans Class Settings de ${cls.name} : ses événements de touche ne reçoivent rien. Règle-le sur Player 0.`);
       } else if (!cx.record.keys.has(key)) say(`La touche ${KEY_NAMES[key] ?? key} n’a pas été pressée pendant la partie.`);
@@ -35,6 +47,10 @@ export function whyEventSilent(cx: DiagnoseCx, s: Site, steps: DiagnosisStep[], 
         say(
           `${action.name} s’est déclenchée pendant que le jeu était en pause (Set Game Paused) : en pause, une Input Action n’arrive dans les graphes que si Trigger when Paused est coché dans ses Details (Content Drawer › ${action.name}).`,
         );
+        return;
+      }
+      if (action && cx.record.uiOnlyBlocked.has(action.id)) {
+        say(uiOnlyWhy(cx, `${action.name} s’est déclenchée`));
         return;
       }
       break;

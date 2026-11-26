@@ -51,6 +51,7 @@ export const REDO_NETWORK = card(
     '- **La grille** se fabrique au BeginPlay, comme ici : Spawn Actor est refusé dans un Construction Script. Pour la voir dans l’éditeur, il faudrait des Child Actor Components ou des Instanced Static Meshes.\n' +
     '- **Tourner un relais** : Add Actor Local Rotation de 90° en Yaw. Pour un quart de tour animé, un Timeline.\n' +
     '- **DT_Grilles** : un membre tableau (Formes) se remplit élément par élément dans l’éditeur de la Data Table ; pour beaucoup de grilles, un import **JSON** ou **CSV**.\n' +
+    '- **Jouer depuis le menu** : le menu est en UI Only, et ce mode suit Open Level (il appartient au viewport). Sans Set Input Mode Game Only avant d’ouvrir la grille, E n’y ferait rien : c’est le piège le plus courant du premier menu.\n' +
     '- **Les deux niveaux** : dans **Project Settings › Maps & Modes**, **Game Default Map** = Lvl_Menu (le jeu lancé commence au menu) et **Editor Startup Map**. Play dans l’éditeur joue le niveau **ouvert**, pas la Game Default Map : pour tester le menu, ouvre Lvl_Menu.\n' +
     '- **Une boucle sans fin** s’arrête sur « Infinite loop detected » au bout de **Maximum Loop Iteration Count** (Project Settings › General Settings, un million par défaut). Monter ce chiffre ne répare rien : c’est le Set des relais déjà vus qui fait finir le parcours.' +
     TEST,
@@ -59,7 +60,7 @@ export const REDO_NETWORK = card(
 export const REDO_WAKEUP = card(
   START +
     '- **Regarder** : le Line Trace de Viser part de la **caméra** (Get Player Camera Manager), pour viser là où le joueur regarde, y compris en haut ou en bas.\n' +
-    '- **Les modes d’entrée** : après Open Level, le Player Controller est neuf, mais la capture de la souris peut garder le réglage d’avant. Règle le mode **avant** Open Level et au BeginPlay de ce qui arrive : c’est ce que fait le projet.\n' +
+    '- **Les modes d’entrée** : après Open Level, le Player Controller est neuf (le curseur repart caché), mais le mode d’entrée appartient au **viewport**, qui reste : un UI Only réglé au menu suit dans le niveau suivant, qui ne reçoit alors aucune touche. Comme dans l’appli, remets **Game Only avant Open Level** ; au BeginPlay de ce qui arrive aussi, si le niveau peut être ouvert d’ailleurs.\n' +
     '- **La porte** : le Timeline a son propre éditeur (double-clic), avec une piste Float de 0 à 1 ; Lerp (Vector) puis Set Relative Location sur le Battant.\n' +
     '- **Redéfinir PeutOuvrir** : dans l’enfant, My Blueprint › Functions › **Override** › PeutOuvrir.\n' +
     '- **Le menu et les niveaux** : Game Default Map = Lvl_Menu (Project Settings › Maps & Modes) ; Play dans l’éditeur joue le niveau ouvert. Quit Game en Play dans l’éditeur arrête simplement le Play.\n' +

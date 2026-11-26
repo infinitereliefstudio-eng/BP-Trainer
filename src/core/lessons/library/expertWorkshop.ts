@@ -113,7 +113,8 @@ function fuelInComponent(cx: CheckContext): true | string {
   if (!comps.some((c) => c.variables.some((v) => v.type.category === 'float' && v.instanceEditable)))
     return `${comps[0].name} n’a pas de variable Float Instance Editable pour le carburant : c’est elle que chaque machine posée règle (3 pour la pompe, 1 pour le ventilateur).`;
   for (const name of ['BP_Machine', 'BP_Pompe', 'BP_Ventilo']) {
-    const fuel = p.classes.find((c) => c.name === name)?.variables.find((v) => /carbu|fuel|reserv/i.test(v.name));
+    // A number named like the fuel; a reference to the component (Reservoir, BP_Reservoir) is fine (V7.73).
+    const fuel = p.classes.find((c) => c.name === name)?.variables.find((v) => (v.type.category === 'float' || v.type.category === 'int') && /carbu|fuel|reserv/i.test(v.name));
     if (fuel) return `${name} a encore une variable ${fuel.name} : le carburant est quelque chose que la machine a, il vit dans le composant, réglé machine par machine.`;
   }
   return true;

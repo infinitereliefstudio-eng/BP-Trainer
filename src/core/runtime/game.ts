@@ -223,11 +223,15 @@ export class Game {
       if (!old.ended) return;
     }
     const move = old.move;
+    // Set Input Mode sets the game viewport, which outlives the world (V7.73): the mode follows the travel. Show Mouse
+    // Cursor belongs to the Player Controller, which is made anew: the cursor is hidden again.
+    const mode = old.inputMode;
     this.slotsChangedBefore ||= old.slotsChanged;
     this.journal.rebase(old.time);
     const saves = this.forgetOldWorld(old);
     this.world = this.make(this.target);
     this.world.move = move;
+    this.world.inputMode = mode;
     // What the screen said: the texts that reached it (a widget of the old world is gone, it will not be painted now).
     old.umg.markSeen();
     this.world.umg.textLog.push(...old.umg.textLog.filter((e) => e.seen));
@@ -236,6 +240,12 @@ export class Game {
     this.world.engineLog(
       `LogLoad: LoadMap: /Game/${this.world.level.name} (Open Level depuis ${old.level.name} : un monde neuf, ses acteurs, le joueur et le Player Controller recréés)`,
     );
+    if (mode !== 'GameOnly') {
+      if (mode === 'UIOnly') this.record.uiOnlyCarried.push(this.world.level.name);
+      this.world.engineLog(
+        `LogPlayerController: le mode d’entrée ${mode === 'UIOnly' ? 'UI Only' : 'Game and UI'}, réglé avant Open Level, est gardé dans ${this.world.level.name} (il appartient au viewport, pas au niveau). ${mode === 'UIOnly' ? 'Le jeu n’y reçoit aucune touche tant que rien ne remet Set Input Mode Game Only.' : ''}`.trim(),
+      );
+    }
     this.world.start();
     this.onTravel?.(this.world);
   }

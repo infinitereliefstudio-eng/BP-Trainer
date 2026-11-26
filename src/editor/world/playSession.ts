@@ -6,10 +6,15 @@
 import type { Project } from '@core/model/project';
 import { Game } from '@core/runtime/game';
 import { type ActorOrder, type Simulation, STEP } from '@core/runtime/simulation';
-import type { Camera } from '../camera';
+import type { Point } from '../camera';
 import { ExecHeat } from '../debug/execHeat';
 
 export type Speed = 0.25 | 1 | 4;
+
+/** Where a point of the level is on the screen: the top view's camera, or the 3D view's (3D-0, V7.77). */
+export interface ScreenProjector {
+  toScreen(wx: number, wy: number): Point;
+}
 
 export class PlaySession {
   readonly game: Game;
@@ -26,7 +31,11 @@ export class PlaySession {
    */
   selected?: string;
   /** The level view's camera, set by the view each frame: the widgets of Widget Components follow their actor with it. */
-  camera?: Camera;
+  camera?: ScreenProjector;
+  /** Play drawn in 3D (« Vue 3D (essai) », 3D-0) or from above; the toolbar switches during Play. */
+  view3d = false;
+  /** Frames per second of the 3D view, measured about once a second (shown in the toolbar during the trial). */
+  fps?: number;
   private wasPaused = false;
   private frameListeners = new Set<() => void>();
   private uiListeners = new Set<() => void>();
@@ -143,6 +152,14 @@ export class PlaySession {
 
   togglePause(): void {
     this.running = !this.running;
+    this.notifyUi();
+  }
+
+  /** Switch between the 3D view and the top view (the app's addition: a game made in UE has one camera). */
+  setView3d(on: boolean): void {
+    this.view3d = on;
+    this.camera = undefined;
+    this.fps = undefined;
     this.notifyUi();
   }
 

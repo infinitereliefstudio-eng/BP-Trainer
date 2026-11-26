@@ -62,7 +62,8 @@ async def free_play(page):
 async def main():
     OUT.mkdir(parents=True, exist_ok=True)
     async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path=CHROME, args=['--no-sandbox'])
+        # WebGL in software (SwiftShader) for the 3D view of Play (3D-0, V7.77).
+        b = await p.chromium.launch(executable_path=CHROME, args=['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
         ctx = await b.new_context(viewport={'width': 800, 'height': 370}, device_scale_factor=2, has_touch=True, is_mobile=True)
         page = await ctx.new_page()
         errs = []
@@ -1866,6 +1867,70 @@ async def main():
             errs.append('Maps & Modes : pas de Default GameMode')
         await shot('118_maps_modes_gamemode')
         await page.locator('.sheet .btn', has_text='Fermer').first.tap()
+        await page.wait_for_timeout(200)
+        # 3D-0 (V7.77): Réglages › Play › Vue 3D (essai). Play draws the level in 3D (a WebGL canvas); « Dessus » goes back
+        # to the top view and « 3D » again; a tap on an actor still picks it; the setting is put back after.
+        await page.locator('button[aria-label="Accueil"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.segmented button', has_text='Vue 3D (essai)').tap()
+        await shot('119_settings_3d')
+        await page.locator('.dialog .btn', has_text='Fermer').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.doc-tab.level').count():
+            await page.locator('.doc-tab.level').tap()
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1500)
+        if not await page.locator('.world3d[data-view="3d"] canvas').count():
+            errs.append('Vue 3D : Play ne dessine pas le niveau en 3D')
+        await page.locator('.key', has_text='E').first.dispatch_event('pointerdown')
+        await page.wait_for_timeout(150)
+        await page.locator('.key', has_text='E').first.dispatch_event('pointerup')
+        await page.wait_for_timeout(900)
+        await shot('120_play_3d')
+        unmarked = await page.evaluate(AUDIT)
+        if unmarked:
+            errs.append(f'Familles : boutons sans famille dans Play en 3D {unmarked}')
+        if await page.locator('.pb-fps').count() == 0:
+            errs.append('Vue 3D : les images par seconde ne s’affichent pas')
+        # A tap on the generator (above the player, right of the middle) picks it: the live Outliner shows it.
+        canvas = await page.locator('.world3d canvas').bounding_box()
+        picked = False
+        for fx, fy in [(0.69, 0.24), (0.68, 0.2), (0.7, 0.28)]:
+            await page.mouse.click(canvas['x'] + canvas['width'] * fx, canvas['y'] + canvas['height'] * fy)
+            await page.wait_for_timeout(250)
+            await page.locator('.pb-btn[aria-label="Outliner"]').tap()
+            await page.wait_for_timeout(250)
+            picked = await page.locator('.outliner-drawer.open .outliner-back').count() > 0
+            await page.locator('.outliner-drawer .drawer-head .btn').tap()
+            await page.wait_for_timeout(200)
+            if picked:
+                break
+        await shot('120b_play_3d_picked')
+        if not picked:
+            errs.append('Vue 3D : toucher le générateur ne le choisit pas dans l’Outliner')
+        await page.locator('.view-switch', has_text='Dessus').tap()
+        await page.wait_for_timeout(400)
+        if await page.locator('.world3d').count() or not await page.locator('.graph-canvas.world canvas').count():
+            errs.append('Vue 3D : « Dessus » ne revient pas à la vue de dessus')
+        await shot('121_play_top_again')
+        await page.locator('.view-switch', has_text='3D').tap()
+        await page.wait_for_timeout(500)
+        if not await page.locator('.world3d canvas').count():
+            errs.append('Vue 3D : « 3D » ne revient pas à la vue 3D')
+        await page.locator('.tb.stop').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.world3d').count():
+            errs.append('Vue 3D : le niveau reste en 3D hors de Play')
+        await page.locator('button[aria-label="Accueil"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.segmented button', has_text='Vue de dessus').tap()
+        await page.locator('.dialog .btn', has_text='Fermer').tap()
         await page.wait_for_timeout(200)
 
         print('errors', errs)

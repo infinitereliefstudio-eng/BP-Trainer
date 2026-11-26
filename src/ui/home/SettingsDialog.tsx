@@ -1,6 +1,6 @@
 /**
  * Home › Réglages (« Sauvegarde » until V7.74): the text size (UI-1, V7.75); the editor's families and « Vue UE
- * pure » (UI-4, V7.76); export everything (progress, review,
+ * pure » (UI-4, V7.76); Play in 3D, a trial (3D-0, V7.77); export everything (progress, review,
  * every project) to one file, and bring it back. Also shows which version is running.
  */
 import { useState } from 'preact/hooks';
@@ -9,6 +9,7 @@ import { APP_VERSION, BUILD_DATE } from '../../version';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { FamiliesSetting } from './FamiliesSetting';
 import { TextSizeSetting } from './TextSizeSetting';
+import { View3dSetting } from './View3dSetting';
 
 interface Props {
   onClose: () => void;
@@ -61,6 +62,7 @@ export function SettingsDialog({ onClose, onRestored }: Props) {
         <h2>Réglages</h2>
         <TextSizeSetting />
         <FamiliesSetting />
+        <View3dSetting />
         <h3>Sauvegarde</h3>
         <p>
           Ta progression et tes projets sont gardés sur cet appareil, dans le stockage de l’appli. L’effacer ou changer de téléphone les perd : garde un

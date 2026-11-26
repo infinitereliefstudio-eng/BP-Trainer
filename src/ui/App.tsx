@@ -23,7 +23,8 @@ import type { Value } from '@core/types/values';
 import { GraphCanvas, type CanvasRequests, type GraphCanvasHandle } from '@editor/GraphCanvas';
 import { haptic } from '@editor/haptics';
 import { PlaySession } from '@editor/world/playSession';
-import { WorldCanvas, type WorldRequests } from '@editor/world/WorldCanvas';
+import type { WorldRequests } from '@editor/world/WorldCanvas';
+import { LevelView } from './play/LevelView';
 import { ViewportCanvas, type ViewportHandle, type ViewportRequests } from '@editor/viewport/ViewportCanvas';
 import { StoreContext, useStore } from './hooks';
 import { GoalStrip } from './lesson/GoalStrip';
@@ -47,7 +48,7 @@ import { DebugBar } from './play/DebugBar';
 import { LiveOutliner } from './play/LiveOutliner';
 import { LevelOutliner } from './panels/LevelOutliner';
 import { PlayControls, PlayOverlay } from './play/PlayOverlay';
-import { playOrder } from './playSettings';
+import { playOrder, view3d } from './playSettings';
 import { DocumentTabs } from './editor/DocumentTabs';
 import { BottomBar } from './editor/BottomBar';
 import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolbars';
@@ -301,6 +302,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
     }
     store.compile(true);
     const s = new PlaySession(store.project, store.breakpoints, playOrder(), () => store.slotsWritten());
+    s.view3d = view3d();
     for (const a of s.sim.deafActors()) {
       store.warn(`${a.label} a un événement de touche, mais Auto Receive Input est sur Disabled : il ne recevra pas les touches.`);
     }
@@ -502,7 +504,13 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         ) : view === 'graph' ? (
           <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
         ) : (
-          <WorldCanvas store={store} session={session ?? undefined} requests={worldRequests} center={centerOn} />
+          <LevelView
+            store={store}
+            session={session ?? undefined}
+            requests={worldRequests}
+            center={centerOn}
+            onNo3d={() => store.warn('Vue 3D indisponible sur cet appareil (WebGL absent) : Play reste en vue de dessus.')}
+          />
         )}
 
         {playing && session && view === 'level' && (

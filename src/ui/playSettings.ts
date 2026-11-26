@@ -22,3 +22,25 @@ export function setPlayOrder(order: ActorOrder): void {
     /* not kept: the default applies next time */
   }
 }
+
+const VIEW3D_KEY = 'bp-trainer.view3d';
+
+/**
+ * « Vue 3D (essai) » (3D-0, V7.77): Play draws the level in 3D, with a camera that follows the player. Off by
+ * default while it is a prototype; the button « Dessus » of Play's toolbar goes back to the top view.
+ */
+export function view3d(): boolean {
+  try {
+    return localStorage.getItem(VIEW3D_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setView3d(on: boolean): void {
+  try {
+    localStorage.setItem(VIEW3D_KEY, on ? '1' : '0');
+  } catch {
+    /* not kept: the default applies next time */
+  }
+}

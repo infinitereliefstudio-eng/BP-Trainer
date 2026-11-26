@@ -196,6 +196,9 @@ select.field { padding-right: 4px; }
 .play-bar { display: flex; align-items: center; gap: 4px; flex: none; margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--line-2); }
 .pb-btn.small { min-width: 34px; font-size: var(--fs-sm); }
 .pb-time { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-sm); }
+.pb-time.pb-fps { min-width: 44px; }
+/* 3D-0 (V7.77): the 3D view of Play fills the level area like the top view. */
+.graph-canvas.world3d { background: #1b1d21; overflow: hidden; }
 .pb-level { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: var(--fs-sm); }
 .pb-err { height: 30px; padding: 0 10px; border-radius: var(--r-2); background: var(--error); color: #fff; font-size: var(--fs-sm); font-weight: 700; }
 .toolbar .play-bar .pb-btn { height: var(--tb-btn); }

@@ -9,6 +9,7 @@ import type { PlaySession, Speed } from '@editor/world/playSession';
 import { WidgetLayer } from './WidgetLayer';
 import { Icon } from '../widgets/icons';
 import { origin as family, UE_HINT } from '../origins';
+import { view3d } from '../playSettings';
 
 interface Props {
   session: PlaySession;
@@ -40,6 +41,23 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
           ×{s === 0.25 ? '¼' : s}
         </button>
       ))}
+      {view3d() && (
+        // « Vue 3D (essai) », 3D-0: back to the top view and again. The app's addition: a game made in UE has one camera.
+        <button
+          class={`pb-btn small view-switch${session.view3d ? '' : ' on'}`}
+          {...family('app')}
+          aria-label={session.view3d ? 'Vue de dessus' : 'Vue 3D'}
+          title={session.view3d ? 'Voir le niveau de dessus, comme avant' : 'Revenir à la vue 3D (essai)'}
+          onClick={() => session.setView3d(!session.view3d)}
+        >
+          {session.view3d ? 'Dessus' : '3D'}
+        </button>
+      )}
+      {session.view3d && session.fps !== undefined && (
+        <span class="pb-time pb-fps" {...family('app')} title="Images par seconde de la vue 3D (essai)">
+          {session.fps} i/s
+        </span>
+      )}
       <span class="pb-level" {...family('app')} title="Le niveau en cours (Get Current Level Name) : Open Level en change">
         {sim.level.name}
       </span>

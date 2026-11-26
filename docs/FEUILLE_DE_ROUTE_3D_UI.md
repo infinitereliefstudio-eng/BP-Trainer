@@ -20,11 +20,11 @@ Trois règles :
 | Phase | Versions | Contenu | Pourquoi à ce moment |
 | --- | --- | --- | --- |
 | **1. Fondations** | UI-1, UI-4 | Jetons (couleurs UE, tailles, espacements), composants communs, jeu d'icônes SVG, aspect plat « comme UE », taille du texte réglable ; puis les trois familles (`data-origin`, ambre réservé, pointillé tactile, jaune des avertissements), la « Vue UE pure », la liste des éléments et son test | Tout ce qui suit s'appuie dessus |
-| **2. L'appli et l'éditeur de graphe** | UI-2, UI-3, UI-5 | Accueil « Aujourd'hui », rail Apprendre / Consulter / Créer / Réglages, parcours repliable en chapitres ; fiche de leçon en tiroir et écran de fin d'étape ; Blueprint Editor façon UE 5.8 (barre en icônes, onglets de graphes dessous, fil d'Ariane, Zoom, filigrane, icônes des nœuds, My Blueprint) | Indépendant de la 3D ; c'est ce que Tristan utilise tous les jours. Le tiroir de leçon servira aux étapes 3D |
-| *Revue* | | Revue de l'interface | |
-| **3. Le monde en 3D (marche A)** | 3D-0, 3D-1, 3D-2 (+ UI-6) | Prototype : Play dessiné en 3D (three.js), caméra suiveuse, réglage « Vue 3D (essai) », essai sur le Pixel ; puis l'éditeur de niveau avec **Perspective, Top, Bottom, Left, Right, Front, Back**, gestes d'orbite, sélection, pose sur une surface, « F » ; la barre du niveau et la barre du viewport d'UE 5.8 (Select, Move, Rotate, Scale, World / Local, accrochage, Lit) ; le Viewport du Blueprint en 3D et le gizmo ; relecture des textes des étapes | La barre du viewport arrive avec ce qu'elle commande |
+| **2. Le monde en 3D (marche A)** | 3D-0, 3D-1, 3D-2 (+ UI-6) | Prototype : Play dessiné en 3D (three.js), caméra suiveuse, réglage « Vue 3D (essai) », essai sur le Pixel ; puis l'éditeur de niveau avec **Perspective, Top, Bottom, Left, Right, Front, Back**, gestes d'orbite, sélection, pose sur une surface, « F » ; la barre du niveau et la barre du viewport d'UE 5.8 (Select, Move, Rotate, Scale, World / Local, accrochage, Lit) ; le Viewport du Blueprint en 3D et le gizmo ; relecture des textes des étapes | Avancée à la demande de Tristan (26 nov., 14 h 17), pour la tester tôt sur le téléphone ; la barre du viewport arrive avec ce qu'elle commande |
 | *Revue* | | Revue de la marche A | |
-| **4. La hauteur dans la logique (marche B)** | 3D-3, 3D-4, 3D-5 | Z dans le modèle et les nœuds (format 20) ; collisions et Line Trace en 3D ; sol par défaut ; gravité, saut, chute, Kill Z ; toutes les étapes revérifiées ; premières étapes 3D (sauter sur une plateforme, un étage, un monte-charge vertical) | Il faut voir la 3D (phase 3) pour construire et corriger en 3D |
+| **3. L'appli et l'éditeur de graphe** | UI-2, UI-3, UI-5 | Accueil « Aujourd'hui », rail Apprendre / Consulter / Créer / Réglages, parcours repliable en chapitres ; fiche de leçon en tiroir et écran de fin d'étape ; Blueprint Editor façon UE 5.8 (barre en icônes, onglets de graphes dessous, fil d'Ariane, Zoom, filigrane, icônes des nœuds, My Blueprint) | Indépendant de la 3D : pendant ce temps, Tristan teste la marche A sur son téléphone, avant qu'on construise la marche B dessus |
+| *Revue* | | Revue de l'interface | |
+| **4. La hauteur dans la logique (marche B)** | 3D-3, 3D-4, 3D-5 | Z dans le modèle et les nœuds (format 20) ; collisions et Line Trace en 3D ; sol par défaut ; gravité, saut, chute, Kill Z ; toutes les étapes revérifiées ; premières étapes 3D (sauter sur une plateforme, un étage, un monte-charge vertical) | Construite sur la marche A, une fois qu'elle a été testée sur le téléphone |
 | *Revue* | | Revue de la marche B | |
 | **5. Le personnage et la caméra d'UE (marche C)** | 3D-6 et suivantes | Spring Arm et Camera, Enhanced Input en Axis2D (bouger et regarder), Add Controller Yaw / Pitch Input, déplacement relatif à la caméra, Possess, Pitch et Roll ; reprise des étapes à touche ; nouvelles étapes | S'appuie sur la gravité et les collisions 3D |
 | *Revue* | | Revue de la marche C | |
@@ -32,7 +32,7 @@ Trois règles :
 
 Ordre de grandeur : **5 versions d'interface, 6 de 3D pour A et B, 5 ou plus pour C, 1 de finitions**, plus une revue par phase.
 
-**Variante possible** : si Tristan veut la 3D plus tôt, la phase 3 peut passer avant la phase 2, juste après les fondations. Techniquement, ça ne change rien. On repousse seulement l'accueil et le tiroir de leçon.
+**Choix de Tristan (26 nov., 14 h 17)** : la marche A passe juste après les fondations, pour pouvoir tester la 3D tôt sur le téléphone ; le reste de l'ordre est validé.
 
 ## 3. La caméra de Play, une fois la marche C faite
 

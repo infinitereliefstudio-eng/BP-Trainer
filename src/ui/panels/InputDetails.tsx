@@ -21,6 +21,7 @@ import {
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { AppHelp, Check, Field, Group, NumberField } from './fields';
+import { Icon } from '../widgets/icons';
 
 const KEY_LABEL: Record<KeyName, string> = { E: 'E', F: 'F', SpaceBar: 'Space Bar' };
 const TRIGGERS: { value: InputTriggerKind | ''; label: string }[] = [
@@ -154,7 +155,7 @@ export function MappingContextDetails({ id }: { id: string }) {
                 </>
               )}
               <button class="chip danger" aria-label="Supprimer la ligne" onClick={() => warn(store.applyProject('Supprimer une ligne', (p) => removeMapping(p, id, i)))}>
-                ✕
+                <Icon name="close" />
               </button>
             </div>
           );

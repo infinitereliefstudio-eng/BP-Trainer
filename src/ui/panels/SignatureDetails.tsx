@@ -29,6 +29,7 @@ import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
 import { TypeSelect } from '../widgets/TypeSelect';
 import { AppHelp, Check, Field, Group, TextCommit } from './fields';
+import { Icon } from '../widgets/icons';
 
 /** Editable list of parameters: name and type, with a delete button. */
 export function ParamList(props: {
@@ -47,7 +48,7 @@ export function ParamList(props: {
           <div class="param-row">
             <NameField value={p.name} onCommit={(name) => props.onRename(p.id, name)} />
             <button class="chip danger" aria-label={`Supprimer ${p.name}`} onClick={() => props.onRemove(p.id)}>
-              ✕
+              <Icon name="close" />
             </button>
           </div>
           <TypeSelect type={p.type} onChange={(t) => props.onType(p.id, t)} />

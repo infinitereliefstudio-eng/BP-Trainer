@@ -4,6 +4,7 @@
  * the app is out.
  */
 import { useState } from 'preact/hooks';
+import { Icon } from '../widgets/icons';
 
 export interface StatusMessage {
   id: string;
@@ -31,7 +32,7 @@ export function StatusBar({ messages }: { messages: StatusMessage[] }) {
           )}
           {m.dismissable && (
             <button class="btn small-btn" aria-label="Fermer" onClick={() => setHidden(new Set([...hidden, m.id]))}>
-              ✕
+              <Icon name="close" />
             </button>
           )}
         </div>

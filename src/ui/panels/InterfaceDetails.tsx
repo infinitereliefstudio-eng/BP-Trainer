@@ -13,6 +13,7 @@ import type { OpenOverlay } from '../overlayTypes';
 import { NameField } from '../widgets/NameField';
 import { AppHelp, Group, Field } from './fields';
 import { ParamList } from './SignatureDetails';
+import { Icon } from '../widgets/icons';
 
 export function InterfaceDetails({ id, openOverlay }: { id: string; openOverlay: OpenOverlay }) {
   const store = useStore();
@@ -81,7 +82,7 @@ function FunctionBlock({ ifaceId, fn }: { ifaceId: string; fn: InterfaceFunction
           aria-label={`Supprimer ${fn.name}`}
           onClick={() => store.applyProject('Supprimer la fonction', (p) => removeInterfaceFunction(p, ifaceId, fn.id))}
         >
-          ✕
+          <Icon name="close" />
         </button>
       </div>
       <p class="muted small">Inputs</p>

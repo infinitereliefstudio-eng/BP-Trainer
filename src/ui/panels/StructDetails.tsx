@@ -5,6 +5,7 @@ import { NameField } from '../widgets/NameField';
 import { TypeSelect } from '../widgets/TypeSelect';
 import { ValueInput } from '../widgets/ValueInput';
 import { AppHelp, Field, Group } from './fields';
+import { Icon } from '../widgets/icons';
 
 export function StructDetails({ id }: { id: string }) {
   const store = useStore();
@@ -30,7 +31,7 @@ export function StructDetails({ id }: { id: string }) {
               aria-label={`Supprimer ${m.name}`}
               onClick={() => warn(store.applyProject('Supprimer le membre', (p) => removeStructMember(p, id, m.id)))}
             >
-              ✕
+              <Icon name="close" />
             </button>
           </div>
           <TypeSelect type={m.type} onChange={(type) => warn(store.applyProject('Changer le type', (p) => updateStructMember(p, id, m.id, { type })))} />

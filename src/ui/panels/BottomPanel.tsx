@@ -7,6 +7,7 @@ import { useStore } from '../hooks';
 import { Why } from '../widgets/Why';
 import { DebugPanel } from './DebugPanel';
 import { FindResults } from './FindResults';
+import { Icon } from '../widgets/icons';
 
 export type BottomTab = 'compiler' | 'log' | 'debug' | 'find';
 
@@ -22,7 +23,7 @@ interface Props {
   onFindJump?: (graphId: string, nodeId: string, classId?: string) => void;
 }
 
-const ICON = { error: '✕', warning: '!', info: 'i' } as const;
+const ICON = { error: 'error', warning: 'warning', info: 'info' } as const;
 
 export function BottomPanel({ onFocusNode, session, simLog, tab, findQuery, onFindJump }: Props) {
   const store = useStore();
@@ -45,7 +46,9 @@ export function BottomPanel({ onFocusNode, session, simLog, tab, findQuery, onFi
               return (
                 <div key={i} class="msg-block">
                   <button class={`msg ${m.severity}`} disabled={!m.nodeId} onClick={() => m.nodeId && m.graphId && onFocusNode(m.graphId, m.nodeId)}>
-                    <span class="msg-icon">{ICON[m.severity]}</span>
+                    <span class="msg-icon">
+                      <Icon name={ICON[m.severity]} />
+                    </span>
                     {m.text}
                   </button>
                   {explain && <Why explain={explain} />}

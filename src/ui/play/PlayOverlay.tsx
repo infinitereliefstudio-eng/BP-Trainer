@@ -7,6 +7,7 @@ import { haptic } from '@editor/haptics';
 import type { InputKey } from '@core/runtime/simulation';
 import type { PlaySession, Speed } from '@editor/world/playSession';
 import { WidgetLayer } from './WidgetLayer';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   session: PlaySession;
@@ -28,10 +29,10 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
   return (
     <div class="play-bar">
       <button class="pb-btn" onClick={() => session.togglePause()} aria-label={session.running ? 'Pause' : 'Reprendre'}>
-        {session.running ? '❚❚' : '▶'}
+        <Icon name={session.running ? 'pause' : 'play'} />
       </button>
       <button class="pb-btn" onClick={() => session.stepFrame()} aria-label="Avancer d’une frame">
-        ▸|
+        <Icon name="step" />
       </button>
       {SPEEDS.map((s) => (
         <button key={s} class={`pb-btn small app-only${session.speed === s ? ' on' : ''}`} onClick={() => session.setSpeed(s)}>
@@ -48,7 +49,7 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
         </button>
       )}
       <button class="pb-btn" onClick={onOutliner} aria-label="Outliner">
-        ☷
+        <Icon name="list" />
       </button>
     </div>
   );

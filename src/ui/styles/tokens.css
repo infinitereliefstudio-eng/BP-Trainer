@@ -1,0 +1,93 @@
+/*
+ * BP Trainer — design tokens (UI-1, V7.75).
+ * Colours of UE5's « Starship » dark theme (the editor's FStyleColors), the app's own colours (amber: what BP Trainer
+ * adds), four text sizes that follow the « Taille du texte » setting (--ts), four spacings and two radii.
+ * Use these variables in app.css: no grey written there in hex; the hex colours left are meanings (link, node,
+ * success…) or game colours (UMG).
+ */
+:root {
+  /* UE5 Starship, the editor's dark theme. */
+  --ue-black: #000000;
+  --ue-title: #151515;     /* behind the panels: window, document tabs */
+  --ue-recessed: #1a1a1a;  /* sunken areas: lists, cards inside a panel */
+  --ue-panel: #242424;     /* panels: Details, My Blueprint, dialogs */
+  --ue-header: #2f2f2f;    /* panel and section headers */
+  --ue-input: #0f0f0f;     /* text fields */
+  --ue-dropdown: #383838;  /* secondary buttons, outlines of fields */
+  --ue-hover: #575757;     /* pressed or hovered */
+  --ue-foreground: #c0c0c0;
+  --ue-white: #ffffff;
+  --ue-primary: #0070e0;
+  --ue-primary-hover: #0e86ff;
+  --ue-select: rgba(0, 112, 224, 0.28);
+  --ue-accent-blue: #26bbff;
+  --ue-accent-green: #8bc24a;
+  --ue-warning: #ffb800;
+  --ue-error: #ef3535;
+  --ue-success: #1fe44b;
+
+  /* Meaning, used by app.css. */
+  --bg: var(--ue-title);
+  --panel: var(--ue-panel);
+  --panel-2: var(--ue-header);
+  --recessed: var(--ue-recessed);
+  --input: var(--ue-input);
+  --btn: var(--ue-dropdown);
+  --btn-press: var(--ue-hover);
+  --line: #0b0b0b;
+  --line-2: var(--ue-dropdown);
+  --text: #d0d0d0;          /* a little above UE's #c0c0c0: read on a phone, often outdoors */
+  --text-strong: var(--ue-white);
+  --text-soft: #b8b8b8;
+  --muted: #9a9a9a;
+  --accent: var(--ue-primary);
+  --accent-soft: var(--ue-select);
+  --link: #7fb4ff;
+  --orange: #f2a516;
+  --ok: var(--ue-success);
+  --warn: var(--ue-warning);
+  --error: var(--ue-error);
+
+  /* Amber « app » = what BP Trainer adds and UE does not have; ok and err = success and failure. */
+  --app-text: #ffd76a;
+  --app-text-soft: #dccfa8;
+  --app-line: #8a6d14;
+  --app-line-dim: #6b5a14;
+  --app-bg: #221c0a;
+  --ok-line: #2f6b3a;
+  --ok-bg: #14261a;
+  --ok-text: #9be3ae;
+  --err-line: #8a2a2a;
+  --err-line-dim: #6b2a2a;
+  --err-bg: #2a1414;
+  --err-text: #ff8a8a;
+  --err-text-soft: #ffb3b3;
+
+  /* Text: four sizes, times the « Taille du texte » setting (uiSettings.ts sets --ts: 0.9, 1, 1.15 or 1.3). */
+  --ts: 1;
+  --fs-xs: calc(11px * var(--ts));
+  --fs-sm: calc(13px * var(--ts));
+  --fs-md: calc(14px * var(--ts));
+  --fs-lg: calc(16px * var(--ts));
+
+  /* Spacing and radii: UE's controls are 4 px round, its panels and menus barely more. */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --r-1: 4px;
+  --r-2: 6px;
+  --radius: var(--r-1);
+
+  /* Touch: the smallest tap target, and the bar heights (V7.31; smaller on a phone in landscape, « Compact landscape »). */
+  --tap: 40px;
+  --doc-h: 36px;
+  --tb-h: 40px;
+  --tb-btn: 30px;
+  --goal-h: 36px;
+  --bottom-h: 34px;
+  --fab: 40px;
+
+  font-family: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}

@@ -19,6 +19,7 @@ import { haptic } from '@editor/haptics';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { RichText, richInline } from './RichText';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   lesson: Lesson;
@@ -338,7 +339,9 @@ function RunResult({ run, onShow }: { run: LessonRun; onShow: (s: { graphId: str
         <p class="error-text">La compilation a échoué : corrige ces erreurs d’abord.</p>
         {run.compileErrors.map((m, i) => (
           <div key={i} class="result ko">
-            <span class="r-icon">✕</span>
+            <span class="r-icon">
+              <Icon name="close" />
+            </span>
             <span>{m.text}</span>
           </div>
         ))}
@@ -351,7 +354,9 @@ function RunResult({ run, onShow }: { run: LessonRun; onShow: (s: { graphId: str
     <div class="results">
       {required.map((r) => (
         <div key={r.check.id} class={`result ${r.ok ? 'ok' : 'ko'}`}>
-          <span class="r-icon">{r.ok ? '✓' : '✕'}</span>
+          <span class="r-icon">
+            <Icon name={r.ok ? 'check' : 'close'} />
+          </span>
           <span>
             {r.check.label}
             {!r.ok && r.reason && <span class="r-why">{r.reason}</span>}

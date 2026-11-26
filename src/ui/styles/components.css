@@ -1,0 +1,77 @@
+/*
+ * Shared controls (UI-1, V7.75), flat as in UE5: filled buttons without outlines, 4 px corners, the press colour of
+ * UE (#575757). The touch target stays at least 34 to 44 px high even when the control looks smaller.
+ * Loaded after app.css (main.tsx); colours and sizes come from tokens.css.
+ */
+
+/* Icons (widgets/icons.tsx): aligned on the text, taking its colour. */
+.icon { display: inline-block; flex: none; vertical-align: -0.2em; }
+
+/* Buttons: .btn (secondary, UE's grey), .btn.primary (UE's blue), .btn.danger (red text). */
+.btn {
+  height: 36px; padding: 0 var(--sp-3); border-radius: var(--r-1); background: var(--btn); border: 1px solid transparent;
+  white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn:active { background: var(--btn-press); }
+.btn.primary { background: var(--accent); color: var(--text-strong); }
+.btn.primary:active { background: var(--ue-primary-hover); }
+.btn.danger { color: var(--err-text); }
+.btn:disabled:active { background: var(--btn); }
+
+/* Toolbar buttons: transparent, as in UE's toolbars, pressed in grey. */
+.tb {
+  height: 34px; min-width: 34px; padding: 0 var(--sp-2); border-radius: var(--r-1); background: transparent;
+  border: 1px solid transparent; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+}
+.tb:active { background: var(--btn-press); }
+.tb.play .icon { color: var(--ue-success); }
+.tb.stop { color: var(--err-text-soft); }
+
+/* Play and debug bars: the same, as UE's Play-In-Editor toolbar. */
+.pb-btn {
+  white-space: nowrap; height: 34px; min-width: 38px; padding: 0 var(--sp-2); border-radius: var(--r-1); background: transparent;
+  border: 1px solid transparent; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.pb-btn:active { background: var(--btn-press); }
+.pb-btn.on { background: var(--accent-soft); color: var(--text-strong); }
+.pb-btn.stop { color: var(--err-text-soft); }
+
+/* Small buttons inside panels (remove ✕, ↺, Get…): UE's small grey button. */
+.chip {
+  min-height: 30px; min-width: 30px; padding: 0 var(--sp-2); border-radius: var(--r-1); background: var(--btn); border: 1px solid transparent;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap;
+}
+.chip:active { background: var(--btn-press); }
+.chip.danger { color: var(--err-text); }
+
+.link-chip {
+  height: 30px; padding: 0 var(--sp-2); border-radius: var(--r-1); background: var(--btn); border: 1px solid transparent; font-size: var(--fs-sm);
+  white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.link-chip:active { background: var(--btn-press); }
+
+.chip-stat {
+  display: inline-flex; align-items: center; height: 26px; padding: 0 var(--sp-2); border-radius: var(--r-1); background: var(--panel);
+  border: 1px solid transparent; font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums;
+}
+
+/* Cards: a sunken block inside a panel, no outline (UE's sections). */
+.card { background: var(--recessed); border: 1px solid transparent; border-radius: var(--r-2); padding: 10px var(--sp-3); }
+
+/* Surfaces of the home and the lists: filled, no outline; state colours keep their outline. */
+.lesson-item, .note-item, .rework-item, .attempt, .stat, .node-item, .option { border-color: transparent; }
+.lesson-item:active, .note-item:active, .option:active { background: var(--panel-2); }
+.home-tabs { border-color: transparent; background: var(--recessed); }
+.dialog, .sheet, .menu { border-color: var(--ue-header); }
+
+/* Settings (Home › Réglages): the text size choice. */
+.segmented { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--r-1); background: var(--recessed); flex-wrap: wrap; }
+.segmented button { height: 36px; padding: 0 var(--sp-3); border-radius: var(--r-1); color: var(--muted); font-weight: 600; }
+.segmented button.active { background: var(--btn); color: var(--text-strong); }
+.settings-section { margin: 0 0 var(--sp-4); }
+.settings-section h3 { margin: 0 0 var(--sp-2); font-size: var(--fs-md); }
+.settings-section p { margin: var(--sp-2) 0 0; }
+
+/* A chip that opens something (Home › Réglages): its icon and label, no underline. */
+button.chip-stat.link { display: inline-flex; gap: 6px; margin-left: 0; text-decoration: none; font-size: var(--fs-sm); }
+.dialog h3 { margin: 0 0 var(--sp-2); font-size: var(--fs-md); }

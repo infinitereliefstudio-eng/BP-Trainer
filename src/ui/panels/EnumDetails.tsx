@@ -3,6 +3,7 @@ import { addEnumEntry, enumUsage, moveEnumEntry, removeEnum, removeEnumEntry, re
 import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { AppHelp, Field, Group } from './fields';
+import { Icon } from '../widgets/icons';
 
 export function EnumDetails({ id }: { id: string }) {
   const store = useStore();
@@ -22,7 +23,7 @@ export function EnumDetails({ id }: { id: string }) {
             <span class="muted small">{i}</span>
             <NameField value={name} onCommit={(n) => store.applyProject('Renommer une entrée', (p) => setEnumEntry(p, id, i, n))} />
             <button class="chip" aria-label="Monter" disabled={i === 0} onClick={() => store.applyProject('Réordonner l’Enum', (p) => moveEnumEntry(p, id, i, -1))}>
-              ↑
+              <Icon name="arrow-up" />
             </button>
             <button
               class="chip danger"
@@ -32,7 +33,7 @@ export function EnumDetails({ id }: { id: string }) {
                 if (!res.ok) store.warn(res.reason);
               }}
             >
-              ✕
+              <Icon name="close" />
             </button>
           </div>
         ))}

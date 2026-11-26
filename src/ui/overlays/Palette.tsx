@@ -16,6 +16,7 @@ import type { PaletteRequest } from '@editor/GraphCanvas';
 import { useStore } from '../hooks';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { recentKeys, rememberKey } from './recentNodes';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   req: PaletteRequest;
@@ -108,7 +109,7 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
     return (
       <div key={cat.path}>
         <button class="palette-cat-row" style={{ paddingLeft: `${8 + depth * 14}px` }} aria-expanded={open} onClick={tap.guard(() => toggle(cat.path))}>
-          <span class="d-caret">{open ? '▾' : '▸'}</span>
+          <span class="d-caret"><Icon name={open ? 'chevron-down' : 'chevron-right'} /></span>
           {cat.name}
         </button>
         {open && (

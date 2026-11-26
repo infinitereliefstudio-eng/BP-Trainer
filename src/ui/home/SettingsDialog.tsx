@@ -1,11 +1,12 @@
 /**
- * Home › Sauvegarde: export everything (progress, review, every project) to
- * one file, and bring it back. Also shows which version is running.
+ * Home › Réglages (« Sauvegarde » until V7.74): the text size (UI-1, V7.75); export everything (progress, review,
+ * every project) to one file, and bring it back. Also shows which version is running.
  */
 import { useState } from 'preact/hooks';
 import { makeBackup, parseBackup, pickTextFile, restoreBackup, saveFile } from '@storage/backup';
 import { APP_VERSION, BUILD_DATE } from '../../version';
 import { useOwnTap } from '../widgets/useOwnTap';
+import { TextSizeSetting } from './TextSizeSetting';
 
 interface Props {
   onClose: () => void;
@@ -13,7 +14,7 @@ interface Props {
   onRestored: () => void;
 }
 
-export function BackupDialog({ onClose, onRestored }: Props) {
+export function SettingsDialog({ onClose, onRestored }: Props) {
   const tap = useOwnTap();
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -54,8 +55,10 @@ export function BackupDialog({ onClose, onRestored }: Props) {
 
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
-      <div class="dialog" role="dialog" aria-label="Sauvegarde" onClick={(e) => e.stopPropagation()}>
-        <h2>Sauvegarde</h2>
+      <div class="dialog" role="dialog" aria-label="Réglages" onClick={(e) => e.stopPropagation()}>
+        <h2>Réglages</h2>
+        <TextSizeSetting />
+        <h3>Sauvegarde</h3>
         <p>
           Ta progression et tes projets sont gardés sur cet appareil, dans le stockage de l’appli. L’effacer ou changer de téléphone les perd : garde un
           fichier de temps en temps.

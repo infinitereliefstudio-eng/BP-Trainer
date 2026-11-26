@@ -18,6 +18,7 @@ import { haptic } from '@editor/haptics';
 import { useStore } from '../hooks';
 import { WidgetSurface } from '../umg/WidgetSurface';
 import { screenChoice, screenWidth, setDesignerWidth, setScreenChoice, type ScreenChoice } from './screenSize';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   onOpenDetails: () => void;
@@ -276,7 +277,7 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
             }}
           >
             {choice === 'phone' ? 'Téléphone · ' : ''}
-            {W} × {DESIGN_H} ▾ · aperçu ×{s.toFixed(2).replace('.', ',')}
+            {W} × {DESIGN_H} <Icon name="chevron-down" /> · aperçu ×{s.toFixed(2).replace('.', ',')}
             {preview && ' · Pre Construct'}
             {preview && preview.errors.length > 0 && <span class="designer-errors"> · {preview.errors.length} erreur{preview.errors.length > 1 ? 's' : ''}</span>}
           </button>

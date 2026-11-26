@@ -19,6 +19,7 @@ import {
 } from '@storage/projects';
 import { ConfirmDialog, PromptDialog } from '../overlays/Dialogs';
 import { useOwnTap } from '../widgets/useOwnTap';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   /** The project opened last, shown first. */
@@ -117,7 +118,7 @@ export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
                     aria-expanded={actions === entry.id}
                     onClick={() => setActions(actions === entry.id ? null : entry.id)}
                   >
-                    ⋮
+                    <Icon name="more" />
                   </button>
                 </div>
                 {actions === entry.id && (

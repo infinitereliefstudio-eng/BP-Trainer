@@ -51,7 +51,7 @@ import { playOrder } from './playSettings';
 import { DocumentTabs } from './editor/DocumentTabs';
 import { BottomBar } from './editor/BottomBar';
 import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolbars';
-import { SelectionIcon } from './widgets/icons';
+import { Icon, SelectionIcon } from './widgets/icons';
 import { Toasts } from './widgets/Toasts';
 import { type LessonHelp, resetLesson, type Workspace, type WorkspaceRef } from './workspace';
 
@@ -504,8 +504,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <aside class={`drawer right outliner-drawer${outliner ? ' open' : ''}`} aria-hidden={!outliner}>
             <div class="drawer-head">
               <strong>Outliner</strong>
-              <button class="btn" onClick={() => setOutliner(false)}>
-                ✕
+              <button aria-label="Fermer" class="btn" onClick={() => setOutliner(false)}>
+                <Icon name="close" />
               </button>
             </div>
             <div class="panel-scroll">
@@ -526,8 +526,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <aside class={`drawer right debug-drawer${debugDrawer ? ' open' : ''}`} aria-hidden={!debugDrawer}>
             <div class="drawer-head">
               <strong>Debug</strong>
-              <button class="btn" onClick={() => setDebugOpen(false)}>
-                ✕
+              <button aria-label="Fermer" class="btn" onClick={() => setDebugOpen(false)}>
+                <Icon name="close" />
               </button>
             </div>
             <div class="panel-scroll">
@@ -540,10 +540,10 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <div class="fabs">
             <div class="fab-rail">
               <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
-                ↶
+                <Icon name="undo" />
               </button>
               <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
-                ↷
+                <Icon name="redo" />
               </button>
               <button
                 class="fab"
@@ -551,7 +551,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
                 aria-label="Recentrer la vue"
                 title="Recentrer la vue"
               >
-                ⌖
+                <Icon name="focus" />
               </button>
             </div>
           </div>
@@ -560,10 +560,10 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <div class="fabs">
             <div class="fab-rail">
               <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
-                ↶
+                <Icon name="undo" />
               </button>
               <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
-                ↷
+                <Icon name="redo" />
               </button>
               <button
                 class={`fab${selectionMode ? ' on' : ''}`}
@@ -575,7 +575,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
                 <SelectionIcon />
               </button>
               <button class="fab" onClick={() => canvas.current?.fitView()} aria-label="Recentrer la vue" title="Recentrer la vue">
-                ⌖
+                <Icon name="focus" />
               </button>
             </div>
             <button
@@ -595,10 +595,10 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <div class="fabs">
             <div class="fab-rail">
               <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
-                ↶
+                <Icon name="undo" />
               </button>
               <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
-                ↷
+                <Icon name="redo" />
               </button>
             </div>
           </div>
@@ -607,8 +607,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         <aside class={`drawer left${left ? ' open' : ''}`} aria-hidden={!left}>
           <div class="drawer-head">
             <strong>{leftTitle}</strong>
-            <button class="btn" onClick={() => setLeft(false)}>
-              ✕
+            <button aria-label="Fermer" class="btn" onClick={() => setLeft(false)}>
+              <Icon name="close" />
             </button>
           </div>
           {designer ? (
@@ -632,8 +632,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             ) : (
               <strong>Details</strong>
             )}
-            <button class="btn" onClick={() => setDetails(false)}>
-              ✕
+            <button aria-label="Fermer" class="btn" onClick={() => setDetails(false)}>
+              <Icon name="close" />
             </button>
           </div>
           {view === 'level' && levelPanel === 'outliner' ? (

@@ -7,6 +7,7 @@ import { enumEntries } from '@core/types/enums';
 import { defaultValueFor, formatValue, parseValue, type StructValue, type Value, type Vec3 } from '@core/types/values';
 import { findStruct, memberValue } from '@core/types/structs';
 import { useStore } from '../hooks';
+import { Icon } from './icons';
 
 interface Props {
   type: PinType;
@@ -207,7 +208,7 @@ function ContainerValue({ type, value, onChange }: { type: PinType; value: Value
               <ValueInput type={item} value={x} onChange={(v) => set(i, v)} />
             )}
             <button class="chip danger" aria-label={`Retirer l'${label} ${i}`} onClick={() => onChange(items.filter((_, j) => j !== i))}>
-              ✕
+              <Icon name="close" />
             </button>
           </div>
         );

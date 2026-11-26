@@ -15,7 +15,8 @@ import { dueQuestions, streak } from '@core/review/schedule';
 import { reworkCards } from '@core/rework/suggest';
 import { MAIN_ID } from '@storage/projects';
 import { APP_VERSION } from '../version';
-import { BackupDialog } from './home/BackupDialog';
+import { SettingsDialog } from './home/SettingsDialog';
+import { Icon } from './widgets/icons';
 import { Memo } from './home/Memo';
 import { NodeIndex } from './home/NodeIndex';
 import { Notebook } from './home/Notebook';
@@ -70,7 +71,7 @@ export type Tab = 'path' | 'review' | 'notebook' | 'nodes' | 'memo';
 export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'path', projects, onProjects }: Props) {
   const [tab, setTab] = useState<Tab>(initialTab);
   const [memoId, setMemoId] = useState<string | undefined>(undefined);
-  const [backup, setBackup] = useState(false);
+  const [settings, setSettings] = useState(false);
   const done = new Set(progress.done);
   const ready = (l: Lesson) => availability(l, progress.done, progress.doneAt).ready;
   const nextLesson = LESSONS.find((l) => !done.has(l.id) && ready(l));
@@ -105,8 +106,8 @@ export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'pat
                 {days} jour{days > 1 ? 's' : ''} d’affilée
               </span>
             )}
-            <button class="chip-stat link" onClick={() => setBackup(true)}>
-              Sauvegarde · v{APP_VERSION}
+            <button class="chip-stat link" onClick={() => setSettings(true)}>
+              <Icon name="settings" /> Réglages · v{APP_VERSION}
             </button>
           </p>
         </div>
@@ -231,7 +232,7 @@ export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'pat
         <Memo key={memoId ?? 'list'} read={progress.read ?? []} initial={memoId} onRead={(id) => onProgress((p) => withRead(p, id))} onOpenLesson={openLesson} />
       )}
 
-      {backup && <BackupDialog onClose={() => setBackup(false)} onRestored={onReload} />}
+      {settings && <SettingsDialog onClose={() => setSettings(false)} onRestored={onReload} />}
       {projects && (
         <ProjectsDialog
           lastId={last?.kind === 'sandbox' ? (last.projectId ?? MAIN_ID) : undefined}

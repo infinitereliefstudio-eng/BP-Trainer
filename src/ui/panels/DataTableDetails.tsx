@@ -19,6 +19,7 @@ import { useStore } from '../hooks';
 import { NameField } from '../widgets/NameField';
 import { ValueInput } from '../widgets/ValueInput';
 import { AppHelp, Field, Group } from './fields';
+import { Icon } from '../widgets/icons';
 
 export function DataTableDetails({ id }: { id: string }) {
   const store = useStore();
@@ -57,7 +58,7 @@ export function DataTableDetails({ id }: { id: string }) {
           <div class="param-row">
             <NameField value={row.name} onCommit={(name) => store.applyProject('Renommer la ligne', (p) => renameDataTableRow(p, id, i, name))} />
             <button class="chip" aria-label={`Monter ${row.name}`} disabled={i === 0} onClick={() => warn(store.applyProject('Déplacer la ligne', (p) => moveDataTableRow(p, id, i, -1)))}>
-              ↑
+              <Icon name="arrow-up" />
             </button>
             <button
               class="chip"
@@ -65,10 +66,10 @@ export function DataTableDetails({ id }: { id: string }) {
               disabled={i === t.rows.length - 1}
               onClick={() => warn(store.applyProject('Déplacer la ligne', (p) => moveDataTableRow(p, id, i, 1)))}
             >
-              ↓
+              <Icon name="arrow-down" />
             </button>
             <button class="chip danger" aria-label={`Supprimer ${row.name}`} onClick={() => warn(store.applyProject('Supprimer la ligne', (p) => removeDataTableRow(p, id, i)))}>
-              ✕
+              <Icon name="close" />
             </button>
           </div>
           <ValueInput

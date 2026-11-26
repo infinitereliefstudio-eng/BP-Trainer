@@ -3,6 +3,7 @@
  * (Compiler Results, Output Log, Debug, Find Results). Touching a tab opens its panel, touching it again closes it.
  */
 import type { BottomTab } from '../panels/BottomPanel';
+import { Icon } from '../widgets/icons';
 
 const TABS: { id: BottomTab; label: string }[] = [
   { id: 'compiler', label: 'Compiler Results' },
@@ -23,7 +24,7 @@ export function BottomBar({ open, onOpen, onContentDrawer, contentDisabled, comp
   return (
     <div class="bottom-bar" role="tablist" aria-label="Panneaux du bas">
       <button class="content-drawer-btn" disabled={contentDisabled} onClick={onContentDrawer}>
-        ▤ Content Drawer
+        <Icon name="drawer" /> Content Drawer
       </button>
       <div class="bottom-bar-tabs">
         {TABS.map((t) => (
@@ -44,7 +45,7 @@ export function BottomBar({ open, onOpen, onContentDrawer, contentDisabled, comp
         aria-label={open ? 'Fermer le panneau du bas' : 'Ouvrir le panneau du bas'}
         onClick={() => onOpen(open ? false : 'compiler')}
       >
-        {open ? '▾' : '▴'}
+        <Icon name={open ? 'chevron-down' : 'chevron-up'} />
       </button>
     </div>
   );

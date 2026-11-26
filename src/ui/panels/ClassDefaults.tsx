@@ -11,6 +11,7 @@ import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
 import { AppHelp, Field, Group } from './fields';
 import { GameModeFields } from './GameModeFields';
+import { Icon } from '../widgets/icons';
 
 export function ClassDefaults() {
   const store = useStore();
@@ -52,8 +53,8 @@ export function ClassDefaults() {
               <div class="inherited-default">
                 <ValueInput type={v.type} value={v.defaultValue} onChange={(val) => store.apply('Valeur par défaut', (c) => setInheritedDefault(c, v, val))} />
                 {ownFor(v.id) ? (
-                  <button type="button" class="chip" title="Reprendre la valeur du parent" onClick={() => store.apply('Valeur du parent', (c) => setInheritedDefault(c, v, undefined))}>
-                    ↺
+                  <button aria-label="Reprendre la valeur du parent" type="button" class="chip" title="Reprendre la valeur du parent" onClick={() => store.apply('Valeur du parent', (c) => setInheritedDefault(c, v, undefined))}>
+                    <Icon name="reset" />
                   </button>
                 ) : (
                   <span class="muted small">du parent</span>

@@ -8,6 +8,7 @@
 import { createContext, type ComponentChildren } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 import { normalize } from '@core/nodes/palette';
+import { Icon } from '../widgets/icons';
 
 /** The text typed in « Search Details »: rows whose label lacks it are hidden. */
 export const DetailsFilter = createContext('');
@@ -28,7 +29,7 @@ export function Group({ title, children, app }: { title: string; children: Compo
     <section class={`d-group${app ? ' app-group' : ''}${shown ? '' : ' folded'}`}>
       <h3>
         <button class="d-head" aria-expanded={shown} onClick={toggle}>
-          <span class="d-caret">{shown ? '▾' : '▸'}</span>
+          <span class="d-caret"><Icon name={shown ? 'chevron-down' : 'chevron-right'} /></span>
           {title}
           {app && <span class="app-tag">BP Trainer</span>}
         </button>
@@ -79,7 +80,7 @@ export function AppHelp({ children }: { children: ComponentChildren }) {
     <section class={`d-group app-help${open ? '' : ' folded'}`}>
       <h3>
         <button class="d-head" aria-expanded={open} onClick={toggle}>
-          <span class="d-caret">{open ? '▾' : '▸'}</span>
+          <span class="d-caret"><Icon name={open ? 'chevron-down' : 'chevron-right'} /></span>
           Aide
           <span class="app-tag">BP Trainer</span>
         </button>

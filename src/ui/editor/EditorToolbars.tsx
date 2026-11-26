@@ -10,6 +10,7 @@ import { familyOf } from '@core/model/project';
 import { ensureConstructionScript } from '@core/operations/constructionOps';
 import { saveProject } from '@storage/persistence';
 import { useStore } from '../hooks';
+import { Icon } from '../widgets/icons';
 
 const COMPILE_ICON: Record<CompileStatus, { icon: string; cls: string; title: string }> = {
   dirty: { icon: '?', cls: 'st-dirty', title: 'À compiler' },
@@ -44,11 +45,11 @@ function SaveButton({ saveKey }: { saveKey: string }) {
 function PlayButton({ playing, onPlay, onStop }: Common) {
   return playing ? (
     <button class="tb stop" onClick={onStop}>
-      ■ Stop
+      <Icon name="stop" /> Stop
     </button>
   ) : (
     <button class="tb play" onClick={onPlay}>
-      ▶ Play
+      <Icon name="play" /> Play
     </button>
   );
 }
@@ -69,7 +70,7 @@ export function BlueprintToolbar(
       </button>
       <SaveButton saveKey={p.saveKey} />
       <button class="tb" onClick={p.onFind} title="Find in Blueprint (Find Results)">
-        ⌕ Find
+        <Icon name="search" /> Find
       </button>
       <button class="tb" disabled={p.playing} onClick={p.onClassSettings}>
         Class Settings

@@ -7,6 +7,7 @@ import { useState } from 'preact/hooks';
 import type { Lesson } from '@core/lessons/types';
 import type { LessonCheck } from './LessonSheet';
 import { richInline } from './RichText';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   lesson: Lesson;
@@ -47,7 +48,7 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
     return (
       <div class="goal-tab-anchor">
         <button class="goal-tab" onClick={toggle} aria-label="Afficher les objectifs">
-          Objectifs ▾
+          Objectifs <Icon name="chevron-down" />
         </button>
       </div>
     );
@@ -69,16 +70,18 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
       {run && (
         <button class="goal-result" onClick={onDetails}>
           {run.compileErrors.length > 0 ? (
-            <>✕ Erreurs de compilation</>
+            <>
+              <Icon name="error" /> Erreurs de compilation
+            </>
           ) : run.passed ? (
             <>
               {/* A milestone of a longer project (V7.67): the project itself is not done yet. */}
-              {(lesson.milestones?.length ?? 0) > 1 && !done ? '✓ Jalon réussi' : '✓ Réussi'}
+              <Icon name="check" /> {(lesson.milestones?.length ?? 0) > 1 && !done ? 'Jalon réussi' : 'Réussi'}
               {check?.quality && <span class="goal-stars"> {'★'.repeat(check.quality.verdict.stars)}{'☆'.repeat(3 - check.quality.verdict.stars)}</span>} · voir le bilan
             </>
           ) : (
             <>
-              ✕ {okCount}/{required.length}
+              <Icon name="error" /> {okCount}/{required.length}
               {firstBad && <span class="goal-why"> · {firstBad.check.label}</span>}
             </>
           )}
@@ -89,7 +92,7 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
         Vérifier
       </button>
       <button class="btn goal-hide" onClick={toggle} aria-label="Masquer les objectifs">
-        ▴
+        <Icon name="chevron-up" />
       </button>
     </div>
   );

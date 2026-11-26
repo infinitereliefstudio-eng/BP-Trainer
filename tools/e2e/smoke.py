@@ -58,6 +58,23 @@ async def main():
         await page.wait_for_timeout(500)
         await shot('01_home')
 
+        # V7.75 (UI-1): Réglages › Taille du texte, « Très grande » then back to « Normale »; the choice is kept.
+        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.segmented button', has_text='Très grande').tap()
+        await page.wait_for_timeout(300)
+        if await page.evaluate("getComputedStyle(document.documentElement).getPropertyValue('--ts').trim()") != '1.3':
+            errs.append('Réglages : la taille du texte « Très grande » ne s’applique pas')
+        await shot('01b_settings_text_large')
+        await page.locator('.dialog .btn', has_text='Fermer').tap()
+        await page.wait_for_timeout(300)
+        await shot('01c_home_text_large')
+        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.segmented button', has_text='Normale').tap()
+        await page.locator('.dialog .btn', has_text='Fermer').tap()
+        await page.wait_for_timeout(300)
+
         # Lesson 10: dispatcher, details, breakpoint, debugger
         await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
         await page.wait_for_timeout(500)

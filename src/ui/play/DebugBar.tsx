@@ -4,6 +4,7 @@
  */
 import { useEffect, useReducer } from 'preact/hooks';
 import type { PlaySession } from '@editor/world/playSession';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   session: PlaySession;
@@ -25,7 +26,8 @@ export function DebugBar({ session, drawerOpen, onToggleDrawer, onLevel, onShowP
             <strong>{p.reason === 'breakpoint' ? 'Breakpoint' : 'Pas à pas'}</strong> · avant « {p.nodeTitle} » · {p.actorLabel}
           </button>
           <button class="pb-btn" onClick={() => session.resume()} aria-label="Continuer">
-            ▶<span class="hide-narrow"> Continuer</span>
+            <Icon name="play" />
+            <span class="hide-narrow"> Continuer</span>
           </button>
           <button class="pb-btn" onClick={() => session.stepNode()} aria-label="Nœud suivant">
             ⤵<span class="hide-narrow"> Nœud suivant</span>

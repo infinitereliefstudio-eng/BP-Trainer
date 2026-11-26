@@ -23,6 +23,7 @@ import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { assetStyle, type Asset, assetFocus, projectAssets, removeAsset } from './assets';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   onClose: () => void;
@@ -395,7 +396,7 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
                 <div key={g.group}>
                   <button class="palette-item add-group" aria-expanded={open === g.group} onClick={() => setOpen(open === g.group ? null : g.group)}>
                     <span class="pi-title">
-                      {g.group} {open === g.group ? '▾' : '›'}
+                      {g.group} <Icon name={open === g.group ? 'chevron-down' : 'chevron-right'} />
                     </span>
                   </button>
                   {open === g.group &&

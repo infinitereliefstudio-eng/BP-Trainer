@@ -6,6 +6,7 @@
  */
 import { levelOf } from '@core/model/project';
 import { useStore } from '../hooks';
+import { Icon } from '../widgets/icons';
 
 interface Props {
   view: 'level' | 'graph';
@@ -25,7 +26,7 @@ export function DocumentTabs(p: Props) {
   return (
     <nav class="doc-bar" aria-label="Éditeurs ouverts">
       <button class="doc-home app-only" onClick={p.onHome} aria-label="Accueil">
-        ⌂
+        <Icon name="home" />
       </button>
       <div class="doc-tabs" role="tablist">
         <button role="tab" class={`tab doc-tab level${p.view === 'level' ? ' active' : ''}`} onClick={p.onLevel}>
@@ -47,7 +48,7 @@ export function DocumentTabs(p: Props) {
                 {cls.name}
               </button>
               <button class="doc-close" aria-label={`Fermer ${cls.name}`} onClick={() => p.onCloseTab(id)}>
-                ×
+                <Icon name="close" />
               </button>
             </div>
           );
@@ -66,7 +67,7 @@ export function DocumentTabs(p: Props) {
           p.onMoreMenu(r.right, r.bottom);
         }}
       >
-        ⋮
+        <Icon name="more" />
       </button>
     </nav>
   );

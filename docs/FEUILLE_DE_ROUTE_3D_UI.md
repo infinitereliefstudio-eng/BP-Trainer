@@ -42,6 +42,9 @@ Dans UE, la caméra n'est pas un réglage du jeu : c'est un **composant du Bluep
 
 Bonne nouvelle pour les étapes à touche : le modèle Third Person d'UE fait tourner le personnage dans le sens où il marche (Orient Rotation to Movement). « Le joueur regarde où il marche » reste donc vrai. Ce qui change, c'est que le joystick pousse par rapport à la caméra. À confirmer étape par étape pendant la marche C.
 
-## 4. Prochaine étape
+## 4. Avancement
 
-**UI-1, Bases visuelles** : jetons, composants communs, jeu d'icônes, aspect plat comme UE, taille du texte réglable. Rien ne change de place : l'appli prend l'aspect d'UE, les écrans restent où ils sont. À lancer sur le feu vert de Tristan.
+| Étape | Version | État |
+| --- | --- | --- |
+| UI-1, bases visuelles (jetons, aspect plat comme UE, icônes, taille du texte) | V7.75 | **fait** (lancée le 26 nov. à 14 h 21) |
+| UI-4, les trois familles et la « Vue UE pure » | | prochaine, sur le feu vert de Tristan |

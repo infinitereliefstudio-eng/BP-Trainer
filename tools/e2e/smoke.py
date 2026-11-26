@@ -25,9 +25,10 @@ OPEN = """(name) => { const s = window.bpStore; s.openClass(s.project.classes.fi
 AUDIT = """() => {
   const ue = new Set(['Compile', 'Save', 'Find', 'Class Settings', 'Class Defaults', 'Play', 'Stop', 'Viewport', 'Designer', 'Graph',
     'Construction Script', 'Event Graph', '+ Place Actors', 'Content Drawer', 'Compiler Results', 'Output Log', 'Debug', 'Find Results',
-    'Pause', 'Reprendre', 'Avancer d’une frame', 'Continuer', 'Nœud suivant']);
+    'Pause', 'Reprendre', 'Avancer d’une frame', 'Continuer', 'Nœud suivant',
+    'Perspective', 'Top', 'Bottom', 'Left', 'Right', 'Front', 'Back', 'Lit', 'Unlit', 'Wireframe']);
   const free = '.doc-tab, .doc-tab *, .tabs .tab, .graph-tabs *, .bottom-bar-tabs button, .pb-err, .db-where, .drawer-tab';
-  const bars = '.doc-bar, .toolbar, .goal-strip, .goal-tab-anchor, .fabs, .bottom-bar, .play-overlay, .debug-bar, .edge-handle';
+  const bars = '.doc-bar, .toolbar, .goal-strip, .goal-tab-anchor, .fabs, .bottom-bar, .play-overlay, .debug-bar, .edge-handle, .vp-bar';
   const bad = [];
   for (const b of document.querySelectorAll(`:is(${bars}) button, button.edge-handle`)) {
     const r = b.getBoundingClientRect();
@@ -1931,6 +1932,91 @@ async def main():
         await page.locator('.segmented button', has_text='Vue de dessus').tap()
         await page.locator('.dialog .btn', has_text='Fermer').tap()
         await page.wait_for_timeout(200)
+        # 3D-1 (V7.78): the level viewport in 3D. Viewport Type › Perspective; tap the generator (Details' focus), drag it
+        # on the floor, F, a long press on the floor (Place Actors there), Front and Wireframe, Play from Perspective in
+        # 3D, then back to Top (the 2D canvas).
+        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.doc-tab.level').count():
+            await page.locator('.doc-tab.level').tap()
+        await page.locator('.vp-bar .vp-btn', has_text='Top').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Perspective').first.tap()
+        await page.wait_for_timeout(800)
+        if not await page.locator('.editor3d canvas').count():
+            errs.append('Viewport : Perspective ne dessine pas le niveau en 3D')
+        unmarked = await page.evaluate(AUDIT)
+        if unmarked:
+            errs.append(f'Familles : boutons sans famille dans le viewport 3D {unmarked}')
+        await shot('122_level_perspective')
+        canvas = await page.locator('.editor3d canvas').bounding_box()
+        at = await page.evaluate("() => window.bp3dEdit && window.bp3dEdit.screenOf('BP_Generateur')")
+        if not at:
+            errs.append('Viewport : le générateur n’est pas trouvé en 3D')
+        else:
+            await page.mouse.click(canvas['x'] + at['x'], canvas['y'] + at['y'])
+            await page.wait_for_timeout(300)
+            if await page.evaluate("() => window.bpStore.focus.kind") != 'actor':
+                errs.append('Viewport : toucher le générateur en 3D ne le choisit pas')
+            before = await page.evaluate("() => { const s = window.bpStore; return s.project.levels[0].actors.find(a => a.name === 'BP_Generateur').x; }")
+            await page.mouse.move(canvas['x'] + at['x'], canvas['y'] + at['y'])
+            await page.mouse.down()
+            for i in range(1, 9):
+                await page.mouse.move(canvas['x'] + at['x'] + i * 10, canvas['y'] + at['y'])
+                await page.wait_for_timeout(16)
+            await page.mouse.up()
+            await page.wait_for_timeout(300)
+            after = await page.evaluate("() => { const s = window.bpStore; return s.project.levels[0].actors.find(a => a.name === 'BP_Generateur').x; }")
+            if not after > before:
+                errs.append(f'Viewport : glisser le générateur vers la droite ne le déplace pas ({before} → {after})')
+            await shot('123_level_perspective_dragged')
+            await page.locator('.fab[aria-label="Annuler"]').tap()
+            await page.wait_for_timeout(200)
+        # A long press on the floor, low on the right of the view: Place Actors where the finger is.
+        await page.mouse.move(canvas['x'] + canvas['width'] * 0.8, canvas['y'] + canvas['height'] * 0.85)
+        await page.mouse.down()
+        await page.wait_for_timeout(700)
+        await page.mouse.up()
+        await page.wait_for_timeout(300)
+        if await page.get_by_text('Placer dans le niveau').count() == 0:
+            errs.append('Viewport : un appui long sur le sol n’ouvre pas Placer dans le niveau')
+        await page.keyboard.press('Escape')
+        await page.wait_for_timeout(200)
+        if await page.locator('.menu-backdrop, .sheet-backdrop').count():
+            await page.locator('.menu-backdrop, .sheet-backdrop').first.click(position={'x': 5, 'y': 5})
+            await page.wait_for_timeout(200)
+        await page.locator('.vp-bar .vp-btn[aria-label="F"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.vp-bar .vp-btn', has_text='Perspective').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Front').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.vp-bar .vp-btn', has_text='Lit').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Wireframe').first.tap()
+        await page.wait_for_timeout(400)
+        await shot('124_level_front_wireframe')
+        await page.locator('.vp-bar .vp-btn', has_text='Wireframe').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Lit').first.tap()
+        await page.locator('.vp-bar .vp-btn', has_text='Front').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Perspective').first.tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(1000)
+        if not await page.locator('.world3d[data-view="3d"] canvas').count():
+            errs.append('Viewport : Play depuis Perspective ne joue pas en 3D')
+        await page.locator('.tb.stop').tap()
+        await page.wait_for_timeout(400)
+        if not await page.locator('.editor3d canvas').count():
+            errs.append('Viewport : après Stop, le viewport ne revient pas en Perspective')
+        await page.locator('.vp-bar .vp-btn', has_text='Perspective').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Top').first.tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.editor3d').count() or not await page.locator('.graph-canvas.world canvas').count():
+            errs.append('Viewport : Top ne revient pas à la vue de dessus')
 
         print('errors', errs)
         await b.close()

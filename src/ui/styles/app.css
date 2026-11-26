@@ -198,6 +198,20 @@ select.field { padding-right: 4px; }
 .pb-time { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-sm); }
 .pb-time.pb-fps { min-width: 44px; }
 /* 3D-0 (V7.77): the 3D view of Play fills the level area like the top view. */
+/* 3D-1 (V7.78): the level viewport's bar, top left as in UE 5.6+, and the names drawn over the 3D editor. */
+.vp-bar { position: absolute; z-index: 5; top: 6px; left: max(6px, env(safe-area-inset-left)); display: flex; gap: 4px; pointer-events: auto; }
+.vp-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; min-width: 40px; padding: 0 10px; border: 0; border-radius: var(--r-1);
+  background: rgba(21, 21, 21, 0.82); color: var(--text); font-size: var(--fs-sm); justify-content: center; }
+.vp-btn:active { background: var(--btn-press); }
+.vp-btn[data-origin='touch'] { border: 1px dashed var(--line-2); }
+.world3d-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.w3-label { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 12px; color: #9aa3b2; text-shadow: 0 1px 2px #000; }
+.w3-label.selected { color: #cfe2ff; }
+.w3-label.start { color: #7fd48f; }
+.w3-label.ref { color: rgba(125, 211, 252, 0.95); }
+.w3-label.frame { display: flex; align-items: center; justify-content: center; font-size: 11px; color: #bde7fb; background: rgba(125, 211, 252, 0.1);
+  border: 1.5px dashed rgba(125, 211, 252, 0.85); box-sizing: border-box; overflow: hidden; }
+.w3-label.faded { opacity: 0.4; }
 .graph-canvas.world3d { background: #1b1d21; overflow: hidden; }
 .pb-level { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: var(--fs-sm); }
 .pb-err { height: 30px; padding: 0 10px; border-radius: var(--r-2); background: var(--error); color: #fff; font-size: var(--fs-sm); font-weight: 700; }

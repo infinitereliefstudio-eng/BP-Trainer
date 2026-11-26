@@ -6,6 +6,10 @@
  *
  * As in Play's top view, what is hidden in game is not drawn (Visible off, Set Actor Hidden In Game, the bulbs of
  * Point Lights); Box Collisions stay drawn, in wire, as the top view does to help learn.
+ *
+ * In the level editor (3D-1, V7.78, `editor`), as in UE's viewport: hidden components show faded, each Point Light
+ * has its bulb, the Player Starts are drawn, and the view mode can be Lit, Unlit or Wireframe. Names, widget frames
+ * and the variables' names on the reference arrows are HTML over the view (Level3DEditor).
  */
 import {
   AmbientLight,
@@ -34,6 +38,7 @@ import {
   type Raycaster,
   RingGeometry,
   Scene,
+  SphereGeometry,
   AdditiveBlending,
   type Sprite,
   type Material,
@@ -59,8 +64,14 @@ interface Item {
   color?: string;
 }
 
+export type ViewMode = 'Lit' | 'Unlit' | 'Wireframe';
+
 export interface SyncInput {
   actors: readonly ActorRT[];
+  /** Editor only: the level's Player Starts. */
+  playerStarts?: readonly { id: string; x: number; y: number; yaw: number }[];
+  /** Editor only: an actor's Instance Editable variable points at another actor. */
+  references?: readonly { from: string; to: string }[];
   player?: ActorRT;
   debugLines?: readonly DebugLine[];
   selectedId?: string;
@@ -76,8 +87,11 @@ export class LevelScene {
   private readonly ring: Mesh;
   private traces?: LineSegments;
   private readonly pickable: Object3D[] = [];
+  private refs?: LineSegments;
+  /** Lit, Unlit or Wireframe (UE's view modes, editor only). */
+  mode: ViewMode = 'Lit';
 
-  constructor() {
+  constructor(readonly editor = false) {
     this.scene.background = new Color(WORLD.floor);
     // The level's base light: a dim underground room, so the lamps of the lessons show when they are switched on.
     this.scene.add(new HemisphereLight(0xc8d2e0, 0x2a2622, 1.1));
@@ -119,16 +133,17 @@ export class LevelScene {
     this.pickable.length = 0;
     const lights: { x: number; y: number; h: number; color: string; intensity: number; radius: number }[] = [];
     const player = input.player && !input.player.hidden && !input.player.destroyed ? input.player : undefined;
-    const drawn = input.actors.filter((a) => !a.hidden && !a.destroyed && !a.isPlayer);
+    const drawn = input.actors.filter((a) => (this.editor || !a.hidden) && !a.destroyed && !a.isPlayer);
     if (player) drawn.push(player);
 
     for (const a of drawn) {
       for (const c of a.components) {
-        if (!c.props.visible) continue;
+        // In game a hidden component is not drawn; the editor shows it faded, as UE's viewport does.
+        if (!c.props.visible && !this.editor) continue;
         const key = `${a.id}|${c.id}`;
         if (c.kind === 'StaticMesh') {
           const item = this.item(key, `${c.props.shape}|${c.props.sizeX}|${c.props.sizeY}|${c.props.blocks}`, () => makeMesh(c));
-          placeMesh(item, a, c);
+          placeMesh(item, a, c, this.mode, c.props.visible ? 1 : 0.35);
           item.obj.userData.actorId = a.isPlayer ? undefined : a.id;
           if (!a.isPlayer) this.pickable.push(item.obj);
         } else if (c.kind === 'BoxCollision') {
@@ -145,8 +160,23 @@ export class LevelScene {
             m.opacity = hot ? 1 : 0.5;
           }
         } else if (c.kind === 'PointLight') {
-          if (c.props.intensity <= 0) continue;
           const t = componentTransform(a, c);
+          if (this.editor) {
+            // The bulb, an editor sprite in UE: coloured when the light is on at the start.
+            const bulb = this.item(`${key}|bulb`, 'bulb', makeBulb);
+            bulb.obj.position.set(t.x, lightHeight(a.components), t.y);
+            bulb.obj.userData.actorId = a.id;
+            const on = c.props.visible && c.props.intensity > 0;
+            const color = on ? c.props.color : '#4b5058';
+            if (bulb.color !== color) {
+              bulb.color = color;
+              ((bulb.obj as Mesh).material as MeshBasicMaterial).color.set(color);
+            }
+            this.pickable.push(bulb.obj);
+            seen.add(`${key}|bulb`);
+            if (!c.props.visible) continue;
+          }
+          if (c.props.intensity <= 0) continue;
           const radius = Math.max(20, c.props.radius);
           const item = this.item(key, 'glow', makeGlow);
           item.obj.position.set(t.x, 1.2, t.y);
@@ -162,11 +192,26 @@ export class LevelScene {
           const item = this.item(key, `${c.props.text}|${c.props.color}`, () => textSprite(c.props.text, c.props.color));
           const t = componentTransform(a, c);
           (item.obj as Sprite).position.set(t.x, TEXT_HEIGHT, t.y);
+          ((item.obj as Sprite).material as Material).opacity = c.props.visible ? 1 : 0.35;
         }
         // Widget Components are HTML over the view (ComponentWidgets), placed with the camera.
         else continue;
         seen.add(key);
       }
+    }
+
+    for (const ps of input.playerStarts ?? []) {
+      const key = `start|${ps.id}`;
+      const item = this.item(key, 'start', makePlayerStart);
+      item.obj.position.set(ps.x, 0, ps.y);
+      item.obj.rotation.y = -ps.yaw * DEG;
+      item.obj.traverse((o) => {
+        if (o.userData.hit) {
+          o.userData.actorId = ps.id;
+          this.pickable.push(o);
+        }
+      });
+      seen.add(key);
     }
 
     for (const [key, item] of this.items) {
@@ -176,14 +221,17 @@ export class LevelScene {
       this.items.delete(key);
     }
 
-    this.placeLights(lights, input.focus);
+    this.placeLights(this.mode === 'Lit' ? lights : [], input.focus);
+    this.placeReferences(input.references ?? [], drawn);
     this.placePlayer(player);
-    this.placeRing(input.selectedId ? drawn.find((a) => a.id === input.selectedId) : undefined);
+    const sel = input.selectedId ? drawn.find((a) => a.id === input.selectedId) : undefined;
+    const start = input.selectedId ? input.playerStarts?.find((p) => p.id === input.selectedId) : undefined;
+    this.placeRing(sel ? { x: sel.x, y: sel.y, r: actorRadius(sel) + 14 } : start ? { x: start.x, y: start.y, r: PLAYER_RADIUS + 26 } : undefined);
     this.placeTraces(input.debugLines ?? []);
   }
 
   /** The actor under a ray: its meshes first, then the actor whose origin is nearest to where the ray meets the floor. */
-  pick(ray: Raycaster, actors: readonly ActorRT[]): string | undefined {
+  pick(ray: Raycaster, actors: readonly ActorRT[], reach = 60): string | undefined {
     const hit = ray.intersectObjects(this.pickable, false)[0];
     const id = hit?.object.userData.actorId as string | undefined;
     if (id) return id;
@@ -195,9 +243,9 @@ export class LevelScene {
       fy = o.z + d.z * k;
     let best: { id: string; d: number } | undefined;
     for (const a of actors) {
-      if (a.isPlayer || a.hidden || a.destroyed || !a.components.length) continue;
+      if (a.isPlayer || (a.hidden && !this.editor) || a.destroyed || !a.components.length) continue;
       const dist = Math.hypot(fx - a.x, fy - a.y);
-      if (dist < 60 && (!best || dist < best.d)) best = { id: a.id, d: dist };
+      if (dist < reach && (!best || dist < best.d)) best = { id: a.id, d: dist };
     }
     return best?.id;
   }
@@ -245,12 +293,48 @@ export class LevelScene {
     this.capsule.rotation.y = -p.yaw * DEG;
   }
 
-  private placeRing(a: ActorRT | undefined): void {
-    this.ring.visible = !!a;
-    if (!a) return;
-    const r = actorRadius(a) + 14;
-    this.ring.position.set(a.x, 2, a.y);
-    this.ring.scale.set(r, r, 1);
+  private placeRing(at: { x: number; y: number; r: number } | undefined): void {
+    this.ring.visible = !!at;
+    if (!at) return;
+    this.ring.position.set(at.x, 2, at.y);
+    this.ring.scale.set(at.r, at.r, 1);
+  }
+
+  /** Editor: a dashed arrow from an actor to the actor its Instance Editable reference points at, as in the top view. */
+  private placeReferences(refs: readonly { from: string; to: string }[], actors: readonly ActorRT[]): void {
+    if (this.refs) {
+      this.scene.remove(this.refs);
+      this.refs.geometry.dispose();
+      this.refs = undefined;
+    }
+    if (!refs.length) return;
+    const byId = new Map(actors.map((a) => [a.id, a]));
+    const pos: number[] = [];
+    const h = 20;
+    for (const r of refs) {
+      const a = byId.get(r.from),
+        b = byId.get(r.to);
+      if (!a || !b || a === b) continue;
+      const d = Math.hypot(b.x - a.x, b.y - a.y);
+      if (d < 1) continue;
+      const ux = (b.x - a.x) / d,
+        uy = (b.y - a.y) / d;
+      const gap = Math.min(40, d / 3);
+      const x1 = a.x + ux * gap,
+        y1 = a.y + uy * gap,
+        x2 = b.x - ux * gap,
+        y2 = b.y - uy * gap;
+      pos.push(x1, h, y1, x2, h, y2);
+      // The arrow's head, flat on the floor.
+      const k = 18;
+      pos.push(x2, h, y2, x2 - ux * k - uy * k * 0.5, h, y2 - uy * k + ux * k * 0.5);
+      pos.push(x2, h, y2, x2 - ux * k + uy * k * 0.5, h, y2 - uy * k - ux * k * 0.5);
+    }
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute(pos, 3));
+    this.refs = new LineSegments(g, refMaterial());
+    this.refs.computeLineDistances();
+    this.scene.add(this.refs);
   }
 
   /** Line Traces as UE draws them: red up to the hit, green beyond; at the height of the player's chest. */
@@ -290,21 +374,37 @@ export class LevelScene {
 }
 
 let traceMat: LineBasicMaterial | undefined;
+let refMat: LineDashedMaterial | undefined;
+const refMaterial = () => (refMat ??= new LineDashedMaterial({ color: WORLD.reference, dashSize: 12, gapSize: 9, transparent: true, depthTest: false }));
 const traceMaterial = () => (traceMat ??= new LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true }));
 
 function makeMesh(c: ComponentRT): Mesh {
   const h = meshHeight(c);
   const { shape, sizeX, sizeY } = c.props;
   const geo = shape === 'cylinder' ? new CylinderGeometry(sizeX / 2, sizeX / 2, h, 28) : new BoxGeometry(sizeX, h, sizeY);
-  const m = new Mesh(geo, new MeshStandardMaterial({ color: c.props.color, roughness: 0.7, metalness: 0.05 }));
+  const lit = new MeshStandardMaterial({ color: c.props.color, roughness: 0.7, metalness: 0.05 });
+  const m = new Mesh(geo, lit);
   m.userData.h = h;
+  m.userData.lit = lit;
   return m;
 }
 
-function placeMesh(item: Item, a: ActorRT, c: ComponentRT): void {
+function placeMesh(item: Item, a: ActorRT, c: ComponentRT, mode: ViewMode, opacity: number): void {
   const shape = componentShape(a, c);
   if (!shape) return;
   const m = item.obj as Mesh;
+  // Lit: the standard material; Unlit and Wireframe: a flat one, kept on the mesh once made.
+  const lit = m.userData.lit as MeshStandardMaterial;
+  if (!m.userData.flat) m.userData.flat = new MeshBasicMaterial({ color: c.props.color });
+  const flat = m.userData.flat as MeshBasicMaterial;
+  const mat = mode === 'Lit' ? lit : flat;
+  if (m.material !== mat) m.material = mat;
+  flat.wireframe = mode === 'Wireframe';
+  for (const x of [lit, flat]) {
+    x.transparent = opacity < 1;
+    x.opacity = opacity;
+    x.depthWrite = opacity >= 1;
+  }
   const h = m.userData.h as number;
   if (shape.kind === 'circle') m.position.set(shape.cx, h / 2, shape.cy);
   else {
@@ -313,8 +413,33 @@ function placeMesh(item: Item, a: ActorRT, c: ComponentRT): void {
   }
   if (item.color !== c.props.color) {
     item.color = c.props.color;
-    (m.material as MeshStandardMaterial).color.set(c.props.color);
+    lit.color.set(c.props.color);
+    flat.color.set(c.props.color);
   }
+}
+
+/** A Point Light's bulb in the editor (UE's light sprite): a small sphere, tappable. */
+function makeBulb(): Mesh {
+  return new Mesh(new SphereGeometry(12, 16, 12), new MeshBasicMaterial({ color: '#4b5058' }));
+}
+
+/** A Player Start: a dashed capsule's outline and an arrow where it faces; an invisible cylinder takes the taps. */
+function makePlayerStart(): Group {
+  const g = new Group();
+  const ring = new LineSegments(
+    new EdgesGeometry(new CylinderGeometry(PLAYER_RADIUS, PLAYER_RADIUS, PLAYER_HEIGHT, 16)),
+    new LineDashedMaterial({ color: WORLD.start, dashSize: 10, gapSize: 7 }),
+  );
+  ring.computeLineDistances();
+  ring.position.y = PLAYER_HEIGHT / 2;
+  const arrow = new Mesh(new ConeGeometry(14, 40, 12), new MeshBasicMaterial({ color: WORLD.start }));
+  arrow.rotation.z = -Math.PI / 2;
+  arrow.position.set(PLAYER_RADIUS + 30, 10, 0);
+  const hit = new Mesh(new CylinderGeometry(PLAYER_RADIUS + 10, PLAYER_RADIUS + 10, PLAYER_HEIGHT, 12), new MeshBasicMaterial({ visible: false }));
+  hit.position.y = PLAYER_HEIGHT / 2;
+  hit.userData.hit = true;
+  g.add(ring, arrow, hit);
+  return g;
 }
 
 function makeZone(c: ComponentRT): LineSegments {
@@ -353,7 +478,8 @@ function dispose(o: Object3D, deep = true): void {
   const free = (x: Object3D) => {
     const any = x as Object3D & { geometry?: BufferGeometry; material?: Material | Material[] };
     any.geometry?.dispose();
-    const mats = Array.isArray(any.material) ? any.material : any.material ? [any.material] : [];
+    const mats = Array.isArray(any.material) ? [...any.material] : any.material ? [any.material] : [];
+    for (const extra of [x.userData.lit, x.userData.flat]) if (extra && !mats.includes(extra)) mats.push(extra as Material);
     for (const m of mats) {
       const map = (m as Material & { map?: { dispose(): void } }).map;
       // The glow texture is shared by every light: never freed here.

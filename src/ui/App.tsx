@@ -15,7 +15,7 @@ import { runLesson, runRobustness } from '@core/lessons/runner';
 import { newAdvice } from '@core/quality/lessonAdvice';
 import { avoidHits, sizeReport, verdict } from '@core/quality/review';
 import { lessonLabel, type Lesson } from '@core/lessons/types';
-import { familyOf, levelOf } from '@core/model/project';
+import { familyOf, levelOf, MAIN_START_ID } from '@core/model/project';
 import { addNode } from '@core/operations/graphOps';
 import { placeActor } from '@core/operations/levelOps';
 import type { Simulation } from '@core/runtime/simulation';
@@ -25,6 +25,8 @@ import { haptic } from '@editor/haptics';
 import { PlaySession } from '@editor/world/playSession';
 import type { WorldRequests } from '@editor/world/WorldCanvas';
 import { LevelView } from './play/LevelView';
+import { ViewportBar } from './editor/ViewportBar';
+import { viewType } from './viewportSettings';
 import { ViewportCanvas, type ViewportHandle, type ViewportRequests } from '@editor/viewport/ViewportCanvas';
 import { StoreContext, useStore } from './hooks';
 import { GoalStrip } from './lesson/GoalStrip';
@@ -302,7 +304,8 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
     }
     store.compile(true);
     const s = new PlaySession(store.project, store.breakpoints, playOrder(), () => store.slotsWritten());
-    s.view3d = view3d();
+    // In 3D when the trial is on, or when the level is being edited in a 3D view (3D-1).
+    s.view3d = view3d() || viewType() !== 'Top';
     for (const a of s.sim.deafActors()) {
       store.warn(`${a.label} a un événement de touche, mais Auto Receive Input est sur Disabled : il ne recevra pas les touches.`);
     }
@@ -509,10 +512,20 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             session={session ?? undefined}
             requests={worldRequests}
             center={centerOn}
-            onNo3d={() => store.warn('Vue 3D indisponible sur cet appareil (WebGL absent) : Play reste en vue de dessus.')}
+            onNo3d={() => store.warn('Vue 3D indisponible sur cet appareil (WebGL absent) : le niveau reste en vue de dessus.')}
           />
         )}
 
+        {!playing && !designer && view === 'level' && (
+          <ViewportBar
+            setOverlay={setOverlay}
+            onFrame={() => {
+              const f = store.focus;
+              const id = f.kind === 'actor' ? f.id : f.kind === 'playerStart' ? (f.id ?? MAIN_START_ID) : '*';
+              setCenterOn((c) => ({ id, n: (c?.n ?? 0) + 1 }));
+            }}
+          />
+        )}
         {playing && session && view === 'level' && (
           <PlayOverlay session={session} />
         )}

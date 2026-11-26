@@ -10,12 +10,13 @@
  * If WebGL is missing (rare on a phone), `onUnavailable` is called: Play goes back to the top view.
  */
 import { useEffect, useRef } from 'preact/hooks';
-import { Raycaster, Vector2, WebGLRenderer } from 'three';
+import { Raycaster, Vector2 } from 'three';
 import type { PlaySession } from '../world/playSession';
 import { GestureController, type GestureHost } from '../gestures';
 import { FollowCamera } from './followCamera';
 import { WIDGET_HEIGHT } from './heights';
 import { LevelScene } from './levelScene';
+import { dropRenderer, makeRenderer } from './renderer';
 
 interface Props {
   session: PlaySession;
@@ -33,18 +34,13 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
 
   useEffect(() => {
     const wrap = wrapRef.current!;
-    let renderer: WebGLRenderer;
-    try {
-      renderer = new WebGLRenderer({ antialias: true, powerPreference: 'default' });
-    } catch {
+    const made = makeRenderer(wrap);
+    if (!made) {
       live.current.onUnavailable();
       return;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const renderer = made;
     const canvas = renderer.domElement;
-    canvas.style.display = 'block';
-    canvas.style.touchAction = 'none';
-    wrap.appendChild(canvas);
 
     const cam = new FollowCamera();
     const level = new LevelScene();
@@ -160,9 +156,7 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
       gestures.dispose();
       ro.disconnect();
       level.dispose();
-      renderer.dispose();
-      renderer.forceContextLoss();
-      canvas.remove();
+      dropRenderer(renderer);
       if (session.camera === projector) session.camera = undefined;
     };
   }, [session]);

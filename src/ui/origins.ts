@@ -31,6 +31,7 @@ export const UE_HINT = {
   liveOutliner: 'Dans UE : l’Outliner reste ouvert pendant Play et montre les acteurs en direct.',
   joystick: 'Dans UE : les touches Z, Q, S, D (W, A, S, D sur un clavier anglais) ou le stick gauche d’une manette.',
   keys: 'Dans UE : les touches du clavier (E, F, la barre Espace).',
+  frame: 'Dans UE : la touche F cadre l’acteur choisi dans le viewport (un double-clic dans l’Outliner aussi).',
 } as const;
 
 export type UeHint = keyof typeof UE_HINT;

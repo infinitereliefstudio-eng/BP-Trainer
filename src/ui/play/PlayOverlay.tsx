@@ -10,6 +10,7 @@ import { WidgetLayer } from './WidgetLayer';
 import { Icon } from '../widgets/icons';
 import { origin as family, UE_HINT } from '../origins';
 import { view3d } from '../playSettings';
+import { viewType } from '../viewportSettings';
 
 interface Props {
   session: PlaySession;
@@ -41,8 +42,8 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
           ×{s === 0.25 ? '¼' : s}
         </button>
       ))}
-      {view3d() && (
-        // « Vue 3D (essai) », 3D-0: back to the top view and again. The app's addition: a game made in UE has one camera.
+      {(view3d() || viewType() !== 'Top') && (
+        // « Vue 3D (essai) » (3D-0) or a level edited in 3D (3D-1): back to the top view and again. The app's addition: a game made in UE has one camera.
         <button
           class={`pb-btn small view-switch${session.view3d ? '' : ' on'}`}
           {...family('app')}

@@ -279,6 +279,12 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
 
   useEffect(() => {
     if (!center || live.current.session) return;
+    // F with nothing selected (3D-1): the whole level, as at the opening.
+    if (center.id === '*') {
+      fitCamera(camera());
+      invalidate();
+      return;
+    }
     const a = isPlayerStartId(center.id) ? findPlayerStart(store.project, center.id) : actors().find((x) => x.id === center.id);
     const { w, h } = live.current.size;
     if (!a || !w) return;
@@ -305,7 +311,7 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
 }
 
 /** Which placed actor points at which, through an Instance Editable reference variable. */
-function levelReferences(p: Project): { from: string; to: string; label: string }[] {
+export function levelReferences(p: Project): { from: string; to: string; label: string }[] {
   const out: { from: string; to: string; label: string }[] = [];
   for (const a of levelOf(p).actors) {
     const cls = findClass(p, a.classId);

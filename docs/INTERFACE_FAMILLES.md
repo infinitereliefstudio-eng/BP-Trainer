@@ -22,7 +22,7 @@ Les **avertissements** prennent le jaune d'UE (`--warn`, comme dans l'Output Log
 | Accueil (reste dans la vue UE pure) | barre des onglets | `editor/DocumentTabs.tsx` |
 | Bande d'objectifs, « Objectifs », **Vérifier** (ambre plein, avec la toque), résultat | sous la barre d'outils | `lesson/GoalStrip.tsx` |
 | Fiche de leçon (Comprendre, Objectifs, Aide) | fenêtre | `lesson/LessonSheet.tsx` |
-| Vitesses ×¼ ×1 ×4, nom du niveau, temps | barre de Play | `play/PlayOverlay.tsx` |
+| Vitesses ×¼ ×1 ×4, nom du niveau, temps ; « Dessus » / « 3D » et les images par seconde (V7.77) | barre de Play | `play/PlayOverlay.tsx` |
 | Sections « BP Trainer » de Details et Aide | Details | `panels/fields.tsx` (`AppTag`) |
 | Textes d'aide de l'appli dans Details | Details | `panels/Details.tsx`, `panels/ClassDetails.tsx` |
 | « Pourquoi ? » sous une erreur | Output Log, fiches | `widgets/Why.tsx` |
@@ -47,6 +47,7 @@ Comme dans UE, dans ce menu : Class Settings, Project Settings.
 | Poignée du panneau du bas | panneaux accrochés en bas, Ctrl+Espace (`bottomPanel`) | `editor/BottomBar.tsx` |
 | Get, Set, Appeler, Override, Event de My Blueprint | glisser dans le graphe, Ctrl ou Alt (`dragToGraph`) | `panels/MyBlueprint.tsx` |
 | Outliner de Play | l'Outliner reste ouvert (`liveOutliner`) | `play/PlayOverlay.tsx` |
+| F du viewport (V7.78) | la touche F cadre l'acteur choisi (`frame`) | `editor/ViewportBar.tsx` |
 | Joystick, E, F, Espace | pas d'appui long (on tient ces touches pour jouer) ; leur équivalent est dans `title` (`joystick`, `keys`) | `play/PlayOverlay.tsx` |
 | Sortie de la vue UE pure | — | `App.tsx` |
 

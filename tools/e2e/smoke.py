@@ -1896,19 +1896,18 @@ async def main():
             errs.append(f'Familles : boutons sans famille dans Play en 3D {unmarked}')
         if await page.locator('.pb-fps').count() == 0:
             errs.append('Vue 3D : les images par seconde ne s’affichent pas')
-        # A tap on the generator (above the player, right of the middle) picks it: the live Outliner shows it.
+        # A tap on the generator (where the 3D camera shows it, ?e2e) picks it: the live Outliner shows it.
         canvas = await page.locator('.world3d canvas').bounding_box()
+        at = await page.evaluate("() => window.bp3d && window.bp3d.screenOf('BP_Generateur')")
         picked = False
-        for fx, fy in [(0.69, 0.24), (0.68, 0.2), (0.7, 0.28)]:
-            await page.mouse.click(canvas['x'] + canvas['width'] * fx, canvas['y'] + canvas['height'] * fy)
-            await page.wait_for_timeout(250)
+        if at:
+            await page.mouse.click(canvas['x'] + at['x'], canvas['y'] + at['y'])
+            await page.wait_for_timeout(300)
             await page.locator('.pb-btn[aria-label="Outliner"]').tap()
-            await page.wait_for_timeout(250)
+            await page.wait_for_timeout(300)
             picked = await page.locator('.outliner-drawer.open .outliner-back').count() > 0
             await page.locator('.outliner-drawer .drawer-head .btn').tap()
             await page.wait_for_timeout(200)
-            if picked:
-                break
         await shot('120b_play_3d_picked')
         if not picked:
             errs.append('Vue 3D : toucher le générateur ne le choisit pas dans l’Outliner')

@@ -60,6 +60,16 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
     const projector = { toScreen: (x: number, y: number) => cam.toScreen(x, y, WIDGET_HEIGHT) };
     session.camera = projector;
 
+    // The smoke test (?e2e) asks where an actor is on the screen, to tap it.
+    if (location.search.includes('e2e')) {
+      (window as unknown as { bp3d: unknown }).bp3d = {
+        screenOf: (label: string) => {
+          const a = sim.actors.find((x) => x.label === label);
+          return a && cam.toScreen(a.x, a.y, 40);
+        },
+      };
+    }
+
     const ro = new ResizeObserver(() => {
       const r = wrap.getBoundingClientRect();
       renderer.setSize(r.width, r.height, true);

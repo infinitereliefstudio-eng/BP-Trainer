@@ -116,8 +116,8 @@ export const lessonBuildLamp: Lesson = {
     {
       title: '3. Les placer dans le Viewport',
       body:
-        'L’onglet **Viewport** (à gauche de Construction Script) montre l’acteur seul, vu de dessus, à l’origine. La flèche rouge **X** montre où il regarde.\n\n' +
-        'Touche la lumière et fais-la **glisser** à côté du pied, à 40 cm au moins. Ou règle-la au chiffre près dans Details › **Transform** › Location X.\n\n' +
+        'L’onglet **Viewport** (à gauche de Construction Script) montre l’acteur seul, à l’origine, en **Perspective** comme dans UE (Top, dans le menu du viewport, le montre de dessus). L’axe rouge **X** montre où il regarde.\n\n' +
+        'Touche la lumière et fais-la **glisser** à côté du pied, à 40 cm au moins, ou tire la flèche rouge du gizmo (outil **Move**). Ou règle-la au chiffre près dans Details › **Transform** › Location X.\n\n' +
         'Ce placement vaut pour **toutes** les lampes, celles déjà posées comme les futures.',
     },
     {
@@ -194,7 +194,7 @@ export const predictWhereLight: Lesson = predictLesson({
     {
       title: 'Les axes',
       body:
-        'Vue de dessus, comme dans l’appli : **X vers la droite**, **Y vers le bas**. Une Rotation Yaw de 90° fait tourner l’axe X d’un quart de tour, vers Y.\n\n' +
+        'Dans la vue Top de l’appli : **X vers la droite**, **Y vers le bas**. Une Rotation Yaw de 90° fait tourner l’axe X d’un quart de tour, vers Y.\n\n' +
         'La question : X = 100, c’est 100 cm le long de quel axe, celui du monde ou celui du Bras ?',
     },
     PREDICT_METHOD,

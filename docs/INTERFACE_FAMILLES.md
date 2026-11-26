@@ -22,7 +22,8 @@ Les **avertissements** prennent le jaune d'UE (`--warn`, comme dans l'Output Log
 | Accueil (reste dans la vue UE pure) | barre des onglets | `editor/DocumentTabs.tsx` |
 | Bande d'objectifs, « Objectifs », **Vérifier** (ambre plein, avec la toque), résultat | sous la barre d'outils | `lesson/GoalStrip.tsx` |
 | Fiche de leçon (Comprendre, Objectifs, Aide) | fenêtre | `lesson/LessonSheet.tsx` |
-| Vitesses ×¼ ×1 ×4, nom du niveau, temps ; « Dessus » / « 3D » et les images par seconde (V7.77) | barre de Play | `play/PlayOverlay.tsx` |
+| Vitesses ×¼ ×1 ×4, nom du niveau, temps ; « Dessus » / « 3D » et les images par seconde (V7.77) ; bandeau « Ejecté » (V7.80) | barre de Play | `play/PlayOverlay.tsx` |
+| « Vue 3D (essai) » dans les options de Play (V7.80) | barre du niveau, ⋮ à côté de Play | `editor/EditorToolbars.tsx` |
 | Sections « BP Trainer » de Details et Aide | Details | `panels/fields.tsx` (`AppTag`) |
 | Textes d'aide de l'appli dans Details | Details | `panels/Details.tsx`, `panels/ClassDetails.tsx` |
 | « Pourquoi ? » sous une erreur | Output Log, fiches | `widgets/Why.tsx` |

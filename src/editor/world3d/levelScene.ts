@@ -417,10 +417,14 @@ export class LevelScene {
       else {
         seg(l.x1, l.y1, l.hit.x, l.hit.y, red);
         seg(l.hit.x, l.hit.y, l.x2, l.y2, green);
-        // The hit point: a small cross, as UE's square seen from any side.
-        const r = 8;
-        seg(l.hit.x - r, l.hit.y, l.hit.x + r, l.hit.y, red);
-        seg(l.hit.x, l.hit.y - r, l.hit.x, l.hit.y + r, red);
+        // The hit point: a small square, as UE draws it.
+        const r = 8,
+          x = l.hit.x,
+          y = l.hit.y;
+        seg(x - r, y - r, x + r, y - r, red);
+        seg(x + r, y - r, x + r, y + r, red);
+        seg(x + r, y + r, x - r, y + r, red);
+        seg(x - r, y + r, x - r, y - r, red);
       }
     }
     const g = new BufferGeometry();

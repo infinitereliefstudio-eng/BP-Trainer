@@ -27,7 +27,8 @@ AUDIT = """() => {
     'Construction Script', 'Event Graph', '+ Place Actors', 'Content Drawer', 'Compiler Results', 'Output Log', 'Debug', 'Find Results',
     'Pause', 'Reprendre', 'Avancer d’une frame', 'Continuer', 'Nœud suivant',
     'Perspective', 'Top', 'Bottom', 'Left', 'Right', 'Front', 'Back', 'Lit', 'Unlit', 'Wireframe',
-    'Select', 'Move', 'Rotate', 'Scale', 'World', 'Local', 'Grid Snap', 'Rotation Snap', 'Scale Snap']);
+    'Select', 'Move', 'Rotate', 'Scale', 'World', 'Local', 'Grid Snap', 'Rotation Snap', 'Scale Snap',
+    'Selection Mode', 'Quick Add', 'Blueprints', 'Cinematics', 'Play Options', 'Platforms', 'Settings', 'Eject', 'Possess']);
   const free = '.doc-tab, .doc-tab *, .tabs .tab, .graph-tabs *, .bottom-bar-tabs button, .pb-err, .db-where, .drawer-tab';
   const bars = '.doc-bar, .toolbar, .goal-strip, .goal-tab-anchor, .fabs, .bottom-bar, .play-overlay, .debug-bar, .edge-handle, .vp-bar';
   const bad = [];
@@ -2099,6 +2100,46 @@ async def main():
                     errs.append(f'Gizmo : le cube rouge de Scale n’allonge pas Moteur ({turned[3]} → {scaled[3]})')
                 await shot('127_viewport_gizmo_scale')
                 await page.locator('.vp-bar .vp-btn[aria-label="Move"]').tap()
+        # UI-6 (V7.80): the level toolbar of UE 5.8 (Settings › World Settings opens its Details), and Eject / Possess in Play.
+        await page.locator('button[aria-label="Accueil"]').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await page.wait_for_timeout(500)
+        if await page.locator('.doc-tab.level').count():
+            await page.locator('.doc-tab.level').tap()
+        await page.wait_for_timeout(200)
+        unmarked = await page.evaluate(AUDIT)
+        if unmarked:
+            errs.append(f'Familles : boutons sans famille dans la barre du niveau {unmarked}')
+        await shot('128_level_toolbar')
+        await page.locator('.level-toolbar .tb[aria-label="Blueprints"]').tap()
+        await page.wait_for_timeout(200)
+        if await page.locator('.menu-item:disabled', has_text='Open Level Blueprint').count() != 1:
+            errs.append('Barre du niveau : Blueprints › Open Level Blueprint devrait être grisé')
+        await shot('129_level_blueprints_menu')
+        await page.locator('.menu-backdrop').first.click(position={'x': 5, 'y': 5})
+        await page.wait_for_timeout(200)
+        await page.locator('.level-toolbar .tb[aria-label="Settings"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='World Settings').first.tap()
+        await page.wait_for_timeout(400)
+        if not await page.locator('select[aria-label="GameMode Override"]').count():
+            errs.append('Barre du niveau : Settings › World Settings n’ouvre pas les World Settings')
+        await page.locator('.drawer.right .drawer-head .btn[aria-label="Fermer"]').first.tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.tb.play').tap()
+        await page.wait_for_timeout(800)
+        await page.locator('.pb-btn[aria-label="Eject"]').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.joystick').count() or not await page.locator('.play-ejected').count():
+            errs.append('Eject : le joystick reste, ou rien ne dit que la caméra est libre')
+        await shot('130_play_ejected')
+        await page.locator('.pb-btn[aria-label="Possess"]').tap()
+        await page.wait_for_timeout(300)
+        if not await page.locator('.joystick').count():
+            errs.append('Possess : le joystick ne revient pas')
+        await page.locator('.tb.stop').tap()
+        await page.wait_for_timeout(300)
 
         print('errors', errs)
         await b.close()

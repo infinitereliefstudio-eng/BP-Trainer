@@ -183,7 +183,7 @@ export const lesson3: Lesson = {
     {
       title: 'Ce qui est en place',
       body:
-        'La lampe a un troisième composant : **Zone**, une Box Collision, le carré en pointillés dans le niveau. Une zone de collision ne se voit pas en jeu et ne bloque rien : elle **détecte** qui la traverse.\n\n' +
+        'La lampe a un troisième composant : **Zone**, une Box Collision, le cadre en pointillés dans le niveau. Une zone de collision ne se voit pas en jeu et ne bloque rien : elle **détecte** qui la traverse.\n\n' +
         'Quand un acteur y entre, le moteur déclenche un **Begin Overlap** ; quand il en sort, un **End Overlap**. Le joueur part à gauche de la lampe, hors de la zone.',
     },
     {

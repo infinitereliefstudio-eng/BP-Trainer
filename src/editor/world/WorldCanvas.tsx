@@ -106,7 +106,8 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
     const s = l.session;
     const f = store.focus;
     if (s) {
-      followPlayer(camera(), s.sim.player, l.size.w, l.size.h);
+      // Ejected (UE's F8): the view stays where the fingers put it.
+      if (!s.ejected) followPlayer(camera(), s.sim.player, l.size.w, l.size.h);
       s.camera = camera();
     }
     renderWorld(

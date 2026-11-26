@@ -51,7 +51,7 @@ import { DebugBar } from './play/DebugBar';
 import { LiveOutliner } from './play/LiveOutliner';
 import { LevelOutliner } from './panels/LevelOutliner';
 import { PlayControls, PlayOverlay } from './play/PlayOverlay';
-import { playOrder, view3d } from './playSettings';
+import { playOrder, setView3d, view3d } from './playSettings';
 import { DocumentTabs } from './editor/DocumentTabs';
 import { BottomBar } from './editor/BottomBar';
 import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolbars';
@@ -420,6 +420,18 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           onPlay={play}
           onStop={stop}
           onPlaceActors={(sx, sy) => setOverlay({ kind: 'menu', sx, sy, title: 'Place Actors', items: placeMenu(store, { x: 0, y: 0 }) })}
+          menu={(sx, sy, title, items) => setOverlay({ kind: 'menu', sx, sy, title, items })}
+          onNewBlueprint={() => setOverlay({ kind: 'content' })}
+          onProjectSettings={() => setOverlay({ kind: 'projectSettings' })}
+          onWorldSettings={() => {
+            store.setFocus({ kind: 'worldSettings' });
+            openDetails();
+          }}
+          view3d={view3d()}
+          onView3d={(on) => {
+            setView3d(on);
+            store.info(on ? 'Vue 3D (essai) activée : Play dessine le niveau en 3D.' : 'Vue 3D (essai) désactivée : Play reste en vue de dessus (sauf si tu édites le niveau en 3D).');
+          }}
         >
           {playing && session && <PlayControls session={session} onShowLog={() => setBottom('log')} onOutliner={() => setOutliner((v) => !v)} />}
         </LevelToolbar>

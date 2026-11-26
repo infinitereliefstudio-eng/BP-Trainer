@@ -197,6 +197,11 @@ select.field { padding-right: 4px; }
 .pb-btn.small { min-width: 34px; font-size: var(--fs-sm); }
 .pb-time { min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: var(--fs-sm); }
 .pb-time.pb-fps { min-width: 44px; }
+/* UI-6 (V7.80): the level toolbar's icon buttons, as UE 5.8's. */
+.tb.icon-tb { display: inline-flex; align-items: center; gap: 1px; padding: 0 8px; }
+.tb.icon-tb.narrow { padding: 0 4px; }
+.play-ejected { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); padding: 6px 12px; border-radius: var(--r-1);
+  background: rgba(21, 21, 21, 0.82); color: var(--text); font-size: var(--fs-sm); pointer-events: none; white-space: nowrap; }
 /* 3D-0 (V7.77): the 3D view of Play fills the level area like the top view. */
 /* 3D-1 (V7.78): the level viewport's bar, top left as in UE 5.6+, and the names drawn over the 3D editor. */
 .vp-bar { position: absolute; z-index: 5; top: 6px; left: max(6px, env(safe-area-inset-left)); display: flex; gap: 4px; pointer-events: auto;

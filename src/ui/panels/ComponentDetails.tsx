@@ -142,7 +142,7 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
       {c.kind === 'Widget' && (
         <Group title="User Interface">
           <Field label="Space">
-            <select class="field" value="Screen" disabled title="Seul Screen est simulé : la vue de dessus ne peut pas montrer une surface posée dans la scène (World)">
+            <select class="field" value="Screen" disabled title="Seul Screen est simulé : World, une surface posée dans la scène, attend que le niveau ait une hauteur">
               <option value="Screen">Screen</option>
             </select>
           </Field>
@@ -219,8 +219,8 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
               une barre de vie fait plutôt 120 × 14.
             </p>
             <p>
-              <b>Space</b> : en World, UE pose le widget comme un panneau dans la scène 3D (un écran de terminal), caché par les murs et vu de biais. La vue
-              de dessus ne peut pas le montrer : l’appli simule Screen seulement. Dans UE, on le place au-dessus de l’acteur avec Location Z ; ici, Location
+              <b>Space</b> : en World, UE pose le widget comme un panneau dans la scène 3D (un écran de terminal), caché par les murs et vu de biais. Le niveau
+              de l’appli n’ayant pas encore de hauteur, elle simule Screen seulement. Dans UE, on le place au-dessus de l’acteur avec Location Z ; ici, Location
               Y négatif le remonte à l’écran. Cette Location ne tourne pas avec l’acteur : le widget reste au-dessus de lui, comme Location Z dans UE.
             </p>
           </>

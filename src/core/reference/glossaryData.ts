@@ -174,7 +174,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     title: 'Types des pins',
     names: ['Types des pins', 'Integer et Float', 'Division entière', 'Comparer deux Integer', '>= (Integer)', 'Rotator'],
     what: 'La couleur d’une pin dit son type : rouge Boolean, vert clair Integer, vert Float, rose String, jaune Vector, violet Rotator, bleu référence. Un fil ne relie que des types compatibles ; certains se convertissent tout seuls (Integer vers String).',
-    when: 'Choisis le nœud du bon type : + (Integer) ou + (Float), >= (Integer)… Un Rotator est une rotation en degrés (Roll, Pitch, Yaw) ; vu de dessus, c’est Yaw (Z) qui tourne.',
+    when: 'Choisis le nœud du bon type : + (Integer) ou + (Float), >= (Integer)… Un Rotator est une rotation en degrés (Roll, Pitch, Yaw) ; dans l’appli, sans hauteur, c’est Yaw (Z) qui tourne.',
     trap: 'Entre deux Integer, la division est entière : 7 / 2 donne 3. Pour garder la virgule, divise des Float.',
   },
   {
@@ -387,7 +387,7 @@ export const GLOSSARY: GlossaryEntry[] = [
     names: ['Find Look at Rotation', 'Regarder vers'],
     what: 'Find Look at Rotation donne la rotation qu’il faut pour regarder d’une position (Start) vers une autre (Target). Passée à Set Actor Rotation, l’acteur se tourne vers la cible, et sa Forward Vector pointe vers elle.',
     when: 'Un garde tourné vers où il va, une tourelle vers sa cible, un personnage vers celui qui lui parle.',
-    trap: 'Start est la position de celui qui regarde, pas sa direction. Vue de dessus, seul le Yaw compte ; dans UE, si la cible est plus haute ou plus basse, la rotation penche aussi (Pitch).',
+    trap: 'Start est la position de celui qui regarde, pas sa direction. Le niveau de l’appli n’ayant pas de hauteur, seul le Yaw compte ; dans UE, si la cible est plus haute ou plus basse, la rotation penche aussi (Pitch).',
     pattern: 'Set Actor Rotation (Find Look at Rotation (Get Actor Location, Cible))',
   },
   {

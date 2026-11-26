@@ -38,7 +38,13 @@ export type IconName =
   | 'cube'
   | 'grid'
   | 'angle'
-  | 'size';
+  | 'size'
+  | 'plus'
+  | 'mode'
+  | 'blueprint'
+  | 'film'
+  | 'platforms'
+  | 'eject';
 
 /** Each icon on a 20 × 20 grid: strokes (`s`) drawn 1.6 wide, and filled shapes (`f`). */
 const PATHS: Record<IconName, { s?: string; f?: string }> = {
@@ -74,6 +80,12 @@ const PATHS: Record<IconName, { s?: string; f?: string }> = {
   grid: { s: 'M3 3 H17 V17 H3 Z M7.7 3 V17 M12.3 3 V17 M3 7.7 H17 M3 12.3 H17' },
   angle: { s: 'M3 16 H17 M3 16 L13 4 M8.5 16 A5.5 5.5 0 0 0 6.4 11.8' },
   size: { s: 'M3 8 V3 H8 M17 12 V17 H12 M3 3 L17 17' },
+  plus: { s: 'M10 4 V16 M4 10 H16' },
+  mode: { s: 'M3 3 H11 M3 3 V11 M17 17 H11 M17 17 V11', f: 'M8 7 L8 15.5 L10.3 13.3 L11.9 16.6 L13.3 15.9 L11.8 12.7 L14.8 12.7 Z' },
+  blueprint: { s: 'M3 4 H8 V8 H3 Z M12 12 H17 V16 H12 Z M8 6 H10 V14 H12' },
+  film: { s: 'M3 5 H17 V15 H3 Z M6 5 V15 M14 5 V15 M3 8.3 H6 M3 11.7 H6 M14 8.3 H17 M14 11.7 H17' },
+  platforms: { s: 'M3 4 H17 V13 H3 Z M7.5 16.5 H12.5 M10 13 V16.5' },
+  eject: { f: 'M10 4 L16 11 H4 Z M4 13.5 H16 V16 H4 Z' },
   cap: { s: 'M2 8 L10 4.5 L18 8 L10 11.5 Z M5.5 9.6 V13.2 C7.5 15.2 12.5 15.2 14.5 13.2 V9.6 M18 8 V12.5' },
   settings: {
     s: 'M10 7.2 a2.8 2.8 0 1 0 0.01 0 Z M10 2.5 V4.6 M10 15.4 V17.5 M2.5 10 H4.6 M15.4 10 H17.5 M4.7 4.7 L6.2 6.2 M13.8 13.8 L15.3 15.3 M4.7 15.3 L6.2 13.8 M13.8 6.2 L15.3 4.7',

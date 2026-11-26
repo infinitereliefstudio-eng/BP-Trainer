@@ -7,6 +7,9 @@
  * fingers pinch to come closer. The frame is drawn only while the game runs, or after a change (pause, step, pick):
  * a paused game costs no battery.
  *
+ * Ejected (UE's F8, V7.80), the view leaves the follow camera for a free one: one finger turns around, two fingers
+ * move and pinch, as in the level editor.
+ *
  * If WebGL is missing (rare on a phone), `onUnavailable` is called: Play goes back to the top view.
  */
 import { useEffect, useRef } from 'preact/hooks';
@@ -17,6 +20,7 @@ import { FollowCamera } from './followCamera';
 import { WIDGET_HEIGHT } from './heights';
 import { LevelScene } from './levelScene';
 import { dropRenderer, makeRenderer } from './renderer';
+import { ViewCamera } from './viewCamera';
 
 interface Props {
   session: PlaySession;
@@ -47,13 +51,16 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
     const ray = new Raycaster();
     const ndc = new Vector2();
     let sim = session.sim;
+    /** The free camera while ejected. */
+    let free: ViewCamera | undefined;
+    let size = { w: 1, h: 1 };
     let dirty = true;
     let last = 0;
     let frames = 0;
     let fpsSince = performance.now();
 
     // The widgets of Widget Components follow their actor on the screen with this camera.
-    const projector = { toScreen: (x: number, y: number) => cam.toScreen(x, y, WIDGET_HEIGHT) };
+    const projector = { toScreen: (x: number, y: number) => (free ?? cam).toScreen(x, y, WIDGET_HEIGHT) };
     session.camera = projector;
 
     // The smoke test (?e2e) asks where an actor is on the screen, to tap it.
@@ -70,6 +77,8 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
       const r = wrap.getBoundingClientRect();
       renderer.setSize(r.width, r.height, true);
       cam.resize(r.width, r.height);
+      size = { w: r.width, h: r.height };
+      free?.resize(r.width, r.height);
       dirty = true;
       draw(performance.now());
     });
@@ -86,14 +95,23 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
       const dt = last ? Math.min(0.1, (t - last) / 1000) : 0;
       last = t;
       cam.follow(sim.player.x, sim.player.y, dt);
+      if (session.ejected && !free) {
+        // Leave the pawn where the follow camera looks from, then move freely.
+        free = new ViewCamera('Perspective');
+        free.resize(size.w, size.h);
+        free.target.set(cam.target.x, 0, cam.target.y);
+        free.pitch = 55;
+        free.distance = cam.distance;
+        free.place();
+      } else if (!session.ejected) free = undefined;
       level.sync({
         actors: sim.actors,
         player: sim.player,
         debugLines: sim.debugLines,
         selectedId: session.selected,
-        focus: cam.target,
+        focus: free ? { x: free.target.x, y: free.target.z } : cam.target,
       });
-      renderer.render(level.scene, cam.three);
+      renderer.render(level.scene, free ? free.three : cam.three);
       frames++;
       if (t - fpsSince >= 1000) {
         live.current.onFps?.(Math.round((frames * 1000) / (t - fpsSince)));
@@ -117,7 +135,7 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
         const p = cam.ndc(sx, sy);
         ndc.set(p.x, p.y);
         ray.setFromCamera(ndc, cam.three);
-        const id = level.pick(ray, sim.actors);
+        const id = level.pick(free ? free.rayAt(sx, sy) : ray, sim.actors);
         return id ? { kind: 'node', node: id } : { kind: 'empty' };
       },
       selectionMode: () => false,
@@ -129,11 +147,21 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
       },
       onDoubleTap: noop,
       onLongPress: noop,
-      onPan: noop,
-      onPinch(_cx, _cy, factor) {
-        cam.zoomBy(factor);
+      onPan(dx, dy) {
+        if (!free) return;
+        free.orbit(dx, dy);
         dirty = true;
-        cam.place();
+        draw(performance.now());
+      },
+      onPinch(cx, cy, factor, dx, dy) {
+        if (free) {
+          free.zoom(factor, cx, cy);
+          free.pan(dx, dy);
+        } else {
+          cam.zoomBy(factor);
+          cam.place();
+        }
+        dirty = true;
         draw(performance.now());
       },
       // A drag that starts on an actor moves nothing in Play.

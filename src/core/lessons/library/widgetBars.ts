@@ -166,7 +166,7 @@ export const lessonEnemyBar: Lesson = {
       title: 'Les pièges du premier essai',
       body:
         '- **Draw Size** vaut 500 × 500 au départ : la barre couvrirait l’ennemi et ses voisins. Une barre de vie fait plutôt 120 × 14.\n' +
-        '- Le composant est placé au centre de l’acteur : dans UE, on le remonte avec **Location Z**. Vu de dessus, ici, c’est **Location Y négative** (vers −80) qui le place au-dessus.\n' +
+        '- Le composant est placé au centre de l’acteur : dans UE, on le remonte avec **Location Z**. Le niveau de l’appli n’a pas encore de hauteur : ici, c’est **Location Y négative** (vers −80) qui le place au-dessus.\n' +
         '- **Widget Class** laissé à None : rien ne s’affiche.',
     },
     {

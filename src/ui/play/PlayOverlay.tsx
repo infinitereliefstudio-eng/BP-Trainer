@@ -37,6 +37,14 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
       <button class="pb-btn" onClick={() => session.stepFrame()} aria-label="Avancer d’une frame">
         <Icon name="step" />
       </button>
+      <button
+        class={`pb-btn${session.ejected ? ' on' : ''}`}
+        onClick={() => session.setEjected(!session.ejected)}
+        aria-label={session.ejected ? 'Possess' : 'Eject'}
+        title={session.ejected ? 'Possess : reprendre le joueur' : 'Eject (F8) : quitter le joueur pour regarder librement'}
+      >
+        <Icon name="eject" />
+      </button>
       {SPEEDS.map((s) => (
         <button key={s} class={`pb-btn small${session.speed === s ? ' on' : ''}`} {...family('app')} onClick={() => session.setSpeed(s)}>
           ×{s === 0.25 ? '¼' : s}
@@ -108,14 +116,23 @@ export function PlayOverlay({ session }: Pick<Props, 'session'>) {
         ))}
       </div>
 
-      {/* The game's joystick, not the world's: it still holds after an Open Level. */}
-      <Joystick onMove={(x, y) => (session.game.move = { x, y })} />
+      {session.ejected ? (
+        // Ejected, as UE's F8: no pawn to drive; the view moves freely until Possess.
+        <div class="play-ejected" data-origin="app">
+          Ejecté : la vue ne suit plus le joueur, déplace-la au doigt. Possess le reprend.
+        </div>
+      ) : (
+        <>
+          {/* The game's joystick, not the world's: it still holds after an Open Level. */}
+          <Joystick onMove={(x, y) => (session.game.move = { x, y })} />
 
-      <div class="keys">
-        <Key label="E" k="E" session={session} />
-        <Key label="F" k="F" session={session} />
-        <Key label="Espace" k="SpaceBar" session={session} wide />
-      </div>
+          <div class="keys">
+            <Key label="E" k="E" session={session} />
+            <Key label="F" k="F" session={session} />
+            <Key label="Espace" k="SpaceBar" session={session} wide />
+          </div>
+        </>
+      )}
     </div>
   );
 }

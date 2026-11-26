@@ -20,7 +20,7 @@ const TEST =
 
 export const REDO_WORKSHOP = card(
   START +
-    '- **Les pales** : Add Local Rotation sur l’axe qui fait face au ventilateur (souvent Roll ou Pitch en 3D) ; ici, vu de dessus, seul le Yaw existait.\n' +
+    '- **Les pales** : Add Local Rotation sur l’axe qui fait face au ventilateur (souvent Roll ou Pitch en 3D) ; ici, sans hauteur, seul le Yaw existait.\n' +
     '- **Le carburant** n’a pas besoin de 60 mesures par seconde : dans UE, un **Tick Interval** (Class Defaults › Actor Tick) ou un timer allège la machine, sans rien changer au reste.\n' +
     '- **Le panneau** : sa Vertical Box dans une **Scroll Box** si l’atelier grandit, et des **ancres** pour qu’il tienne sur tous les écrans. En Game and UI, le premier clic dans la vue peut capturer la souris : règle **Mouse Lock Mode** et **Hide Cursor During Capture** sur Set Input Mode Game and UI.\n' +
     '- **Le carburant de chaque machine posée** se règle comme ici : Details de l’acteur, son composant BP_Reservoir, Carburant.' +

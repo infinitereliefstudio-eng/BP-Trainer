@@ -34,6 +34,11 @@ export class PlaySession {
   camera?: ScreenProjector;
   /** Play drawn in 3D (« Vue 3D (essai) », 3D-0) or from above; the toolbar switches during Play. */
   view3d = false;
+  /**
+   * Eject (UE's F8, UI-6): the view leaves the player's pawn and its camera; the game keeps running, the joystick and
+   * the keys are gone, the view moves freely. Possess gives the pawn back.
+   */
+  ejected = false;
   /** Frames per second of the 3D view, measured about once a second (shown in the toolbar during the trial). */
   fps?: number;
   private wasPaused = false;
@@ -152,6 +157,12 @@ export class PlaySession {
 
   togglePause(): void {
     this.running = !this.running;
+    this.notifyUi();
+  }
+
+  setEjected(on: boolean): void {
+    this.ejected = on;
+    if (on) this.game.move = { x: 0, y: 0 };
     this.notifyUi();
   }
 

@@ -84,13 +84,13 @@ const IN_UE: Record<string, string> = {
   'player.getController': 'Ici il n’y a qu’un joueur : son Player Controller est à l’index 0. Un Blueprint Player Controller se choisit dans le GameMode : Class Defaults › Player Controller Class.',
   'input.action': 'Contrairement à un événement de touche, l’événement d’une Input Action n’a pas de case Consume Input dans UE : chaque acteur qui reçoit les entrées et écoute l’action la reçoit. Pour qu’une touche change de sens (menu, dialogue), on ajoute un Mapping Context de plus haute priorité.',
   'input.addMappingContext': 'Dans UE, le Mapping Context se choisit sur une pin du nœud, à côté de Priority et d’une pin Options (une structure à éclater). Ici, le contexte et Ignore All Pressed Keys Until Release, la seule option simulée, se règlent dans Details.',
-  'actor.setLocation': 'Le niveau est vu de dessus : Z est ignoré. Le déplacement se fait sans Sweep : l’acteur peut se poser dans un mur.',
+  'actor.setLocation': 'Le niveau de l’appli n’a pas encore de hauteur, même dessiné en 3D : Z est ignoré. Le déplacement se fait sans Sweep : l’acteur peut se poser dans un mur.',
   'timeline.node': 'Ici une piste est faite de segments droits entre ses points clés. Dans UE, on double-clique le nœud pour ouvrir l’éditeur de courbes, où chaque point peut aussi être arrondi (Auto) ; un Timeline peut porter des pistes Vector, Color et Event.',
   'trace.lineByChannel': 'Ici le rayon est tracé dans le plan du sol. Un Static Mesh qui bloque arrête les deux canaux ; une Box Collision (zone de déclenchement) n’en arrête aucun ; la capsule du joueur ignore Visibility et bloque Camera, comme le preset Pawn. Dans UE, cela se règle composant par composant dans Collision Presets.',
   'event.hit': 'Ici, seul le joueur se déplace en balayant le décor : Event Hit vient donc toujours d’un contact avec lui. Dans UE, un acteur déplacé avec Sweep coché, ou simulé par la physique (Simulation Generates Hit Events), en reçoit aussi.',
   'cs.entry': 'Dans UE, le Construction Script sert aussi à créer des composants (Add Static Mesh Component…). Ici il règle les composants existants.',
   'actor.getOwner': 'Dans UE, l’Owner d’un acteur se donne avec la pin Owner de Spawn Actor (le réseau s’en sert). Ici, Spawn Actor n’a pas cette pin : Get Owner d’un acteur renvoie toujours None.',
-  'actor.getLocation': 'Le niveau est vu de dessus : Z vaut toujours 0.',
+  'actor.getLocation': 'Le niveau de l’appli n’a pas encore de hauteur, même dessiné en 3D : Z vaut toujours 0.',
 };
 
 export function trapFor(node: NodeInstance, ctx: NodeContext): string | undefined {

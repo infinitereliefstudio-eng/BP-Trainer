@@ -72,7 +72,7 @@ export const lesson5: Lesson = {
       body:
         '**Set Relative Rotation** donne une nouvelle rotation à un composant :\n\n' +
         '- **Target** : le composant à tourner (Get Porte) ;\n- **New Rotation** : un **Rotator**, trois angles en degrés : Roll (X), Pitch (Y) et Yaw (Z).\n\n' +
-        'Vue de dessus, seul **Yaw** compte : c’est la rotation autour de l’axe vertical. Écris 90 dans la case Z.\n\n' +
+        'Le niveau de l’appli n’a pas de hauteur : seul **Yaw** compte : c’est la rotation autour de l’axe vertical. Écris 90 dans la case Z.\n\n' +
         '**Relative** veut dire « par rapport à l’acteur » : 0 est la position fermée de la porte telle qu’on l’a posée, quelle que soit l’orientation de l’acteur dans le niveau. Ce n’est pas un ajout : Set Relative Rotation à 90 deux fois de suite laisse la porte à 90.',
     },
     {

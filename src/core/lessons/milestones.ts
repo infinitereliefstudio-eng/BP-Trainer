@@ -11,6 +11,7 @@
  * the milestone reached (`milestoneView`), from the progress.
  */
 import type { Project } from '../model/project';
+import { REDO_UE5_TITLE } from './helpPolicy';
 import type { Lesson, LessonCard, Milestone } from './types';
 
 /** The index of a project's last milestone (0 for a lesson without). */
@@ -41,6 +42,12 @@ function briefs(ms: Milestone[], upTo: number): LessonCard[] {
   return ms.slice(0, upTo + 1).flatMap((m, i) => m.cards.map((c) => (ms.length > 1 ? { ...c, title: `Jalon ${i + 1}/${ms.length} · ${c.title}` } : c)));
 }
 
+/** The project's own cards around the briefs: « Un projet Expert » before them, « Le refaire dans UE5 » (V7.72) after. */
+function aroundBriefs(cards: LessonCard[], briefCards: LessonCard[]): LessonCard[] {
+  const after = (c: LessonCard) => c.title === REDO_UE5_TITLE;
+  return [...cards.filter((c) => !after(c)), ...briefCards, ...cards.filter(after)];
+}
+
 /** The reference solution up to milestone `upTo`, built in order. */
 const solveUpTo = (ms: Milestone[], upTo: number) => (p: Project) => {
   for (const m of ms.slice(0, upTo + 1)) m.solve(p);
@@ -57,7 +64,7 @@ export function withMilestones(base: Omit<Lesson, 'scenario' | 'checks' | 'objec
   return {
     ...base,
     milestones,
-    cards: [...base.cards, ...briefs(milestones, last)],
+    cards: aroundBriefs(base.cards, briefs(milestones, last)),
     objectives: milestones.flatMap((m) => m.objectives),
     scenario: milestones[last].scenario,
     checks: milestones[last].checks,
@@ -74,7 +81,7 @@ export function milestoneView(lesson: Lesson, i: number): Lesson {
   return {
     ...lesson,
     atMilestone: at,
-    cards: [...lesson.cards.filter((c) => !own.has(c.title)), ...briefs(ms, at)],
+    cards: aroundBriefs(lesson.cards.filter((c) => !own.has(c.title)), briefs(ms, at)),
     objectives: ms.slice(0, at + 1).flatMap((m) => m.objectives),
     scenario: ms[at].scenario,
     checks: ms[at].checks,

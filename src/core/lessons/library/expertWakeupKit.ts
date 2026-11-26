@@ -15,7 +15,7 @@ import { type ClassBuilder, ProjectBuilder } from '../builder';
 import { normText } from '../checks';
 import type { Check, CheckContext, ScenarioStep } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
-import { expertScenery } from './expertRadio';
+import { expertScenery } from './expertKit';
 import { tap } from './kit';
 import { playerBlueprint } from './props';
 import { makeStruct, makeTable } from './tables';

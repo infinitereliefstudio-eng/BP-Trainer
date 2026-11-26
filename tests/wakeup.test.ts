@@ -133,6 +133,13 @@ describe('X6 Le réveil', () => {
     expect(failed(1, p)).toEqual(expect.arrayContaining(['next', 'context']));
   });
 
+  it('milestone 2: a dialogue context with the same priority as IMC_Joueur lets E reopen the journal', () => {
+    const p = solved(1, (p) => {
+      for (const n of nodes(graphOf(p, 'BP_Terminal'), 'input.addMappingContext')) n.defaults.priority = 0;
+    });
+    expect(failed(1, p)).toContain('next');
+  });
+
   it('milestone 3: Continuer always enabled is caught at once', () => {
     const p = solved(2, (p) => {
       const g = graphOf(p, 'WBP_Menu');

@@ -8,14 +8,8 @@ import { getLesson, LESSONS } from '../src/core/lessons';
 import { HOLD_NOTE, HOLD_SECONDS, heldTaps, runLesson } from '../src/core/lessons/runner';
 import type { ScenarioStep } from '../src/core/lessons/types';
 import { lessonLabel } from '../src/core/lessons/types';
+import { milestoneView } from '../src/core/lessons/milestones';
 import { parseProject, serializeProject } from '../src/core/serialization/serialize';
-
-const solved = (id: string) => {
-  const lesson = getLesson(id)!;
-  const p = lesson.setup();
-  lesson.solve(p);
-  return { lesson, p: parseProject(serializeProject(p)) };
-};
 
 describe('heldTaps', () => {
   it('holds a tap and takes the hold from the wait after it', () => {
@@ -31,18 +25,26 @@ describe('heldTaps', () => {
   });
 });
 
-describe('X1 « La radio de la station », E held as a finger holds it', () => {
-  it('the reference solution passes: the E that opens the conversation is not also « next line »', () => {
-    const { lesson, p } = solved('x1-radio');
-    expect(runLesson(lesson, p).passed).toBe(true);
+describe('X6 « Le réveil », the terminal, E held as a finger holds it', () => {
+  // Milestone 2 took over X1's radio (V7.72): the E that opens the journal is not also « next page ».
+  const terminal = () => {
+    const lesson = getLesson('x6-reveil')!;
+    const p = lesson.setup();
+    for (const m of lesson.milestones!.slice(0, 2)) m.solve(p);
+    return { view: milestoneView(lesson, 1), p: parseProject(serializeProject(p)) };
+  };
+
+  it('the reference solution passes', () => {
+    const { view, p } = terminal();
+    expect(runLesson(view, p).passed).toBe(true);
   });
 
-  it('with Ignore All Pressed Keys Until Release unchecked, R2 comes at once and the step fails', () => {
-    const { lesson, p } = solved('x1-radio');
+  it('with Ignore All Pressed Keys Until Release unchecked, J2 comes at once and the milestone fails', () => {
+    const { view, p } = terminal();
     for (const c of p.classes) for (const g of c.graphs) for (const n of Object.values(g.nodes)) if (n.def === 'input.addMappingContext') n.config.ignorePressed = false;
-    const run = runLesson(lesson, p);
+    const run = runLesson(view, p);
     expect(run.passed).toBe(false);
-    expect(run.notes[0]).toBe(HOLD_NOTE);
+    expect(run.notes).toContain(HOLD_NOTE);
     expect(run.results.find((r) => !r.ok)?.reason).toContain('Ignore All Pressed Keys Until Release');
   });
 });

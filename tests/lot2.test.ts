@@ -43,13 +43,13 @@ describe('notions of the path', () => {
     expect(late).toEqual([]);
   });
 
-  it('a synthesis or a mixed practice declares what its solution writes (V7.62: the home screen warns from it)', () => {
+  it('a synthesis, a mixed practice or an Expert project declares what its solution writes (V7.62: the home screen warns from it; V7.72: Expert)', () => {
     // Notions every step uses from the Débutant on: not worth listing.
     const everywhere = new Set(['variables', 'math', 'branch', 'events', 'print', 'components']);
     const missing: string[] = [];
     for (const l of LESSONS) {
       const n = stepNotions(l.id);
-      if (l.kind !== 'synthesis' && !n.teaches.includes('mixed')) continue;
+      if (l.kind !== 'synthesis' && !n.teaches.includes('mixed') && l.level !== 'expert') continue;
       const start = l.setup();
       const solved = l.setup();
       l.solve(solved);

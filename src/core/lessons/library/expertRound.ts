@@ -35,7 +35,8 @@ import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../che
 import { withMilestones } from '../milestones';
 import type { CheckContext, Lesson, ScenarioStep } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
-import { EXPERT_RULES } from './expertRadio';
+import { EXPERT_RULES } from './expertKit';
+import { REDO_ROUND } from './expertUe5';
 import { fnDef, fnOf, tap } from './kit';
 import { playerBlueprint } from './props';
 import { shownValue } from './expertArena';
@@ -990,7 +991,7 @@ export const expertRound: Lesson = withMilestones(
     notions: ['Projet Expert', 'Find Look at Rotation', 'Dot Product', 'Line Trace By Channel', 'Switch on Enum', 'Widget Component', 'GameInstance', 'Open Level (by Name)'],
     remember:
       'Un garde ne sait faire que sa ronde ; ce qu’il voit est l’affaire de son composant de vision, qui dit seulement « alerte ». Le GameMode, l’arbitre, entend l’alerte et décide de la suite. Et tout ce qui doit survivre au niveau rouvert (le compte, le dossier, le point de reprise) vit dans le GameInstance.',
-    cards: [EXPERT_RULES],
+    cards: [EXPERT_RULES, REDO_ROUND],
     hints: [
       'Qui sait où va un garde, qui sait ce qu’il voit, et qui décide de ce qui arrive quand il voit ?',
       'Class Defaults (Hérité) ; Find Look at Rotation, Set Actor Rotation ; Get Owner, Dot Product, Get Distance To, Line Trace By Channel ; Enum, Switch on Enum ; Widget Component, Get User Widget Object ; Event Dispatcher, Bind Event ; BPI_Interactif ; GameInstance, Open Level.',

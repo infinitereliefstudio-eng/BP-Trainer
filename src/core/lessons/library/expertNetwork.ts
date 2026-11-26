@@ -36,7 +36,8 @@ import { withMilestones } from '../milestones';
 import type { CheckContext, Lesson, ScenarioStep } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
 import { shownValue } from './expertArena';
-import { EXPERT_RULES } from './expertRadio';
+import { EXPERT_RULES } from './expertKit';
+import { REDO_NETWORK } from './expertUe5';
 import { fnDef, tap } from './kit';
 import { playerBlueprint } from './props';
 import { makeStruct } from './tables';
@@ -1113,7 +1114,7 @@ export const expertNetwork: Lesson = withMilestones(
     notions: ['Projet Expert', 'Parcours de graphe', 'File de travail', 'Random Stream', 'Spawn Actor', 'Data Table', 'Event Dispatcher', 'Map', 'SaveGame', 'GameInstance', 'Open Level (by Name)'],
     remember:
       'La table décrit les grilles, la graine les fabrique, le parcours (une liste de travail et un Set des déjà vus) dit où va le courant, et le réseau arbitre : les coups, la fin. Le relais, lui, sait seulement tourner et le dire. Le GameInstance se souvient d’un niveau à l’autre ; la Save Game, d’une partie à l’autre.',
-    cards: [EXPERT_RULES],
+    cards: [EXPERT_RULES, REDO_NETWORK],
     hints: [
       'Qui sait où est un relais, qui sait s’il est ouvert, qui sait où passe le courant, et qui décide qu’un coup compte ?',
       'Get Data Table Row, Break S_Grille, Make Random Stream, Random Integer in Range from Stream, Spawn Actor from Class (Expose on Spawn) ; fonction pure, Switch on E_Forme ; Set, Array, While Loop, For Loop ; Event Dispatcher, Bind Event ; Create Widget, Text Format ; GameInstance, Open Level ; Get Data Table Row Names, Add Child to Vertical Box ; Save Game, Map (Find, Add).',

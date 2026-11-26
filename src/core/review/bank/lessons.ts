@@ -371,6 +371,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     2,
   ),
   q(
+    'x4-ronde',
+    'La jauge de soupçon flotte au-dessus de chaque garde, dans un Widget Component. Comment le garde atteint-il son widget pour la remplir ?',
+    [
+      'Get User Widget Object sur le Widget Component, puis Cast To WBP_Soupcon, une fois au BeginPlay, gardé dans une variable',
+      'Create Widget (WBP_Soupcon) dans le garde, à chaque changement',
+      'Get All Widgets Of Class (WBP_Soupcon), puis le premier',
+      'Un Binding dans WBP_Soupcon qui cherche le garde le plus proche',
+    ],
+    'Le Widget Component crée lui-même son widget ; Get User Widget Object le rend, typé User Widget, d’où le Cast. Un Create Widget en ferait un autre, jamais affiché. Get All Widgets Of Class (Top Level Only coché par défaut) ne rend que les widgets ajoutés à l’écran, et ne saurait pas lequel est à ce garde-là.',
+    3,
+  ),
+  q(
     'x5-reseau',
     'Une grille de relais peut faire des boucles. Le courant se propage avec une liste de travail. Qu’est-ce qui garantit que le calcul finit ?',
     [
@@ -392,6 +404,18 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     ],
     'Un Random Stream donne toujours la même suite pour la même graine. Avec Random Integer in Range, chaque partie aurait sa grille, et un record n’aurait pas de sens. Attention : un tirage de plus, n’importe où avant, décale toute la suite.',
     2,
+  ),
+  q(
+    'x5-reseau',
+    'Chaque salle a son record (le moins de coups joués), gardé dans une Save Game. Les salles viennent d’une Data Table et peuvent changer. Quel conteneur ?',
+    [
+      'Une Map Name → Integer : le Row Name de la salle donne son record',
+      'Un Array of Integer, une case par salle dans l’ordre de la table',
+      'Un Set of Integer des meilleurs scores',
+      'Une variable Integer par salle dans la Save Game',
+    ],
+    'Une Map range une valeur sous une clé : Find dit si la salle a déjà un record et lequel, Add le remplace. Un tableau suit l’ordre de la table, qui peut bouger ; un Set ne dit pas à quelle salle va quel score ; une variable par salle oblige à changer la Save Game à chaque salle ajoutée.',
+    3,
   ),
   q(
     'x6-reveil',
@@ -441,10 +465,11 @@ export const LESSON_QUIZ: QuizQuestion[] = [
     4,
   ),
   q(
-    'x1-radio',
-    'Pendant une conversation, E doit passer à la réplique suivante au lieu d’interagir. La façon UE5 ?',
-    ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en conversation ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],
+    'x6-reveil',
+    'Pendant la lecture du terminal, E doit passer à la page suivante au lieu d’interagir. La façon UE5 ?',
+    ['Ajouter un Mapping Context de dialogue de plus haute priorité, puis le retirer', 'Un Branch « en lecture ? » dans chaque Blueprint qui écoute E', 'Désactiver Auto Receive Input sur les objets', 'Changer la touche dans IMC_Joueur pendant la partie'],
     'Un mode de jeu est un Mapping Context : ajouté avec une priorité plus haute, il garde la touche pour ses actions ; retiré, E retrouve son sens habituel.',
+    5,
   ),
   q(
     'x2-atelier',

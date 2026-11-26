@@ -104,6 +104,7 @@ export const MEMO: MemoCard[] = [
     title: 'Actor Components',
     summary: 'De la logique réutilisable qu’on ajoute à des acteurs : santé, inventaire, interaction.',
     keywords: ['actor component', 'composant', 'get owner', 'get component by class', 'composition', 'reutiliser', 'sante', 'inventaire'],
+    lessons: ['p15-qui-commence', 'r5-sante-partout', 'l-interaction-composant', 'l-sac-coffre', 'a2-energie', 'x2-atelier', 'x3-arene', 'x4-ronde', 'x6-reveil'],
     body:
       'Un **Actor Component** est un Blueprint de parent **ActorComponent** (Content Drawer › + Add › Blueprint Class › Actor Component). On l’ajoute à un acteur comme un Static Mesh (Components › + Add), mais il n’a **ni position ni forme** : seulement des variables, des fonctions, des événements et des Event Dispatchers.\n\n' +
       '- **Une copie par acteur** : deux caisses avec BP_Sante ont chacune leur Vie. Les variables cochées **Instance Editable** se règlent dans les Details du composant (pour toutes les caisses), puis dans ceux d’une caisse posée (pour elle seule).\n' +
@@ -163,7 +164,7 @@ export const MEMO: MemoCard[] = [
     title: 'Interfaces à l’écran (UMG)',
     summary: 'Widget Blueprint, Create Widget, Add to Viewport, et comment le mettre à jour.',
     keywords: ['widget', 'umg', 'hud', 'add to viewport', 'binding', 'bouton', 'texte', 'menu', 'input mode', 'widget component', 'user widget object'],
-    lessons: ['l-compteur-ecran', 'p16-construct', 'l-menu-controle', 'd24-menu-reste', 'l-vrai-menu-pause', 'd25-bouton-muet', 'l-barre-vie', 'r6-oxygene', 'l-appuie-sur-e', 'a3-terminal', 'c7-playlist', 't4-energie'],
+    lessons: ['l-compteur-ecran', 'p16-construct', 'l-menu-controle', 'd24-menu-reste', 'l-vrai-menu-pause', 'd25-bouton-muet', 'l-barre-vie', 'r6-oxygene', 'l-appuie-sur-e', 'a3-terminal', 'c7-playlist', 't4-energie', 'x2-atelier', 'x5-reseau'],
     body:
       'Une interface (barre de vie, menu, dialogue) est un **Widget Blueprint** : un onglet Designer pour placer textes, images et boutons, un onglet Graph pour la logique.\n\n' +
       'Pour l’afficher : **Create Widget** (choisir la classe, Owning Player), garder le résultat dans une variable, puis **Add to Viewport**. Pour l’enlever : **Remove from Parent**.\n\n' +
@@ -186,7 +187,7 @@ export const MEMO: MemoCard[] = [
     title: 'Niveaux et sauvegarde',
     summary: 'Open Level, GameInstance, Save Game to Slot.',
     keywords: ['open level', 'save game', 'load game', 'slot', 'gameinstance', 'checkpoint', 'niveau', 'level', 'event init', 'event shutdown', 'get current level name'],
-    lessons: ['l-tirelire', 'd17-premiere-partie', 'p11-load-cast', 'd18-record', 'l-checkpoint', 'l-couloir', 'p17-score-porte', 'l-sac-qui-suit', 'd27-sac-vide', 'l-bonne-porte', 'd28-objet-revient', 'a4-reprendre'],
+    lessons: ['l-tirelire', 'd17-premiere-partie', 'p11-load-cast', 'd18-record', 'l-checkpoint', 'l-couloir', 'p17-score-porte', 'l-sac-qui-suit', 'd27-sac-vide', 'l-bonne-porte', 'd28-objet-revient', 'a4-reprendre', 'x3-arene', 'x4-ronde', 'x5-reseau', 'x6-reveil'],
     body:
       '**Open Level (by Name)** quitte le niveau au début de l’image suivante (la chaîne en cours finit) : tous ses acteurs reçoivent Event End Play (Level Transition) et disparaissent, pion compris, puis le nouveau niveau démarre comme au premier Play. **Get Current Level Name** dit où l’on est.\n\n' +
       'Ce qui doit traverser va dans le **GameInstance** (Get Game Instance, puis Cast To vers ta classe, choisie dans Maps & Modes › Game Instance Class). Son **Event Init** a lieu au lancement, son **Event Shutdown** à la fermeture (Stop, Quit Game). Init est le bon moment pour relire un slot ; pour l’écrire, Shutdown ne suffit pas : sur un téléphone, fermer l’appli depuis les applis récentes ne le déclenche pas. On sauve aussi aux moments clés (une porte, un checkpoint).\n\n' +
@@ -206,7 +207,7 @@ export const MEMO: MemoCard[] = [
     title: 'Choisir comment communiquer',
     summary: 'Référence directe, Cast, interface ou Event Dispatcher.',
     keywords: ['cast', 'interface', 'dispatcher', 'reference', 'couplage'],
-    lessons: ['l06-cle', 'l09-generateur', 'l10-dispatcher', 'l11-interface', 'l-salle-controle'],
+    lessons: ['l06-cle', 'l09-generateur', 'l10-dispatcher', 'l11-interface', 'l-salle-controle', 'x2-atelier', 'x6-reveil'],
     body:
       'Quatre outils, quatre questions.\n\n' +
       '- **Référence directe** (variable Instance Editable, réglée dans le niveau) : « je connais précisément cet acteur ». Le levier connaît sa porte.\n' +
@@ -257,7 +258,7 @@ export const MEMO: MemoCard[] = [
     title: 'Data Tables et Data Assets',
     summary: 'Sortir les données des graphes : objets, dialogues, quêtes.',
     keywords: ['data table', 'data asset', 'structure', 'row', 'csv', 'dialogue', 'quete'],
-    lessons: ['l-fiche', 'l-codes', 'l-catalogue', 'd16-terminal-muet', 'l-dialogue-table'],
+    lessons: ['l-fiche', 'l-codes', 'l-catalogue', 'd16-terminal-muet', 'l-dialogue-table', 'x3-arene', 'x5-reseau', 'x6-reveil'],
     body:
       'Les données d’un jeu (cent objets, deux cents lignes de dialogue) n’ont rien à faire dans des nœuds.\n\n' +
       'Une **Data Table** est un tableau dont chaque ligne suit une **structure** et porte un **Row Name** unique. On la remplit dans l’éditeur, ou on l’importe d’un fichier CSV ou JSON.\n\n' +
@@ -274,7 +275,7 @@ export const MEMO: MemoCard[] = [
     title: 'Array, Set ou Map ?',
     summary: 'Trois conteneurs, trois usages, et la question de la copie.',
     keywords: ['array', 'set', 'map', 'tableau', 'copie', 'reference', 'find'],
-    lessons: ['l-inventaire', 'l-codes', 'l-badges', 'd5-copie'],
+    lessons: ['l-inventaire', 'l-codes', 'l-badges', 'd5-copie', 'x5-reseau'],
     body:
       '- **Array** : une liste ordonnée, avec doublons possibles. On y accède par index, on la parcourt avec For Each Loop.\n' +
       '- **Set** : des valeurs uniques, sans ordre garanti. Parfait pour « l’ai-je déjà ? » (Contains est rapide).\n' +
@@ -323,7 +324,7 @@ export const MEMO: MemoCard[] = [
     title: 'Tick, Timer, Timeline ou Delay ?',
     summary: 'Quatre façons de faire quelque chose « dans le temps ».',
     keywords: ['tick', 'timer', 'timeline', 'delay', 'delta seconds', 'looping', 'finterp'],
-    lessons: ['l08-refermer', 'l-porte-glisse', 'l-vagues', 'l-ascenseur', 'l12-station'],
+    lessons: ['l08-refermer', 'l-porte-glisse', 'l-vagues', 'l-ascenseur', 'l12-station', 'x4-ronde', 'x6-reveil'],
     body:
       '- **Delay** : « attends, puis continue », une fois. Un appel pendant l’attente est ignoré.\n' +
       '- **Set Timer by Event** : « appelle cet événement dans X secondes », ou toutes les X secondes avec Looping. Il s’arrête avec son Timer Handle. C’est l’outil de tout ce qui est périodique.\n' +
@@ -338,7 +339,7 @@ export const MEMO: MemoCard[] = [
     title: 'Les briques d’un jeu narratif',
     summary: 'Interaction, dialogue, inventaire, quêtes : comment les découper.',
     keywords: ['dialogue', 'quete', 'inventaire', 'interaction', 'examiner', 'narratif', 'journal'],
-    lessons: ['l-regarder', 'r3-bouton', 'l-inventaire', 'l-fiche', 'l-salle-controle'],
+    lessons: ['l-regarder', 'r3-bouton', 'l-inventaire', 'l-fiche', 'l-salle-controle', 'x6-reveil'],
     body:
       'Un jeu d’exploration et de récit repose sur quelques systèmes, chacun avec un outil déjà vu.\n\n' +
       '- **Interaction** : un Line Trace depuis la caméra, puis un message d’interface (BPI_Interactif : Interagir, et une fonction qui renvoie le texte à afficher, « Examiner », « Ouvrir »). Le joueur ne connaît aucun objet.\n' +
@@ -347,6 +348,24 @@ export const MEMO: MemoCard[] = [
       '- **Quêtes et état du monde** : un Set de Name (les faits acquis : « GenerateurRepare ») dans le GameInstance. Une porte demande « ce fait est-il connu ? » au lieu de connaître le générateur.\n' +
       '- **Sauvegarde** : ce Set, l’inventaire et la position suffisent souvent à tout restaurer.\n\n' +
       'Le fil conducteur : les objets du monde **annoncent** des faits, les systèmes **écoutent**. Personne ne se connaît directement.',
+  },
+  {
+    id: 'm-projet-complet',
+    theme: 'jeu',
+    title: 'Monter un projet complet',
+    summary: 'Ce que les projets Expert ont en commun : où ranger chaque chose, et dans quel ordre avancer.',
+    keywords: ['projet', 'architecture', 'jalon', 'organisation', 'expert', 'ranger', 'ordre', 'gameinstance', 'source control'],
+    lessons: ['x2-atelier', 'x3-arene', 'x4-ronde', 'x5-reseau', 'x6-reveil'],
+    body:
+      'Un projet complet ne demande rien de plus que ce que tu sais : il demande de le **ranger**. Les mêmes règles reviennent dans chaque projet Expert, et ce sont celles d’un vrai projet UE5.\n\n' +
+      '- **Qui écoute les touches** : le joueur et son Player Controller, jamais les objets. L’objet reçoit un message d’interface (Interagir). Un mode à part (un dialogue, un menu) est un **Mapping Context** de plus, ajouté puis retiré.\n' +
+      '- **Ce qui traverse un Open Level** vit dans le **GameInstance** (l’inventaire d’un niveau à l’autre, la salle choisie). Ce qui doit survivre à Stop va dans une **Save Game**.\n' +
+      '- **Ce qui est partagé** s’écrit une fois : dans un **parent** quand c’est « est un » (des portes), dans un **Actor Component** quand c’est « a un » (une santé, un inventaire).\n' +
+      '- **Qui prévient qui** : ce qui change **annonce** (Event Dispatcher), ce que ça intéresse s’abonne. Un générateur ne connaît ni les lampes ni les portes.\n' +
+      '- **Les données à part** : textes, vagues, grilles dans des **Data Tables** ; un réglage par acteur posé en **Instance Editable**. Ajouter du contenu ne touche pas aux graphes.\n' +
+      '- **L’écran écoute** : un widget s’abonne aux annonces plutôt que de relire à chaque image.\n\n' +
+      '**Avancer par jalons.** Un jeu ne s’écrit pas d’un bloc : une petite part qui se joue (le garde fait sa ronde), essayée, puis la suivante (il voit). Play après chaque morceau ; Print String ou un breakpoint dès qu’un résultat surprend. Un jalon qui casse le précédent se voit tout de suite, pas trois jalons plus loin.\n\n' +
+      'Dans UE, le projet se range aussi dans le **Content Browser** : un dossier par système (Joueur, Portes, UI, Data) et les préfixes BP_, WBP_, DT_, S_, E_, IMC_, IA_ (voir « Nommer et ranger »). Et un **Source Control** (Git, Perforce) dès le premier jour : un projet de plusieurs séances ne vit pas sur un seul disque.',
   },
 
   // ---------------------------------------------------------------- qualite

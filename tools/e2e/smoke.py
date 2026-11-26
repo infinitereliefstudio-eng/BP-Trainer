@@ -294,8 +294,8 @@ async def main():
         await page.wait_for_timeout(500)
         await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
         await shot('20_home_advanced')
-        if await page.locator('.lesson-item').count() != 156:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 156")
+        if await page.locator('.lesson-item').count() != 155:
+            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 155")
         # « la salle de contrôle » is also in X6’s situation: the step itself comes first.
         await page.locator('.lesson-item', has_text='La salle de contrôle').first.tap()
         await page.wait_for_timeout(500)
@@ -836,8 +836,8 @@ async def main():
         await page.wait_for_timeout(500)
         if await page.locator('.module h2', has_text='Expert').count() != 1:
             errs.append('Accueil : le niveau Expert n’apparaît pas')
-        await page.locator('.lesson-item', has_text='La radio de la station').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='La radio de la station').tap()
+        await page.locator('.lesson-item', has_text='L’atelier des machines').scroll_into_view_if_needed()
+        await page.locator('.lesson-item', has_text='L’atelier des machines').tap()
         await page.wait_for_timeout(500)
         if await page.locator('.lesson-tabs').count() == 0:
             await page.locator('.tb.lesson').tap()
@@ -847,6 +847,13 @@ async def main():
         await shot('72_expert_help')
         if await page.locator('.lesson-body button', has_text='indice').count():
             errs.append('Expert : un indice est proposé')
+        # V7.72: « Le refaire dans UE5 » waits for the project to be passed.
+        await page.locator('.lesson-tabs button', has_text='Comprendre').tap()
+        await page.wait_for_timeout(200)
+        if await page.locator('.lesson-body .card h4', has_text='Le refaire dans UE5').count():
+            errs.append('Expert : la fiche « Le refaire dans UE5 » est visible avant la réussite')
+        if await page.locator('.lesson-body .held-cards').count() != 1:
+            errs.append('Expert : des fiches devraient attendre la réussite')
 
         # V7.19: Actor Components. Pick Parent Class › Actor Component, + Add in an actor, its Details, the level, Play and Debug.
         await page.goto(home)

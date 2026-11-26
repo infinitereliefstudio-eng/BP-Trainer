@@ -113,8 +113,12 @@ export function helpOffers(lesson: Lesson, state: HelpState): HelpOffer[] {
  * like the solution (lot 4 of docs/PLAN_PARCOURS.md), except on a first
  * rung, where the notion is new. « Pour aller plus
  * loin » (V7.22) opens then too: another way to build what was just built.
+ * « Le refaire dans UE5 » (V7.72, Expert) too: what changes in Unreal.
  */
-export const PLAN_CARD_TITLES: ReadonlySet<string> = new Set(['Le plan', 'La réécriture', 'Les nœuds', 'Par où commencer', 'Pour aller plus loin']);
+/** The card of each Expert project on rebuilding it in Unreal (V7.72), opened once the project is passed. */
+export const REDO_UE5_TITLE = 'Le refaire dans UE5';
+
+export const PLAN_CARD_TITLES: ReadonlySet<string> = new Set(['Le plan', 'La réécriture', 'Les nœuds', 'Par où commencer', 'Pour aller plus loin', REDO_UE5_TITLE]);
 
 const BRIEF_LEVELS: ReadonlySet<Level> = new Set(['avance', 'expert']);
 

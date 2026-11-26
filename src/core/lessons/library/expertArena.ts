@@ -32,7 +32,8 @@ import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../che
 import { withMilestones } from '../milestones';
 import type { CheckContext, Lesson, ScenarioStep } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
-import { EXPERT_RULES } from './expertRadio';
+import { EXPERT_RULES } from './expertKit';
+import { REDO_ARENA } from './expertUe5';
 import { writeHealth } from './health';
 import { fnDef, tap } from './kit';
 import { playerBlueprint } from './props';
@@ -774,7 +775,7 @@ export const expertArena: Lesson = withMilestones(
     notions: ['Projet Expert', 'Class Defaults d’un enfant', 'Get Component by Class', 'Random Stream', 'Spawn Actor', 'Data Table', 'SaveGame', 'GameMode'],
     remember:
       'Une famille d’ennemis : un parent qui sait tout faire, des enfants qui ne changent que des valeurs (leurs Class Defaults). Les règles de la partie (vagues, score, fin) vivent dans le GameMode ; chaque acteur ne fait que prévenir. Et les données (les vagues) sont dans une table : on règle le jeu sans toucher aux graphes.',
-    cards: [EXPERT_RULES],
+    cards: [EXPERT_RULES, REDO_ARENA],
     hints: [
       'Qui sait ce qu’est un drone, qui décide quand il en vient, et qui sait que la partie est finie ?',
       'Actor Component ; Class Settings › Parent Class, Class Defaults (Hérité) ; Line Trace By Channel, Get Component by Class ; Get Data Table Row, Random Integer in Range from Stream, Spawn Actor from Class, Set Timer by Event ; Get Game Mode, Cast To ; Save Game ; Create Widget, Set Input Mode UI Only, Set Game Paused.',

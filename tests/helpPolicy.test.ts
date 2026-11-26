@@ -99,7 +99,7 @@ describe('review of 19 November 2026, lot 3 (V7.25)', () => {
 
   it('trainings and Expert projects are named by their code, not numbered as lessons', () => {
     const label = (id: string) => lessonLabel(LESSONS.find((x) => x.id === id)!);
-    expect(['m1-sas', 'm2-distributeur', 'x2-atelier', 'x1-radio'].map(label)).toEqual(['Entraînement M1', 'Entraînement M2', 'Projet X2', 'Projet X1']);
+    expect(['m1-sas', 'm2-distributeur', 'x2-atelier', 'x6-reveil'].map(label)).toEqual(['Entraînement M1', 'Entraînement M2', 'Projet X2', 'Projet X6']);
     const numbers = LESSONS.filter(isNumbered).map((l) => l.number);
     expect(numbers).toEqual(numbers.map((_, i) => i + 1));
   });

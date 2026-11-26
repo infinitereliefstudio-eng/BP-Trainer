@@ -115,7 +115,7 @@ describe('projects in milestones (V7.65)', () => {
   it('a project of one milestone (X2, V7.66) reads as a plain project: no « Jalon 1/1 » in its cards or its notes', () => {
     const x2 = LESSONS.find((l) => l.id === 'x2-atelier')!;
     expect(x2.milestones).toHaveLength(1);
-    expect(x2.cards.map((c) => c.title)).toEqual(['Un projet Expert', 'Cahier des charges', 'Le scénario de test', 'Pour aller plus loin']);
+    expect(x2.cards.map((c) => c.title)).toEqual(['Un projet Expert', 'Cahier des charges', 'Le scénario de test', 'Pour aller plus loin', 'Le refaire dans UE5']);
     expect(milestoneView(x2, 0).cards.map((c) => c.title)).toEqual(x2.cards.map((c) => c.title));
     const p = x2.setup();
     x2.solve(p);

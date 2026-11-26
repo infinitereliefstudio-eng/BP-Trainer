@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { getLesson, LESSONS } from '../src/core/lessons';
 import { edit } from '../src/core/lessons/builder';
-import { cardsFor, helpOffers, PLAN_CARD_TITLES } from '../src/core/lessons/helpPolicy';
+import { cardsFor, helpOffers, PLAN_CARD_TITLES, REDO_UE5_TITLE } from '../src/core/lessons/helpPolicy';
 import { runLesson } from '../src/core/lessons/runner';
 import type { Lesson } from '../src/core/lessons/types';
 import type { Project } from '../src/core/model/project';
@@ -123,20 +123,21 @@ describe('Les fusibles (S4, made again in V7.60)', () => {
 
 describe('lot 4b: the Expert projects', () => {
   it('the Expert level gives no hint and no node list, the solution after success', () => {
-    for (const id of ['x1-radio', 'x2-atelier']) {
+    for (const id of ['x2-atelier', 'x6-reveil']) {
       const offers = helpOffers(lesson(id), { tried: true, fails: 5, done: false });
       expect(offers.map((o) => o.kind), id).toEqual(['solution']);
       expect(offers[0].available, id).toBe(false);
     }
   });
 
-  it('X1: a dialogue context with the same priority lets E restart the conversation', () => {
-    const l = lesson('x1-radio');
-    const p = solved(l, (p) => {
-      const radio = edit(p, 'BP_Radio');
-      for (const n of Object.values(radio.graph.nodes)) if (n.def === 'input.addMappingContext') n.defaults.priority = 0;
-    });
-    expect(failed(l, p)).toContain('next');
+  it('V7.72: X1 is out of the path; every Expert project has « Le refaire dans UE5 », opened once it is passed', () => {
+    const experts = LESSONS.filter((l) => l.level === 'expert');
+    expect(experts.map((l) => l.code)).toEqual(['X2', 'X3', 'X4', 'X5', 'X6']);
+    for (const l of experts) {
+      expect(l.cards.filter((c) => c.title === REDO_UE5_TITLE), l.id).toHaveLength(1);
+      expect(cardsFor(l, false).shown.some((c) => c.title === REDO_UE5_TITLE), l.id).toBe(false);
+      expect(cardsFor(l, true).shown.some((c) => c.title === REDO_UE5_TITLE), l.id).toBe(true);
+    }
   });
 
   it('X2: a fan whose Tick forgets Parent: Tick never runs dry', () => {

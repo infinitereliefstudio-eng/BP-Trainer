@@ -78,7 +78,6 @@ import { expertArena } from './library/expertArena';
 import { expertRound } from './library/expertRound';
 import { expertNetwork } from './library/expertNetwork';
 import { expertWakeup } from './library/expertWakeup';
-import { expertRadio } from './library/expertRadio';
 import { expertWorkshop } from './library/expertWorkshop';
 import { predictComponentOrder } from './library/componentOrder';
 import { refactor5 } from './library/healthEverywhere';
@@ -264,7 +263,6 @@ export const LESSONS: Lesson[] = [
   synthesis4,
   // Expert
   expertWorkshop,
-  expertRadio,
   expertArena,
   expertRound,
   expertNetwork,

@@ -11,7 +11,8 @@
  *    an invite on the screen says when it can; the locker gives the badge to
  *    the inventory, an Actor Component on the player.
  * 2. Le terminal: a journal from a Data Table in a dialogue box, E and F
- *    through a dialogue Mapping Context (X1's radio), the facts it gives noted.
+ *    through a dialogue Mapping Context (X1's radio, retired in V7.72, lives on
+ *    here), the facts it gives noted.
  * 3. Le menu et la sauvegarde: Lvl_Menu (Nouvelle partie, Continuer greyed
  *    without a save, Quitter), the terminal saves when it closes, Continuer
  *    goes back to the saved level with the inventory, through the GameInstance.
@@ -36,7 +37,8 @@ import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../che
 import { withMilestones } from '../milestones';
 import type { Check, CheckContext, ScenarioStep } from '../types';
 import type { Lesson } from '../types';
-import { EXPERT_RULES } from './expertRadio';
+import { EXPERT_RULES } from './expertKit';
+import { REDO_WAKEUP } from './expertUe5';
 import { controlMilestone } from './expertWakeupControl';
 import {
   BADGE,
@@ -737,7 +739,7 @@ export const expertWakeup: Lesson = withMilestones(
     notions: ['Projet Expert', 'Line Trace By Channel', 'Blueprint Interface', 'Actor Component', 'Mapping Context de dialogue', 'Data Table', 'SaveGame', 'GameInstance', 'Open Level (by Name)', 'Event Dispatcher', 'Classe parente', 'Timeline', 'Widget Component'],
     remember:
       'Le joueur regarde et envoie Interagir, sans savoir à qui ; chaque objet y répond à sa façon. Ce qu’il porte vit dans un composant. Le générateur annonce sans savoir qui écoute, et un composant fait réagir ce qui le porte. Une famille de portes écrit le mouvement une fois. La Save Game garde la partie d’une séance à l’autre, le GameInstance la porte d’un niveau à l’autre, et chaque niveau relit en commençant ce qui doit durer.',
-    cards: [EXPERT_RULES],
+    cards: [EXPERT_RULES, REDO_WAKEUP],
     hints: [
       'Qui regarde, qui répond, qui se souvient de quoi, et pendant combien de temps (une image, un niveau, une partie) ?',
       'Line Trace By Channel, Get Actor Forward Vector, Blueprint Interface (Message), Does Implement Interface, Set Visibility ; Actor Component, Set (Add, Contains), Get Component by Class ; Get Data Table Row, Add / Remove Mapping Context ; Save Game, Does Save Game Exist, Set Is Enabled, GameInstance, Open Level, Quit Game ; Instance Editable, Destroy Actor, For Each Loop, Widget Component, Event Dispatcher, Parent Class, Timeline, Delete Game in Slot.',
@@ -791,7 +793,7 @@ export const expertWakeup: Lesson = withMilestones(
             '3. **Pendant la lecture**, E montre la page **Suivante**, F **ferme**. E ne fait rien d’autre (ni rouvrir, ni agir sur autre chose).\n' +
             `4. Une page qui **donne un fait** le note dans les **Faits** de l’inventaire et affiche \`Noté : ${FACT}\`, seulement si le joueur ne le savait pas déjà.\n` +
             '5. Après la dernière page, E ferme la boîte, comme F. Fermé, E interagit de nouveau ; la lecture repart de Premiere.\n\n' +
-            'Contrainte UE5, comme la radio de X1 : **le changement de sens de E et F passe par un Mapping Context** (IMC_Dialogue) ajouté à l’ouverture, retiré à la fermeture.',
+            'Contrainte UE5 : **le changement de sens de E et F passe par un Mapping Context** (IMC_Dialogue) ajouté à l’ouverture, retiré à la fermeture.',
         },
         {
           title: 'Le scénario de test',

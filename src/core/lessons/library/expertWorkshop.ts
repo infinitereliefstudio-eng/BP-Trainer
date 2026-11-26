@@ -23,7 +23,8 @@ import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../che
 import { withMilestones } from '../milestones';
 import type { CheckContext, Lesson } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
-import { EXPERT_RULES, expertScenery } from './expertRadio';
+import { EXPERT_RULES, expertScenery } from './expertKit';
+import { REDO_WORKSHOP } from './expertUe5';
 import { fnDef, goTo, tap } from './kit';
 import { playerBlueprint } from './props';
 import { eventDriven, ignoredTouch, made, modeLabel } from './umgKit';
@@ -372,7 +373,7 @@ export const expertWorkshop: Lesson = withMilestones(
     notions: ['Projet Expert', 'Classe parente', 'Redéfinir un événement', 'Delta Seconds', 'Sequence', 'Actor Component', 'Expose on Spawn', 'Add Child to Vertical Box', 'Event Dispatcher'],
     remember:
       'Ce qu’une famille de Blueprints **est** vit dans le parent ; ce qu’elle **a** (un réservoir) vit dans un composant, réglé acteur par acteur. Un enfant qui redéfinit un événement appelle la version du parent. Et une interface ne décide rien : elle montre l’état qu’on lui annonce, et demande à l’objet d’agir.',
-    cards: [EXPERT_RULES],
+    cards: [EXPERT_RULES, REDO_WORKSHOP],
     hints: [
       'Qu’est-ce que les machines sont, qu’est-ce qu’elles ont, et qui doit savoir qu’une machine a changé d’état ?',
       'Blueprint Class › Parent BP_Machine ; Actor Component, Instance Editable ; Sequence, Delay ; Event Tick, Delta Seconds, Parent: Tick ; Event Dispatcher ; Get All Actors Of Class, Create Widget (Expose on Spawn), Add Child to Vertical Box, Bind Event ; Set Input Mode Game and UI.',

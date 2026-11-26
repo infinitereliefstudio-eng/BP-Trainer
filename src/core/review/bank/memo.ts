@@ -179,6 +179,19 @@ export const MEMO_QUIZ: QuizQuestion[] = [
     'Le GameInstance traverse les niveaux ; un Set de Name répond vite à « ce fait est-il connu ? ».',
   ),
   q(
+    'm-projet-complet',
+    'Un casier et un terminal doivent réagir à E quand le joueur les vise. Qui écoute la touche ?',
+    ['Le joueur (ou son Player Controller), qui envoie un message d’interface à ce qu’il vise', 'Chaque objet, avec Enable Input quand le joueur approche', 'Le GameMode, qui cherche l’objet le plus proche', 'Le Level Blueprint du niveau'],
+    'Un seul Blueprint écoute la touche et ne connaît aucun objet : il envoie Interagir à ce qu’il vise. Un objet de plus n’a qu’à implémenter l’interface, sans toucher au joueur.',
+  ),
+  q(
+    'm-projet-complet',
+    'Le réseau doit gagner une troisième salle, avec sa grille et son nombre de coups. Que change-t-on ?',
+    ['Une ligne de plus dans DT_Grilles : aucun graphe ne bouge', 'Une branche de plus dans le Blueprint du réseau', 'Un nouveau Blueprint enfant pour cette salle', 'Le menu, pour y ajouter un bouton à la main'],
+    'Les salles sont des données : le réseau lit la ligne choisie, le menu construit une ligne par Row Name. Le contenu grandit sans qu’on retouche la logique.',
+    2,
+  ),
+  q(
     'm-performance',
     'Une fonction pure coûteuse est lue dans le Loop Body d’un For Each de 100 éléments. Combien de fois est-elle calculée ?',
     ['Au moins 100 fois', 'Une fois, avant la boucle', 'Une fois par image', 'Jamais'],

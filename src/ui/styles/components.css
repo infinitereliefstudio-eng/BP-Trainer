@@ -75,3 +75,43 @@
 /* A chip that opens something (Home › Réglages): its icon and label, no underline. */
 button.chip-stat.link { display: inline-flex; gap: 6px; margin-left: 0; text-decoration: none; font-size: var(--fs-sm); }
 .dialog h3 { margin: 0 0 var(--sp-2); font-size: var(--fs-md); }
+
+/*
+ * The three families of the editor (UI-4, V7.76; ui/origins.ts, docs/INTERFACE_FAMILLES.md).
+ * UE: no mark. App (`data-origin="app"`): amber, kept for that (warnings use UE's yellow). Touch
+ * (`data-origin="touch"`): a dashed outline; a long press says what to do in UE.
+ */
+:root { --touch-line: rgba(255, 255, 255, 0.38); }
+.tb[data-origin='app'], .pb-btn[data-origin='app'], .chip[data-origin='app'], .btn:not(.primary)[data-origin='app'] {
+  color: var(--app-text); border-color: var(--app-line);
+}
+.pb-btn.on[data-origin='app'] { background: var(--app-bg); border-color: var(--app-text); color: var(--app-text); }
+.btn.primary[data-origin='app'], [data-origin='app'] .btn.primary { background: var(--orange); color: #1d1300; }
+.btn.primary[data-origin='app']:active, [data-origin='app'] .btn.primary:active { background: var(--app-text); }
+.pb-level[data-origin='app'], .pb-time[data-origin='app'] { color: var(--app-text-soft); }
+.menu-item[data-origin='app'] .menu-label { color: var(--app-text); }
+.why-btn[data-origin='app'] { color: var(--app-text); }
+.sheet.lesson[data-origin='app'] { border-top: 3px solid var(--app-line); }
+.app-tag { display: inline-flex; align-items: center; gap: 4px; }
+
+/* The attribute is repeated to win over the state colours (.fab.on, .key.down) without !important. */
+[data-origin='touch'][data-origin='touch'][data-origin='touch'] { border-style: dashed; border-color: var(--touch-line); }
+.tb[data-origin='touch'], .btn[data-origin='touch'], .chip[data-origin='touch'], .pb-btn[data-origin='touch'] { border-width: 1px; }
+.edge-handle[data-origin='touch'].left { border-right-width: 1px; }
+.edge-handle[data-origin='touch'].right { border-left-width: 1px; }
+.bottom-handle[data-origin='touch'] { border-width: 0 0 0 1px; }
+
+/* « Vue UE pure » (Réglages, menu ⋮): the editor without what the app adds; the way out stays. */
+.ue-pure [data-origin='app'][data-origin='app']:not([data-pure='keep']) { display: none; }
+.pure-pill {
+  position: absolute; z-index: 9; left: 50%; transform: translateX(-50%); top: 8px;
+  height: 34px; padding: 0 var(--sp-3); border-radius: var(--r-2); background: rgba(36, 36, 36, 0.94); border: 1px dashed var(--touch-line);
+  display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text-soft);
+}
+
+/* Réglages: the three families explained, with a sample of each. */
+.family-list { margin: var(--sp-2) 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.family-list li { display: flex; align-items: baseline; gap: 8px; line-height: 1.4; font-size: var(--fs-sm); }
+.family-sample { flex: none; min-width: 64px; height: 24px; padding: 0 6px; border-radius: var(--r-1); border: 1px solid transparent; display: inline-flex; align-items: center; justify-content: center; font-size: var(--fs-xs); background: var(--btn); }
+.family-sample.app { color: var(--app-text); border-color: var(--app-line); }
+.family-sample.touch { border: 1px dashed var(--touch-line); }

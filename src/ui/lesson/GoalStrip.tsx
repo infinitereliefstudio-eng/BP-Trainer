@@ -8,6 +8,7 @@ import type { Lesson } from '@core/lessons/types';
 import type { LessonCheck } from './LessonSheet';
 import { richInline } from './RichText';
 import { Icon } from '../widgets/icons';
+import { origin } from '../origins';
 
 interface Props {
   lesson: Lesson;
@@ -46,7 +47,7 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
 
   if (!open) {
     return (
-      <div class="goal-tab-anchor">
+      <div class="goal-tab-anchor" {...origin('app')}>
         <button class="goal-tab" onClick={toggle} aria-label="Afficher les objectifs">
           Objectifs <Icon name="chevron-down" />
         </button>
@@ -60,7 +61,7 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
   const firstBad = required.find((r) => !r.ok);
 
   return (
-    <div class={`goal-strip${run ? (run.passed ? ' passed' : ' failed') : ''}`}>
+    <div class={`goal-strip${run ? (run.passed ? ' passed' : ' failed') : ''}`} {...origin('app')}>
       <button class="goal-step" onClick={() => setIndex((i + 1) % total)} aria-label="Objectif suivant" title="Toucher pour passer à l’objectif suivant">
         <span class="goal-num">
           {i + 1}/{total}
@@ -89,6 +90,7 @@ export function GoalStrip({ lesson, check, done, onVerify, onDetails }: Props) {
       )}
       {!run && done && <span class="pill ok">réussie</span>}
       <button class="btn primary goal-verify" onClick={onVerify}>
+        <Icon name="cap" />
         Vérifier
       </button>
       <button class="btn goal-hide" onClick={toggle} aria-label="Masquer les objectifs">

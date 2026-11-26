@@ -138,7 +138,7 @@ export function DesignerPanel({ openOverlay, onOpenDetails, onPlaced, tab, onTab
         {tab === 'palette' ? (
           <>
             <input class="field palette-search" type="search" placeholder="Search Palette" value={query} onInput={(e) => setQuery((e.target as HTMLInputElement).value)} />
-            <p class="hint app-only">
+            <p class="hint" data-origin="app">
               {widgets.length === 0
                 ? 'Touche un widget : le premier devient la racine.'
                 : `Touche un widget : il va dans ${selected ? selected.name : 'la racine'}${selected && childCapacity(selected.kind) === 'none' ? ' (à côté, dans son panneau)' : ''}. Dans UE, on le glisse.`}

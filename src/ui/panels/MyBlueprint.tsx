@@ -9,6 +9,7 @@ import type { Value } from '@core/types/values';
 import { PIN_COLOR } from '@editor/theme';
 import { useStore } from '../hooks';
 import type { OpenOverlay } from '../overlayTypes';
+import { origin } from '../origins';
 
 interface Props {
   openOverlay: OpenOverlay;
@@ -390,7 +391,7 @@ function Row(props: {
         {props.sub && <span class="mb-sub">{props.sub}</span>}
       </button>
       {props.actions?.map((a) => (
-        <button key={a.label} class="chip" onClick={a.onClick}>
+        <button key={a.label} class="chip" {...origin('touch', 'dragToGraph')} onClick={a.onClick}>
           {a.label}
         </button>
       ))}

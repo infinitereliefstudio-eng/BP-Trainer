@@ -85,7 +85,7 @@ export function Details({ openOverlay, onOpenClass, onOpenGraph, run, onFocusNod
     return (
       <div class="panel-scroll details">
         <p class="hint">Select an object to view details.</p>
-        <p class="hint app-only-text">Sélectionne un nœud, une variable ou un composant pour voir ses propriétés. « Class Settings » affiche celles du Blueprint.</p>
+        <p class="hint app-only-text" data-origin="app">Sélectionne un nœud, une variable ou un composant pour voir ses propriétés. « Class Settings » affiche celles du Blueprint.</p>
       </div>
     );
   const q = normalize(search.trim());
@@ -407,7 +407,7 @@ function SetMembersFields({ nodeId }: { nodeId: string }) {
           <input type="checkbox" checked={shown.includes(m.id)} onChange={(e) => toggle(m.id, (e.target as HTMLInputElement).checked)} />
         </Field>
       ))}
-      <p class="muted small app-only-text">Seuls les membres cochés ont une pin et changent ; les autres gardent leur valeur.</p>
+      <p class="muted small app-only-text" data-origin="app">Seuls les membres cochés ont une pin et changent ; les autres gardent leur valeur.</p>
     </Group>
   );
 }
@@ -432,7 +432,7 @@ function TimelineSummary({ nodeId, openOverlay }: { nodeId: string; openOverlay:
       <button class="btn primary" onClick={() => openOverlay({ kind: 'timeline', nodeId })}>
         Éditer la piste
       </button>
-      <p class="hint app-only-text">Double toucher le nœud ouvre aussi l’éditeur, comme le double-clic dans UE.</p>
+      <p class="hint app-only-text" data-origin="app">Double toucher le nœud ouvre aussi l’éditeur, comme le double-clic dans UE.</p>
     </Group>
   );
 }

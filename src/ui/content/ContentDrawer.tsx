@@ -24,6 +24,7 @@ import type { OpenOverlay } from '../overlayTypes';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { assetStyle, type Asset, assetFocus, projectAssets, removeAsset } from './assets';
 import { Icon } from '../widgets/icons';
+import { origin } from '../origins';
 
 interface Props {
   onClose: () => void;
@@ -281,8 +282,8 @@ export function ContentDrawer({ onClose, openOverlay, onOpenDetails, onOpenBluep
                 })}
                 {shown.length === 0 && <p class="muted small pad">Aucun asset ne correspond.</p>}
               </div>
-              <div class="cd-slots app-only-zone">
-                <div class="palette-cat app-only">Slots de sauvegarde · BP Trainer (dans UE : des fichiers .sav)</div>
+              <div class="cd-slots" {...origin('app')}>
+                <div class="palette-cat">Slots de sauvegarde · BP Trainer (dans UE : des fichiers .sav)</div>
                 {slots.length === 0 && <p class="muted small pad">Aucun slot. Save Game to Slot en écrit un pendant Play ; il reste après Stop.</p>}
                 {slots.map(([key, s]) => (
                   <div key={key} class="palette-item slot-item">

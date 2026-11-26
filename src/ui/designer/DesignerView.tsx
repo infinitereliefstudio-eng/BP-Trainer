@@ -267,7 +267,8 @@ export const DesignerView = forwardRef<DesignerHandle, Props>(function DesignerV
           )}
           <button
             type="button"
-            class="designer-size app-only"
+            class="designer-size"
+            data-origin="app"
             title="Screen Size : l’écran de référence de BP Trainer, ou le format du téléphone pendant Play (les ancres y placent les widgets autrement)"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => {

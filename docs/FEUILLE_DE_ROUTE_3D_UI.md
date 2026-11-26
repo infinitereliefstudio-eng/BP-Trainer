@@ -47,4 +47,5 @@ Bonne nouvelle pour les étapes à touche : le modèle Third Person d'UE fait to
 | Étape | Version | État |
 | --- | --- | --- |
 | UI-1, bases visuelles (jetons, aspect plat comme UE, icônes, taille du texte) | V7.75 | **fait** (lancée le 26 nov. à 14 h 21) |
-| UI-4, les trois familles et la « Vue UE pure » | | prochaine, sur le feu vert de Tristan |
+| UI-4, les trois familles et la « Vue UE pure » ([INTERFACE_FAMILLES.md](INTERFACE_FAMILLES.md)) | V7.76 | **fait** (lancée à 15 h 01) |
+| 3D-0, prototype de Play en 3D | | prochaine, sur le feu vert de Tristan |

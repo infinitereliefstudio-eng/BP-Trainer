@@ -7,7 +7,7 @@ export function Why({ explain }: { explain: Explanation }) {
   const [open, setOpen] = useState(false);
   return (
     <div class="why">
-      <button class="why-btn" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <button class="why-btn" data-origin="app" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
         <Icon name={open ? 'chevron-down' : 'chevron-right'} /> Pourquoi ?
       </button>
       {open && (

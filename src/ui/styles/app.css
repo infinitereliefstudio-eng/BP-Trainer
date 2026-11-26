@@ -106,7 +106,7 @@ select.field { padding-right: 4px; }
 .bottom-body { flex: 1; overflow-y: auto; padding: 4px 0; }
 .msg { display: flex; gap: 8px; width: 100%; text-align: left; padding: 6px 12px; font-size: var(--fs-sm); line-height: 1.35; }
 .msg.error { color: #ff9a9a; }
-.msg.warning { color: var(--app-text); }
+.msg.warning { color: var(--warn); }
 .msg-icon { width: 18px; flex: none; font-weight: 700; display: inline-flex; align-items: center; height: 1.35em; }
 .msg-time { color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
 .why { padding: 0 12px 6px 36px; }
@@ -131,7 +131,7 @@ select.field { padding-right: 4px; }
 /* Bottom right, left of the floating buttons, like UE's notifications (V7.31); at the top during Play (joystick and keys at the bottom). */
 .toasts { position: absolute; right: calc(max(8px, env(safe-area-inset-right)) + 60px); bottom: calc(var(--bottom-h) + 10px); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; z-index: 30; pointer-events: none; width: min(420px, 62%); }
 .toast { padding: 6px 10px; border-radius: var(--r-2); background: rgba(30, 30, 30, 0.96); border: 1px solid var(--line-2); border-left-width: 3px; font-size: var(--fs-sm); line-height: 1.35; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
-.toast.warning { border-color: var(--app-line); }
+.toast.warning { border-color: var(--warn); }
 .toast.error { border-color: var(--err-line); }
 
 /* --------------------------------------------------------------- overlays */
@@ -507,7 +507,7 @@ select.field { padding-right: 4px; }
 .status-bar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 45; display: flex; flex-direction: column; gap: 6px; width: min(620px, 94vw); }
 .status-msg { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-2); background: rgba(30, 30, 30, 0.97); border: 1px solid var(--line-2); font-size: var(--fs-sm); line-height: 1.35; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); }
 .status-text { flex: 1; }
-.status-msg.warning { border-color: var(--app-line); }
+.status-msg.warning { border-color: var(--warn); }
 .status-msg.error { border-color: var(--err-line); }
 .status-msg.info { border-color: #2f5f9a; }
 .status-msg .small-btn { padding: 4px 10px; min-height: 0; font-size: var(--fs-sm); }
@@ -531,7 +531,6 @@ select.field { padding-right: 4px; }
 
 /* ------------------------------------------------ editors laid out like UE (ui/editor/) */
 /* Amber marks what BP Trainer adds and UE does not have (lesson, home, app menu, Play speed). */
-.app-only, .tb.app-only, .pb-btn.app-only { border-color: var(--app-line); color: var(--app-text); }
 .doc-bar {
   height: var(--doc-h); flex: none; display: flex; align-items: stretch; gap: 4px; background: #141517; border-bottom: 1px solid var(--line);
   padding-left: max(4px, env(safe-area-inset-left)); padding-right: max(4px, env(safe-area-inset-right));
@@ -588,7 +587,7 @@ select.field { padding-right: 4px; }
 .cd-selection { flex: none; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-top: 1px solid var(--line); min-height: 44px; }
 .cd-sel-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .add-menu .add-item { padding-left: 28px; }
-.palette-cat.app-only { color: var(--app-text); }
+.palette-cat[data-origin='app'] { color: var(--app-text); }
 
 /* -------------------------------------- Details laid out like UE (panels/fields.tsx), V7.8 */
 .d-group { padding: 0 0 8px; }

@@ -7,6 +7,8 @@ export interface MenuItem {
   hint?: string;
   danger?: boolean;
   disabled?: boolean;
+  /** What the app adds to UE (UI-4): in amber, hidden by « Vue UE pure » unless `keep`. */
+  app?: boolean | 'keep';
   action?: () => void;
 }
 

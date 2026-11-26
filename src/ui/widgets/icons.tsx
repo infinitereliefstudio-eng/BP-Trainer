@@ -28,7 +28,8 @@ export type IconName =
   | 'drawer'
   | 'list'
   | 'arrow-up'
-  | 'arrow-down';
+  | 'arrow-down'
+  | 'cap';
 
 /** Each icon on a 20 × 20 grid: strokes (`s`) drawn 1.6 wide, and filled shapes (`f`). */
 const PATHS: Record<IconName, { s?: string; f?: string }> = {
@@ -55,6 +56,7 @@ const PATHS: Record<IconName, { s?: string; f?: string }> = {
   list: { s: 'M7 5.5 H16.5 M7 10 H16.5 M7 14.5 H16.5 M3.5 5.5 V5.6 M3.5 10 V10.1 M3.5 14.5 V14.6' },
   'arrow-up': { s: 'M10 16 V4.5 M5.5 9 L10 4.5 L14.5 9' },
   'arrow-down': { s: 'M10 4 V15.5 M5.5 11 L10 15.5 L14.5 11' },
+  cap: { s: 'M2 8 L10 4.5 L18 8 L10 11.5 Z M5.5 9.6 V13.2 C7.5 15.2 12.5 15.2 14.5 13.2 V9.6 M18 8 V12.5' },
   settings: {
     s: 'M10 7.2 a2.8 2.8 0 1 0 0.01 0 Z M10 2.5 V4.6 M10 15.4 V17.5 M2.5 10 H4.6 M15.4 10 H17.5 M4.7 4.7 L6.2 6.2 M13.8 13.8 L15.3 15.3 M4.7 15.3 L6.2 13.8 M13.8 6.2 L15.3 4.7',
   },

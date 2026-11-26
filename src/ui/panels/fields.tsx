@@ -9,6 +9,7 @@ import { createContext, type ComponentChildren } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 import { normalize } from '@core/nodes/palette';
 import { Icon } from '../widgets/icons';
+import { AppTag } from '../widgets/AppTag';
 
 /** The text typed in « Search Details »: rows whose label lacks it are hidden. */
 export const DetailsFilter = createContext('');
@@ -26,12 +27,12 @@ export function Group({ title, children, app }: { title: string; children: Compo
     setOpen(!open);
   };
   return (
-    <section class={`d-group${app ? ' app-group' : ''}${shown ? '' : ' folded'}`}>
+    <section class={`d-group${app ? ' app-group' : ''}${shown ? '' : ' folded'}`} data-origin={app ? 'app' : undefined}>
       <h3>
         <button class="d-head" aria-expanded={shown} onClick={toggle}>
           <span class="d-caret"><Icon name={shown ? 'chevron-down' : 'chevron-right'} /></span>
           {title}
-          {app && <span class="app-tag">BP Trainer</span>}
+          {app && <AppTag />}
         </button>
       </h3>
       {shown && children}
@@ -77,12 +78,12 @@ export function AppHelp({ children }: { children: ComponentChildren }) {
     setOpen(!open);
   };
   return (
-    <section class={`d-group app-help${open ? '' : ' folded'}`}>
+    <section class={`d-group app-help${open ? '' : ' folded'}`} data-origin="app">
       <h3>
         <button class="d-head" aria-expanded={open} onClick={toggle}>
           <span class="d-caret"><Icon name={open ? 'chevron-down' : 'chevron-right'} /></span>
           Aide
-          <span class="app-tag">BP Trainer</span>
+          <AppTag />
         </button>
       </h3>
       {open && <div class="app-help-body">{children}</div>}

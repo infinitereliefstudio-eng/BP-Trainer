@@ -54,6 +54,9 @@ import { BlueprintToolbar, EdgeHandle, LevelToolbar } from './editor/EditorToolb
 import { Icon, SelectionIcon } from './widgets/icons';
 import { Toasts } from './widgets/Toasts';
 import { type LessonHelp, resetLesson, type Workspace, type WorkspaceRef } from './workspace';
+import { origin } from './origins';
+import { onUiSettings, pureUe, setPureUe } from './uiSettings';
+import { useUeHints } from './ueHints';
 
 interface Props {
   workspace: Workspace & { fresh: boolean };
@@ -108,6 +111,11 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
     setViewport(familyOf(store.cls.parent) === 'widget' && !wantGraph.current);
     wantGraph.current = false;
   }, [store.classId]);
+  // UI-4 (V7.76): a long press on a touch control says what to do in UE; « Vue UE pure » keeps a way out.
+  const ueHint = useMemo(() => (text: string) => store.info(text), [store]);
+  useUeHints(ueHint);
+  const [pure, setPure] = useState(pureUe());
+  useEffect(() => onUiSettings(() => setPure(pureUe())), []);
   const [left, setLeft] = useState(false);
   // Blueprint editors open in tabs, as in UE; the one being edited is always among them.
   const [tabs, setTabs] = useState<string[]>(() => [store.classId]);
@@ -478,7 +486,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         </div>
       )}
       <div class="editor-body">
-      <EdgeHandle side="left" label={leftTitle} aria={designer ? "Ouvrir la Palette et la Hierarchy" : "Ouvrir My Blueprint"} hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
+      <EdgeHandle side="left" hint="leftPanel" label={leftTitle} aria={designer ? "Ouvrir la Palette et la Hierarchy" : "Ouvrir My Blueprint"} hidden={playing || view !== 'graph'} onClick={() => setLeft((v) => !v)} />
       <main class={`workspace${bottom ? ' bottom-open' : ''}`}>
         {designer ? (
           <DesignerView
@@ -504,7 +512,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <aside class={`drawer right outliner-drawer${outliner ? ' open' : ''}`} aria-hidden={!outliner}>
             <div class="drawer-head">
               <strong>Outliner</strong>
-              <button aria-label="Fermer" class="btn" onClick={() => setOutliner(false)}>
+              <button aria-label="Fermer" class="btn" {...origin('touch', 'closePanel')} onClick={() => setOutliner(false)}>
                 <Icon name="close" />
               </button>
             </div>
@@ -526,7 +534,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           <aside class={`drawer right debug-drawer${debugDrawer ? ' open' : ''}`} aria-hidden={!debugDrawer}>
             <div class="drawer-head">
               <strong>Debug</strong>
-              <button aria-label="Fermer" class="btn" onClick={() => setDebugOpen(false)}>
+              <button aria-label="Fermer" class="btn" {...origin('touch', 'closePanel')} onClick={() => setDebugOpen(false)}>
                 <Icon name="close" />
               </button>
             </div>
@@ -539,14 +547,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         {!playing && view === 'graph' && viewport && (
           <div class="fabs">
             <div class="fab-rail">
-              <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
+              <button class="fab" {...origin('touch', 'undo')} disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
                 <Icon name="undo" />
               </button>
-              <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
+              <button class="fab" {...origin('touch', 'redo')} disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
                 <Icon name="redo" />
               </button>
               <button
                 class="fab"
+                {...origin('touch', 'fit')}
                 onClick={() => (isWidget ? designerView.current?.fitView() : viewportCanvas.current?.fitView())}
                 aria-label="Recentrer la vue"
                 title="Recentrer la vue"
@@ -559,14 +568,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         {!playing && view === 'graph' && !viewport && (
           <div class="fabs">
             <div class="fab-rail">
-              <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
+              <button class="fab" {...origin('touch', 'undo')} disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
                 <Icon name="undo" />
               </button>
-              <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
+              <button class="fab" {...origin('touch', 'redo')} disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
                 <Icon name="redo" />
               </button>
               <button
                 class={`fab${selectionMode ? ' on' : ''}`}
+                {...origin('touch', 'select')}
                 onClick={() => setSelectionMode((v) => !v)}
                 aria-label="Sélection"
                 aria-pressed={selectionMode}
@@ -574,12 +584,13 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
               >
                 <SelectionIcon />
               </button>
-              <button class="fab" onClick={() => canvas.current?.fitView()} aria-label="Recentrer la vue" title="Recentrer la vue">
+              <button class="fab" {...origin('touch', 'fit')} onClick={() => canvas.current?.fitView()} aria-label="Recentrer la vue" title="Recentrer la vue">
                 <Icon name="focus" />
               </button>
             </div>
             <button
               class="fab primary"
+              {...origin('touch', 'addNode')}
               aria-label="Ajouter un nœud"
               onClick={() => {
                 const w = canvas.current?.viewCenter() ?? { x: 0, y: 0 };
@@ -594,10 +605,10 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         {!playing && view === 'level' && (
           <div class="fabs">
             <div class="fab-rail">
-              <button class="fab" disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
+              <button class="fab" {...origin('touch', 'undo')} disabled={!store.history.canUndo} onClick={() => store.undo()} aria-label="Annuler" title="Annuler">
                 <Icon name="undo" />
               </button>
-              <button class="fab" disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
+              <button class="fab" {...origin('touch', 'redo')} disabled={!store.history.canRedo} onClick={() => store.redo()} aria-label="Rétablir" title="Rétablir">
                 <Icon name="redo" />
               </button>
             </div>
@@ -607,7 +618,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         <aside class={`drawer left${left ? ' open' : ''}`} aria-hidden={!left}>
           <div class="drawer-head">
             <strong>{leftTitle}</strong>
-            <button aria-label="Fermer" class="btn" onClick={() => setLeft(false)}>
+            <button aria-label="Fermer" class="btn" {...origin('touch', 'closePanel')} onClick={() => setLeft(false)}>
               <Icon name="close" />
             </button>
           </div>
@@ -632,7 +643,7 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             ) : (
               <strong>Details</strong>
             )}
-            <button aria-label="Fermer" class="btn" onClick={() => setDetails(false)}>
+            <button aria-label="Fermer" class="btn" {...origin('touch', 'closePanel')} onClick={() => setDetails(false)}>
               <Icon name="close" />
             </button>
           </div>
@@ -675,9 +686,15 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
         </div>
 
         <Toasts />
+        {pure && (
+          <button class="pure-pill" data-origin="touch" onClick={() => setPureUe(false)}>
+            <Icon name="close" /> Vue UE pure · revoir les ajouts de l’appli
+          </button>
+        )}
       </main>
       <EdgeHandle
         side="right"
+        hint={view === 'level' ? 'levelPanel' : 'rightPanel'}
         label={view === 'level' ? 'Outliner · Details' : 'Details'}
         aria="Ouvrir Details"
         hidden={playing}

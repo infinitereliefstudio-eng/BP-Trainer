@@ -8,6 +8,7 @@ import type { InputKey } from '@core/runtime/simulation';
 import type { PlaySession, Speed } from '@editor/world/playSession';
 import { WidgetLayer } from './WidgetLayer';
 import { Icon } from '../widgets/icons';
+import { origin as family, UE_HINT } from '../origins';
 
 interface Props {
   session: PlaySession;
@@ -35,20 +36,20 @@ export function PlayControls({ session, onShowLog, onOutliner }: Omit<Props, 'on
         <Icon name="step" />
       </button>
       {SPEEDS.map((s) => (
-        <button key={s} class={`pb-btn small app-only${session.speed === s ? ' on' : ''}`} onClick={() => session.setSpeed(s)}>
+        <button key={s} class={`pb-btn small${session.speed === s ? ' on' : ''}`} {...family('app')} onClick={() => session.setSpeed(s)}>
           ×{s === 0.25 ? '¼' : s}
         </button>
       ))}
-      <span class="pb-level" title="Le niveau en cours (Get Current Level Name) : Open Level en change">
+      <span class="pb-level" {...family('app')} title="Le niveau en cours (Get Current Level Name) : Open Level en change">
         {sim.level.name}
       </span>
-      <span class="pb-time">{sim.time.toFixed(2)} s</span>
+      <span class="pb-time" {...family('app')}>{sim.time.toFixed(2)} s</span>
       {sim.runtimeErrors > 0 && (
         <button class="pb-err" onClick={onShowLog}>
           {sim.runtimeErrors} erreur{sim.runtimeErrors > 1 ? 's' : ''}
         </button>
       )}
-      <button class="pb-btn" onClick={onOutliner} aria-label="Outliner">
+      <button class="pb-btn" {...family('touch', 'liveOutliner')} onClick={onOutliner} aria-label="Outliner">
         <Icon name="list" />
       </button>
     </div>
@@ -104,6 +105,8 @@ function Key({ label, k, session, wide }: { label: string; k: InputKey; session:
   return (
     <button
       class={`key${wide ? ' wide' : ''}`}
+      data-origin="touch"
+      title={UE_HINT.keys}
       onPointerDown={(e) => {
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         (e.currentTarget as HTMLElement).classList.add('down');
@@ -141,6 +144,8 @@ function Joystick({ onMove }: { onMove: (x: number, y: number) => void }) {
   return (
     <div
       class="joystick"
+      data-origin="touch"
+      title={UE_HINT.joystick}
       onPointerDown={(e) => {
         const el = e.currentTarget as HTMLElement;
         el.setPointerCapture(e.pointerId);

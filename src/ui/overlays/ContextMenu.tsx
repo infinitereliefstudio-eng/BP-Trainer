@@ -32,6 +32,8 @@ export function ContextMenu({ sx, sy, title, items, onClose }: Props) {
             key={it.label}
             class={`menu-item${it.danger ? ' danger' : ''}`}
             disabled={it.disabled}
+            data-origin={it.app ? 'app' : undefined}
+            data-pure={it.app === 'keep' ? 'keep' : undefined}
             onClick={tap.guard(() => {
               onClose();
               it.action?.();

@@ -119,7 +119,8 @@ export function AboutDialog({ onClose }: { onClose: () => void }) {
           Comme dans UE : un onglet pour le niveau, un onglet par Blueprint ouvert (depuis le Content Drawer, en bas à gauche). Components et My Blueprint à
           gauche, Details à droite : touche leur nom sur le bord de l’écran.
         </li>
-        <li>En ambre : ce qui est propre à BP Trainer et n’existe pas dans UE (la leçon, l’accueil, la vitesse de Play…).</li>
+        <li>En ambre : ce que BP Trainer ajoute pour apprendre et qui n’existe pas dans UE (la leçon, Vérifier, les aides, la vitesse de Play…). Menu ⋮ › Vue UE pure les cache.</li>
+        <li>En pointillé : ce qui remplace la souris, le clavier ou un panneau fixe d’UE (les boutons flottants, les poignées des panneaux, le menu ⋮, Get et Set de My Blueprint, le joystick). Un appui long dessus dit quoi faire dans UE.</li>
         <li>En leçon : la bande sous la barre d’outils garde l’objectif sous les yeux, et Vérifier teste ton travail sans ouvrir la fiche.</li>
         <li>Appui long sur le vide : palette des nœuds (dans UE, clic droit).</li>
         <li>Tirer depuis une pin : un fil. Relâcher dans le vide : palette filtrée.</li>

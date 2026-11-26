@@ -11,6 +11,7 @@ import { ensureConstructionScript } from '@core/operations/constructionOps';
 import { saveProject } from '@storage/persistence';
 import { useStore } from '../hooks';
 import { Icon } from '../widgets/icons';
+import { origin, type UeHint } from '../origins';
 
 const COMPILE_ICON: Record<CompileStatus, { icon: string; cls: string; title: string }> = {
   dirty: { icon: '?', cls: 'st-dirty', title: 'À compiler' },
@@ -149,10 +150,17 @@ export function LevelToolbar(p: Common & { onPlaceActors: (sx: number, sy: numbe
 }
 
 /** A labelled strip on the edge of the canvas that opens a panel: the panel's name, where UE has it. */
-export function EdgeHandle({ side, label, aria, onClick, hidden }: { side: 'left' | 'right'; label: string; aria: string; onClick: () => void; hidden?: boolean }) {
+export function EdgeHandle({
+  side,
+  label,
+  aria,
+  onClick,
+  hidden,
+  hint,
+}: { side: 'left' | 'right'; label: string; aria: string; onClick: () => void; hidden?: boolean; hint: UeHint }) {
   if (hidden) return null;
   return (
-    <button class={`edge-handle ${side}`} aria-label={aria} onClick={onClick}>
+    <button class={`edge-handle ${side}`} {...origin('touch', hint)} aria-label={aria} onClick={onClick}>
       <span class={`edge-label${side === 'left' ? ' flip' : ''}`}>{label}</span>
     </button>
   );

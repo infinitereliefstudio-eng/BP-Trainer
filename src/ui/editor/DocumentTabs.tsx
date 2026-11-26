@@ -6,6 +6,7 @@
  */
 import { levelOf } from '@core/model/project';
 import { useStore } from '../hooks';
+import { appKept, origin } from '../origins';
 import { Icon } from '../widgets/icons';
 
 interface Props {
@@ -25,7 +26,7 @@ export function DocumentTabs(p: Props) {
   const classes = store.project.classes;
   return (
     <nav class="doc-bar" aria-label="Éditeurs ouverts">
-      <button class="doc-home app-only" onClick={p.onHome} aria-label="Accueil">
+      <button class="doc-home" {...appKept()} onClick={p.onHome} aria-label="Accueil">
         <Icon name="home" />
       </button>
       <div class="doc-tabs" role="tablist">
@@ -55,12 +56,14 @@ export function DocumentTabs(p: Props) {
         })}
       </div>
       {p.onLesson && (
-        <button class="tb lesson app-only" onClick={p.onLesson}>
+        <button class="tb lesson" {...origin('app')} onClick={p.onLesson}>
+          <Icon name="cap" />
           {p.lessonLabel ?? 'Leçon'}
         </button>
       )}
       <button
-        class="tb icon app-only"
+        class="tb icon"
+        {...origin('touch', 'more')}
         aria-label="Plus d'options"
         onClick={(e) => {
           const r = (e.currentTarget as HTMLElement).getBoundingClientRect();

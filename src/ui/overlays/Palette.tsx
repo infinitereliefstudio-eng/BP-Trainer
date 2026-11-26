@@ -17,6 +17,7 @@ import { useStore } from '../hooks';
 import { useOwnTap } from '../widgets/useOwnTap';
 import { recentKeys, rememberKey } from './recentNodes';
 import { Icon } from '../widgets/icons';
+import { origin } from '../origins';
 
 interface Props {
   req: PaletteRequest;
@@ -146,7 +147,7 @@ export function Palette({ req, onClose, onFocusNode }: Props) {
         </div>
         <div class="palette-list">
           {results.length === 0 && <p class="hint">Aucun nœud ne correspond.</p>}
-          {recents.length > 0 && <div class="palette-cat recent app-only">Récents · BP Trainer</div>}
+          {recents.length > 0 && <div class="palette-cat recent" {...origin('app')}>Récents · BP Trainer</div>}
           {recents.map((e) => item(e, 0, `recent:${e.key}`))}
           {tree.map((c) => branch(c, 0))}
         </div>

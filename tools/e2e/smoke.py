@@ -21,6 +21,24 @@ PUT = """([key, json]) => new Promise((res, rej) => { const r = indexedDB.open('
 OPEN = """(name) => { const s = window.bpStore; s.openClass(s.project.classes.find(c => c.name === name).id); }"""
 
 
+# UI-4 (V7.76): every visible button of the editor's bars is UE (named here), app or touch (data-origin).
+AUDIT = """() => {
+  const ue = new Set(['Compile', 'Save', 'Find', 'Class Settings', 'Class Defaults', 'Play', 'Stop', 'Viewport', 'Designer', 'Graph',
+    'Construction Script', 'Event Graph', '+ Place Actors', 'Content Drawer', 'Compiler Results', 'Output Log', 'Debug', 'Find Results',
+    'Pause', 'Reprendre', 'Avancer d’une frame', 'Continuer', 'Nœud suivant']);
+  const free = '.doc-tab, .doc-tab *, .tabs .tab, .graph-tabs *, .bottom-bar-tabs button, .pb-err, .db-where, .drawer-tab';
+  const bars = '.doc-bar, .toolbar, .goal-strip, .goal-tab-anchor, .fabs, .bottom-bar, .play-overlay, .debug-bar, .edge-handle';
+  const bad = [];
+  for (const b of document.querySelectorAll(`:is(${bars}) button, button.edge-handle`)) {
+    const r = b.getBoundingClientRect();
+    if (!r.width || !r.height || b.closest('[data-origin]') || b.matches(free)) continue;
+    const name = (b.getAttribute('aria-label') || b.textContent || '').trim().replace(/^[^\\p{L}+]+/u, '');
+    if (!ue.has(name)) bad.push(name || b.className);
+  }
+  return bad;
+}"""
+
+
 async def graph(page):
     """Open the Event Graph of the Blueprint being edited (its editor tab first, from the level)."""
     if await page.locator('.graph-tabs').count() == 0:
@@ -82,6 +100,33 @@ async def main():
         await graph(page)
         await page.wait_for_timeout(300)
         await shot('02_lamp_graph')
+        # V7.76 (UI-4): the bars' buttons all have a family; a long press on ↶ says UE's Ctrl+Z; « Vue UE pure ».
+        unmarked = await page.evaluate(AUDIT)
+        if unmarked:
+            errs.append(f'Familles : boutons sans famille dans le graphe {unmarked}')
+        undo = page.locator('.fab[aria-label="Annuler"]')
+        box = await undo.bounding_box()
+        await page.mouse.move(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
+        await page.mouse.down()
+        await page.wait_for_timeout(800)
+        await page.mouse.up()
+        await page.wait_for_timeout(200)
+        if await page.get_by_text('Ctrl+Z').count() == 0:
+            errs.append('Familles : l’appui long sur Annuler ne dit pas Ctrl+Z')
+        await shot('02b_touch_hint')
+        await page.locator('button[aria-label="Plus d\'options"]').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Vue UE pure').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.goal-strip').is_visible() or await page.locator('.tb.lesson').is_visible() or not await page.locator('.pure-pill').is_visible():
+            errs.append('Vue UE pure : les ajouts de l’appli restent visibles, ou la sortie manque')
+        if not await page.locator('.doc-home').is_visible():
+            errs.append('Vue UE pure : le bouton Accueil a disparu')
+        await shot('02c_pure_ue')
+        await page.locator('.pure-pill').tap()
+        await page.wait_for_timeout(300)
+        if not await page.locator('.goal-strip').is_visible():
+            errs.append('Vue UE pure : la bande d’objectifs ne revient pas')
         # V7.31: in landscape the graph keeps about two thirds of the height, and the floating buttons stay apart.
         room = await page.evaluate("""() => {
             const r = (q) => document.querySelector(q).getBoundingClientRect();
@@ -119,6 +164,9 @@ async def main():
         await page.locator('.debug-bar .pb-btn', has_text='Niveau').tap()
         await page.wait_for_timeout(300)
         await shot('08_level_play')
+        unmarked = await page.evaluate(AUDIT)
+        if unmarked:
+            errs.append(f'Familles : boutons sans famille dans Play {unmarked}')
         await page.locator('.tb.stop').tap()
 
         # Exercise P1
@@ -211,6 +259,9 @@ async def main():
         await page.locator('.outliner-pick').first.tap()
         await page.wait_for_timeout(300)
         await shot('13g_level_outliner')
+        unmarked = await page.evaluate(AUDIT)
+        if unmarked:
+            errs.append(f'Familles : boutons sans famille dans le niveau {unmarked}')
         await page.locator('.outliner-line.selected .chip').tap()
         await page.wait_for_timeout(200)
         await shot('13h_level_details')

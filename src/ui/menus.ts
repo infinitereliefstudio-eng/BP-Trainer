@@ -22,6 +22,7 @@ import { referenceQuery } from '@core/search/find';
 import { RULES_VERSION, rulesChangedSince, rulesNotice } from '@core/model/rules';
 import type { MenuItem, OpenOverlay } from './overlayTypes';
 import { playOrder, setPlayOrder } from './playSettings';
+import { pureUe, setPureUe } from './uiSettings';
 
 export function nodeMenu(store: EditorStore, nodeId: string, openDetails: () => void, openFind?: (query: string) => void): MenuItem[] {
   const ids = store.selection.has(nodeId) ? [...store.selection] : [nodeId];
@@ -216,8 +217,9 @@ const otherNames = (key: string) => listProjects().then((list) => list.filter((e
 function sandboxItems(store: EditorStore, openOverlay: OpenOverlay, key: string, opts: MoreMenuOptions): MenuItem[] {
   const fail = (e: Error) => store.error(`Liste des projets illisible : ${e.message}`);
   return [
-    { label: 'Mes projets', hint: 'ouvrir, renommer, copier, supprimer', action: () => opts.onProjects?.() },
+    { app: true, label: 'Mes projets', hint: 'ouvrir, renommer, copier, supprimer', action: () => opts.onProjects?.() },
     {
+      app: true,
       label: 'Nouveau projet',
       hint: 'à côté de celui-ci, qui reste enregistré',
       action: () =>
@@ -242,6 +244,7 @@ function sandboxItems(store: EditorStore, openOverlay: OpenOverlay, key: string,
           .catch(fail),
     },
     {
+      app: true,
       label: 'Renommer le projet',
       action: () =>
         otherNames(key)
@@ -274,6 +277,7 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
     { label: 'Project Settings', hint: 'Maps & Modes', action: () => openOverlay({ kind: 'projectSettings' }) },
     ...(key ? sandboxItems(store, openOverlay, key, opts) : []),
     {
+      app: true,
       label: 'Exporter le projet',
       hint: 'fichier .json',
       action: () =>
@@ -283,12 +287,13 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
         ),
     },
     key && opts.onOpenProject
-      ? { label: 'Importer un projet', hint: 'ajouté à ta liste de projets', action: () => importAsNew(store, opts.onOpenProject!) }
-      : { label: 'Importer un projet', action: () => importInto(store) },
+      ? { app: true, label: 'Importer un projet', hint: 'ajouté à ta liste de projets', action: () => importAsNew(store, opts.onOpenProject!) }
+      : { app: true, label: 'Importer un projet', action: () => importInto(store) },
   ];
-  items.push({ label: 'Conseils de construction', action: () => openOverlay({ kind: 'advice' }) });
+  items.push({ app: true, label: 'Conseils de construction', action: () => openOverlay({ kind: 'advice' }) });
   const fixed = playOrder() === 'level';
   items.push({
+    app: true,
     label: fixed ? 'Ordre des BeginPlay : fixe' : 'Ordre des BeginPlay : mélangé',
     hint: fixed ? 'toucher pour mélanger, comme dans UE' : 'toucher pour fixer (débogage)',
     action: () => {
@@ -304,9 +309,19 @@ export function moreMenu(store: EditorStore, openOverlay: OpenOverlay, opts: Mor
     // Each touch moves to the next strength, and plays it.
     const level = hapticLevel();
     const next = HAPTIC_LEVELS[(HAPTIC_LEVELS.indexOf(level) + 1) % HAPTIC_LEVELS.length];
-    items.push({ label: `Vibrations : ${HAPTIC_LABEL[level]}`, action: () => setHapticLevel(next) });
+    items.push({ app: true, label: `Vibrations : ${HAPTIC_LABEL[level]}`, action: () => setHapticLevel(next) });
   }
-  items.push({ label: 'Plein écran', action: () => enterFullscreen() }, { label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) });
+  const pure = pureUe();
+  items.push(
+    {
+      app: 'keep',
+      label: pure ? 'Vue UE pure : activée' : 'Vue UE pure : désactivée',
+      hint: pure ? 'toucher pour revoir les ajouts de l’appli' : 'cacher ce que l’appli ajoute à l’éditeur d’UE (en ambre)',
+      action: () => setPureUe(!pure),
+    },
+    { app: true, label: 'Plein écran', action: () => enterFullscreen() },
+    { app: 'keep', label: 'Aide et gestes', action: () => openOverlay({ kind: 'about' }) },
+  );
   return items;
 }
 

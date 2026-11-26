@@ -110,7 +110,7 @@ export function LessonSheet({
 
   return (
     <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
-      <div class="sheet lesson" onClick={(e) => e.stopPropagation()}>
+      <div class="sheet lesson" data-origin="app" onClick={(e) => e.stopPropagation()}>
         <div class="palette-head">
           <div class="lesson-title">
             <span class="eyebrow">

@@ -4,6 +4,7 @@
  */
 import type { BottomTab } from '../panels/BottomPanel';
 import { Icon } from '../widgets/icons';
+import { origin } from '../origins';
 
 const TABS: { id: BottomTab; label: string }[] = [
   { id: 'compiler', label: 'Compiler Results' },
@@ -42,6 +43,7 @@ export function BottomBar({ open, onOpen, onContentDrawer, contentDisabled, comp
       </div>
       <button
         class="bottom-handle"
+        {...origin('touch', 'bottomPanel')}
         aria-label={open ? 'Fermer le panneau du bas' : 'Ouvrir le panneau du bas'}
         onClick={() => onOpen(open ? false : 'compiler')}
       >

@@ -150,7 +150,7 @@ export function ClassDetails({ openOverlay }: { openOverlay: OpenOverlay }) {
             Pendant le jeu, un autre Blueprint (souvent le Player Controller) le crée avec <b>Create Widget</b>, garde la référence dans une variable, puis l’affiche
             avec <b>Add to Viewport</b>. Dans le Graph, <b>Event Construct</b> joue le rôle de BeginPlay.
           </p>
-          <p class="app-only-text">Simplification de l’appli : un Widget Blueprint garde UserWidget pour parent (pas d’héritage entre Widget Blueprints).</p>
+          <p class="app-only-text" data-origin="app">Simplification de l’appli : un Widget Blueprint garde UserWidget pour parent (pas d’héritage entre Widget Blueprints).</p>
         </AppHelp>
       </>
     );

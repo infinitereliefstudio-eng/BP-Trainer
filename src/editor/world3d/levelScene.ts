@@ -14,6 +14,7 @@
 import {
   AmbientLight,
   BoxGeometry,
+  BoxHelper,
   BufferGeometry,
   CapsuleGeometry,
   CircleGeometry,
@@ -72,6 +73,8 @@ export interface SyncInput {
   playerStarts?: readonly { id: string; x: number; y: number; yaw: number }[];
   /** Editor only: an actor's Instance Editable variable points at another actor. */
   references?: readonly { from: string; to: string }[];
+  /** The Blueprint's Viewport: the selected component (`actor id|component id`), outlined. */
+  selectedComponent?: string;
   player?: ActorRT;
   debugLines?: readonly DebugLine[];
   selectedId?: string;
@@ -88,6 +91,8 @@ export class LevelScene {
   private traces?: LineSegments;
   private readonly pickable: Object3D[] = [];
   private refs?: LineSegments;
+  private outline?: BoxHelper;
+  private axes?: LineSegments;
   /** Lit, Unlit or Wireframe (UE's view modes, editor only). */
   mode: ViewMode = 'Lit';
 
@@ -145,9 +150,15 @@ export class LevelScene {
           const item = this.item(key, `${c.props.shape}|${c.props.sizeX}|${c.props.sizeY}|${c.props.blocks}`, () => makeMesh(c));
           placeMesh(item, a, c, this.mode, c.props.visible ? 1 : 0.35);
           item.obj.userData.actorId = a.isPlayer ? undefined : a.id;
+          item.obj.userData.compId = c.id;
+          item.obj.userData.prio = 1;
           if (!a.isPlayer) this.pickable.push(item.obj);
         } else if (c.kind === 'BoxCollision') {
-          const item = this.item(key, `${c.props.sizeX}|${c.props.sizeY}`, () => makeZone(c));
+          const item = this.item(key, `${c.props.sizeX}|${c.props.sizeY}`, () => makeZone(c, this.editor));
+          for (const hit of item.obj.children) {
+            hit.userData = { actorId: a.id, compId: c.id, prio: 2 };
+            this.pickable.push(hit);
+          }
           const t = componentTransform(a, c);
           item.obj.position.set(t.x, ZONE_HEIGHT / 2, t.y);
           item.obj.rotation.y = -t.yaw * DEG;
@@ -166,6 +177,8 @@ export class LevelScene {
             const bulb = this.item(`${key}|bulb`, 'bulb', makeBulb);
             bulb.obj.position.set(t.x, lightHeight(a.components), t.y);
             bulb.obj.userData.actorId = a.id;
+            bulb.obj.userData.compId = c.id;
+            bulb.obj.userData.prio = 0;
             const on = c.props.visible && c.props.intensity > 0;
             const color = on ? c.props.color : '#4b5058';
             if (bulb.color !== color) {
@@ -193,6 +206,10 @@ export class LevelScene {
           const t = componentTransform(a, c);
           (item.obj as Sprite).position.set(t.x, TEXT_HEIGHT, t.y);
           ((item.obj as Sprite).material as Material).opacity = c.props.visible ? 1 : 0.35;
+          if (this.editor) {
+            item.obj.userData = { actorId: a.id, compId: c.id, prio: 0 };
+            this.pickable.push(item.obj);
+          }
         }
         // Widget Components are HTML over the view (ComponentWidgets), placed with the camera.
         else continue;
@@ -216,6 +233,7 @@ export class LevelScene {
 
     for (const [key, item] of this.items) {
       if (seen.has(key)) continue;
+      if (this.outline && item.obj === (this.outline as BoxHelper & { object?: Object3D }).object) this.outline.visible = false;
       this.scene.remove(item.obj);
       dispose(item.obj);
       this.items.delete(key);
@@ -228,6 +246,46 @@ export class LevelScene {
     const start = input.selectedId ? input.playerStarts?.find((p) => p.id === input.selectedId) : undefined;
     this.placeRing(sel ? { x: sel.x, y: sel.y, r: actorRadius(sel) + 14 } : start ? { x: start.x, y: start.y, r: PLAYER_RADIUS + 26 } : undefined);
     this.placeTraces(input.debugLines ?? []);
+    this.placeOutline(input.selectedComponent);
+  }
+
+  /** The Blueprint's Viewport: its origin, the actor's root, and the axes X (red), Y (green) and Z (blue), as in UE. */
+  showAxes(): void {
+    if (this.axes) return;
+    const L = 90;
+    const g = new BufferGeometry();
+    g.setAttribute('position', new Float32BufferAttribute([0, 1, 0, L, 1, 0, 0, 1, 0, 0, 1, L, 0, 1, 0, 0, L, 0], 3));
+    const red = new Color('#e0433a'),
+      green = new Color('#5bc236'),
+      blue = new Color('#2f6fe4');
+    g.setAttribute('color', new Float32BufferAttribute([...red.toArray(), ...red.toArray(), ...green.toArray(), ...green.toArray(), ...blue.toArray(), ...blue.toArray()], 3));
+    this.axes = new LineSegments(g, new LineBasicMaterial({ vertexColors: true, depthTest: false, transparent: true }));
+    this.axes.renderOrder = 900;
+    this.scene.add(this.axes);
+  }
+
+  /** The component under a ray (the Blueprint's Viewport): small ones first, then meshes, then collision boxes. */
+  pickComponent(ray: Raycaster): string | undefined {
+    const hits = ray.intersectObjects(this.pickable, false).filter((h) => h.object.userData.compId);
+    hits.sort((p, q) => (p.object.userData.prio ?? 1) - (q.object.userData.prio ?? 1) || p.distance - q.distance);
+    return hits[0]?.object.userData.compId as string | undefined;
+  }
+
+  /** The selected component's box, in UE's selection colour. */
+  private placeOutline(key: string | undefined): void {
+    const item = key ? (this.items.get(key) ?? this.items.get(`${key}|bulb`)) : undefined;
+    if (!item) {
+      if (this.outline) this.outline.visible = false;
+      return;
+    }
+    if (!this.outline) {
+      this.outline = new BoxHelper(item.obj, WORLD.selected);
+      (this.outline.material as Material).depthTest = false;
+      this.outline.renderOrder = 950;
+      this.scene.add(this.outline);
+    }
+    this.outline.visible = true;
+    this.outline.setFromObject(item.obj);
   }
 
   /** The actor under a ray: its meshes first, then the actor whose origin is nearest to where the ray meets the floor. */
@@ -442,10 +500,14 @@ function makePlayerStart(): Group {
   return g;
 }
 
-function makeZone(c: ComponentRT): LineSegments {
-  const edges = new EdgesGeometry(new BoxGeometry(c.props.sizeX, ZONE_HEIGHT, c.props.sizeY));
+function makeZone(c: ComponentRT, editor: boolean): LineSegments {
+  const box = new BoxGeometry(c.props.sizeX, ZONE_HEIGHT, c.props.sizeY);
+  const edges = new EdgesGeometry(box);
   const l = new LineSegments(edges, new LineDashedMaterial({ color: '#d0d0d0', dashSize: 14, gapSize: 10, transparent: true, opacity: 0.5 }));
   l.computeLineDistances();
+  // In the editor, an invisible box takes the taps (a line is too thin for a finger).
+  if (editor) l.add(new Mesh(box, new MeshBasicMaterial({ visible: false })));
+  else box.dispose();
   return l;
 }
 

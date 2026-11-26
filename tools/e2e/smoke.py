@@ -10,7 +10,7 @@ tools/e2e/out/shots and prints page errors (expected: "errors []").
 Needs Python Playwright and Chrome (CHROME env var, default /usr/bin/google-chrome).
 The app exposes its store as window.bpStore when the URL contains "?e2e".
 """
-import asyncio, json, os, pathlib, re, sys
+import asyncio, json, math, os, pathlib, re, sys
 from playwright.async_api import async_playwright
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -26,7 +26,8 @@ AUDIT = """() => {
   const ue = new Set(['Compile', 'Save', 'Find', 'Class Settings', 'Class Defaults', 'Play', 'Stop', 'Viewport', 'Designer', 'Graph',
     'Construction Script', 'Event Graph', '+ Place Actors', 'Content Drawer', 'Compiler Results', 'Output Log', 'Debug', 'Find Results',
     'Pause', 'Reprendre', 'Avancer d’une frame', 'Continuer', 'Nœud suivant',
-    'Perspective', 'Top', 'Bottom', 'Left', 'Right', 'Front', 'Back', 'Lit', 'Unlit', 'Wireframe']);
+    'Perspective', 'Top', 'Bottom', 'Left', 'Right', 'Front', 'Back', 'Lit', 'Unlit', 'Wireframe',
+    'Select', 'Move', 'Rotate', 'Scale', 'World', 'Local', 'Grid Snap', 'Rotation Snap', 'Scale Snap']);
   const free = '.doc-tab, .doc-tab *, .tabs .tab, .graph-tabs *, .bottom-bar-tabs button, .pb-err, .db-where, .drawer-tab';
   const bars = '.doc-bar, .toolbar, .goal-strip, .goal-tab-anchor, .fabs, .bottom-bar, .play-overlay, .debug-bar, .edge-handle, .vp-bar';
   const bad = [];
@@ -229,6 +230,12 @@ async def main():
         await shot('13d_find_jump')
         # V7.9: the Blueprint Viewport, then the level's Outliner / Details drawer
         await page.locator('.graph-tabs .tab', has_text='Viewport').tap()
+        await page.wait_for_timeout(300)
+        # V7.79: the Viewport opens in Perspective (3D) as in UE; this part checks its Top view (the 2D canvas).
+        await shot('13e_viewport_perspective')
+        await page.locator('.vp-bar .vp-btn', has_text='Perspective').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Top').first.tap()
         await page.wait_for_timeout(300)
         await shot('13e_viewport')
         box = await page.locator('.graph-canvas.viewport canvas').bounding_box()
@@ -2017,6 +2024,81 @@ async def main():
         await page.wait_for_timeout(300)
         if await page.locator('.editor3d').count() or not await page.locator('.graph-canvas.world canvas').count():
             errs.append('Viewport : Top ne revient pas à la vue de dessus')
+        # 3D-2 (V7.79): the Blueprint's Viewport in Perspective with the gizmo. In BP_Generateur, the Moteur mesh is moved
+        # along X by its red arrow, turned by the blue ring, made longer by the red cube of Scale.
+        async def drag_path(points):
+            await page.mouse.move(*points[0])
+            await page.mouse.down()
+            for pt in points[1:]:
+                await page.mouse.move(*pt)
+                await page.wait_for_timeout(16)
+            await page.mouse.up()
+            await page.wait_for_timeout(250)
+        MOTEUR = "() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Generateur').components.find(c => c.name === 'Moteur'); return [c.props.x, c.props.y, c.props.yaw, c.props.sizeX, c.props.sizeY]; }"
+        await page.evaluate(OPEN, 'BP_Generateur')
+        await graph(page)
+        await page.locator('.graph-tabs .tab', has_text='Viewport').tap()
+        await page.wait_for_timeout(300)
+        await page.locator('.vp-bar .vp-btn', has_text='Top').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.menu-item', has_text='Perspective').first.tap()
+        await page.wait_for_timeout(800)
+        vbox = await page.locator('.viewport3d canvas').bounding_box()
+        if not vbox:
+            errs.append('Viewport du Blueprint : Perspective ne dessine pas en 3D')
+        else:
+            at = await page.evaluate("() => window.bp3dViewport.screenOf('Moteur')")
+            await page.mouse.click(vbox['x'] + at['x'], vbox['y'] + at['y'])
+            await page.wait_for_timeout(300)
+            await page.locator('.vp-bar .vp-btn[aria-label="Move"]').tap()
+            await page.wait_for_timeout(200)
+            sel = await page.evaluate("() => window.bp3dViewport.selection()")
+            if not sel:
+                errs.append('Viewport du Blueprint : toucher Moteur ne le choisit pas')
+            else:
+                before = await page.evaluate(MOTEUR)
+                scr = lambda x, y: page.evaluate('([x, y]) => window.bp3dViewport.project(x, y)', [x, y])
+                arm = 0.55 * 90 * sel['cmPerPx']
+                pts = []
+                for i in range(0, 9):
+                    q = await scr(sel['x'] + arm + i * 15, sel['y'])
+                    pts.append((vbox['x'] + q['x'], vbox['y'] + q['y']))
+                await shot('125_viewport_gizmo_move')
+                await drag_path(pts)
+                after = await page.evaluate(MOTEUR)
+                if not after[0] > before[0] + 50:
+                    errs.append(f'Gizmo : la flèche X ne déplace pas Moteur le long de X ({before} → {after})')
+                await page.locator('.vp-bar .vp-btn[aria-label="Rotate"]').tap()
+                await page.wait_for_timeout(200)
+                sel = await page.evaluate("() => window.bp3dViewport.selection()")
+                r = 0.75 * 90 * sel['cmPerPx']
+                pts = []
+                for i in range(0, 11):
+                    a = math.radians(i * 6)
+                    q = await scr(sel['x'] + r * math.cos(a), sel['y'] + r * math.sin(a))
+                    pts.append((vbox['x'] + q['x'], vbox['y'] + q['y']))
+                await shot('126_viewport_gizmo_rotate')
+                await drag_path(pts)
+                turned = await page.evaluate(MOTEUR)
+                if turned[2] == after[2] or turned[2] % 10:
+                    errs.append(f'Gizmo : l’anneau ne tourne pas Moteur de 10° en 10° ({after[2]} → {turned[2]})')
+                await page.locator('.vp-bar .vp-btn[aria-label="Scale"]').tap()
+                await page.locator('.vp-bar .vp-btn[aria-label="F"]').tap()
+                await page.wait_for_timeout(300)
+                sel = await page.evaluate("() => window.bp3dViewport.selection()")
+                c, sn = math.cos(math.radians(sel['yaw'])), math.sin(math.radians(sel['yaw']))
+                arm = 0.86 * 90 * sel['cmPerPx']
+                pts = []
+                for i in range(0, 9):
+                    d = arm + i * 10
+                    q = await scr(sel['x'] + d * c, sel['y'] + d * sn)
+                    pts.append((vbox['x'] + q['x'], vbox['y'] + q['y']))
+                await drag_path(pts)
+                scaled = await page.evaluate(MOTEUR)
+                if not scaled[3] > turned[3]:
+                    errs.append(f'Gizmo : le cube rouge de Scale n’allonge pas Moteur ({turned[3]} → {scaled[3]})')
+                await shot('127_viewport_gizmo_scale')
+                await page.locator('.vp-bar .vp-btn[aria-label="Move"]').tap()
 
         print('errors', errs)
         await b.close()

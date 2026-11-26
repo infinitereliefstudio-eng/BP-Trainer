@@ -205,6 +205,19 @@ export class ViewCamera {
     return { x: p.x, y: p.z };
   }
 
+  /** Centimetres for a screen pixel at a point of the level (the gizmo keeps its size on the screen with it). */
+  cmPerPxAt(x: number, y: number, h = 0): number {
+    if (this.isOrtho) return 1 / this.scale;
+    const d = this.persp.position.distanceTo(this.v.set(x, h, y));
+    return (2 * d * Math.tan((this.persp.fov * DEG) / 2)) / this.h;
+  }
+
+  /** How the view looks at the floor: 1 from above, -1 from below, about 0 from the side. */
+  verticalLook(): number {
+    const d = new Vector3().subVectors(this.three.position, this.target).normalize();
+    return d.y;
+  }
+
   /** Centimetres for a screen pixel, at the target. */
   private cmPerPx(): number {
     if (this.isOrtho) return 1 / this.scale;

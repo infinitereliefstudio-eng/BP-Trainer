@@ -50,4 +50,5 @@ Bonne nouvelle pour les étapes à touche : le modèle Third Person d'UE fait to
 | UI-4, les trois familles et la « Vue UE pure » ([INTERFACE_FAMILLES.md](INTERFACE_FAMILLES.md)) | V7.76 | **fait** (lancée à 15 h 01) |
 | 3D-0, prototype de Play en 3D (three.js, caméra suiveuse, Réglages › Play › Vue 3D (essai), bouton « Dessus ») | V7.77 | **fait** (lancée le 26 nov. à 15 h 41) ; à essayer sur le Pixel |
 | 3D-1, éditeur de niveau en 3D (Viewport Type : Perspective, Top, Bottom, Left, Right, Front, Back ; Lit, Unlit, Wireframe ; orbite, sélection, glisser au sol, poser sous le doigt, « F ») | V7.78 | **fait** (lancée le 26 nov. à 17 h 09) |
-| 3D-2, Viewport du Blueprint en 3D, gizmo Move / Rotate / Scale, World / Local, accrochage ; relecture des textes des étapes | | prochaine, sur le feu vert de Tristan |
+| 3D-2, première partie : gizmo Move / Rotate / Scale, World / Local, accrochage ; Viewport du Blueprint en 3D | V7.79 | **fait** (lancée le 26 nov. à 17 h 45) |
+| 3D-2, seconde partie : relecture des textes des étapes ; UI-6 (barre principale de l'éditeur de niveau d'UE 5.8, Eject) | V7.80 | en cours |

@@ -199,7 +199,15 @@ select.field { padding-right: 4px; }
 .pb-time.pb-fps { min-width: 44px; }
 /* 3D-0 (V7.77): the 3D view of Play fills the level area like the top view. */
 /* 3D-1 (V7.78): the level viewport's bar, top left as in UE 5.6+, and the names drawn over the 3D editor. */
-.vp-bar { position: absolute; z-index: 5; top: 6px; left: max(6px, env(safe-area-inset-left)); display: flex; gap: 4px; pointer-events: auto; }
+.vp-bar { position: absolute; z-index: 5; top: 6px; left: max(6px, env(safe-area-inset-left)); display: flex; gap: 4px; pointer-events: auto;
+  max-width: calc(100% - 84px); overflow-x: auto; scrollbar-width: none; }
+.vp-bar::-webkit-scrollbar { display: none; }
+.vp-group { display: inline-flex; gap: 2px; padding: 0 2px; border-radius: var(--r-1); background: rgba(21, 21, 21, 0.5); flex: none; }
+.vp-btn.icon { min-width: 36px; padding: 0 8px; }
+.vp-btn.on { background: var(--accent); color: #fff; }
+.vp-btn.snap { min-width: 52px; white-space: nowrap; }
+.vp-btn.snap.on { background: rgba(21, 21, 21, 0.82); color: var(--link); }
+.vp-btn { flex: none; }
 .vp-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; min-width: 40px; padding: 0 10px; border: 0; border-radius: var(--r-1);
   background: rgba(21, 21, 21, 0.82); color: var(--text); font-size: var(--fs-sm); justify-content: center; }
 .vp-btn:active { background: var(--btn-press); }

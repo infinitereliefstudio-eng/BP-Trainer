@@ -26,8 +26,9 @@ import { PlaySession } from '@editor/world/playSession';
 import type { WorldRequests } from '@editor/world/WorldCanvas';
 import { LevelView } from './play/LevelView';
 import { ViewportBar } from './editor/ViewportBar';
+import { BlueprintViewport } from './editor/BlueprintViewport';
 import { viewType } from './viewportSettings';
-import { ViewportCanvas, type ViewportHandle, type ViewportRequests } from '@editor/viewport/ViewportCanvas';
+import type { ViewportHandle, ViewportRequests } from '@editor/viewport/ViewportCanvas';
 import { StoreContext, useStore } from './hooks';
 import { GoalStrip } from './lesson/GoalStrip';
 import { LessonSheet, type LessonCheck } from './lesson/LessonSheet';
@@ -503,7 +504,12 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
             }}
           />
         ) : view === 'graph' && viewport && !playing ? (
-          <ViewportCanvas ref={viewportCanvas} store={store} requests={viewportRequests} />
+          <BlueprintViewport
+            ref={viewportCanvas}
+            store={store}
+            requests={viewportRequests}
+            onNo3d={() => store.warn('Vue 3D indisponible sur cet appareil (WebGL absent) : le Viewport reste en vue de dessus.')}
+          />
         ) : view === 'graph' ? (
           <GraphCanvas ref={canvas} store={store} requests={graphRequests} selectionMode={selectionMode} session={session ?? undefined} />
         ) : (
@@ -516,8 +522,13 @@ function Shell({ workspace, lesson, alternative, solution, lessonDone, onHome, o
           />
         )}
 
+        {view === 'graph' && viewport && !playing && !designer && (
+          <ViewportBar context="blueprint" onInfo={(t) => store.info(t)} setOverlay={setOverlay} onFrame={() => viewportCanvas.current?.fitView()} />
+        )}
         {!playing && !designer && view === 'level' && (
           <ViewportBar
+            context="level"
+            onInfo={(t) => store.info(t)}
             setOverlay={setOverlay}
             onFrame={() => {
               const f = store.focus;

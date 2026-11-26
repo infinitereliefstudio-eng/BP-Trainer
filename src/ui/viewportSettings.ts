@@ -40,3 +40,55 @@ export function onViewportSettings(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
+
+/**
+ * The transform tools of UE's viewport bar (3D-2, V7.79): Select (Q), Move (W), Rotate (E), Scale (R); the coordinate
+ * space (World, Local) and the three snaps, shared by the level and the Blueprint's Viewport as in UE. A snap of 0 is
+ * off. The Blueprint's Viewport has its own view type, Perspective by default as in UE.
+ */
+export const TOOLS = ['Select', 'Move', 'Rotate', 'Scale'] as const;
+export type Tool = (typeof TOOLS)[number];
+export type Space = 'World' | 'Local';
+export const GRID_SNAPS = [0, 1, 5, 10, 50, 100] as const;
+export const ROTATION_SNAPS = [0, 5, 10, 15, 45, 90] as const;
+export const SCALE_SNAPS = [0, 1, 5, 10, 50] as const;
+
+const TOOL_KEY = 'bp-trainer.tool';
+const SPACE_KEY = 'bp-trainer.space';
+const GRID_KEY = 'bp-trainer.gridSnap';
+const ROT_KEY = 'bp-trainer.rotationSnap';
+const SCALE_KEY = 'bp-trainer.scaleSnap';
+const BP_TYPE_KEY = 'bp-trainer.bpViewport';
+
+function readNumber(key: string, all: readonly number[], fallback: number): number {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : (all.find((x) => x === Number(v)) ?? fallback);
+  } catch {
+    return fallback;
+  }
+}
+
+export const tool = (): Tool => read(TOOL_KEY, TOOLS, 'Move');
+export const setTool = (v: Tool): void => write(TOOL_KEY, v);
+export const space = (): Space => read<Space>(SPACE_KEY, ['World', 'Local'], 'World');
+export const setSpace = (v: Space): void => write(SPACE_KEY, v);
+export const gridSnap = (): number => readNumber(GRID_KEY, GRID_SNAPS, 10);
+export const setGridSnap = (v: number): void => write(GRID_KEY, String(v));
+export const rotationSnap = (): number => readNumber(ROT_KEY, ROTATION_SNAPS, 10);
+export const setRotationSnap = (v: number): void => write(ROT_KEY, String(v));
+export const scaleSnap = (): number => readNumber(SCALE_KEY, SCALE_SNAPS, 10);
+export const setScaleSnap = (v: number): void => write(SCALE_KEY, String(v));
+export const bpViewType = (): ViewType => read(BP_TYPE_KEY, VIEW_TYPES, 'Perspective');
+export const setBpViewType = (v: ViewType): void => write(BP_TYPE_KEY, v);
+
+/** What the editors' views need to know of the bar: snapping and the transform tool. */
+export interface Snapping {
+  tool: Tool;
+  space: Space;
+  grid: number;
+  rotation: number;
+  scale: number;
+}
+
+export const snapping = (): Snapping => ({ tool: tool(), space: space(), grid: gridSnap(), rotation: rotationSnap(), scale: scaleSnap() });

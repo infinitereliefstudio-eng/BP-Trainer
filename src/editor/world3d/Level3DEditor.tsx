@@ -10,7 +10,7 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import { isPlayerStartId, levelOf, MAIN_START_ID, playerStartsOf } from '@core/model/project';
-import { findPlayerStart, moveActor, movePlayerStart, snapActor } from '@core/operations/levelOps';
+import { findPlayerStart, moveActor, updateActor } from '@core/operations/levelOps';
 import { Simulation } from '@core/runtime/simulation';
 import { componentShape } from '@core/runtime/physics';
 import { componentTransform, type ActorRT } from '@core/runtime/world';
@@ -19,6 +19,9 @@ import { GestureController, type GestureHost } from '../gestures';
 import { levelReferences, type WorldRequests } from '../world/WorldCanvas';
 import { widgetNames } from '../world/worldRender';
 import { meshHeight, WIDGET_HEIGHT } from './heights';
+import { Gizmo } from './gizmo';
+import { GIZMO_HEIGHT, GizmoDrag, type Transform } from './gizmoDrag';
+import { type GizmoSettings, type Handle, snap } from './gizmoMath';
 import { declutter, HtmlLabels, type Label } from './htmlLabels';
 import { LevelScene, type ViewMode } from './levelScene';
 import { dropRenderer, makeRenderer } from './renderer';
@@ -31,6 +34,8 @@ interface Props {
   mode: ViewMode;
   /** Frame an actor or a Player Start ('*': the whole level). `n` changes on every request. */
   center?: { id: string; n: number };
+  /** The viewport bar's transform tool, space and snaps (3D-2). */
+  gizmo: GizmoSettings;
   onUnavailable: () => void;
 }
 
@@ -40,11 +45,12 @@ const noop = () => undefined;
 /** The editor's camera outlives a change of view type: the new view looks at the same place. */
 const shared = { camera: undefined as ViewCamera | undefined };
 
-export function Level3DEditor({ store, requests, kind, mode, center, onUnavailable }: Props) {
+export function Level3DEditor({ store, requests, kind, mode, center, gizmo: settings, onUnavailable }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ requests, onUnavailable, invalidate: noop as () => void, frame: noop as (id: string) => void, kind, mode });
+  const live = useRef({ requests, onUnavailable, invalidate: noop as () => void, frame: noop as (id: string) => void, kind, mode, settings });
   live.current.requests = requests;
   live.current.onUnavailable = onUnavailable;
+  live.current.settings = settings;
 
   useEffect(() => {
     const wrap = wrapRef.current!;
@@ -59,6 +65,9 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
     wrap.appendChild(labels.el);
     const level = new LevelScene(true);
     level.mode = live.current.mode;
+    const gizmo = new Gizmo();
+    level.scene.add(gizmo.group);
+    let handleDrag: { drag: GizmoDrag; id: string; at: { x: number; y: number } } | undefined;
     const fresh = !shared.camera;
     if (!shared.camera) shared.camera = new ViewCamera(live.current.kind);
     const cam = shared.camera;
@@ -128,6 +137,7 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
         selectedId: sel,
         focus: { x: cam.target.x, y: cam.target.z },
       });
+      placeGizmo(sel);
       renderer.render(level.scene, cam.three);
       labels.update(declutter(labelsOf(list, sel)));
     };
@@ -135,6 +145,32 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
       if (!raf) raf = requestAnimationFrame(draw);
     };
     live.current.invalidate = invalidate;
+
+    /** What the gizmo works on: the selected actor or Player Start, as a transform of the level. */
+    const transformOf = (id: string): Transform | undefined => {
+      const t = isPlayerStartId(id) ? findPlayerStart(store.project, id) : levelOf(store.project).actors.find((a) => a.id === id);
+      return t && { x: t.x, y: t.y, yaw: t.yaw, sizeX: 0, sizeY: 0 };
+    };
+
+    /** The gizmo on the selection; none with Select, and none for Scale (a placed actor has no scale here). */
+    const placeGizmo = (sel: string | undefined) => {
+      const t = sel ? transformOf(sel) : undefined;
+      const tool = live.current.settings.tool;
+      const mode = !t || tool === 'Select' || tool === 'Scale' ? undefined : tool;
+      if (!t || !mode) return gizmo.place(undefined, 0, 0, 0, 0, 1);
+      const yaw = mode === 'Move' && live.current.settings.space === 'Local' ? t.yaw : 0;
+      gizmo.place(mode, t.x, t.y, GIZMO_HEIGHT, yaw, cam.cmPerPxAt(t.x, t.y, GIZMO_HEIGHT));
+    };
+
+    /** Write a transform to the selected actor or Player Start. */
+    const applyTransform = (id: string, t: Transform) => {
+      if (isPlayerStartId(id)) {
+        const ps = findPlayerStart(store.project, id);
+        if (ps) Object.assign(ps, { x: t.x, y: t.y, yaw: t.yaw });
+      } else updateActor(store.project, id, { x: t.x, y: t.y, yaw: t.yaw });
+      preview = undefined;
+      store.touch();
+    };
 
     /** Names under the actors and Player Starts, Widget Component frames, and the variables' names of the selected actor's references. */
     const labelsOf = (list: ActorRT[], sel: string | undefined): Label[] => {
@@ -207,19 +243,23 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
     const host: GestureHost = {
       hitAt(sx, sy) {
         down = { x: sx, y: sy };
+        const handle = gizmo.pick(cam.rayAt(sx, sy));
+        if (handle) return { kind: 'node', node: `gizmo:${handle}` };
         const id = level.pick(cam.rayAt(sx, sy), actors(), 70);
         return id ? { kind: 'node', node: id } : { kind: 'empty' };
       },
       selectionMode: () => false,
       onTap(hit) {
+        if (hit.kind === 'node' && hit.node.startsWith('gizmo:')) return;
         store.setFocus(hit.kind === 'node' ? focusOf(hit.node) : { kind: 'none' });
       },
       onDoubleTap(hit) {
-        if (hit.kind !== 'node') return;
+        if (hit.kind !== 'node' || hit.node.startsWith('gizmo:')) return;
         store.setFocus(focusOf(hit.node));
         live.current.requests.openDetails();
       },
       onLongPress(hit, sx, sy) {
+        if (hit.kind === 'node' && hit.node.startsWith('gizmo:')) return;
         if (hit.kind === 'node' && !isPlayerStartId(hit.node)) {
           store.setFocus({ kind: 'actor', id: hit.node });
           live.current.requests.openActorMenu(hit.node, sx, sy);
@@ -240,6 +280,17 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
         invalidate();
       },
       onNodeDragStart(id) {
+        if (id.startsWith('gizmo:')) {
+          const sel = selected();
+          const t = sel && transformOf(sel);
+          if (!sel || !t) return;
+          const handle = id.slice(6) as Handle;
+          const view = { toScreen: (x: number, y: number, h?: number) => cam.toScreen(x, y, h), dragPoint: (x: number, y: number) => cam.dragPoint(x, y), verticalLook: () => cam.verticalLook() };
+          handleDrag = { drag: new GizmoDrag(handle, t, view, live.current.settings, down), id: sel, at: { ...down } };
+          gizmo.setActive(handle);
+          store.begin(handle === 'rot' ? 'Tourner un acteur' : 'Déplacer un acteur', { kind: 'project' });
+          return;
+        }
         const from = cam.dragPoint(down.x, down.y);
         const p = isPlayerStartId(id) ? findPlayerStart(store.project, id) : levelOf(store.project).actors.find((a) => a.id === id);
         if (!from || !p) return;
@@ -248,6 +299,12 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
         store.begin(isPlayerStartId(id) ? 'Déplacer le Player Start' : 'Déplacer un acteur', { kind: 'project' });
       },
       onNodeDrag(dsx, dsy) {
+        if (handleDrag) {
+          handleDrag.at.x += dsx;
+          handleDrag.at.y += dsy;
+          applyTransform(handleDrag.id, handleDrag.drag.at(handleDrag.at));
+          return;
+        }
         if (!drag) {
           host.onPan(dsx, dsy);
           return;
@@ -269,14 +326,19 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
         store.touch();
       },
       onNodeDragEnd() {
+        if (handleDrag) {
+          handleDrag = undefined;
+          gizmo.setActive(undefined);
+          store.commit();
+          return;
+        }
         const d = drag;
         drag = undefined;
         if (!d) return;
-        // On the grid's 10 cm, as at the end of a drag in the top view.
-        if (isPlayerStartId(d.id)) {
-          const ps = findPlayerStart(store.project, d.id);
-          if (ps) movePlayerStart(store.project, Math.round(ps.x / 10) * 10, Math.round(ps.y / 10) * 10, d.id);
-        } else snapActor(store.project, d.id);
+        // On the grid of the viewport bar (whole centimetres when the grid snap is off).
+        const t = transformOf(d.id);
+        const g = live.current.settings.grid;
+        if (t) applyTransform(d.id, { ...t, x: snap(t.x, g), y: snap(t.y, g) });
         store.commit();
       },
       onWireStart: noop,
@@ -294,6 +356,7 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
       ro.disconnect();
       unsub();
       if (raf) cancelAnimationFrame(raf);
+      gizmo.dispose();
       level.dispose();
       labels.el.remove();
       dropRenderer(renderer);
@@ -323,6 +386,8 @@ export function Level3DEditor({ store, requests, kind, mode, center, onUnavailab
   useEffect(() => {
     if (center) live.current.frame(center.id);
   }, [center?.n]);
+
+  useEffect(() => live.current.invalidate(), [settings.tool, settings.space, settings.grid, settings.rotation, settings.scale]);
 
   return <div class="graph-canvas world world3d editor3d" ref={wrapRef} data-view={kind} />;
 }

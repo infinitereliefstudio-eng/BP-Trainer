@@ -9,7 +9,7 @@ import type { PlaySession } from '@editor/world/playSession';
 import { WorldCanvas, type WorldRequests } from '@editor/world/WorldCanvas';
 import { Level3DEditor } from '@editor/world3d/Level3DEditor';
 import { World3DCanvas } from '@editor/world3d/World3DCanvas';
-import { onViewportSettings, setViewType, viewMode, viewType } from '../viewportSettings';
+import { onViewportSettings, setViewType, snapping, viewMode, viewType } from '../viewportSettings';
 
 interface Props {
   store: EditorStore;
@@ -48,6 +48,7 @@ export function LevelView({ store, session, requests, center, onNo3d }: Props) {
         requests={requests}
         kind={kind}
         mode={viewMode()}
+        gizmo={snapping()}
         center={center}
         onUnavailable={() => {
           setViewType('Top');

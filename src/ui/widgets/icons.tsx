@@ -29,7 +29,16 @@ export type IconName =
   | 'list'
   | 'arrow-up'
   | 'arrow-down'
-  | 'cap';
+  | 'cap'
+  | 'select'
+  | 'move'
+  | 'rotate'
+  | 'scale'
+  | 'globe'
+  | 'cube'
+  | 'grid'
+  | 'angle'
+  | 'size';
 
 /** Each icon on a 20 × 20 grid: strokes (`s`) drawn 1.6 wide, and filled shapes (`f`). */
 const PATHS: Record<IconName, { s?: string; f?: string }> = {
@@ -56,6 +65,15 @@ const PATHS: Record<IconName, { s?: string; f?: string }> = {
   list: { s: 'M7 5.5 H16.5 M7 10 H16.5 M7 14.5 H16.5 M3.5 5.5 V5.6 M3.5 10 V10.1 M3.5 14.5 V14.6' },
   'arrow-up': { s: 'M10 16 V4.5 M5.5 9 L10 4.5 L14.5 9' },
   'arrow-down': { s: 'M10 4 V15.5 M5.5 11 L10 15.5 L14.5 11' },
+  select: { f: 'M5 3 L5 15.5 L8.4 12.3 L10.8 17.2 L12.9 16.2 L10.6 11.4 L15 11.4 Z' },
+  move: { s: 'M10 2.5 V17.5 M2.5 10 H17.5 M7.8 4.7 L10 2.5 L12.2 4.7 M7.8 15.3 L10 17.5 L12.2 15.3 M4.7 7.8 L2.5 10 L4.7 12.2 M15.3 7.8 L17.5 10 L15.3 12.2' },
+  rotate: { s: 'M15.6 7.2 A6.2 6.2 0 1 0 16.2 11 M16 3 V7.4 H11.6' },
+  scale: { s: 'M3 9 V17 H11 M3 17 L16 4 M10.5 4 H16 V9.5' },
+  globe: { s: 'M10 2.8 a7.2 7.2 0 1 0 0.01 0 Z M2.8 10 H17.2 M10 2.8 C6.8 6 6.8 14 10 17.2 M10 2.8 C13.2 6 13.2 14 10 17.2' },
+  cube: { s: 'M10 2.5 L16.5 6 V14 L10 17.5 L3.5 14 V6 Z M3.5 6 L10 9.5 L16.5 6 M10 9.5 V17.5' },
+  grid: { s: 'M3 3 H17 V17 H3 Z M7.7 3 V17 M12.3 3 V17 M3 7.7 H17 M3 12.3 H17' },
+  angle: { s: 'M3 16 H17 M3 16 L13 4 M8.5 16 A5.5 5.5 0 0 0 6.4 11.8' },
+  size: { s: 'M3 8 V3 H8 M17 12 V17 H12 M3 3 L17 17' },
   cap: { s: 'M2 8 L10 4.5 L18 8 L10 11.5 Z M5.5 9.6 V13.2 C7.5 15.2 12.5 15.2 14.5 13.2 V9.6 M18 8 V12.5' },
   settings: {
     s: 'M10 7.2 a2.8 2.8 0 1 0 0.01 0 Z M10 2.5 V4.6 M10 15.4 V17.5 M2.5 10 H4.6 M15.4 10 H17.5 M4.7 4.7 L6.2 6.2 M13.8 13.8 L15.3 15.3 M4.7 15.3 L6.2 13.8 M13.8 6.2 L15.3 4.7',

@@ -37,7 +37,7 @@ import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../che
 import { withMilestones } from '../milestones';
 import type { Check, CheckContext, ScenarioStep } from '../types';
 import type { Lesson } from '../types';
-import { EXPERT_RULES } from './expertKit';
+import { EXPERT_RULES, menuGameMode } from './expertKit';
 import { REDO_WAKEUP } from './expertUe5';
 import { controlMilestone } from './expertWakeupControl';
 import {
@@ -600,6 +600,8 @@ function solveMenu(p: Project): void {
   else p.editorLevelId = openLevel;
   const def = setGameDefaultMap(p, lv.value.id);
   if (!def.ok) throw new Error(def.reason);
+  // The menu's own GameMode: no character behind it, no game controls (P4).
+  menuGameMode(p, lv.value.id);
 }
 
 /** Take the badge, read the terminal up to the fact, close it with F. */
@@ -728,7 +730,7 @@ const SETUP =
 export const expertWakeup: Lesson = withMilestones(
   {
     id: 'x6-reveil',
-    code: 'X6',
+    code: 'X5',
     module: 'Projet Expert',
     level: 'expert',
     number: 0,
@@ -833,7 +835,8 @@ export const expertWakeup: Lesson = withMilestones(
           title: 'Pour aller plus loin',
           body:
             '**Trois mémoires, trois durées** : une variable d’acteur vit le temps du niveau, le GameInstance le temps du jeu (de Play à Stop, à travers Open Level), la Save Game d’une séance à l’autre. Continuer va de la plus longue à la plus courte : la Save Game au GameInstance, puis le GameInstance à l’inventaire du nouveau niveau.\n\n' +
-            '**Le mode d’entrée** : un niveau règle le sien en commençant. Dans UE, ce que le menu a réglé (UI Only) peut suivre jusque dans le niveau suivant, et le joueur ne répond plus.\n\n' +
+            '**Le mode d’entrée** suit Open Level, dans UE comme dans l’appli : il appartient au viewport, pas au niveau. Ce que le menu a réglé (UI Only) passerait dans le dortoir, et le joueur ne répondrait plus : Lancer remet Game Only avant d’ouvrir le niveau.\n\n' +
+            '**Le menu a son GameMode** (BP_GameModeMenu, en GameMode Override de Lvl_Menu) : sans lui, le personnage du joueur existerait derrière le menu, avec son BeginPlay, son Tick et ses commandes. Dans UE, sa Default Pawn Class reste à None ; l’appli a toujours un pion, d’où BP_PionMenu, vide.\n\n' +
             '**Ce que la sauvegarde ne contient pas** : le casier n’y est pas. S’il se souvenait lui-même d’avoir donné le badge, Continuer l’oublierait ; parce qu’il demande à l’inventaire, il a raison sans rien sauver de plus.',
         },
       ],

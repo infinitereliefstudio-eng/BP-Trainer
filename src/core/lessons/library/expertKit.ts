@@ -4,7 +4,9 @@
  * works. Kept from X1 « La radio de la station », retired from the path in
  * V7.72 (its dialogue Mapping Context lives on in Le réveil's terminal).
  */
-import { levelOf } from '../../model/project';
+import { levelOf, type Project } from '../../model/project';
+import { setGameModeDefault, setGameModeOverride } from '../../operations/gameModeOps';
+import { addClass } from '../../operations/projectOps';
 import { T } from '../../types/pins';
 import type { ProjectBuilder } from '../builder';
 import type { LessonCard } from '../types';
@@ -36,3 +38,22 @@ export const EXPERT_RULES: LessonCard = {
     'Un projet long, à faire en plusieurs séances : ton travail est gardé entre deux ouvertures. Il n’y a ni indice ni liste de nœuds. Après une vérification ratée, « Montre-moi » dit où la partie s’est arrêtée ; après la réussite, la solution de référence et le bilan s’ouvrent pour comparer.\n\n' +
     'Les vérifications cherchent les Blueprints par le nom que donne le cahier des charges, et les acteurs posés près des plots.',
 };
+
+/**
+ * A menu level's own GameMode (review of chantier n° 5, P4): the player's
+ * character does not exist behind the menu, its BeginPlay and its Tick do not
+ * run, and the menu's controller adds no game controls. In UE, Default Pawn
+ * Class would be None; the app always has a pawn, so an empty one.
+ */
+export function menuGameMode(p: Project, levelId: string): void {
+  const make = (name: string, parent: 'Pawn' | 'GameModeBase' | 'PlayerController') => {
+    const r = addClass(p, name, parent);
+    if (!r.ok) throw new Error(r.reason);
+    return r.value.id;
+  };
+  const pawn = make('BP_PionMenu', 'Pawn');
+  const gm = make('BP_GameModeMenu', 'GameModeBase');
+  const pc = make('BP_PCMenu', 'PlayerController');
+  for (const r of [setGameModeDefault(p, gm, 'defaultPawnClass', pawn), setGameModeDefault(p, gm, 'playerControllerClass', pc), setGameModeOverride(p, levelId, gm)])
+    if (!r.ok) throw new Error(r.reason);
+}

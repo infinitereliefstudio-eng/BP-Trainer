@@ -1334,8 +1334,9 @@ async def main():
         await page.wait_for_timeout(300)
         await page.locator('button', has_text='Vérifier').first.tap()
         await page.wait_for_timeout(2500)
-        if await page.locator('.success').count() == 0:
-            errs.append('Atelier : la solution de référence ne passe pas dans l’appli')
+        # V7.74: two milestones (the machines, then the panel): Vérifier passes the first and opens the second.
+        if await page.get_by_text('Jalon réussi').count() == 0:
+            errs.append('Atelier : le jalon 1 de la solution de référence ne passe pas dans l’appli')
         await shot('98c_workshop_passed')
 
         # V7.67: X3 « L'arène » solved: Vérifier passes the first milestone and opens the second; BP_Blinde's Class Defaults

@@ -13,12 +13,13 @@
 import type { BlueprintClass, Project } from '../../model/project';
 import { levelOf } from '../../model/project';
 import { addDispatcher, addDispatcherParam, implementInterface } from '../../operations/classOps';
+import { disconnectPin } from '../../operations/graphOps';
 import { setComponentOverride, placeActor } from '../../operations/levelOps';
 import { addInterface, addInterfaceFunction, setParentClass } from '../../operations/projectOps';
 import type { ActorRT } from '../../runtime/world';
 import { inheritedView } from '../../model/inheritance';
 import { T } from '../../types/pins';
-import { ClassBuilder, ProjectBuilder } from '../builder';
+import { ClassBuilder, edit, ProjectBuilder } from '../builder';
 import { countPrints, noRuntimeErrors, normText, notion, usesNode } from '../checks';
 import { withMilestones } from '../milestones';
 import type { CheckContext, Lesson } from '../types';
@@ -133,8 +134,8 @@ function panelBuilt(cx: CheckContext): true | string {
 
 // -------------------------------------------------------------- solution
 
-/** Everything, solved: the interface, the reservoir, the machines, the panel. */
-function solve(p: Project): void {
+/** Milestone 1, the machines: the interface, the reservoir, BP_Machine and its two children, placed. */
+function solveMachines(p: Project): void {
   const r = addInterface(p, 'BPI_Interactif');
   if (!r.ok) throw new Error(r.reason);
   addInterfaceFunction(p, r.value.id, 'Interagir');
@@ -171,10 +172,6 @@ function solve(p: Project): void {
   const nom = b.variable('Nom', T.string, 'Machine');
   base.variables.find((v) => v.id === nom)!.instanceEditable = true;
   const on = b.variable('bEnMarche', T.bool, false);
-  const state = addDispatcher(base, 'OnEtat');
-  addDispatcherParam(base, state.id, T.bool);
-  state.params[0].name = 'EnMarche';
-  const stateParam = state.params[0].id;
   implementInterface(base, iface);
   const get = (v: string, at: [number, number]) => b.node('var.get', { variable: v }, {}, at);
   /** Print String « <Nom><suffix> ». */
@@ -188,12 +185,6 @@ function solve(p: Project): void {
   const callEvent = (event: string, from: string, pin: string, at: [number, number]) => {
     const c = b.node('call.custom', { owner: base.id, event }, {}, at);
     b.link(from, pin, c, 'exec');
-    return c;
-  };
-  /** Call OnEtat (EnMarche) after `from`. */
-  const tell = (from: string, running: boolean, at: [number, number]) => {
-    const c = b.node('dispatcher.call', { owner: base.id, dispatcher: state.id }, { [stateParam]: running }, at);
-    b.link(from, 'then', c, 'exec');
     return c;
   };
   const start = b.node('event.custom', { name: 'Demarrer' }, {}, [64, 700]);
@@ -212,21 +203,19 @@ function solve(p: Project): void {
   callEvent('Demarrer', hasFuel, 'true', [940, 160]);
   b.link(hasFuel, 'false', said(' : réservoir vide', [940, 320]), 'exec');
 
-  // Demarrer: the panel knows at once; the light now, the message after 0.5 s.
+  // Demarrer: the light now, the message after 0.5 s.
   const setOn = b.node('var.set', { variable: on }, { value: true }, [340, 700]);
   b.link(start, 'then', setOn, 'exec');
-  const told = tell(setOn, true, [640, 700]);
   const seq = b.node('flow.sequence', {}, {}, [940, 700]);
   const light = b.node('component.setVisibility', {}, { visible: true }, [1240, 640]);
   const wait = b.node('time.delay', {}, { duration: 0.5 }, [1240, 820]);
-  b.link(told, 'then', seq, 'exec').link(seq, 'then0', light, 'exec').target('Voyant', light);
+  b.link(setOn, 'then', seq, 'exec').link(seq, 'then0', light, 'exec').target('Voyant', light);
   b.link(seq, 'then1', wait, 'exec').link(wait, 'completed', said(' en marche', [1540, 820]), 'exec');
 
   // Arreter.
   const setOff = b.node('var.set', { variable: on }, { value: false }, [340, 1200]);
   const dark = b.node('component.setVisibility', {}, { visible: false }, [640, 1200]);
   b.link(stop, 'then', setOff, 'exec').link(setOff, 'then', dark, 'exec').target('Voyant', dark);
-  tell(dark, false, [940, 1200]);
 
   // Tick: a running machine spends its fuel with Delta Seconds.
   const tick = b.node('event.tick', {}, {}, [64, 1500]);
@@ -270,6 +259,38 @@ function solve(p: Project): void {
     Object.assign(a.value.overrides, { [nom]: name });
     setComponentOverride(p, a.value.id, tank, fuel, seconds);
   }
+}
+
+/** The node a link leaves `from`'s `pin` for. */
+function nextOf(g: BlueprintClass['graphs'][number], from: string, pin: string): string {
+  const l = Object.values(g.links).find((x) => x.from.node === from && x.from.pin === pin);
+  if (!l) throw new Error(`Nothing after ${from}.${pin}`);
+  return l.to.node;
+}
+
+/**
+ * Milestone 2, the panel: BP_Machine announces its state (OnEtat), a row per
+ * machine listens to it and asks it what E asks, the panel builds the rows.
+ */
+function solvePanel(p: Project): void {
+  const iface = p.interfaces.find((i) => i.name === 'BPI_Interactif')!.id;
+  const fn = p.interfaces.find((i) => i.id === iface)!.functions[0].id;
+  const b = edit(p, 'BP_Machine');
+  const base = b.cls;
+  const nom = base.variables.find((v) => v.name === 'Nom')!.id;
+  const state = addDispatcher(base, 'OnEtat');
+  addDispatcherParam(base, state.id, T.bool);
+  state.params[0].name = 'EnMarche';
+  const stateParam = state.params[0].id;
+  // Demarrer and Arreter call OnEtat: after Set bEnMarche, and after the light goes off.
+  const custom = (name: string) => Object.values(b.graph.nodes).find((n) => n.def === 'event.custom' && n.config.name === name)!.id;
+  const setOn = nextOf(b.graph, custom('Demarrer'), 'then');
+  const seq = nextOf(b.graph, setOn, 'then');
+  disconnectPin(b.graph, { node: setOn, pin: 'then' });
+  const told = b.node('dispatcher.call', { owner: base.id, dispatcher: state.id }, { [stateParam]: true }, [640, 860]);
+  b.link(setOn, 'then', told, 'exec').link(told, 'then', seq, 'exec');
+  const dark = nextOf(b.graph, nextOf(b.graph, custom('Arreter'), 'then'), 'then');
+  b.link(dark, 'then', b.node('dispatcher.call', { owner: base.id, dispatcher: state.id }, { [stateParam]: false }, [940, 1200]), 'exec');
 
   // ---- WBP_LigneMachine: one machine's row. It shows, it asks; the machine decides.
   const row = newClass(p, ROW, 'UserWidget');
@@ -338,7 +359,7 @@ function solve(p: Project): void {
 
 // -------------------------------------------------------------- the project
 
-const BRIEF =
+const BRIEF_MACHINES =
   'Déjà là : le projet UE5 (IMC_Joueur : E → IA_Interagir, BP_PlayerController), un BP_Joueur au graphe vide, deux plots **M1** et **M2**. Tout le reste est à créer.\n\n' +
   '**Les machines**\n' +
   '1. **BP_Machine**, le parent : un socle, un **Voyant** (Point Light, éteint), une Zone. Chaque machine posée a un **Nom**, réglable dans le niveau.\n' +
@@ -349,24 +370,159 @@ const BRIEF =
   '5. Le carburant est une chose que la machine **a** : il vit dans un **Actor Component**, que BP_Machine porte, réglé **machine par machine** dans le niveau : 3 secondes pour la pompe, 1 pour le ventilateur.\n' +
   '6. En marche, une machine le **consomme** au rythme du temps qui passe (1 par seconde), quel que soit le nombre d’images par seconde, sans passer sous 0. À 0 : `<Nom> : panne sèche`, et elle s’arrête.\n' +
   '7. E près d’une machine sans carburant : `<Nom> : réservoir vide`, elle ne démarre pas.\n\n' +
-  '**Le panneau de contrôle**\n' +
-  `8. Au lancement, un panneau à l’écran : **une ligne par machine posée**, construite pendant la partie (une troisième machine posée aurait sa ligne sans rien changer au panneau). La ligne est un Widget Blueprint **${ROW}** : le Nom de la machine, son état (\`${RUNNING}\` ou \`${STOPPED}\`) et un bouton **${BUTTON}**.\n` +
-  `9. ${BUTTON} fait **exactement ce que fait E** près de cette machine.\n` +
-  '10. La ligne change quand l’état change, et seulement alors : ni Binding, ni Event Tick dans les widgets.\n' +
-  '11. Le jeu continue avec le panneau : le joystick et E marchent, les boutons aussi, le curseur est visible.\n\n' +
   'Contraintes : **démarrer, arrêter, consommer s’écrivent une seule fois**. Les enfants n’ont pas leur propre réaction à E.';
 
-const SCENARIO =
-  'À **30 images par seconde** : au lancement, le panneau montre les deux machines à l’arrêt. E à la pompe ; 0,2 s plus tard le Voyant est allumé mais pas encore « Pompe en marche » ; 0,5 s plus tard il l’est, et sa ligne dit En marche. Le bouton de la ligne « Ventilateur » ; 0,5 s plus tard son Hélice a tourné. Le test attend que les deux tombent en panne sèche (la pompe pas avant 2 s de marche) et que leurs lignes repassent à l’arrêt, puis E à la pompe, puis son bouton : deux fois « Pompe : réservoir vide ».';
+const BRIEF_PANEL =
+  '**Le panneau de contrôle**\n' +
+  `1. Au lancement, un panneau à l’écran : **une ligne par machine posée**, construite pendant la partie (une troisième machine posée aurait sa ligne sans rien changer au panneau). La ligne est un Widget Blueprint **${ROW}** : le Nom de la machine, son état (\`${RUNNING}\` ou \`${STOPPED}\`) et un bouton **${BUTTON}**.\n` +
+  `2. ${BUTTON} fait **exactement ce que fait E** près de cette machine.\n` +
+  '3. La ligne change quand l’état change, et seulement alors : ni Binding, ni Event Tick dans les widgets.\n' +
+  '4. Le jeu continue avec le panneau : le joystick et E marchent, les boutons aussi, le curseur est visible.\n\n' +
+  'Tout ce que faisait le jalon 1 doit marcher encore : il est vérifié de nouveau.';
+
+const SCENARIO_MACHINES =
+  'À **30 images par seconde** : E à la pompe ; 0,2 s plus tard le Voyant est allumé mais pas encore « Pompe en marche » ; 0,5 s plus tard il l’est. Le joueur va au ventilateur et appuie sur E ; 0,5 s plus tard son Hélice a tourné. Le test attend que les deux tombent en panne sèche (la pompe pas avant 2 s de marche), puis revient à la pompe : E dit « Pompe : réservoir vide ».';
+
+const SCENARIO_PANEL =
+  'À **30 images par seconde** : au lancement, le panneau montre les deux machines à l’arrêt. E à la pompe ; 0,7 s plus tard sa ligne dit En marche. Le bouton de la ligne « Ventilateur » ; 0,5 s plus tard son Hélice a tourné et sa ligne dit En marche. Le test attend que les deux tombent en panne sèche et que leurs lignes repassent à l’arrêt, puis E à la pompe, puis son bouton : deux fois « Pompe : réservoir vide ».';
+
+/** Milestone 1's checks: the family, the fuel, starting and stopping, played by E alone. */
+const machineChecks = [
+  {
+    id: 'family',
+    label: 'BP_Pompe et BP_Ventilo héritent de BP_Machine, posés sur M1 et M2',
+    test: (cx: CheckContext) => {
+      const base = cx.project.classes.find((c) => c.name === 'BP_Machine');
+      if (!base) return 'Crée le Blueprint parent BP_Machine.';
+      for (const name of ['BP_Pompe', 'BP_Ventilo']) {
+        const c = cx.project.classes.find((x) => x.name === name);
+        if (!c) return `Crée ${name}, enfant de BP_Machine.`;
+        if (c.parentClassId !== base.id) return `${name} n’hérite pas de BP_Machine (Class Settings › Parent Class).`;
+      }
+      if (!placed(cx, 'BP_Pompe', PUMP_AT)) return 'Pose une BP_Pompe sur le plot M1.';
+      return placed(cx, 'BP_Ventilo', FAN_AT) ? true : 'Pose un BP_Ventilo sur le plot M2.';
+    },
+  },
+  {
+    id: 'once',
+    label: 'Les enfants n’ont pas leur propre réaction à E',
+    test: (cx: CheckContext) => {
+      const dup = ['BP_Pompe', 'BP_Ventilo'].filter((n) => cx.nodes(n).some((x) => x.def === 'event.interface' || x.def === 'input.action'));
+      return dup.length ? `${dup.join(' et ')} réagi(ssen)t eux-mêmes à E : cette logique est commune, elle s’écrit une fois dans BP_Machine.` : true;
+    },
+  },
+  { id: 'component', label: 'Le carburant vit dans un Actor Component porté par BP_Machine', test: fuelInComponent },
+  {
+    id: 'light-now',
+    label: 'Démarrer : le Voyant tout de suite, pas encore le message',
+    at: 'p-mi',
+    test: (cx: CheckContext) => {
+      if (!lightOn(cx, 'BP_Pompe')) return '0,2 s après E, le Voyant de la pompe est éteint.';
+      return countPrints(cx, 'Pompe en marche') ? '« Pompe en marche » est arrivé tout de suite : il doit attendre 0,5 s, pendant que le Voyant, lui, s’allume aussitôt.' : true;
+    },
+  },
+  {
+    id: 'message-later',
+    label: '0,5 s plus tard : « Pompe en marche »',
+    at: 'p-ok',
+    test: (cx: CheckContext) => (countPrints(cx, 'Pompe en marche') === 1 ? true : '0,7 s après E, aucun « Pompe en marche ».'),
+  },
+  {
+    id: 'fan',
+    label: 'E au ventilateur le démarre ; son Hélice tourne',
+    at: 'f-run',
+    test: (cx: CheckContext) => {
+      if (!machine(cx, 'BP_Ventilo')?.components.some((c) => c.name === 'Helice')) return 'BP_Ventilo n’a pas de composant Helice.';
+      if (!lightOn(cx, 'BP_Ventilo')) return 'E au ventilateur n’a pas allumé son Voyant. Son Tick appelle-t-il celui du parent ?';
+      return Math.abs(bladesYaw(cx)) > 1 ? true : 'Le ventilateur est en marche, et son Hélice ne tourne pas.';
+    },
+  },
+  {
+    id: 'not-yet',
+    label: 'Après 2 s de marche, la pompe tourne encore (Carburant 3)',
+    at: 'p-avant',
+    test: (cx: CheckContext) =>
+      countPrints(cx, 'Pompe : panne sèche') ? 'La pompe est tombée en panne avant 3 s de marche : son Reservoir est-il réglé à 3 dans le niveau ?' : lightOn(cx, 'BP_Pompe') ? true : 'La pompe s’est arrêtée avant d’avoir consommé son carburant.',
+  },
+  {
+    id: 'dry',
+    label: 'Au bout du carburant : panne sèche et arrêt, pour les deux',
+    at: 'pannes',
+    test: (cx: CheckContext) => {
+      for (const [cls, name] of [
+        ['BP_Pompe', 'Pompe'],
+        ['BP_Ventilo', 'Ventilateur'],
+      ] as const) {
+        if (countPrints(cx, `${name} : panne sèche`) !== 1)
+          return `Aucun « ${name} : panne sèche » une fois son carburant consommé (le test tourne à 30 images par seconde : le carburant doit s’user avec Delta Seconds).`;
+        if (lightOn(cx, cls)) return `${name} est en panne sèche, et son Voyant reste allumé.`;
+      }
+      return true;
+    },
+  },
+  {
+    id: 'empty',
+    label: 'Sans carburant : « Pompe : réservoir vide »',
+    test: (cx: CheckContext) => {
+      if (lightOn(cx, 'BP_Pompe') || countPrints(cx, 'Pompe en marche') !== 1) return 'Sans carburant, la pompe a redémarré : elle doit rester éteinte.';
+      return countPrints(cx, 'Pompe : réservoir vide') === 1 ? true : 'E à la pompe vide : « Pompe : réservoir vide », et elle reste éteinte.';
+    },
+  },
+  notion({
+    id: 'parent',
+    label: 'BP_Ventilo appelle Parent: Tick',
+    test: (cx: CheckContext) => {
+      const baseTicks = cx.nodes('BP_Machine').some((n) => n.def === 'event.tick');
+      if (!baseTicks || cx.nodes('BP_Ventilo').some((n) => n.def === 'call.parentEvent')) return true;
+      return 'BP_Ventilo redéfinit Tick : il doit appeler Parent: Tick pour que la logique commune tourne aussi chez lui.';
+    },
+  }),
+  notion(usesNode('sequence', 'BP_Machine', ['flow.sequence'], 'Le démarrage passe par un Sequence', 'Deux suites au démarrage, l’une immédiate et l’autre qui attend : c’est le travail d’un Sequence.')),
+  noRuntimeErrors(),
+];
+
+/** Milestone 2's checks: the panel, played by E and by its buttons. */
+const panelChecks = [
+  { id: 'panel', label: 'Au lancement, un panneau : une ligne par machine, construite en jeu ; Game and UI', at: 'panneau', test: panelBuilt },
+  rowSays('rows-start', 'Les deux lignes disent Arrêt au lancement', 'panneau', { Pompe: 'stopped', Ventilateur: 'stopped' }, 'Au lancement, aucune machine ne tourne.'),
+  rowSays('row-on', 'La ligne de la pompe passe à En marche', 'p-ok', { Pompe: 'running', Ventilateur: 'stopped' }, 'La machine doit annoncer son changement d’état, et la ligne l’écouter.'),
+  {
+    id: 'button',
+    label: 'Le bouton de la ligne « Ventilateur » le démarre ; son Hélice tourne',
+    at: 'f-run',
+    test: (cx: CheckContext) => {
+      const ignored = ignoredTouch(cx, BUTTON);
+      if (ignored) return ignored;
+      if (!lightOn(cx, 'BP_Ventilo')) return `Le bouton ${BUTTON} de la ligne « Ventilateur » n’a pas allumé son Voyant. Le bouton demande-t-il à sa machine ce que demande E ?`;
+      return Math.abs(bladesYaw(cx)) > 1 ? true : 'Le ventilateur est en marche, et son Hélice ne tourne pas.';
+    },
+  },
+  rowSays('row-fan', 'Sa ligne suit : En marche', 'f-run', { Ventilateur: 'running' }, 'Démarré par le bouton ou par E, c’est la même machine qui annonce son état.'),
+  rowSays('rows-dry', 'En panne, les deux lignes repassent à Arrêt', 'pannes', { Pompe: 'stopped', Ventilateur: 'stopped' }, 'Une panne sèche arrête la machine : sa ligne doit le dire.'),
+  {
+    id: 'empty-both',
+    label: 'Sans carburant : « Pompe : réservoir vide », par E comme par le bouton',
+    test: (cx: CheckContext) => {
+      if (lightOn(cx, 'BP_Pompe') || countPrints(cx, 'Pompe en marche') !== 1) return 'Sans carburant, la pompe a redémarré : elle doit rester éteinte.';
+      const n = countPrints(cx, 'Pompe : réservoir vide');
+      if (n === 2) return true;
+      return n === 1
+        ? `E à la pompe vide dit « Pompe : réservoir vide », mais pas son bouton ${BUTTON} : il doit faire exactement ce que fait E.`
+        : 'E à la pompe vide, puis son bouton : chacun doit afficher « Pompe : réservoir vide », et elle reste éteinte.';
+    },
+  },
+  notion({ id: 'event-driven', label: 'La ligne se met à jour sur un événement', test: (cx: CheckContext) => eventDriven(cx, ROW) }),
+  noRuntimeErrors(),
+];
 
 export const expertWorkshop: Lesson = withMilestones(
   {
     id: 'x2-atelier',
-    code: 'X2',
+    code: 'X1',
     module: 'Projet Expert',
     level: 'expert',
     number: 0,
-    revision: 2,
+    revision: 3,
     title: 'L’atelier des machines',
     situation:
       'Une pompe et un ventilateur, deux machines qui se ressemblent : E les démarre et les arrête, elles brûlent leur carburant, tombent en panne sèche. Le ventilateur fait en plus tourner ses pales. Au mur, un panneau de contrôle les montre et les commande. Tout ce qui est commun s’écrit une seule fois.',
@@ -388,154 +544,79 @@ export const expertWorkshop: Lesson = withMilestones(
   },
   [
     {
-      id: 'atelier',
-      title: 'L’atelier',
+      id: 'machines',
+      title: 'Les machines',
       cards: [
-        { title: 'Cahier des charges', body: BRIEF },
-        { title: 'Le scénario de test', body: SCENARIO },
+        { title: 'Cahier des charges', body: BRIEF_MACHINES },
+        { title: 'Le scénario de test', body: SCENARIO_MACHINES },
         {
           title: 'Pour aller plus loin',
-          body:
-            'La pompe et le ventilateur **sont** des machines : le parent BP_Machine est le bon choix. Le carburant, lui, est quelque chose qu’elles **ont** : le jour où un groupe électrogène ou un véhicule, qui ne sont pas des machines de l’atelier, consomment aussi, ils portent le même composant. Les deux se combinent : le parent pour ce qu’ils sont, des composants pour ce qu’ils ont.\n\n' +
-            '**Le panneau** ne connaît aucune machine par son nom : il les trouve dans le niveau, et chaque ligne garde une référence vers **sa** machine. Elle ne décide rien : elle demande (le même message d’interface que E) et écoute (l’Event Dispatcher). Dans UE, c’est la forme de la plupart des listes d’un HUD : inventaire, objectifs, équipe.\n\n' +
-            '**Dans UE5**, Get All Actors Of Class dans un widget est acceptable à sa construction, une fois ; pour un atelier qui change en cours de partie, les machines s’enregistreraient plutôt auprès d’un gestionnaire (le GameMode, ou un sous-système).',
+          body: 'La pompe et le ventilateur **sont** des machines : le parent BP_Machine est le bon choix. Le carburant, lui, est quelque chose qu’elles **ont** : le jour où un groupe électrogène ou un véhicule, qui ne sont pas des machines de l’atelier, consomment aussi, ils portent le même composant. Les deux se combinent : le parent pour ce qu’ils sont, des composants pour ce qu’ils ont.',
         },
       ],
       objectives: [
         'BP_Pompe et BP_Ventilo héritent de BP_Machine, qui seul réagit à E.',
-        'Démarrer : Voyant tout de suite, « <Nom> en marche » 0,5 s plus tard.',
+        'Démarrer : Voyant tout de suite, « <Nom> en marche » 0,5 s plus tard ; l’Hélice du ventilateur tourne en marche.',
         'Le carburant vit dans un Actor Component réglé machine par machine, et s’use avec le temps réel ; à 0, panne sèche et arrêt ; ensuite, réservoir vide.',
-        'L’Hélice du ventilateur tourne quand il est en marche.',
-        'Un panneau à l’écran, une ligne par machine construite en jeu, qui suit l’état et dont le bouton fait ce que fait E.',
       ],
       scenario: [
         { fps: 30 },
         { wait: 0.2 },
-        { checkpoint: 'panneau' },
         ...goTo(...PUMP_AT, 0.05),
         ...tap('E'),
         { wait: 0.2 },
         { checkpoint: 'p-mi' },
         { wait: 0.5 },
         { checkpoint: 'p-ok' },
+        ...goTo(...FAN_AT, 0.05),
+        ...tap('E'),
+        { wait: 0.5 },
+        { checkpoint: 'f-run' },
+        { wait: 0.6 },
+        { checkpoint: 'p-avant' },
+        { wait: 1.6 },
+        { checkpoint: 'pannes' },
+        ...goTo(...PUMP_AT, 0.05),
+        ...tap('E'),
+        { wait: 0.7 },
+      ],
+      checks: machineChecks,
+      solve: solveMachines,
+    },
+    {
+      id: 'panneau',
+      title: 'Le panneau',
+      cards: [
+        { title: 'Cahier des charges', body: BRIEF_PANEL },
+        { title: 'Le scénario de test', body: SCENARIO_PANEL },
+        {
+          title: 'Pour aller plus loin',
+          body:
+            '**Le panneau** ne connaît aucune machine par son nom : il les trouve dans le niveau, et chaque ligne garde une référence vers **sa** machine. Elle ne décide rien : elle demande (le même message d’interface que E) et écoute (l’Event Dispatcher). Dans UE, c’est la forme de la plupart des listes d’un HUD : inventaire, objectifs, équipe.\n\n' +
+            '**Dans UE5**, Get All Actors Of Class dans un widget est acceptable à sa construction, une fois ; pour un atelier qui change en cours de partie, les machines s’enregistreraient plutôt auprès d’un gestionnaire (le GameMode, ou un sous-système).',
+        },
+      ],
+      objectives: ['Un panneau à l’écran, une ligne par machine construite en jeu, qui suit l’état (sans Binding ni Tick).', 'Le bouton d’une ligne fait ce que fait E ; le jeu continue (Game and UI, curseur).'],
+      scenario: [
+        { fps: 30 },
+        { wait: 0.2 },
+        { checkpoint: 'panneau' },
+        ...goTo(...PUMP_AT, 0.05),
+        ...tap('E'),
+        { wait: 0.7 },
+        { checkpoint: 'p-ok' },
         { click: `${ROW}/${BUTTON}`, row: 'Ventilateur' },
         { wait: 0.5 },
         { checkpoint: 'f-run' },
-        { wait: 0.8 },
-        { checkpoint: 'p-avant' },
-        { wait: 1.6 },
+        { wait: 2.4 },
         { checkpoint: 'pannes' },
         ...tap('E'),
         { wait: 0.2 },
         { click: `${ROW}/${BUTTON}`, row: 'Pompe' },
         { wait: 0.7 },
       ],
-      checks: [
-        {
-          id: 'family',
-          label: 'BP_Pompe et BP_Ventilo héritent de BP_Machine, posés sur M1 et M2',
-          test: (cx) => {
-            const base = cx.project.classes.find((c) => c.name === 'BP_Machine');
-            if (!base) return 'Crée le Blueprint parent BP_Machine.';
-            for (const name of ['BP_Pompe', 'BP_Ventilo']) {
-              const c = cx.project.classes.find((x) => x.name === name);
-              if (!c) return `Crée ${name}, enfant de BP_Machine.`;
-              if (c.parentClassId !== base.id) return `${name} n’hérite pas de BP_Machine (Class Settings › Parent Class).`;
-            }
-            if (!placed(cx, 'BP_Pompe', PUMP_AT)) return 'Pose une BP_Pompe sur le plot M1.';
-            return placed(cx, 'BP_Ventilo', FAN_AT) ? true : 'Pose un BP_Ventilo sur le plot M2.';
-          },
-        },
-        {
-          id: 'once',
-          label: 'Les enfants n’ont pas leur propre réaction à E',
-          test: (cx) => {
-            const dup = ['BP_Pompe', 'BP_Ventilo'].filter((n) => cx.nodes(n).some((x) => x.def === 'event.interface' || x.def === 'input.action'));
-            return dup.length ? `${dup.join(' et ')} réagi(ssen)t eux-mêmes à E : cette logique est commune, elle s’écrit une fois dans BP_Machine.` : true;
-          },
-        },
-        { id: 'component', label: 'Le carburant vit dans un Actor Component porté par BP_Machine', test: fuelInComponent },
-        { id: 'panel', label: 'Au lancement, un panneau : une ligne par machine, construite en jeu ; Game and UI', at: 'panneau', test: panelBuilt },
-        rowSays('rows-start', 'Les deux lignes disent Arrêt au lancement', 'panneau', { Pompe: 'stopped', Ventilateur: 'stopped' }, 'Au lancement, aucune machine ne tourne.'),
-        {
-          id: 'light-now',
-          label: 'Démarrer : le Voyant tout de suite, pas encore le message',
-          at: 'p-mi',
-          test: (cx) => {
-            if (!lightOn(cx, 'BP_Pompe')) return '0,2 s après E, le Voyant de la pompe est éteint.';
-            return countPrints(cx, 'Pompe en marche') ? '« Pompe en marche » est arrivé tout de suite : il doit attendre 0,5 s, pendant que le Voyant, lui, s’allume aussitôt.' : true;
-          },
-        },
-        {
-          id: 'message-later',
-          label: '0,5 s plus tard : « Pompe en marche »',
-          at: 'p-ok',
-          test: (cx) => (countPrints(cx, 'Pompe en marche') === 1 ? true : '0,7 s après E, aucun « Pompe en marche ».'),
-        },
-        rowSays('row-on', 'La ligne de la pompe passe à En marche', 'p-ok', { Pompe: 'running', Ventilateur: 'stopped' }, 'La machine doit annoncer son changement d’état, et la ligne l’écouter.'),
-        {
-          id: 'button',
-          label: 'Le bouton de la ligne « Ventilateur » le démarre ; son Hélice tourne',
-          at: 'f-run',
-          test: (cx) => {
-            const ignored = ignoredTouch(cx, BUTTON);
-            if (ignored) return ignored;
-            if (!machine(cx, 'BP_Ventilo')?.components.some((c) => c.name === 'Helice')) return 'BP_Ventilo n’a pas de composant Helice.';
-            if (!lightOn(cx, 'BP_Ventilo'))
-              return `Le bouton ${BUTTON} de la ligne « Ventilateur » n’a pas allumé son Voyant. Le bouton demande-t-il à sa machine ce que demande E ? Et le Tick du ventilateur appelle-t-il celui du parent ?`;
-            return Math.abs(bladesYaw(cx)) > 1 ? true : 'Le ventilateur est en marche, et son Hélice ne tourne pas.';
-          },
-        },
-        rowSays('row-fan', 'Sa ligne suit : En marche', 'f-run', { Ventilateur: 'running' }, 'Démarré par le bouton ou par E, c’est la même machine qui annonce son état.'),
-        {
-          id: 'not-yet',
-          label: 'Après 2 s de marche, la pompe tourne encore (Carburant 3)',
-          at: 'p-avant',
-          test: (cx) => (countPrints(cx, 'Pompe : panne sèche') ? 'La pompe est tombée en panne avant 3 s de marche : son Reservoir est-il réglé à 3 dans le niveau ?' : lightOn(cx, 'BP_Pompe') ? true : 'La pompe s’est arrêtée avant d’avoir consommé son carburant.'),
-        },
-        {
-          id: 'dry',
-          label: 'Au bout du carburant : panne sèche et arrêt, pour les deux',
-          at: 'pannes',
-          test: (cx) => {
-            for (const [cls, name] of [
-              ['BP_Pompe', 'Pompe'],
-              ['BP_Ventilo', 'Ventilateur'],
-            ] as const) {
-              if (countPrints(cx, `${name} : panne sèche`) !== 1)
-                return `Aucun « ${name} : panne sèche » une fois son carburant consommé (le test tourne à 30 images par seconde : le carburant doit s’user avec Delta Seconds).`;
-              if (lightOn(cx, cls)) return `${name} est en panne sèche, et son Voyant reste allumé.`;
-            }
-            return true;
-          },
-        },
-        rowSays('rows-dry', 'En panne, les deux lignes repassent à Arrêt', 'pannes', { Pompe: 'stopped', Ventilateur: 'stopped' }, 'Une panne sèche arrête la machine : sa ligne doit le dire.'),
-        {
-          id: 'empty',
-          label: 'Sans carburant : « Pompe : réservoir vide », par E comme par le bouton',
-          test: (cx) => {
-            if (lightOn(cx, 'BP_Pompe') || countPrints(cx, 'Pompe en marche') !== 1) return 'Sans carburant, la pompe a redémarré : elle doit rester éteinte.';
-            const n = countPrints(cx, 'Pompe : réservoir vide');
-            if (n === 2) return true;
-            return n === 1
-              ? `E à la pompe vide dit « Pompe : réservoir vide », mais pas son bouton ${BUTTON} : il doit faire exactement ce que fait E.`
-              : 'E à la pompe vide, puis son bouton : chacun doit afficher « Pompe : réservoir vide », et elle reste éteinte.';
-          },
-        },
-        notion({
-          id: 'parent',
-          label: 'BP_Ventilo appelle Parent: Tick',
-          test: (cx) => {
-            const baseTicks = cx.nodes('BP_Machine').some((n) => n.def === 'event.tick');
-            if (!baseTicks || cx.nodes('BP_Ventilo').some((n) => n.def === 'call.parentEvent')) return true;
-            return 'BP_Ventilo redéfinit Tick : il doit appeler Parent: Tick pour que la logique commune tourne aussi chez lui.';
-          },
-        }),
-        notion(usesNode('sequence', 'BP_Machine', ['flow.sequence'], 'Le démarrage passe par un Sequence', 'Deux suites au démarrage, l’une immédiate et l’autre qui attend : c’est le travail d’un Sequence.')),
-        notion({ id: 'event-driven', label: 'La ligne se met à jour sur un événement', test: (cx) => eventDriven(cx, ROW) }),
-        noRuntimeErrors(),
-      ],
-      solve,
+      checks: panelChecks,
+      solve: solvePanel,
     },
   ],
 );

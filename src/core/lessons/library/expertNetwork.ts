@@ -26,6 +26,7 @@ import { addDispatcher } from '../../operations/classOps';
 import { addDataTable, addDataTableRow } from '../../operations/dataTableOps';
 import { addEnum } from '../../operations/enumOps';
 import { disconnectPin, removeNodes } from '../../operations/graphOps';
+import { addLocalVariable } from '../../operations/localOps';
 import { addLevel, renameLevel, setGameDefaultMap, setGameInstanceClass } from '../../operations/levelAssetOps';
 import { placeActor } from '../../operations/levelOps';
 import type { ActorRT } from '../../runtime/world';
@@ -36,7 +37,7 @@ import { withMilestones } from '../milestones';
 import type { CheckContext, Lesson, ScenarioStep } from '../types';
 import { ensurePlayerInput } from '../ue5Input';
 import { shownValue } from './expertArena';
-import { EXPERT_RULES } from './expertKit';
+import { EXPERT_RULES, menuGameMode } from './expertKit';
 import { REDO_NETWORK } from './expertUe5';
 import { fnDef, tap } from './kit';
 import { playerBlueprint } from './props';
@@ -472,19 +473,25 @@ function solveCurrent(p: Project): void {
   const drawn = Object.values(relay.graph.nodes).find((n) => n.def === 'call.function' && n.config.graph === dessiner.id && n.y === 96)!;
   relay.link(drawn.id, 'then', relay.node('dispatcher.call', { owner: relay.cls.id, dispatcher: onTurn.id }, {}, [1200, 96]), 'exec');
 
-  // BP_Reseau: the walk's variables.
+  // BP_Reseau › Recalculer, a function (review of chantier n° 5, P2): the walk is one call that runs to its end, its
+  // working list and current relay are local variables (empty at each call). Visites, the relays reached, is the
+  // network's: what comes after the walk reads it.
   const visites = net.variable('Visites', T.set(T.int), []);
-  const afaire = net.variable('AFaire', T.array(T.int), []);
-  const courant = net.variable('Courant', T.int, 0);
   const relaisVar = net.cls.variables.find((v) => v.name === 'Relais')!.id;
-  const get = (id: string, at: [number, number]) => net.node('var.get', { variable: id }, {}, at);
   const voisin = net.cls.graphs.find((g) => g.name === 'Voisin')!;
+  const rc = fnDef(p, net, 'Recalculer', [], []);
+  const w = rc.f;
+  const afaire = addLocalVariable(p, net.cls, rc.graph.id, T.array(T.int), 'AFaire')!.id;
+  const courant = addLocalVariable(p, net.cls, rc.graph.id, T.int, 'Courant')!.id;
+  const get = (id: string, at: [number, number]) => w.node('var.get', { variable: id }, {}, at);
+  const getL = (id: string, at: [number, number]) => w.node('var.getLocal', { variable: id }, {}, at);
   const ouvert = (target: string, tPin: string, side: string | number, sPin: string, at: [number, number]) => {
-    const n = net.node('call.pureFunction', { owner: relay.cls.id, graph: o.graph.id }, typeof side === 'number' ? { [o.pin.Cote]: side } : {}, at);
-    net.link(target, tPin, n, 'target');
-    if (typeof side === 'string') net.link(side, sPin, n, o.pin.Cote);
+    const n = w.node('call.pureFunction', { owner: relay.cls.id, graph: o.graph.id }, typeof side === 'number' ? { [o.pin.Cote]: side } : {}, at);
+    w.link(target, tPin, n, 'target');
+    if (typeof side === 'string') w.link(side, sPin, n, o.pin.Cote);
     return n;
   };
+  const callRecalc = (at: [number, number]) => net.node('call.function', { owner: net.cls.id, graph: rc.graph.id }, {}, at);
 
   // Each new relay is listened to; once all are there, a first walk.
   const spawn = Object.values(net.graph.nodes).find((n) => n.def === 'actor.spawn')!;
@@ -495,70 +502,91 @@ function solveCurrent(p: Project): void {
   const bind = net.node('dispatcher.bind', { owner: relay.cls.id, dispatcher: onTurn.id }, {}, [2500, -100]);
   net.link(spawn.id, 'then', bind, 'exec').link(spawn.id, 'result', bind, 'target').link(heard, 'delegate', bind, 'event').link(bind, 'then', add.id, 'exec');
   add.x = 2800;
-  net.link(loop.id, 'completed', net.node('call.custom', { event: 'Recalculer' }, {}, [1600, -160]), 'exec');
-  net.link(heard, 'then', net.node('call.custom', { event: 'Recalculer' }, {}, [400, 1000]), 'exec');
+  net.link(loop.id, 'completed', callRecalc([1600, -160]), 'exec');
+  net.link(heard, 'then', callRecalc([400, 1000]), 'exec');
 
   // Recalculer: from the first relay (if its west side is open), relay to relay, each one once.
-  const y0 = 1400;
-  const ev = net.node('event.custom', { name: 'Recalculer' }, {}, [64, y0]);
-  const clearV = net.node('set.clear', {}, {}, [300, y0]);
-  const clearA = net.node('array.clear', {}, {}, [540, y0]);
-  const first = net.node('array.get', {}, { index: 0 }, [600, y0 + 260]);
-  const firstOpen = ouvert(first, 'item', 3, '', [800, y0 + 260]);
-  const startB = net.node('flow.branch', {}, {}, [800, y0]);
-  const seeFirst = net.node('set.add', {}, { item: 0 }, [1040, y0]);
-  const queueFirst = net.node('array.add', {}, { item: 0 }, [1280, y0]);
-  net.link(ev, 'then', clearV, 'exec').link(get(visites, [160, y0 + 200]), 'value', clearV, 'set');
-  net.link(clearV, 'then', clearA, 'exec').link(get(afaire, [400, y0 + 200]), 'value', clearA, 'array');
-  net.link(get(relaisVar, [440, y0 + 300]), 'value', first, 'array').link(clearA, 'then', startB, 'exec').link(firstOpen, o.pin.Ouvert, startB, 'condition');
-  net.link(startB, 'true', seeFirst, 'exec').link(get(visites, [900, y0 + 180]), 'value', seeFirst, 'set').link(seeFirst, 'then', queueFirst, 'exec').link(get(afaire, [1140, y0 + 180]), 'value', queueFirst, 'array');
-  const whileL = net.node('flow.whileLoop', {}, {}, [1560, y0]);
-  const left = net.node('array.length', {}, {}, [1300, y0 + 260]);
-  const more = net.node('math.greaterInt', {}, { b: 0 }, [1440, y0 + 260]);
-  net.link(queueFirst, 'then', whileL, 'exec').link(get(afaire, [1140, y0 + 300]), 'value', left, 'array').link(left, 'result', more, 'a').link(more, 'result', whileL, 'condition');
+  const clearV = w.node('set.clear', {}, {}, [300, 0]);
+  const first = w.node('array.get', {}, { index: 0 }, [600, 260]);
+  const firstOpen = ouvert(first, 'item', 3, '', [800, 260]);
+  const startB = w.node('flow.branch', {}, {}, [600, 0]);
+  const seeFirst = w.node('set.add', {}, { item: 0 }, [860, 0]);
+  const queueFirst = w.node('array.add', {}, { item: 0 }, [1100, 0]);
+  w.link(rc.entry, 'then', clearV, 'exec').link(get(visites, [160, 200]), 'value', clearV, 'set');
+  w.link(get(relaisVar, [440, 300]), 'value', first, 'array').link(clearV, 'then', startB, 'exec').link(firstOpen, o.pin.Ouvert, startB, 'condition');
+  w.link(startB, 'true', seeFirst, 'exec').link(get(visites, [720, 180]), 'value', seeFirst, 'set').link(seeFirst, 'then', queueFirst, 'exec').link(getL(afaire, [960, 180]), 'value', queueFirst, 'array');
+  const whileL = w.node('flow.whileLoop', {}, {}, [1400, 0]);
+  const left = w.node('array.length', {}, {}, [1140, 260]);
+  const more = w.node('math.greaterInt', {}, { b: 0 }, [1280, 260]);
+  w.link(queueFirst, 'then', whileL, 'exec').link(getL(afaire, [980, 300]), 'value', left, 'array').link(left, 'result', more, 'a').link(more, 'result', whileL, 'condition');
   // Take the first of the list, look at its four sides.
-  const head = net.node('array.get', {}, { index: 0 }, [1700, y0 + 400]);
-  const take = net.node('var.set', { variable: courant }, {}, [1840, y0]);
-  const pop = net.node('array.removeIndex', {}, { index: 0 }, [2100, y0]);
-  const sides = net.node('flow.forLoop', {}, { first: 0, last: 3 }, [2360, y0]);
-  net.link(whileL, 'body', take, 'exec').link(get(afaire, [1560, y0 + 420]), 'value', head, 'array').link(head, 'item', take, 'value');
-  net.link(take, 'then', pop, 'exec').link(get(afaire, [1960, y0 + 200]), 'value', pop, 'array').link(pop, 'then', sides, 'exec');
-  const next = net.node('call.pureFunction', { graph: voisin.id }, {}, [2500, y0 + 300]);
-  net.link(get(courant, [2340, y0 + 300]), 'value', next, voisin.fn!.inputs[0].id).link(sides, 'index', next, voisin.fn!.inputs[1].id);
+  const head = w.node('array.get', {}, { index: 0 }, [1540, 400]);
+  const take = w.node('var.setLocal', { variable: courant }, {}, [1680, 0]);
+  const pop = w.node('array.removeIndex', {}, { index: 0 }, [1940, 0]);
+  const sides = w.node('flow.forLoop', {}, { first: 0, last: 3 }, [2200, 0]);
+  w.link(whileL, 'body', take, 'exec').link(getL(afaire, [1400, 420]), 'value', head, 'array').link(head, 'item', take, 'value');
+  w.link(take, 'then', pop, 'exec').link(getL(afaire, [1800, 200]), 'value', pop, 'array').link(pop, 'then', sides, 'exec');
+  const next = w.node('call.pureFunction', { graph: voisin.id }, {}, [2340, 300]);
+  w.link(getL(courant, [2180, 300]), 'value', next, voisin.fn!.inputs[0].id).link(sides, 'index', next, voisin.fn!.inputs[1].id);
   const vOut = voisin.fn!.outputs[0].id;
-  const exists = net.node('math.greaterEqualInt', {}, { b: 0 }, [2700, y0 + 300]);
-  const hasV = net.node('flow.branch', {}, {}, [2700, y0]);
-  net.link(sides, 'body', hasV, 'exec').link(next, vOut, exists, 'a').link(exists, 'result', hasV, 'condition');
-  // The current relay open on that side, the neighbour open on the side facing it, and not seen yet.
-  const here = net.node('array.get', {}, {}, [2800, y0 + 500]);
-  net.link(get(relaisVar, [2620, y0 + 560]), 'value', here, 'array').link(get(courant, [2620, y0 + 640]), 'value', here, 'index');
-  const hereOpen = ouvert(here, 'item', sides, 'index', [3000, y0 + 500]);
-  const there = net.node('array.get', {}, {}, [2800, y0 + 720]);
-  net.link(get(relaisVar, [2620, y0 + 780]), 'value', there, 'array').link(next, vOut, there, 'index');
-  const facing = net.node('math.addInt', {}, { b: 2 }, [2800, y0 + 900]);
-  const facingMod = net.node('math.moduloInt', {}, { b: 4 }, [2960, y0 + 900]);
-  net.link(sides, 'index', facing, 'a').link(facing, 'result', facingMod, 'a');
-  const thereOpen = ouvert(there, 'item', facingMod, 'result', [3140, y0 + 720]);
-  const seen = net.node('set.contains', {}, {}, [3140, y0 + 940]);
-  const fresh = net.node('logic.not', {}, {}, [3320, y0 + 940]);
-  net.link(get(visites, [2960, y0 + 1020]), 'value', seen, 'set').link(next, vOut, seen, 'item').link(seen, 'result', fresh, 'a');
-  const both = net.node('logic.and', {}, {}, [3360, y0 + 560]);
-  const all = net.node('logic.and', {}, {}, [3520, y0 + 700]);
-  net.link(hereOpen, o.pin.Ouvert, both, 'a').link(thereOpen, o.pin.Ouvert, both, 'b').link(both, 'result', all, 'a').link(fresh, 'result', all, 'b');
-  const passes = net.node('flow.branch', {}, {}, [3000, y0]);
-  const see = net.node('set.add', {}, {}, [3300, y0]);
-  const queue = net.node('array.add', {}, {}, [3600, y0]);
-  net.link(hasV, 'true', passes, 'exec').link(all, 'result', passes, 'condition');
-  net.link(passes, 'true', see, 'exec').link(get(visites, [3140, y0 + 180]), 'value', see, 'set').link(next, vOut, see, 'item');
-  net.link(see, 'then', queue, 'exec').link(get(afaire, [3440, y0 + 180]), 'value', queue, 'array').link(next, vOut, queue, 'item');
-  // Then every relay: powered if the walk reached it.
-  const apply = net.node('flow.forEachLoop', {}, {}, [1800, y0 + 1300]);
-  const setOn = net.node('var.setExternal', { owner: relay.cls.id, variable: alimente }, {}, [2100, y0 + 1300]);
-  const isIn = net.node('set.contains', {}, {}, [1980, y0 + 1500]);
-  const redraw = net.node('call.function', { owner: relay.cls.id, graph: dessiner.id }, {}, [2400, y0 + 1300]);
-  net.link(whileL, 'completed', apply, 'exec').link(startB, 'false', apply, 'exec').link(get(relaisVar, [1600, y0 + 1500]), 'value', apply, 'array');
-  net.link(apply, 'body', setOn, 'exec').link(apply, 'element', setOn, 'target').link(get(visites, [1800, y0 + 1560]), 'value', isIn, 'set').link(apply, 'index', isIn, 'item').link(isIn, 'result', setOn, 'value');
-  net.link(setOn, 'then', redraw, 'exec').link(apply, 'element', redraw, 'target');
+  const exists = w.node('math.greaterEqualInt', {}, { b: 0 }, [2540, 300]);
+  const hasV = w.node('flow.branch', {}, {}, [2540, 0]);
+  w.link(sides, 'body', hasV, 'exec').link(next, vOut, exists, 'a').link(exists, 'result', hasV, 'condition');
+  // Passe (De, Vers, Cote), a pure function: the relay De open on Cote, and Vers open on the side facing it.
+  const ps = fnDef(p, net, 'Passe', [['De', T.int], ['Vers', T.int], ['Cote', T.int]], [['Passe', T.bool]]);
+  ps.graph.fn!.pure = true;
+  const pf = ps.f;
+  const openOn = (target: string, side: string, sPin: string, at: [number, number]) => {
+    const n = pf.node('call.pureFunction', { owner: relay.cls.id, graph: o.graph.id }, {}, at);
+    pf.link(target, 'item', n, 'target').link(side, sPin, n, o.pin.Cote);
+    return n;
+  };
+  const here = pf.node('array.get', {}, {}, [300, 100]);
+  pf.link(pf.node('var.get', { variable: relaisVar }, {}, [100, 60]), 'value', here, 'array').link(ps.entry, ps.pin.De, here, 'index');
+  const hereOpen = openOn(here, ps.entry, ps.pin.Cote, [520, 100]);
+  const there = pf.node('array.get', {}, {}, [300, 320]);
+  pf.link(pf.node('var.get', { variable: relaisVar }, {}, [100, 280]), 'value', there, 'array').link(ps.entry, ps.pin.Vers, there, 'index');
+  const facing = pf.node('math.addInt', {}, { b: 2 }, [300, 500]);
+  const facingMod = pf.node('math.moduloInt', {}, { b: 4 }, [460, 500]);
+  pf.link(ps.entry, ps.pin.Cote, facing, 'a').link(facing, 'result', facingMod, 'a');
+  const thereOpen = openOn(there, facingMod, 'result', [640, 320]);
+  const both = pf.node('logic.and', {}, {}, [840, 200]);
+  pf.link(hereOpen, o.pin.Ouvert, both, 'a').link(thereOpen, o.pin.Ouvert, both, 'b');
+  Object.assign(pf.graph.nodes[ps.ret], { x: 1040, y: 0 });
+  pf.link(ps.entry, 'then', ps.ret, 'exec').link(both, 'result', ps.ret, ps.pin.Passe);
+
+  // In Recalculer: the current relay passes to its neighbour, not seen yet.
+  const pass = w.node('call.pureFunction', { owner: net.cls.id, graph: ps.graph.id }, {}, [2840, 500]);
+  w.link(getL(courant, [2660, 500]), 'value', pass, ps.pin.De).link(next, vOut, pass, ps.pin.Vers).link(sides, 'index', pass, ps.pin.Cote);
+  const seen = w.node('set.contains', {}, {}, [2980, 940]);
+  const fresh = w.node('logic.not', {}, {}, [3160, 940]);
+  w.link(get(visites, [2800, 1020]), 'value', seen, 'set').link(next, vOut, seen, 'item').link(seen, 'result', fresh, 'a');
+  const all = w.node('logic.and', {}, {}, [3360, 700]);
+  w.link(pass, ps.pin.Passe, all, 'a').link(fresh, 'result', all, 'b');
+  const passes = w.node('flow.branch', {}, {}, [2840, 0]);
+  const see = w.node('set.add', {}, {}, [3140, 0]);
+  const queue = w.node('array.add', {}, {}, [3440, 0]);
+  w.link(hasV, 'true', passes, 'exec').link(all, 'result', passes, 'condition');
+  w.link(passes, 'true', see, 'exec').link(get(visites, [2980, 180]), 'value', see, 'set').link(next, vOut, see, 'item');
+  w.link(see, 'then', queue, 'exec').link(getL(afaire, [3280, 180]), 'value', queue, 'array').link(next, vOut, queue, 'item');
+
+  // Appliquer, a function: every relay powered if the walk reached it, and redrawn.
+  const ap = fnDef(p, net, 'Appliquer', [], []);
+  const af = ap.f;
+  const apply = af.node('flow.forEachLoop', {}, {}, [300, 0]);
+  const setOn = af.node('var.setExternal', { owner: relay.cls.id, variable: alimente }, {}, [600, 0]);
+  const isIn = af.node('set.contains', {}, {}, [480, 200]);
+  const redraw = af.node('call.function', { owner: relay.cls.id, graph: dessiner.id }, {}, [900, 0]);
+  af.link(ap.entry, 'then', apply, 'exec').link(af.node('var.get', { variable: relaisVar }, {}, [100, 200]), 'value', apply, 'array');
+  af.link(apply, 'body', setOn, 'exec').link(apply, 'element', setOn, 'target').link(af.node('var.get', { variable: visites }, {}, [300, 260]), 'value', isIn, 'set').link(apply, 'index', isIn, 'item').link(isIn, 'result', setOn, 'value');
+  af.link(setOn, 'then', redraw, 'exec').link(apply, 'element', redraw, 'target');
+  Object.assign(af.graph.nodes[ap.ret], { x: 600, y: 300 });
+  af.link(apply, 'completed', ap.ret, 'exec');
+  // Recalculer ends with it.
+  const applyCall = w.node('call.function', { owner: net.cls.id, graph: ap.graph.id }, {}, [1640, 1300]);
+  w.link(whileL, 'completed', applyCall, 'exec').link(startB, 'false', applyCall, 'exec');
+  Object.assign(w.graph.nodes[rc.ret], { x: 1940, y: 1300 });
+  w.link(applyCall, 'then', rc.ret, 'exec');
 }
 
 /** The relays powered now: each one's Alimente, by cell. */
@@ -668,7 +696,9 @@ function solveMoves(p: Project): void {
 
   // A relay turned: one move less, on the screen, then the walk.
   const heard = nodeWhere(net, (n) => n.def === 'event.custom' && n.config.name === 'Tourne');
-  const recalc = nodeWhere(net, (n) => n.def === 'call.custom' && n.config.event === 'Recalculer' && n.y === 1000);
+  const recalcGraph = net.cls.graphs.find((g) => g.name === 'Recalculer')!.id;
+  const recalc = nodeWhere(net, (n) => n.def === 'call.function' && n.config.graph === recalcGraph && n.y === 1000);
+  const recalcFirst = nodeWhere(net, (n) => n.def === 'call.function' && n.config.graph === recalcGraph && n.y === -160);
   disconnectPin(net.graph, { node: heard.id, pin: 'then' });
   const less = net.node('var.decrementInt', {}, {}, [300, 1100]);
   const show2 = net.node('call.function', { owner: w.cls.id, graph: maj.graph.id }, {}, [560, 1100]);
@@ -677,9 +707,11 @@ function solveMoves(p: Project): void {
   recalc.x = 860;
   recalc.y = 1100;
 
-  // After the walk: the exit reached, or no move left. Then every relay is locked.
-  const apply = nodeWhere(net, (n) => n.def === 'flow.forEachLoop' && n.x === 1800);
+  // After each walk, Bilan: the exit reached, or no move left. Then every relay is locked.
   const y = 3000;
+  const bilan = net.node('event.custom', { name: 'Bilan' }, {}, [1900, y]);
+  net.link(recalc.id, 'then', net.node('call.custom', { event: 'Bilan' }, {}, [1160, 1100]), 'exec');
+  net.link(recalcFirst.id, 'then', net.node('call.custom', { event: 'Bilan' }, {}, [1900, -160]), 'exec');
   const last = net.node('math.subtractInt', {}, { b: 1 }, [1900, y + 200]);
   const reachedLast = net.node('set.contains', {}, {}, [2100, y + 200]);
   const lastRelay = net.node('array.get', {}, {}, [2100, y + 360]);
@@ -695,7 +727,7 @@ function solveMoves(p: Project): void {
   const out2 = net.node('flow.branch', {}, {}, [2500, y + 100]);
   const lose = net.node('debug.printString', {}, { text: NO_MOVES }, [2800, y + 100]);
   const lockB = net.node('call.custom', { event: 'Verrouiller' }, {}, [3100, y + 100]);
-  net.link(apply.id, 'completed', done, 'exec').link(out, 'result', done, 'condition').link(done, 'true', win, 'exec').link(win, 'then', lockA, 'exec');
+  net.link(bilan, 'then', done, 'exec').link(out, 'result', done, 'condition').link(done, 'true', win, 'exec').link(win, 'then', lockA, 'exec');
   net.link(done, 'false', out2, 'exec').link(get(coups, [2340, y + 560]), 'value', none, 'a').link(none, 'result', out2, 'condition').link(out2, 'true', lose, 'exec').link(lose, 'then', lockB, 'exec');
   const lockEv = net.node('event.custom', { name: 'Verrouiller' }, {}, [64, y + 800]);
   const each = net.node('flow.forEachLoop', {}, {}, [360, y + 800]);
@@ -887,6 +919,8 @@ function solveMenu(p: Project): void {
   levelOf(p).playerStart = { x: 0, y: 300, yaw: 0 };
   if (open === undefined) delete p.editorLevelId;
   else p.editorLevelId = open;
+  // The menu's own GameMode: no character behind it, no game controls (P4).
+  menuGameMode(p, lv.value.id);
   const def = setGameDefaultMap(p, lv.value.id);
   if (!def.ok) throw new Error(def.reason);
 }
@@ -1112,7 +1146,7 @@ const SETUP =
 export const expertNetwork: Lesson = withMilestones(
   {
     id: 'x5-reseau',
-    code: 'X5',
+    code: 'X4',
     module: 'Projet Expert',
     level: 'expert',
     number: 0,
@@ -1183,7 +1217,8 @@ export const expertNetwork: Lesson = withMilestones(
           body:
             '**Le parcours de « Le réseau en boucle »**, sur une grille : une liste de travail (les relais à regarder) et un **Set** des relais déjà vus. Voisin donne la case d’à côté ; c’est Ouvert, sur les deux relais, qui dit si le courant passe.\n\n' +
             '**Le côté d’en face** : ce qui sort par l’est d’un relais entre par l’ouest du suivant. (Cote + 2) % 4 donne le côté opposé.\n\n' +
-            '**Calculer, puis appliquer** : on remplit Visites d’abord, puis on dit à chaque relais s’il y est. Éteindre tout pour rallumer au fur et à mesure ferait clignoter la grille à chaque coup.',
+            '**Calculer, puis appliquer** : on remplit Visites d’abord, puis on dit à chaque relais s’il y est. Éteindre tout pour rallumer au fur et à mesure ferait clignoter la grille à chaque coup.\n\n' +
+            '**Une fonction, des variables locales** : le parcours se fait d’un bloc, sans attente : c’est une **fonction** (Recalculer), pas un Custom Event. Sa liste de travail et le relais en cours ne servent que le temps de l’appel : des **variables locales** (Local Variables, fonction ouverte), vides à chaque appel, sans Clear. Visites, lui, est le résultat : une variable du Blueprint, que la suite lira. Le graphe de l’événement reste court, lisible au téléphone comme dans l’éditeur.',
         },
       ],
       objectives: ['Ouvert (Cote) selon la Forme et le Quart.', 'Seuls les relais que la source atteint sont alimentés, recalculé à chaque relais tourné (Event Dispatcher).'],

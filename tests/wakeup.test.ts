@@ -192,12 +192,12 @@ describe('X6 Le réveil', () => {
 
   it('milestone 4: a generator that leaves the fuses in the inventory is caught', () => {
     const p = solved(3, (p) => {
-      const g = graphOf(p, 'BP_Generateur');
+      const g = p.classes.find((c) => c.name === 'BP_Generateur')!.graphs.find((x) => x.name === 'PrendreFusibles')!;
       const take = nodes(g, 'call.function').find((n) => p.classes.find((c) => c.name === 'BP_Inventaire')!.graphs.find((x) => x.id === n.config.graph)?.name === 'Retirer')!;
       const from = Object.values(g.links).find((l) => l.to.node === take.id && l.to.pin === 'exec')!.from;
       const to = linkTo(g, take.id, 'then');
       removeNodes(g, [take.id]);
-      edit(p, 'BP_Generateur').link(from.node, from.pin, to.node, to.pin);
+      edit(p, 'BP_Generateur').inGraph(g.id).link(from.node, from.pin, to.node, to.pin);
     });
     expect(failed(3, p)).toContain('partial');
   });

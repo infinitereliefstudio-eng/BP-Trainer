@@ -1,6 +1,6 @@
 # Revue du chantier n° 5, projet Expert final, V7.65 à V7.72 (26 novembre 2026)
 
-Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) » : https://claude.ai/artifact/PrTvoTGE2owxrra3MESUPC. Demandée par Tristan le 26 novembre à 9 h 47 (« il faut passer à la review du dernier chantier »), en redonnant l'accès en écriture. Tristan a répondu le 26 novembre à 10 h 19 (« ok pour toutes tes reco, tu peux lancer ») : les quatre recommandations sont prises, les deux lots lancés, une version chacun. **V7.73 faite** (lot 1).
+Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) » : https://claude.ai/artifact/PrTvoTGE2owxrra3MESUPC. Demandée par Tristan le 26 novembre à 9 h 47 (« il faut passer à la review du dernier chantier »), en redonnant l'accès en écriture. Tristan a répondu le 26 novembre à 10 h 19 (« ok pour toutes tes reco, tu peux lancer ») : les quatre recommandations sont prises, les deux lots lancés, une version chacun. **V7.73 faite** (lot 1), **V7.74 faite** (lot 2) : revue entièrement corrigée.
 
 État de départ : lint, types et build sans erreur, 1 986 tests, smoke test sans erreur (`errors []`). Chaque constat a été reproduit par un test jetable (non versionné), se lit dans le code, ou s'appuie sur les sources citées en bas.
 
@@ -37,7 +37,7 @@ Copie du Claude Doc « BP Trainer — Revue du chantier n° 5 (V7.65 à V7.72) �
 | Lot | Contenu | Version |
 | --- | --- | --- |
 | 1 (fait) | **G1** : le mode d'entrée traverse Open Level, comme le viewport d'UE (le curseur, lui, appartient au Player Controller neuf et repart caché) ; « Pourquoi ? » explique des touches ignorées après un voyage ; C8 et X5 remettent Game Only (la vérification l'exige) ; fiche UE5 du Réveil précisée ; version des règles de simulation montée (avis dans les projets déjà commencés). **V1, J1, F1, N1**. Un test chacun | V7.73 |
-| 2 | **P1** : la durée du jalon en cours et le total du projet (en séances) au lieu de « ≈ 120 min » ; X2 en deux jalons. **P2** : solutions réécrites en fonctions (Recalculer en fonction à variables locales, le GameMode de L'arène, le terminal, le générateur). **P3** : un fusible posé ne revient pas après Continuer. **P4** : un GameMode de menu sans pion dans X5 et X6. **D1** | V7.74 |
+| 2 (fait) | **P1** : la durée du jalon en cours et le total du projet (en séances) au lieu de « ≈ 120 min » ; X2 en deux jalons. **P2** : solutions réécrites en fonctions (Recalculer en fonction à variables locales, le GameMode de L'arène, le terminal, le générateur). **P3** : un fusible posé ne revient pas après Continuer. **P4** : un GameMode de menu sans pion dans X5 et X6. **D1** | V7.74 |
 
 ## Questions à trancher
 

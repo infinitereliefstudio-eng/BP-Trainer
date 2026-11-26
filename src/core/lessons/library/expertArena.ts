@@ -764,7 +764,7 @@ const SETUP =
 export const expertArena: Lesson = withMilestones(
   {
     id: 'x3-arene',
-    code: 'X3',
+    code: 'X2',
     module: 'Projet Expert',
     level: 'expert',
     number: 0,

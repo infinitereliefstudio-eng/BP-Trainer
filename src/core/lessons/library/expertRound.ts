@@ -980,7 +980,7 @@ const SETUP =
 export const expertRound: Lesson = withMilestones(
   {
     id: 'x4-ronde',
-    code: 'X4',
+    code: 'X3',
     module: 'Projet Expert',
     level: 'expert',
     number: 0,

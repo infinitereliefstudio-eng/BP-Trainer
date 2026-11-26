@@ -56,9 +56,50 @@ function work(start: Project, solved: Project): number {
 
 const roundTo5 = (m: number) => Math.round(m / 5) * 5;
 
+const milestoneCache = new Map<string, number[]>();
+
+/**
+ * A project in milestones (V7.74, review of chantier n° 5, P1): the time of
+ * each milestone, from the work its part of the solution does on the project
+ * as the previous one left it. At least 10 minutes each.
+ */
+export function milestoneMinutes(lesson: Lesson): number[] {
+  const ms = lesson.milestones;
+  if (!ms?.length) return [];
+  const known = milestoneCache.get(lesson.id);
+  if (known) return known;
+  const project = lesson.setup();
+  const out: number[] = [];
+  let before = structuredClone(project);
+  for (const m of ms) {
+    m.solve(project);
+    out.push(Math.max(10, roundTo5(4 + 1.5 * work(before, project))));
+    before = structuredClone(project);
+  }
+  milestoneCache.set(lesson.id, out);
+  return out;
+}
+
+/** « ≈ 45 min », « ≈ 1 h 30 », « ≈ 10 h ». */
+export function durationLabel(minutes: number): string {
+  if (minutes < 60) return `≈ ${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `≈ ${h} h ${String(m).padStart(2, '0')}` : `≈ ${h} h`;
+}
+
+/**
+ * The step's duration. A project in milestones is the sum of its milestones,
+ * not capped: Le réveil takes several sittings, and the path says so.
+ */
 export function estimatedMinutes(lesson: Lesson): number {
   const known = cache.get(lesson.id);
   if (known !== undefined) return known;
+  if (lesson.milestones?.length) {
+    const total = milestoneMinutes(lesson).reduce((a, b) => a + b, 0);
+    cache.set(lesson.id, total);
+    return total;
+  }
   let minutes: number;
   // A drill is made to be short: two or three nodes to place, one mistake, or a chain of four or five nodes.
   if (lesson.drill) minutes = lesson.drill.format === 'complete' ? 3 : 5;

@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { whereItStopped } from '../src/core/explain/stops';
 import { getLesson, LESSONS } from '../src/core/lessons';
 import { availability } from '../src/core/lessons/chain';
-import { estimatedMinutes } from '../src/core/lessons/duration';
+import { durationLabel, estimatedMinutes, milestoneMinutes } from '../src/core/lessons/duration';
 import { edit } from '../src/core/lessons/builder';
 import { autonomyTrap, transferBadge } from '../src/core/lessons/library/chainCast';
 import { runLesson, runRobustness } from '../src/core/lessons/runner';
@@ -69,13 +69,38 @@ describe('notions of the path', () => {
     expect(missingNotions('l03-interrupteur', acquired)).toEqual([]);
   });
 
-  it('gives every step a duration between 5 and 30 minutes (45 for a synthesis, 120 for an Expert project)', () => {
+  it('gives every step a duration between 5 and 30 minutes (45 for a synthesis, 120 for an Expert project; by milestone for a project in milestones)', () => {
     for (const l of LESSONS) {
+      if (l.milestones?.length) {
+        const each = milestoneMinutes(l);
+        expect(each, l.id).toHaveLength(l.milestones.length);
+        for (const m of each) {
+          expect(m % 5, l.id).toBe(0);
+          expect(m, l.id).toBeGreaterThanOrEqual(10);
+          expect(m, l.id).toBeLessThanOrEqual(150);
+        }
+        expect(estimatedMinutes(l), l.id).toBe(each.reduce((a, b) => a + b, 0));
+        continue;
+      }
       const m = estimatedMinutes(l);
       expect(m % 5, l.id).toBe(0);
       expect(m, l.id).toBeGreaterThanOrEqual(5);
       expect(m, l.id).toBeLessThanOrEqual(l.level === 'expert' ? 120 : l.kind === 'synthesis' ? 45 : 30);
     }
+  });
+});
+
+describe('durations of the projects in milestones (V7.74)', () => {
+  it('reads in minutes, then in hours', () => {
+    expect(durationLabel(45)).toBe('≈ 45 min');
+    expect(durationLabel(90)).toBe('≈ 1 h 30');
+    expect(durationLabel(605)).toBe('≈ 10 h 05');
+    expect(durationLabel(120)).toBe('≈ 2 h');
+  });
+
+  it('Le réveil says it takes several sittings, not « ≈ 120 min »', () => {
+    const wakeup = LESSONS.find((l) => l.id === 'x6-reveil')!;
+    expect(estimatedMinutes(wakeup)).toBeGreaterThan(300);
   });
 });
 

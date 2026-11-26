@@ -38,7 +38,17 @@ const unlinkIn = (g: Graph, node: string, pin: string) => {
 };
 const linkFrom = (g: Graph, node: string, pin: string) => Object.values(g.links).find((l) => l.to.node === node && l.to.pin === pin)!.from;
 
-describe('X5 Le réseau', () => {
+describe('X4 (x5-reseau) Le réseau', () => {
+  it('V7.74: Recalculer is a function; its working list and current relay are local variables; the event graph stays short', () => {
+    const p = solved(4);
+    const net = p.classes.find((c) => c.name === 'BP_Reseau')!;
+    const fn = net.graphs.find((g) => g.name === 'Recalculer')!;
+    expect(fn.kind).toBe('function');
+    expect(fn.fn!.locals!.map((l) => l.name).sort()).toEqual(['AFaire', 'Courant']);
+    expect(net.variables.map((v) => v.name)).not.toContain('AFaire');
+    expect(Object.keys(net.graphs.find((g) => g.kind === 'event')!.nodes).length).toBeLessThan(110);
+  });
+
   it('five milestones, after La ronde; the whole project passes', { timeout: 30000 }, () => {
     expect(network.milestones?.map((m) => m.id)).toEqual(['grille', 'courant', 'coups', 'menu', 'records']);
     const ids = LESSONS.map((l) => l.id);
@@ -89,12 +99,13 @@ describe('X5 Le réseau', () => {
 
   it('milestone 2: a neighbour tested on the same side, not the facing one, is told about (Cote + 2) % 4', () => {
     const p = solved(1, (p) => {
-      const g = graphOf(p, 'BP_Reseau');
+      // V7.74: the test of both sides lives in the pure function Passe (De, Vers, Cote).
+      const g = graphOf(p, 'BP_Reseau', 'Passe');
       const facing = nodes(g, 'math.moduloInt').find((n) => n.defaults.b === 4 && Object.values(g.links).some((l) => l.to.node === n.id && l.to.pin === 'a' && g.nodes[l.from.node].def === 'math.addInt' && g.nodes[l.from.node].defaults.b === 2))!;
       const call = Object.values(g.links).find((l) => l.from.node === facing.id)!.to;
-      const loop = nodes(g, 'flow.forLoop')[0];
+      const entry = nodes(g, 'fn.entry')[0];
       unlinkIn(g, call.node, call.pin);
-      edit(p, 'BP_Reseau').link(loop.id, 'index', call.node, call.pin);
+      edit(p, 'BP_Reseau').inGraph(g.id).link(entry.id, g.fn!.inputs.find((x) => x.name === 'Cote')!.id, call.node, call.pin);
     });
     const ids = failed(1, p);
     expect(ids.some((id) => id === 'start' || id.startsWith('turn-'))).toBe(true);
@@ -104,7 +115,7 @@ describe('X5 Le réseau', () => {
 
   it('milestone 2: a walk without its Set of relays seen is stopped, and told why', { timeout: 60000 }, () => {
     const p = solved(1, (p) => {
-      const g = graphOf(p, 'BP_Reseau');
+      const g = graphOf(p, 'BP_Reseau', 'Recalculer');
       const not = nodes(g, 'logic.not')[0];
       const and = Object.values(g.links).find((l) => l.from.node === not.id)!.to;
       unlinkIn(g, and.node, and.pin);

@@ -132,7 +132,7 @@ describe('lot 4b: the Expert projects', () => {
 
   it('V7.72: X1 is out of the path; every Expert project has « Le refaire dans UE5 », opened once it is passed', () => {
     const experts = LESSONS.filter((l) => l.level === 'expert');
-    expect(experts.map((l) => l.code)).toEqual(['X2', 'X3', 'X4', 'X5', 'X6']);
+    expect(experts.map((l) => l.code)).toEqual(['X1', 'X2', 'X3', 'X4', 'X5']);
     for (const l of experts) {
       expect(l.cards.filter((c) => c.title === REDO_UE5_TITLE), l.id).toHaveLength(1);
       expect(cardsFor(l, false).shown.some((c) => c.title === REDO_UE5_TITLE), l.id).toBe(false);
@@ -140,7 +140,7 @@ describe('lot 4b: the Expert projects', () => {
     }
   });
 
-  it('X2: a fan whose Tick forgets Parent: Tick never runs dry', () => {
+  it('X1 (x2-atelier): a fan whose Tick forgets Parent: Tick never runs dry', () => {
     const l = lesson('x2-atelier');
     const p = solved(l, (p) => {
       const fan = edit(p, 'BP_Ventilo');
@@ -156,7 +156,7 @@ describe('lot 4b: the Expert projects', () => {
   // V7.66: X2 enriched, the fuel in an Actor Component and the control panel.
   const nodesOf = (p: Project, cls: string, def: string) => Object.values(edit(p, cls).graph.nodes).filter((n) => n.def === def);
 
-  it('X2: a panel left in Game Only ignores the touch on its button, and says why', () => {
+  it('X1 (x2-atelier): a panel left in Game Only ignores the touch on its button, and says why', () => {
     const l = lesson('x2-atelier');
     const p = solved(l, (p) => {
       for (const n of nodesOf(p, 'BP_PlayerController', 'input.setModeGameAndUI')) n.def = 'input.setModeGameOnly';
@@ -166,7 +166,7 @@ describe('lot 4b: the Expert projects', () => {
     expect(run.results.find((r) => r.check.id === 'button')?.reason).toContain('Game Only');
   });
 
-  it('X2: a row that never subscribes to its machine stays on Arrêt', () => {
+  it('X1 (x2-atelier): a row that never subscribes to its machine stays on Arrêt', () => {
     const l = lesson('x2-atelier');
     const p = solved(l, (p) => {
       const row = edit(p, 'WBP_LigneMachine');
@@ -175,7 +175,7 @@ describe('lot 4b: the Expert projects', () => {
     expect(failed(l, p)).toEqual(expect.arrayContaining(['row-on', 'row-fan']));
   });
 
-  it('X2: a row button that starts its machine without asking it skips the empty tank', () => {
+  it('X1 (x2-atelier): a row button that starts its machine without asking it skips the empty tank', () => {
     const l = lesson('x2-atelier');
     const p = solved(l, (p) => {
       const row = edit(p, 'WBP_LigneMachine');
@@ -185,10 +185,10 @@ describe('lot 4b: the Expert projects', () => {
       ask.config = { owner: base.id, event: 'Demarrer' };
       void row;
     });
-    expect(failed(l, p)).toContain('empty');
+    expect(failed(l, p)).toContain('empty-both');
   });
 
-  it('X2: the fuel kept in a variable of BP_Machine is refused, with the reason', () => {
+  it('X1 (x2-atelier): the fuel kept in a variable of BP_Machine is refused, with the reason', () => {
     const l = lesson('x2-atelier');
     const p = solved(l, (p) => {
       const base = edit(p, 'BP_Machine');
@@ -199,7 +199,7 @@ describe('lot 4b: the Expert projects', () => {
     expect(run.results.find((r) => r.check.id === 'component')?.reason).toContain('le carburant est quelque chose que la machine a');
   });
 
-  it('X2: the panel finds the machines in either order of the level (the scenario taps the row by its name)', () => {
+  it('X1 (x2-atelier): the panel finds the machines in either order of the level (the scenario taps the row by its name)', () => {
     const l = lesson('x2-atelier');
     const p = solved(l, (p) => levelOf(p).actors.reverse());
     expect(failed(l, p)).toEqual([]);

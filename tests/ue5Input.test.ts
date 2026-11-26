@@ -3,7 +3,7 @@ import { playerClassesFor } from '../src/core/model/gameMode';
 import { describe, expect, it } from 'vitest';
 import { LESSONS } from '../src/core/lessons';
 import { PLAYER_CONTEXT, PLAYER_CONTROLLER } from '../src/core/lessons/ue5Input';
-import { defaultLevel, type Project } from '../src/core/model/project';
+import type { Project } from '../src/core/model/project';
 
 const after = LESSONS.slice(LESSONS.findIndex((l) => l.id === 'l-ei-controleur') + 1);
 /** Every step after it, whatever its level (Expert projects included, when they come). */
@@ -29,7 +29,8 @@ describe('UE5 input after the Player Controller lesson', () => {
       const imc = p.mappingContexts.find((c) => c.name === PLAYER_CONTEXT);
       const pc = p.classes.find((c) => c.name === PLAYER_CONTROLLER);
       expect(imc, l.id).toBeDefined();
-      expect(playerClassesFor(p, defaultLevel(p)).controller?.id, l.id).toBe(pc?.id);
+      // A menu level may have its own GameMode (V7.74, Le réseau and Le réveil): the game's levels use BP_PlayerController.
+      expect(p.levels.some((lv) => playerClassesFor(p, lv).controller?.id === pc?.id), l.id).toBe(true);
       const defs = pc!.graphs[0] ? Object.values(pc!.graphs[0].nodes).map((n) => n.def) : [];
       expect(defs, l.id).toEqual(expect.arrayContaining(['event.beginPlay', 'actor.self', 'input.subsystem', 'input.addMappingContext']));
       // Every action event listens to an action mapped in IMC_Joueur, with no trigger: Started is the old Pressed.

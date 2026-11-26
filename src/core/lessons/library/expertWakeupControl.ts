@@ -86,6 +86,20 @@ export function solveControl(p: Project): void {
   const full = gen.node('call.function', { owner: w.cls.id, graph: afficher.graph.id }, { [afficher.pin.Valeur]: 1 }, [1900, -400]);
   gen.link(back, 'true', runs, 'exec').link(runs, 'then', full, 'exec').link(gen.node('var.get', { variable: v(gen, 'Barre') }, {}, [1700, -200]), 'value', full, 'target');
 
+  // BP_Fusible (review of chantier n° 5, P3): a level opened again makes its actors anew, the fuses too. At BeginPlay, a
+  // fuse already taken (its Nom in the GameInstance's Objets) or already placed (the power back) leaves (as D28).
+  const fuse = edit(p, 'BP_Fusible');
+  const fuseBegin = fuse.node('event.beginPlay', {}, {}, [64, -400]);
+  const fCast = partie(fuse, p, fuseBegin, 'then', [300, -400]);
+  const objets = fuse.node('var.getExternal', { owner: gi.cls.id, variable: v(gi, 'Objets') }, {}, [500, -240]);
+  const taken = fuse.node('set.contains', {}, {}, [700, -240]);
+  const powered = fuse.node('var.getExternal', { owner: gi.cls.id, variable: giPower }, {}, [700, -120]);
+  const either = fuse.node('logic.or', {}, {}, [900, -200]);
+  const gone = fuse.node('flow.branch', {}, {}, [900, -400]);
+  fuse.link(fCast, 'as', objets, 'target').link(objets, 'value', taken, 'set').link(fuse.node('var.get', { variable: v(fuse, 'Nom') }, {}, [500, -120]), 'value', taken, 'item');
+  fuse.link(fCast, 'as', powered, 'target').link(taken, 'result', either, 'a').link(powered, 'value', either, 'b');
+  fuse.link(fCast, 'then', gone, 'exec').link(either, 'result', gone, 'condition').link(gone, 'true', fuse.node('actor.destroy', {}, {}, [1200, -400]), 'exec');
+
   // BP_Alimente: the power already back (the GameInstance says so): powered from the start.
   const alim = edit(p, 'BP_Alimente');
   const bind = nodeWhere(alim, (n) => n.def === 'dispatcher.bind');
@@ -296,6 +310,16 @@ const controlChecks: Check[] = [
     test: (cx) =>
       countPrints(cx, RUNNING) === 1 ? true : `E au générateur après Continuer : pas de « ${RUNNING} ». Ses fusibles sont posés depuis la partie sauvée : à son BeginPlay, il lit le courant dans le GameInstance.`,
   },
+  {
+    id: 'fuses-gone',
+    label: 'Après Continuer, les fusibles déjà posés ne sont plus par terre',
+    at: 'reprise',
+    test: (cx) => {
+      const back = cx.sim.actors.filter((a) => a.className === 'BP_Fusible' && !a.destroyed).length;
+      if (!back) return true;
+      return `Après Continuer, ${back} fusible${back > 1 ? 's' : ''} déjà posé${back > 1 ? 's sont' : ' est'} de nouveau par terre : Open Level refait tous les acteurs du niveau (comme « L’objet ramassé réapparaît »). À son BeginPlay, un fusible déjà pris (son Nom dans les Objets du GameInstance) ou déjà posé (le courant revenu) se retire : Destroy Actor.`;
+    },
+  },
   { id: 'arrive-fact', label: 'Le code lu dans le journal arrive aussi', at: 'arrivee2', test: arrived([BADGE, FACT], 'le passage dépose aussi les Faits dans le GameInstance.') },
   {
     id: 'code',
@@ -350,7 +374,8 @@ export const controlMilestone: Milestone = {
         `1. **BP_Passage**, au bout du couloir (plot P) : quand le joueur y entre, ${CONTROL} s’ouvre. Il y arrive avec ce qu’il porte (Objets et Faits).\n` +
         `2. **Le courant suit** : dans ${CONTROL}, les lampes (des BP_Lampe, sur les plots L) sont allumées si le générateur a redémarré. Et une partie sauvée le courant revenu se reprend avec les lampes allumées et le générateur qui tourne.\n` +
         `3. **BP_Porte_Code**, sur K, une troisième porte : elle s’ouvre si le joueur connaît \`${FACT}\` (le journal), sinon \`${NO_CODE}\`.\n` +
-        `4. **BP_Console**, sur X : E finit la partie. Un écran de fin **${END_WBP}** (« ${THE_END} », un bouton **${TO_MENU}** qui ramène au menu), UI Only et curseur. Au menu, Continuer ne propose plus la partie finie.`,
+        '4. **Les fusibles ne reviennent pas** : après Continuer, un fusible déjà pris ou déjà posé n’est plus par terre.\n' +
+        `5. **BP_Console**, sur X : E finit la partie. Un écran de fin **${END_WBP}** (« ${THE_END} », un bouton **${TO_MENU}** qui ramène au menu), UI Only et curseur. Au menu, Continuer ne propose plus la partie finie.`,
     },
     {
       title: 'Le scénario de test',

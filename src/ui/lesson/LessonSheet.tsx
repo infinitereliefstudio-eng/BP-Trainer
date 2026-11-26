@@ -7,6 +7,7 @@ import { whereItStopped } from '@core/explain/stops';
 import { lessonLabel, type Lesson, type Prediction } from '@core/lessons/types';
 import { asksHypothesis, type HypothesisChoice } from '@core/explain/hypothesis';
 import { cardsFor, helpOffers, type HelpKind } from '@core/lessons/helpPolicy';
+import { durationLabel, milestoneMinutes } from '@core/lessons/duration';
 import { milestoneName } from '@core/lessons/milestones';
 import type { HypothesisNote } from '@core/progress/progress';
 import { HypothesisAsk, HypothesisCard } from './HypothesisAsk';
@@ -97,7 +98,7 @@ export function LessonSheet({
   const offers = helpOffers(lesson, { tried, fails, done });
   const cards = cardsFor(lesson, done);
   // A project in milestones, not finished: a passed check opened the next milestone (V7.65).
-  // A project of one milestone (X2) reads as a plain project.
+  // A project of one milestone reads as a plain project.
   const midway = (lesson.milestones?.length ?? 0) > 1 && !done;
   const shown = offers.filter((o) => o.index < hints);
   const nextOffer = offers.find((o) => o.index >= hints);
@@ -160,7 +161,11 @@ export function LessonSheet({
           {tab === 'goals' && !lesson.predict && (
             <>
               <p class="situation">{lesson.situation}</p>
-              {midway && <p class="eyebrow">En cours : {milestoneName(lesson, lesson.atMilestone ?? 0)}</p>}
+              {midway && (
+                <p class="eyebrow">
+                  En cours : {milestoneName(lesson, lesson.atMilestone ?? 0)}, {durationLabel(milestoneMinutes(lesson)[lesson.atMilestone ?? 0] ?? 0)}
+                </p>
+              )}
               <ol class="objectives">
                 {lesson.objectives.map((o) => (
                   <li key={o}>{richInline(o)}</li>

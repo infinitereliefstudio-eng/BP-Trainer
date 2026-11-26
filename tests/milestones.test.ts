@@ -112,16 +112,25 @@ describe('projects in milestones (V7.65)', () => {
     expect(openedMilestone(grown, true, 4)).toEqual({ at: 3, complete: true });
   });
 
-  it('a project of one milestone (X2, V7.66) reads as a plain project: no « Jalon 1/1 » in its cards or its notes', () => {
-    const x2 = LESSONS.find((l) => l.id === 'x2-atelier')!;
-    expect(x2.milestones).toHaveLength(1);
-    expect(x2.cards.map((c) => c.title)).toEqual(['Un projet Expert', 'Cahier des charges', 'Le scénario de test', 'Pour aller plus loin', 'Le refaire dans UE5']);
-    expect(milestoneView(x2, 0).cards.map((c) => c.title)).toEqual(x2.cards.map((c) => c.title));
-    const p = x2.setup();
-    x2.solve(p);
-    const run = runLesson(milestoneView(x2, 0), p);
+  it('a project of one milestone (V7.66) reads as a plain project: no « Jalon 1/1 » in its cards or its notes, passed or failed (V7.73)', () => {
+    const one = inMilestones({ ...lesson1, id: 'x-test-un-jalon', level: 'expert', cards: [{ title: 'Le projet', body: 'Un jalon.' }] }, [project.milestones![0]]);
+    expect(one.cards.map((c) => c.title)).toEqual(['Le projet', 'Cahier des charges']);
+    expect(milestoneView(one, 0).cards.map((c) => c.title)).toEqual(one.cards.map((c) => c.title));
+    const failed = runLesson(milestoneView(one, 0), one.setup());
+    expect(failed.passed).toBe(false);
+    expect(failed.notes.some((n) => n.includes('Jalon'))).toBe(false);
+    const p = one.setup();
+    one.solve(p);
+    const run = runLesson(milestoneView(one, 0), p);
     expect(run.passed).toBe(true);
     expect(run.notes.some((n) => n.includes('Jalon'))).toBe(false);
+  });
+
+  it('X1 « L’atelier des machines » in two milestones (V7.74): the machines, then the panel; « Le refaire dans UE5 » after the briefs', () => {
+    const x = LESSONS.find((l) => l.id === 'x2-atelier')!;
+    expect(x.milestones!.map((m) => m.title)).toEqual(['Les machines', 'Le panneau']);
+    expect(x.cards.at(-1)!.title).toBe('Le refaire dans UE5');
+    expect(milestoneView(x, 0).cards.some((c) => c.title.startsWith('Jalon 2/2'))).toBe(false);
   });
 
   // One test per project: a project in four milestones replays up to four scenarios each time (V7.68).

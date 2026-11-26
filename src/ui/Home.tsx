@@ -6,7 +6,7 @@ import { useMemo, useState } from 'preact/hooks';
 import { getLesson, LESSONS } from '@core/lessons';
 import { LEVELS } from '@core/lessons/levels';
 import { availability } from '@core/lessons/chain';
-import { estimatedMinutes } from '@core/lessons/duration';
+import { durationLabel, estimatedMinutes, milestoneMinutes } from '@core/lessons/duration';
 import { isChainExercise, type Lesson, type LessonKind } from '@core/lessons/types';
 import { acquiredNotions, missingNotions } from '@core/notions';
 import type { HelpLevel } from '@core/progress/progress';
@@ -246,9 +246,22 @@ export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'pat
   );
 }
 
+/**
+ * A step's duration. A project in milestones (V7.74) says the milestone in
+ * progress and the whole: « jalon 2/6 ≈ 1 h 45 · ≈ 10 h 30 en tout ».
+ */
+function stepDuration(lesson: Lesson, done: boolean, passed: number | undefined): string {
+  const each = milestoneMinutes(lesson);
+  const total = durationLabel(estimatedMinutes(lesson));
+  if (each.length < 2) return total;
+  if (done && (passed ?? each.length) >= each.length) return `${each.length} jalons · ${total}`;
+  const at = Math.min(passed ?? 0, each.length - 1);
+  return `jalon ${at + 1}/${each.length} ${durationLabel(each[at])} · ${total} en tout`;
+}
+
 /** Under a card: duration, notions still missing, how it was passed, when a delayed step is offered. */
 function StepMeta({ lesson, done, acquired, progress }: { lesson: Lesson; done: boolean; acquired: ReadonlySet<string>; progress: Progress }) {
-  const parts: string[] = [`≈ ${estimatedMinutes(lesson)} min`];
+  const parts: string[] = [stepDuration(lesson, done, progress.milestones?.[lesson.id])];
   if (done) {
     const how = progress.passedWith?.[lesson.id];
     if (how) parts.push(HELP_LABEL[how]);

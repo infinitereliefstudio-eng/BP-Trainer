@@ -5,7 +5,7 @@
  * until tomorrow, or practised with another step.
  */
 import { useMemo, useState } from 'preact/hooks';
-import { estimatedMinutes } from '@core/lessons/duration';
+import { durationLabel, estimatedMinutes } from '@core/lessons/duration';
 import { lessonLabel } from '@core/lessons/types';
 import { DAY } from '@core/review/schedule';
 import { nextRework } from '@core/rework/schedule';
@@ -32,7 +32,7 @@ function Card({ card, progress, now, onPractice, onPostpone }: { card: ReworkCar
     <li class="rework-item">
       <span class="note-head">
         <strong>{card.notions.map((s) => notionTitle(s.notion)).join(' · ')}</strong>
-        <span class="muted small">≈ {estimatedMinutes(step)} min</span>
+        <span class="muted small">{durationLabel(estimatedMinutes(step))}</span>
       </span>
       {reasons.map((r) => (
         <span key={r} class="small muted">

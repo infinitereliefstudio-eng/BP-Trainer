@@ -123,37 +123,51 @@ export function solveGenerator(p: Project): void {
   const cast = gen.node('cast.to', { class: w.cls.id }, {}, [400, -400]);
   const keep = gen.node('var.set', { variable: bar }, {}, [700, -400]);
   gen.target('Jauge', uwo).link(begin, 'then', cast, 'exec').link(uwo, 'result', cast, 'object').link(cast, 'then', keep, 'exec').link(cast, 'as', keep, 'value');
-  // Interagir: running already, or the fuses the player carries.
+  // PrendreFusibles (Inventaire), a function (review of chantier n° 5, P2): each fuse expected that the player carries
+  // leaves the inventory and is placed.
+  const takeAll = fnDef(p, gen, 'PrendreFusibles', [['Inventaire', T.object('BP_Inventaire')]], []);
+  const tf = takeAll.f;
+  const each = tf.node('flow.forEachLoop', {}, {}, [300, 0]);
+  tf.link(takeAll.entry, 'then', each, 'exec').link(tf.node('var.get', { variable: expected }, {}, [140, 200]), 'value', each, 'array');
+  const owns = tf.node('call.pureFunction', { owner: inv.cls.id, graph: has.graph.id }, {}, [600, 300]);
+  const carries = tf.node('flow.branch', {}, {}, [700, 0]);
+  tf.link(each, 'body', carries, 'exec').link(takeAll.entry, takeAll.pin.Inventaire, owns, 'target').link(each, 'element', owns, has.pin.Objet).link(owns, has.pin.Possede, carries, 'condition');
+  const out = tf.node('call.function', { owner: inv.cls.id, graph: take.graph.id }, {}, [1000, 0]);
+  const put = tf.node('set.add', {}, {}, [1300, 0]);
+  tf.link(carries, 'true', out, 'exec').link(takeAll.entry, takeAll.pin.Inventaire, out, 'target').link(each, 'element', out, take.pin.Objet);
+  tf.link(out, 'then', put, 'exec').link(tf.node('var.get', { variable: placed }, {}, [1100, 200]), 'value', put, 'set').link(each, 'element', put, 'item');
+  Object.assign(tf.graph.nodes[takeAll.ret], { x: 700, y: 300 });
+  tf.link(each, 'completed', takeAll.ret, 'exec');
+  // Remplissage, a pure function: the share of the fuses placed, 0 to 1.
+  const fill = fnDef(p, gen, 'Remplissage', [], [['Part', T.float]]);
+  fill.graph.fn!.pure = true;
+  const ff = fill.f;
+  const count = ff.node('set.length', {}, {}, [300, 200]);
+  const total = ff.node('array.length', {}, {}, [300, 320]);
+  ff.link(ff.node('var.get', { variable: placed }, {}, [100, 200]), 'value', count, 'set').link(ff.node('var.get', { variable: expected }, {}, [100, 320]), 'value', total, 'array');
+  const fCount = ff.node('conv.intToFloat', {}, {}, [500, 200]);
+  const fTotal = ff.node('conv.intToFloat', {}, {}, [500, 320]);
+  const ratio = ff.node('math.divideFloat', {}, {}, [700, 260]);
+  ff.link(count, 'result', fCount, 'in').link(total, 'result', fTotal, 'in').link(fCount, 'result', ratio, 'a').link(fTotal, 'result', ratio, 'b');
+  ff.link(fill.entry, 'then', fill.ret, 'exec').link(ratio, 'result', fill.ret, fill.pin.Part);
+
+  // Interagir: running already, or the fuses the player carries; then the gauge, and all of them?
   const asked = gen.node('event.interface', { interface: iface.id, fn: interagir }, {}, [64, 96]);
   const running = gen.node('flow.branch', {}, {}, [300, 96]);
   gen.link(asked, 'then', running, 'exec').link(gen.node('var.get', { variable: on }, {}, [160, 260]), 'value', running, 'condition');
   gen.link(running, 'true', gen.node('debug.printString', {}, { text: RUNNING }, [600, -60]), 'exec');
-  const each = gen.node('flow.forEachLoop', {}, {}, [600, 96]);
-  gen.link(running, 'false', each, 'exec').link(gen.node('var.get', { variable: expected }, {}, [440, 300]), 'value', each, 'array');
-  const invNode = inventoryOfPlayer(gen, inv.cls.id, [800, 520]);
-  const owns = gen.node('call.pureFunction', { owner: inv.cls.id, graph: has.graph.id }, {}, [1000, 420]);
-  const carries = gen.node('flow.branch', {}, {}, [1100, 200]);
-  gen.link(each, 'body', carries, 'exec').link(invNode, 'result', owns, 'target').link(each, 'element', owns, has.pin.Objet).link(owns, has.pin.Possede, carries, 'condition');
-  const out = gen.node('call.function', { owner: inv.cls.id, graph: take.graph.id }, {}, [1400, 200]);
-  const put = gen.node('set.add', {}, {}, [1700, 200]);
-  gen.link(carries, 'true', out, 'exec').link(invNode, 'result', out, 'target').link(each, 'element', out, take.pin.Objet);
-  gen.link(out, 'then', put, 'exec').link(gen.node('var.get', { variable: placed }, {}, [1500, 380]), 'value', put, 'set').link(each, 'element', put, 'item');
-  // Completed: the gauge, then all of them?
-  const count = gen.node('set.length', {}, {}, [800, 800]);
-  const total = gen.node('array.length', {}, {}, [800, 920]);
-  gen.link(gen.node('var.get', { variable: placed }, {}, [600, 800]), 'value', count, 'set').link(gen.node('var.get', { variable: expected }, {}, [600, 920]), 'value', total, 'array');
-  const fCount = gen.node('conv.intToFloat', {}, {}, [1000, 800]);
-  const fTotal = gen.node('conv.intToFloat', {}, {}, [1000, 920]);
-  const ratio = gen.node('math.divideFloat', {}, {}, [1200, 860]);
-  gen.link(count, 'result', fCount, 'in').link(total, 'result', fTotal, 'in').link(fCount, 'result', ratio, 'a').link(fTotal, 'result', ratio, 'b');
+  const invNode = inventoryOfPlayer(gen, inv.cls.id, [400, 300]);
+  const takeCall = gen.node('call.function', { owner: gen.cls.id, graph: takeAll.graph.id }, {}, [600, 96]);
+  gen.link(running, 'false', takeCall, 'exec').link(invNode, 'result', takeCall, takeAll.pin.Inventaire);
+  const share = gen.node('call.pureFunction', { owner: gen.cls.id, graph: fill.graph.id }, {}, [800, 300]);
   const afficher = fnOf(w, 'Afficher');
-  const show = gen.node('call.function', { owner: w.cls.id, graph: afficher.graph.id }, {}, [1000, 640]);
-  gen.link(each, 'completed', show, 'exec').link(gen.node('var.get', { variable: bar }, {}, [800, 700]), 'value', show, 'target').link(ratio, 'result', show, afficher.pin.Valeur);
-  const all = gen.node('math.equalInt', {}, {}, [1400, 860]);
-  const full = gen.node('flow.branch', {}, {}, [1400, 640]);
-  gen.link(count, 'result', all, 'a').link(total, 'result', all, 'b').link(show, 'then', full, 'exec').link(all, 'result', full, 'condition');
-  const start = gen.node('var.set', { variable: on }, { value: true }, [1700, 640]);
-  gen.link(full, 'true', start, 'exec').link(start, 'then', gen.node('debug.printString', {}, { text: STARTED }, [2000, 640]), 'exec');
+  const show = gen.node('call.function', { owner: w.cls.id, graph: afficher.graph.id }, {}, [1000, 96]);
+  gen.link(takeCall, 'then', show, 'exec').link(gen.node('var.get', { variable: bar }, {}, [800, 200]), 'value', show, 'target').link(share, fill.pin.Part, show, afficher.pin.Valeur);
+  const all = gen.node('math.greaterEqualFloat', {}, { b: 1 }, [1100, 300]);
+  const full = gen.node('flow.branch', {}, {}, [1300, 96]);
+  gen.link(share, fill.pin.Part, all, 'a').link(show, 'then', full, 'exec').link(all, 'result', full, 'condition');
+  const start = gen.node('var.set', { variable: on }, { value: true }, [1600, 96]);
+  gen.link(full, 'true', start, 'exec').link(start, 'then', gen.node('debug.printString', {}, { text: STARTED }, [1900, 96]), 'exec');
   const r = placeActor(p, gen.cls.id, ...GENERATOR_AT);
   if (!r.ok) throw new Error(r.reason);
 }

@@ -1,5 +1,7 @@
 /** 3D-2 (V7.79): the gizmo's arithmetic, on a plain top-down projector (1 cm = 1 px, Y down) and on a real camera. */
+import { Raycaster, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
+import { Gizmo, GIZMO_PX, HIT_HALF } from '../src/editor/world3d/gizmo';
 import { GizmoDrag, type Transform } from '../src/editor/world3d/gizmoDrag';
 import { alongAxis, axisOf, normalizeYaw, snap, turn, type GizmoSettings } from '../src/editor/world3d/gizmoMath';
 import { ViewCamera } from '../src/editor/world3d/viewCamera';
@@ -82,5 +84,36 @@ describe('a drag of a handle', () => {
     expect(t.x).toBeGreaterThan(90);
     expect(t.x).toBeLessThan(110);
     expect(t.y).toBe(0);
+  });
+});
+
+describe('gizmo handles under a finger (V7.81)', () => {
+  // 1 cm per px: the gizmo is 90 px long, a finger is about 44 px wide.
+  const down = (x: number, y: number) => new Raycaster(new Vector3(x, 1000, y), new Vector3(0, -1, 0));
+  const at = (mode: 'Move' | 'Rotate' | 'Scale') => {
+    const g = new Gizmo();
+    g.place(mode, 0, 0, 5, 0, 1);
+    return g;
+  };
+
+  it('takes a finger at least 44 px wide on every handle', () => {
+    expect(2 * HIT_HALF * GIZMO_PX).toBeGreaterThanOrEqual(44);
+    const move = at('Move');
+    // 21 px beside the X arrow, 21 px beside the Y arrow.
+    expect(move.pick(down(70, 21))).toBe('x');
+    expect(move.pick(down(70, -21))).toBe('x');
+    expect(move.pick(down(21, 70))).toBe('y');
+    // 20 px outside and inside the ring.
+    expect(at('Rotate').pick(down(67.5 + 20, 0))).toBe('rot');
+    expect(at('Rotate').pick(down(0, 67.5 - 20))).toBe('rot');
+    expect(at('Scale').pick(down(80, 21))).toBe('sx');
+  });
+
+  it('gives the arrows their whole length, the yellow square what lies between them, the centre to the centre cube', () => {
+    expect(at('Move').pick(down(27, 27))).toBe('xy');
+    expect(at('Move').pick(down(45, 40))).toBe('xy');
+    expect(at('Move').pick(down(40, 10))).toBe('x');
+    expect(at('Move').pick(down(10, 40))).toBe('y');
+    expect(at('Scale').pick(down(5, 3))).toBe('sxy');
   });
 });

@@ -4,8 +4,9 @@
  * Front, Back) look along an axis, move and zoom. The app's Top view is still the 2D canvas (WorldCanvas): this
  * camera has one too, for completeness.
  *
- * Axes as everywhere in world3d: the level's X and Y are three.js's X and Z, heights are three.js's Y. Front looks
- * from the bottom of the top view (+Y) towards -Y, so X goes to the right as in the top view and in Play.
+ * Axes as everywhere in world3d: the level's X and Y are three.js's X and Z, heights are three.js's Y. The side views
+ * are UE's (ELevelViewportType, V7.81): Front and Back look along X (Front from +X, the face of an actor that looks
+ * towards +X, +Y to the left; Back from -X), Right and Left look along Y (Right from +Y, X to the right; Left from -Y).
  */
 import { OrthographicCamera, PerspectiveCamera, Plane, Raycaster, Vector2, Vector3, type Camera } from 'three';
 import type { Point } from '../camera';
@@ -16,10 +17,10 @@ export type ViewKind = 'Perspective' | 'Top' | 'Bottom' | 'Left' | 'Right' | 'Fr
 const ORTHO: Record<Exclude<ViewKind, 'Perspective'>, { dir: [number, number, number]; up: [number, number, number] }> = {
   Top: { dir: [0, 1, 0], up: [0, 0, -1] },
   Bottom: { dir: [0, -1, 0], up: [0, 0, -1] },
-  Front: { dir: [0, 0, 1], up: [0, 1, 0] },
-  Back: { dir: [0, 0, -1], up: [0, 1, 0] },
-  Left: { dir: [-1, 0, 0], up: [0, 1, 0] },
-  Right: { dir: [1, 0, 0], up: [0, 1, 0] },
+  Front: { dir: [1, 0, 0], up: [0, 1, 0] },
+  Back: { dir: [-1, 0, 0], up: [0, 1, 0] },
+  Left: { dir: [0, 0, -1], up: [0, 1, 0] },
+  Right: { dir: [0, 0, 1], up: [0, 1, 0] },
 };
 
 const DEG = Math.PI / 180;
@@ -165,7 +166,7 @@ export class ViewCamera {
         this.distance = Math.min(MAX_DIST, Math.max(MIN_DIST, this.distance * (0.4 + 0.6 * (m / 0.8))));
       }
     } else {
-      const along = { Top: [sx, sy], Bottom: [sx, sy], Front: [sx, sh], Back: [sx, sh], Left: [sy, sh], Right: [sy, sh] }[this.kind];
+      const along = { Top: [sx, sy], Bottom: [sx, sy], Front: [sy, sh], Back: [sy, sh], Left: [sx, sh], Right: [sx, sh] }[this.kind];
       this.scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.min(this.w / along[0], this.h / along[1]) * 0.88));
       if (this.kind !== 'Top' && this.kind !== 'Bottom') this.target.y = sh / 2;
     }

@@ -41,10 +41,10 @@ const TYPE_HINT: Record<(typeof VIEW_TYPES)[number], string> = {
   Perspective: 'en 3D, tourne autour au doigt',
   Top: 'de dessus',
   Bottom: 'de dessous',
-  Left: 'de côté, depuis -X',
-  Right: 'de côté, depuis +X',
-  Front: 'de face, depuis le bas de la vue de dessus',
-  Back: 'de dos',
+  Left: 'de côté, depuis -Y (X vers la gauche)',
+  Right: 'de côté, depuis +Y (X vers la droite)',
+  Front: 'de face, depuis +X : la face d’un acteur tourné vers X',
+  Back: 'de dos, depuis -X',
 };
 const MODE_HINT: Record<(typeof VIEW_MODES)[number], string> = {
   Lit: 'avec les lumières',

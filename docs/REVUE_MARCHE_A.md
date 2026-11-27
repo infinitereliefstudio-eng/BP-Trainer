@@ -1,6 +1,6 @@
 # Revue de la marche A (le monde en 3D), V7.77 à V7.80 (27 novembre 2026)
 
-Demandée par Tristan le 27 novembre à 9 h 32 (« les essais sont ok pour le moment, la navigation est fluide et naturelle. On peut passer à la revue »), en redonnant l'accès en écriture. Revue de la phase 2 de la [feuille de route](FEUILLE_DE_ROUTE_3D_UI.md) : 3D-0 (V7.77), 3D-1 (V7.78), 3D-2 (V7.79, V7.80, avec UI-6). **Rien n'est lancé** : chaque lot attend son feu vert.
+Demandée par Tristan le 27 novembre à 9 h 32 (« les essais sont ok pour le moment, la navigation est fluide et naturelle. On peut passer à la revue »), en redonnant l'accès en écriture. Revue de la phase 2 de la [feuille de route](FEUILLE_DE_ROUTE_3D_UI.md) : 3D-0 (V7.77), 3D-1 (V7.78), 3D-2 (V7.79, V7.80, avec UI-6). Tristan a répondu le 27 novembre à 10 h 28 (« 1 : ok pour ta reco ; 2 : on va implémenter comme dans UE maintenant ; 3 : ok pour ta reco ; 4 : ok pour ta reco ») et les corrections sont lancées : **V7.81 faite** (lot 1).
 
 État de départ : lint, types et build sans erreur, 2 025 tests, smoke test sans erreur (`errors []`). Chaque constat a été reproduit par un test jetable (non versionné), se lit dans le code, ou s'appuie sur les sources citées en bas.
 
@@ -51,6 +51,8 @@ Ensuite, d'après la feuille de route : la phase 3 (UI-2 accueil « Aujourd'hui 
 2. **S1, l'outil Scale** : (a) garder les tailles en cm, mais marquer le Scale Snap comme un ajout de l'appli (ambre) et dire dans une note « Dans UE » que Scale change l'échelle du composant, pas sa taille ; puis ajouter un vrai Scale au modèle avec la marche B, qui touche déjà le format pour Z (recommandé : un seul changement de format) ; ou (b) ajouter le Scale tout de suite (changement de format, Details, nœuds) ?
 3. **B1, Box Extent en demi-taille** : l'afficher comme UE (recommandé : les nombres qu'on lit dans Details changent, une zone de 200 affichera 100, mais aucun texte d'étape ne cite de Box Extent), ou garder la taille entière et le dire dans une note ?
 4. **V2, l'ordre de la barre du viewport** : suivre UE (recommandé), ou garder Perspective et Lit en premier, plus faciles à trouver au téléphone ?
+
+**Réponses (27 novembre, 10 h 28)** : 1. comme UE ; 2. **Scale comme dans UE dès maintenant** (b) : une vraie échelle dans le modèle, sans attendre la marche B ; 3. Box Extent en demi-taille ; 4. l'ordre d'UE.
 
 ## Sources
 

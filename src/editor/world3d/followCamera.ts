@@ -52,6 +52,14 @@ export class FollowCamera {
     this.place();
   }
 
+  /** Look at (x, y) at once, without following there: a new level (Open Level), a new Player Start (V7.81). */
+  jumpTo(x: number, y: number): void {
+    this.target.x = x;
+    this.target.y = y;
+    this.placed = true;
+    this.place();
+  }
+
   /** Put the three.js camera where `target` and `distance` say. */
   place(): void {
     const p = PITCH * DEG;

@@ -27,12 +27,17 @@ describe('viewport types', () => {
     }
   });
 
-  it('looks the way UE names them: X to the right from Front, mirrored from Back, Y to the right from Left', () => {
+  it('looks the way UE names them (ELevelViewportType): Front and Back along X, Right and Left along Y', () => {
     const right = (kind: Parameters<typeof cam>[0], x: number, y: number) => cam(kind).toScreen(x, y).x;
-    expect(right('Front', 500, 0)).toBeGreaterThan(right('Front', -500, 0));
-    expect(right('Back', 500, 0)).toBeLessThan(right('Back', -500, 0));
-    expect(right('Left', 0, 300)).toBeGreaterThan(right('Left', 0, -300));
-    expect(right('Right', 0, 300)).toBeLessThan(right('Right', 0, -300));
+    // Front stands on +X: +Y is to the left. Back stands on -X: +Y to the right.
+    expect(right('Front', 0, 300)).toBeLessThan(right('Front', 0, -300));
+    expect(right('Back', 0, 300)).toBeGreaterThan(right('Back', 0, -300));
+    // Right stands on +Y: X to the right. Left stands on -Y: X to the left.
+    expect(right('Right', 500, 0)).toBeGreaterThan(right('Right', -500, 0));
+    expect(right('Left', 500, 0)).toBeLessThan(right('Left', -500, 0));
+    // Front sees along X: moving along X does not move on the screen.
+    expect(Math.abs(right('Front', 500, 0) - right('Front', -500, 0))).toBeLessThan(0.5);
+    expect(cam('Front').three.position.x).toBeGreaterThan(1000);
     // Higher is higher on the screen in a side view.
     const f = cam('Front');
     expect(f.toScreen(0, 0, 200).y).toBeLessThan(f.toScreen(0, 0, 0).y);
@@ -44,12 +49,19 @@ describe('viewport types', () => {
     const from = p.dragPoint(a.x, a.y)!;
     expect(Math.abs(from.x)).toBeLessThan(2);
     expect(Math.abs(from.y)).toBeLessThan(2);
-    const f = cam('Front');
+    const f = cam('Right');
     const s = f.toScreen(0, 0);
     const d0 = f.dragPoint(s.x, s.y)!,
       d1 = f.dragPoint(s.x + 50, s.y)!;
     expect(d1.x - d0.x).toBeGreaterThan(0);
     expect(Math.abs(d1.y - d0.y)).toBeLessThan(1);
+    // From Front, a drag to the right goes towards -Y, and X does not move.
+    const fr = cam('Front');
+    const q = fr.toScreen(0, 0);
+    const e0 = fr.dragPoint(q.x, q.y)!,
+      e1 = fr.dragPoint(q.x + 50, q.y)!;
+    expect(e1.y - e0.y).toBeLessThan(0);
+    expect(Math.abs(e1.x - e0.x)).toBeLessThan(1);
   });
 
   it('orbits in Perspective only, and keeps a sensible angle', () => {

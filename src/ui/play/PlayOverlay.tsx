@@ -147,15 +147,15 @@ function Key({ label, k, session, wide }: { label: string; k: InputKey; session:
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         (e.currentTarget as HTMLElement).classList.add('down');
         haptic('tap');
-        session.sim.pressKey(k);
+        session.pressKey(k);
       }}
       onPointerUp={(e) => {
         (e.currentTarget as HTMLElement).classList.remove('down');
-        session.sim.releaseKey(k);
+        session.releaseKey(k);
       }}
       onPointerCancel={(e) => {
         (e.currentTarget as HTMLElement).classList.remove('down');
-        session.sim.releaseKey(k);
+        session.releaseKey(k);
       }}
     >
       {label}

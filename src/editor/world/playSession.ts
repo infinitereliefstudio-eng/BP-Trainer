@@ -5,7 +5,7 @@
  */
 import type { Project } from '@core/model/project';
 import { Game } from '@core/runtime/game';
-import { type ActorOrder, type Simulation, STEP } from '@core/runtime/simulation';
+import { type ActorOrder, type InputKey, type Simulation, STEP } from '@core/runtime/simulation';
 import type { Point } from '../camera';
 import { ExecHeat } from '../debug/execHeat';
 
@@ -42,6 +42,8 @@ export class PlaySession {
   /** Frames per second of the 3D view, measured about once a second (shown in the toolbar during the trial). */
   fps?: number;
   private wasPaused = false;
+  /** The touch keys held down (E, F, Espace): Eject lets go of them, as its buttons go away (V7.81). */
+  private readonly held = new Set<InputKey>();
   private frameListeners = new Set<() => void>();
   private uiListeners = new Set<() => void>();
   private pauseListeners = new Set<() => void>();
@@ -162,8 +164,24 @@ export class PlaySession {
 
   setEjected(on: boolean): void {
     this.ejected = on;
-    if (on) this.game.move = { x: 0, y: 0 };
+    if (on) {
+      this.game.move = { x: 0, y: 0 };
+      // The pawn receives nothing any more: a key held at that moment is let go, or it would stay down.
+      for (const k of [...this.held]) this.releaseKey(k);
+    }
     this.notifyUi();
+  }
+
+  /** A touch key goes down (the keys of Play's overlay). */
+  pressKey(k: InputKey): void {
+    this.held.add(k);
+    this.sim.pressKey(k);
+  }
+
+  /** A touch key goes up; nothing if it was already let go (Eject, or a cancelled touch after the release). */
+  releaseKey(k: InputKey): void {
+    if (!this.held.delete(k)) return;
+    this.sim.releaseKey(k);
   }
 
   /** Switch between the 3D view and the top view (the app's addition: a game made in UE has one camera). */

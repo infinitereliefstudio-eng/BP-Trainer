@@ -7,8 +7,8 @@
  * fingers pinch to come closer. The frame is drawn only while the game runs, or after a change (pause, step, pick):
  * a paused game costs no battery.
  *
- * Ejected (UE's F8, V7.80), the view leaves the follow camera for a free one: one finger turns around, two fingers
- * move and pinch, as in the level editor.
+ * Ejected (UE's F8, V7.80), the view leaves the follow camera for a free one: one finger turns around (on an actor
+ * too), two fingers move and pinch, as in the level editor; a tap picks an actor without clicking it (V7.81).
  *
  * If WebGL is missing (rare on a phone), `onUnavailable` is called: Play goes back to the top view.
  */
@@ -88,7 +88,9 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
       // Open Level made a new world: start the camera again on the new Player Start.
       if (session.sim !== sim) {
         sim = session.sim;
-        cam.follow(sim.player.x, sim.player.y, 0);
+        cam.jumpTo(sim.player.x, sim.player.y);
+        // Ejected during the journey: the free camera starts again over the new level.
+        free = undefined;
       }
       if (!session.running && !dirty) return;
       dirty = false;
@@ -141,7 +143,8 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
       selectionMode: () => false,
       onTap(hit) {
         if (hit.kind !== 'node') return;
-        sim.click(hit.node);
+        // Ejected, the finger is the editor's (UE's mouse after F8): it picks, the game receives nothing (V7.81).
+        if (!session.ejected) sim.click(hit.node);
         session.select(hit.node);
         dirty = true;
       },
@@ -164,9 +167,11 @@ export function World3DCanvas({ session, onUnavailable, onFps }: Props) {
         dirty = true;
         draw(performance.now());
       },
-      // A drag that starts on an actor moves nothing in Play.
+      // A drag that starts on an actor moves nothing in Play; ejected, it turns the free camera as on the void (V7.81).
       onNodeDragStart: noop,
-      onNodeDrag: noop,
+      onNodeDrag(dx, dy) {
+        host.onPan(dx, dy);
+      },
       onNodeDragEnd: noop,
       onWireStart: noop,
       onWireMove: noop,

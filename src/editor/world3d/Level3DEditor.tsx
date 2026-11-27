@@ -42,12 +42,25 @@ interface Props {
 const focusOf = (id: string) => (isPlayerStartId(id) ? ({ kind: 'playerStart', id } as const) : ({ kind: 'actor', id } as const));
 const noop = () => undefined;
 
-/** The editor's camera outlives a change of view type: the new view looks at the same place. */
-const shared = { camera: undefined as ViewCamera | undefined };
+/**
+ * One editor camera per level (`project id|level id`), kept while the app runs, as UE keeps a viewport camera per
+ * level (V7.81): another lesson or another level opens framed on itself, and coming back finds the view as it was.
+ * It outlives a change of view type: the new view looks at the same place.
+ */
+const cameras = new Map<string, ViewCamera>();
 
 export function Level3DEditor({ store, requests, kind, mode, center, gizmo: settings, onUnavailable }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const live = useRef({ requests, onUnavailable, invalidate: noop as () => void, frame: noop as (id: string) => void, kind, mode, settings });
+  const live = useRef({
+    requests,
+    onUnavailable,
+    invalidate: noop as () => void,
+    frame: noop as (id: string) => void,
+    kind,
+    mode,
+    settings,
+    cam: undefined as ViewCamera | undefined,
+  });
   live.current.requests = requests;
   live.current.onUnavailable = onUnavailable;
   live.current.settings = settings;
@@ -68,10 +81,27 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
     const gizmo = new Gizmo();
     level.scene.add(gizmo.group);
     let handleDrag: { drag: GizmoDrag; id: string; at: { x: number; y: number } } | undefined;
-    const fresh = !shared.camera;
-    if (!shared.camera) shared.camera = new ViewCamera(live.current.kind);
-    const cam = shared.camera;
-    cam.kind = live.current.kind;
+    let cam = new ViewCamera(live.current.kind);
+    let camKey = '';
+    let needFrame = false;
+    let size = { w: 1, h: 1 };
+    /** The camera of the level being edited; a level seen for the first time is framed whole. */
+    const levelCamera = () => {
+      const key = `${store.project.id}|${levelOf(store.project).id}`;
+      if (key === camKey) return;
+      camKey = key;
+      let c = cameras.get(key);
+      if (!c) {
+        c = new ViewCamera(live.current.kind);
+        cameras.set(key, c);
+        needFrame = true;
+      }
+      c.kind = live.current.kind;
+      c.resize(size.w, size.h);
+      cam = c;
+      live.current.cam = c;
+    };
+    levelCamera();
     let preview: Simulation | undefined;
     let raf = 0;
     let sized = false;
@@ -127,6 +157,11 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
     const draw = () => {
       raf = 0;
       if (!sized) return;
+      levelCamera();
+      if (needFrame) {
+        needFrame = false;
+        cam.frame(bounds());
+      }
       const list = actors();
       const sel = selected();
       level.mode = live.current.mode;
@@ -229,8 +264,8 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
       const r = wrap.getBoundingClientRect();
       if (!r.width || !r.height) return;
       renderer.setSize(r.width, r.height, true);
+      size = { w: r.width, h: r.height };
       cam.resize(r.width, r.height);
-      if (!sized && fresh) cam.frame(bounds());
       sized = true;
       draw();
     });
@@ -362,6 +397,7 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
       dropRenderer(renderer);
       live.current.invalidate = noop;
       live.current.frame = noop;
+      live.current.cam = undefined;
     };
   }, [store]);
 
@@ -369,7 +405,7 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
   useEffect(() => {
     live.current.kind = kind;
     live.current.mode = mode;
-    const cam = shared.camera;
+    const cam = live.current.cam;
     if (cam && cam.kind !== kind) {
       const wasPersp = cam.kind === 'Perspective';
       cam.kind = kind;

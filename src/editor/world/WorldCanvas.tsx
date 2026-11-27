@@ -190,9 +190,10 @@ export function WorldCanvas({ store, session, requests, center }: Props) {
       onTap(hit) {
         const s = live.current.session;
         if (s) {
-          // Tapping an actor clicks it (Event ActorOnClicked) and picks it in the Outliner.
+          // Tapping an actor clicks it (Event ActorOnClicked) and picks it in the Outliner. Ejected, the finger is the
+          // editor's, as UE's mouse after F8: it picks, the game receives nothing (V7.81).
           if (hit.kind === 'node' && !isPlayerStartId(hit.node)) {
-            s.sim.click(hit.node);
+            if (!s.ejected) s.sim.click(hit.node);
             s.select(hit.node);
           }
           return;

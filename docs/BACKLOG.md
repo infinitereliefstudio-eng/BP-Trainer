@@ -7,7 +7,9 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
 
-## Reprise par un autre agent (à jour le 26 novembre 2026, après la V7.74)
+## Reprise par un autre agent (à jour le 27 novembre 2026, après la V7.80 et la revue de la marche A)
+
+**27 novembre : revue de la marche A faite** ([REVUE_MARCHE_A.md](REVUE_MARCHE_A.md)), après les essais de Tristan des V7.75 à V7.80 (« les essais sont ok pour le moment, la navigation est fluide et naturelle »). Deux lots proposés (V7.81 : sens des vues comme UE, poignées du gizmo à 44 px, Eject, caméra après Open Level, une caméra par niveau ; V7.82 : Scale, Box Extent en demi-taille, ordre de la barre du viewport, textes des nœuds, taille des noms en 3D, docs) et quatre questions. **Rien n'est lancé** : attendre ses réponses. Le point 0 ci-dessous (ses essais des V7.75 à V7.80) est fait.
 
 **À lire d'abord**, dans cet ordre : CLAUDE.md, [HANDOFF.md](HANDOFF.md) (« Reprise rapide », les sections V7.65 à V7.74 et « Méthode de travail »), [REVUE_EXPERT_FINAL.md](REVUE_EXPERT_FINAL.md) (la dernière revue, entièrement corrigée), puis cette section. Tristan parle français, teste sur son téléphone (APK liée au site : un push sur `main` est une mise en production) et donne son feu vert version par version.
 

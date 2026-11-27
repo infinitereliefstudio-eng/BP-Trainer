@@ -38,19 +38,31 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
         </Field>
       </Group>
 
-      {!isRoot && (
-        <Group title="Transform">
-          <Field label="Location X">
-            <NumberField value={p.x} unit="cm" onCommit={(x) => set({ x })} />
-          </Field>
-          <Field label="Location Y">
-            <NumberField value={p.y} unit="cm" onCommit={(y) => set({ y })} />
-          </Field>
-          <Field label="Rotation Yaw">
-            <NumberField value={p.yaw} unit="°" onCommit={(yaw) => set({ yaw })} />
-          </Field>
-        </Group>
-      )}
+      <Group title="Transform">
+        {!isRoot && (
+          <>
+            <Field label="Location X">
+              <NumberField value={p.x} unit="cm" onCommit={(x) => set({ x })} />
+            </Field>
+            <Field label="Location Y">
+              <NumberField value={p.y} unit="cm" onCommit={(y) => set({ y })} />
+            </Field>
+            <Field label="Rotation Yaw">
+              <NumberField value={p.yaw} unit="°" onCommit={(yaw) => set({ yaw })} />
+            </Field>
+          </>
+        )}
+        {/* UE's Relative Scale 3D (V7.83): a factor, relative to the parent; children are stretched with it. */}
+        <Field label="Scale X">
+          <NumberField value={p.scaleX ?? 1} onCommit={(scaleX) => set({ scaleX })} />
+        </Field>
+        <Field label="Scale Y">
+          <NumberField value={p.scaleY ?? 1} onCommit={(scaleY) => set({ scaleY })} />
+        </Field>
+        <Field label="Scale Z">
+          <NumberField value={p.scaleZ ?? 1} onCommit={(scaleZ) => set({ scaleZ })} />
+        </Field>
+      </Group>
 
       {c.kind === 'StaticMesh' && (
         <Group title="Static Mesh">
@@ -102,11 +114,12 @@ export function ComponentDetails({ id, placeNode, onOpenClass }: { id: string; p
 
       {c.kind === 'BoxCollision' && (
         <Group title="Shape">
+          {/* As in UE, Box Extent is half the box (its « radii »): 100 makes a box 200 cm wide. The model keeps the full size. */}
           <Field label="Box Extent X">
-            <NumberField value={p.sizeX} unit="cm" onCommit={(sizeX) => set({ sizeX: Math.max(1, sizeX) })} />
+            <NumberField value={p.sizeX / 2} unit="cm" onCommit={(x) => set({ sizeX: Math.max(1, x * 2) })} />
           </Field>
           <Field label="Box Extent Y">
-            <NumberField value={p.sizeY} unit="cm" onCommit={(sizeY) => set({ sizeY: Math.max(1, sizeY) })} />
+            <NumberField value={p.sizeY / 2} unit="cm" onCommit={(y) => set({ sizeY: Math.max(1, y * 2) })} />
           </Field>
         </Group>
       )}

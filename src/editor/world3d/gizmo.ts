@@ -17,12 +17,11 @@ import {
   type Raycaster,
   TorusGeometry,
 } from 'three';
-import type { Handle } from './gizmoMath';
+import { GIZMO_PX, type Handle } from './gizmoMath';
 
 export const GIZMO_COLORS = { x: '#e0433a', y: '#5bc236', z: '#2f6fe4', plane: '#f5c21b', active: '#ffe14d', uniform: '#d8d8d8' };
 
-/** The gizmo's length on the screen, in px. */
-export const GIZMO_PX = 90;
+export { GIZMO_PX } from './gizmoMath';
 /** Half the width of a handle's invisible twin, in gizmo units: 2 × 0.25 × 90 = 45 px for a finger (V7.81). */
 export const HIT_HALF = 0.25;
 /** Handles that win when a finger is on several twins: the arrows over the yellow square that sits between them, the

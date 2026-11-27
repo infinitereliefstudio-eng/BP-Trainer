@@ -51,11 +51,18 @@ export class HtmlLabels {
   }
 }
 
+/** Réglages › Taille du texte, as the CSS has it (`--ts`: 0.9 to 1.3): the labels grow with it (V7.82). */
+export function textScaleOfPage(): number {
+  const v = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ts'));
+  return Number.isFinite(v) && v > 0 ? v : 1;
+}
+
 /**
  * Keep the labels that do not cover one another: frames always, then the selected actor, the Player Starts, then the
  * rest from the nearest (lowest on the screen) up. A crowded level seen from afar shows a few names, not a heap.
+ * `scale` is the text size setting: bigger letters take more room.
  */
-export function declutter(labels: readonly Label[]): Label[] {
+export function declutter(labels: readonly Label[], scale = 1): Label[] {
   const rank = (l: Label) => (l.w !== undefined ? 0 : l.cls === 'selected' ? 1 : l.cls === 'ref' ? 2 : l.cls === 'start' ? 3 : 4);
   const sorted = [...labels].sort((a, b) => rank(a) - rank(b) || b.y - a.y);
   const kept: Label[] = [];
@@ -65,8 +72,8 @@ export function declutter(labels: readonly Label[]): Label[] {
       kept.push(l);
       continue;
     }
-    const w = l.text.length * 6.6 + 6;
-    const box = { x0: l.x - w / 2, y0: l.y, x1: l.x + w / 2, y1: l.y + 15 };
+    const w = (l.text.length * 6.6 + 6) * scale;
+    const box = { x0: l.x - w / 2, y0: l.y, x1: l.x + w / 2, y1: l.y + 15 * scale };
     if (boxes.some((b) => b.x0 < box.x1 && box.x0 < b.x1 && b.y0 < box.y1 && box.y0 < b.y1)) continue;
     boxes.push(box);
     kept.push(l);

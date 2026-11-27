@@ -5,38 +5,37 @@
  * its parent, which may be turned: the move is turned back into the
  * parent's frame, as UE's gizmo does with Relative Location.
  */
-import type { BlueprintClass, Component } from '../model/project';
+import { type BlueprintClass, type Component, isSceneComponent } from '../model/project';
+import { chainOf, compose, type FrameTransform, rootComponent, scaleOf } from '../model/scale';
 
 const DEG = Math.PI / 180;
 
 /** Sum of the Rotation Yaw of the component's parents (the frame its Location is in). */
 export function parentYaw(components: Component[], id: string): number {
-  let yaw = 0;
-  let cur = components.find((c) => c.id === id);
-  for (let guard = 0; cur?.parent && guard < 32; guard++) {
-    const parent = components.find((c) => c.id === cur?.parent);
-    if (!parent) break;
-    yaw += parent.props.yaw;
-    cur = parent;
-  }
-  return yaw;
+  return parentFrame(components, id).yaw;
 }
 
-/** Where a component is in the actor's frame (the Viewport's world). */
-export function componentInActor(components: Component[], id: string): { x: number; y: number; yaw: number } {
-  const chain: Component[] = [];
-  let cur = components.find((c) => c.id === id);
-  for (let guard = 0; cur && guard < 32; guard++) {
-    chain.unshift(cur);
-    const parentId = cur.parent;
-    cur = parentId ? components.find((c) => c.id === parentId) : undefined;
-  }
-  let t = { x: 0, y: 0, yaw: 0 };
-  for (const c of chain) {
-    const r = t.yaw * DEG;
-    t = { x: t.x + c.props.x * Math.cos(r) - c.props.y * Math.sin(r), y: t.y + c.props.x * Math.sin(r) + c.props.y * Math.cos(r), yaw: t.yaw + c.props.yaw };
-  }
-  return t;
+/**
+ * The frame a component's Location is in, in the actor's frame: its parent's world Yaw and scale (a parent's scale
+ * stretches its children's Location, as in UE: V7.83).
+ */
+export function parentFrame(components: Component[], id: string): FrameTransform {
+  const c = components.find((k) => k.id === id);
+  const scene = components.filter(isSceneComponent);
+  const parent = c?.parent ? scene.find((k) => k.id === c.parent) : undefined;
+  if (parent) return compose(chainOf(scene, parent), { x: 0, y: 0, yaw: 0 }, rootComponent(scene));
+  // No parent: on the actor's origin, with the root's scale if it is not the root itself.
+  const root = rootComponent(scene);
+  const s = root && root !== c ? scaleOf(root.props) : { x: 1, y: 1, z: 1 };
+  return { x: 0, y: 0, yaw: 0, sx: s.x, sy: s.y, sz: s.z };
+}
+
+/** Where a component is in the actor's frame (the Viewport's world), with its world scale. */
+export function componentInActor(components: Component[], id: string): FrameTransform {
+  const scene = components.filter(isSceneComponent);
+  const c = scene.find((k) => k.id === id);
+  if (!c) return { x: 0, y: 0, yaw: 0, sx: 1, sy: 1, sz: 1 };
+  return compose(chainOf(scene, c), { x: 0, y: 0, yaw: 0 }, rootComponent(scene));
 }
 
 /**
@@ -48,9 +47,10 @@ export function componentInActor(components: Component[], id: string): { x: numb
 export function moveComponentBy(cls: BlueprintClass, all: Component[], id: string, dx: number, dy: number): boolean {
   const comp = cls.components.find((c) => c.id === id);
   if (!comp?.parent) return false;
-  const r = -parentYaw(all, id) * DEG;
-  comp.props.x += dx * Math.cos(r) - dy * Math.sin(r);
-  comp.props.y += dx * Math.sin(r) + dy * Math.cos(r);
+  const f = parentFrame(all, id);
+  const r = -f.yaw * DEG;
+  comp.props.x += (dx * Math.cos(r) - dy * Math.sin(r)) / (f.sx || 1);
+  comp.props.y += (dx * Math.sin(r) + dy * Math.cos(r)) / (f.sy || 1);
   return true;
 }
 

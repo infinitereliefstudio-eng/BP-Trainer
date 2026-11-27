@@ -40,7 +40,7 @@ export const componentNodes: NodeDefinition[] = [
     category: 'Transformation',
     kind: 'function',
     description:
-      "Tourne un composant par rapport à son parent. En 2D, seul Yaw compte : c'est la rotation vue de dessus, en degrés.",
+      "Tourne un composant par rapport à son parent, en degrés. Comme le niveau de l’appli n’a pas encore de hauteur, seul Yaw (Z) compte.",
     keywords: ['rotation', 'rotate', 'tourner', 'yaw', 'porte', 'ouvrir'],
     pins: [
       execIn(),
@@ -54,7 +54,7 @@ export const componentNodes: NodeDefinition[] = [
     title: 'Set Relative Location',
     category: 'Transformation',
     kind: 'function',
-    description: 'Déplace un composant par rapport à son parent, en centimètres. En 2D, Z est ignoré.',
+    description: 'Déplace un composant par rapport à son parent, en centimètres. Comme le niveau de l’appli n’a pas encore de hauteur, Z est ignoré.',
     keywords: ['location', 'position', 'move', 'deplacer'],
     pins: [
       execIn(),
@@ -62,6 +62,30 @@ export const componentNodes: NodeDefinition[] = [
       dataIn('location', 'New Location', T.vector),
       execOut(),
     ],
+  },
+  {
+    id: 'component.setRelativeScale3D',
+    title: 'Set Relative Scale 3D',
+    category: 'Transformation',
+    kind: 'function',
+    description:
+      'Change l’échelle d’un composant par rapport à son parent : 2 le double. Ses enfants sont étirés avec lui, leur Location aussi. La taille et les collisions d’un mesh ou d’une Box Collision suivent ; Z n’étire que le dessin.',
+    keywords: ['scale', 'echelle', 'agrandir', 'taille', 'relative'],
+    pins: [
+      execIn(),
+      dataIn('target', 'Target', T.object('SceneComponent'), { required: true }),
+      dataIn('scale', 'New Scale 3D', T.vector, { default: { x: 1, y: 1, z: 1 } }),
+      execOut(),
+    ],
+  },
+  {
+    id: 'component.getWorldScale',
+    title: 'Get World Scale',
+    category: 'Transformation',
+    kind: 'pure',
+    description: 'L’échelle du composant dans le monde : la sienne multipliée par celles de ses parents (et donc de l’acteur).',
+    keywords: ['scale', 'echelle', 'world', 'monde', 'component scale'],
+    pins: [dataIn('target', 'Target', T.object('SceneComponent'), { required: true }), dataOut('result', 'Return Value', T.vector)],
   },
   {
     id: 'component.setIntensity',
@@ -97,7 +121,7 @@ export const componentNodes: NodeDefinition[] = [
     category: 'Transformation',
     kind: 'pure',
     description:
-      'La position du composant dans le monde, en cm : sa Location relative, tournée et décalée par chacun de ses parents puis par l’acteur. Vue de dessus : X vers la droite, Y vers le bas.',
+      'La position du composant dans le monde, en cm : sa Location relative, tournée et décalée par chacun de ses parents puis par l’acteur. Dans la vue Top : X vers la droite, Y vers le bas.',
     keywords: ['world location', 'position', 'monde', 'composant', 'ou'],
     pins: [dataIn('target', 'Target', T.object('SceneComponent'), { required: true }), dataOut('result', 'Return Value', T.vector)],
   },

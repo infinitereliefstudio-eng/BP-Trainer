@@ -22,6 +22,9 @@ export interface GizmoSettings {
 
 const DEG = Math.PI / 180;
 
+/** The gizmo's length on the screen, in px. */
+export const GIZMO_PX = 90;
+
 /** An axis of the level (X or Y), turned by `yaw` degrees in Local space. */
 export function axisOf(handle: 'x' | 'y' | 'sx' | 'sy', yaw: number): Point {
   const a = (handle === 'x' || handle === 'sx' ? 0 : 90) * DEG + yaw * DEG;
@@ -40,6 +43,30 @@ export function alongAxis(p: Projector, o: Point, h: number, axis: Point, dx: nu
   const l2 = vx * vx + vy * vy;
   if (l2 < 9) return 0;
   return (100 * (dx * vx + dy * vy)) / l2;
+}
+
+/**
+ * How many screen pixels a finger moved by (dx, dy) along `axis` as the screen shows it (from the point `o`, at height
+ * `h`). 0 when the axis points at the camera. The Scale handles use it: like UE's, they change the scale by how far the
+ * finger goes, whatever the size of the object.
+ */
+export function alongScreenAxis(p: Projector, o: Point, h: number, axis: Point, dx: number, dy: number): number {
+  const a = p.toScreen(o.x, o.y, h);
+  const b = p.toScreen(o.x + axis.x * 100, o.y + axis.y * 100, h);
+  const vx = b.x - a.x,
+    vy = b.y - a.y;
+  const l = Math.hypot(vx, vy);
+  if (l < 3) return 0;
+  return (dx * vx + dy * vy) / l;
+}
+
+/**
+ * UE's Scale Snap (a factor: 0.25 by default): the scale lands on the step; without snap, on the thousandth. Never 0 or
+ * less here: the app's shapes need a size (UE would let a scale go negative and mirror the mesh).
+ */
+export function snapScale(v: number, step: number): number {
+  const r = step > 0 ? Math.round(v / step) * step : Math.round(v * 1000) / 1000;
+  return r > 0 ? r : step > 0 ? step : 0.001;
 }
 
 /** UE's snapping: to the step when it is on; to the whole unit otherwise (no 213,47 from a finger). */

@@ -1,8 +1,9 @@
 /**
  * The viewport bar (3D-1, V7.78; tools and snaps 3D-2, V7.79), at the top left of the level and of the Blueprint's
- * Viewport, as in UE 5.6 and later: the view type (Perspective, Top, Bottom, Left, Right, Front, Back), the view mode
- * (Lit, Unlit, Wireframe), the transform tools (Select, Move, Rotate, Scale: Q, W, E, R in UE), the coordinate space
- * (World, Local), the grid, rotation and scale snaps, and F, which frames the selection (a touch control here).
+ * Viewport, in the order of UE 5.6 and later (V7.82): the transform tools (Select, Move, Rotate, Scale: Q, W, E, R in
+ * UE), the coordinate space (World, Local), the grid, rotation and scale snaps, then the view type (Perspective, Top,
+ * Bottom, Left, Right, Front, Back) and the view mode (Lit, Unlit, Wireframe), and F, which frames the selection (a
+ * touch control here).
  * In the Top view, drawn by the 2D canvas, there is no gizmo: the tools and snaps are not shown.
  */
 import { useEffect, useReducer } from 'preact/hooks';
@@ -59,10 +60,11 @@ interface Props {
   context: 'level' | 'blueprint';
   setOverlay: OpenOverlay;
   onFrame: () => void;
-  onInfo: (text: string) => void;
+  /** Kept for the callers; nothing to say since Scale works in the level too (V7.83). */
+  onInfo?: (text: string) => void;
 }
 
-export function ViewportBar({ context, setOverlay, onFrame, onInfo }: Props) {
+export function ViewportBar({ context, setOverlay, onFrame }: Props) {
   const [, force] = useReducer((n: number) => n + 1, 0);
   useEffect(() => onViewportSettings(() => force(0)), []);
   const type = context === 'level' ? viewType() : bpViewType();
@@ -87,7 +89,6 @@ export function ViewportBar({ context, setOverlay, onFrame, onInfo }: Props) {
   const pickTool = (t: Tool) => {
     haptic('tap');
     setTool(t);
-    if (t === 'Scale' && context === 'level') onInfo('Scale : un acteur posé n’a pas d’échelle ici. Change la taille de ses composants dans le Viewport de son Blueprint.');
   };
   const in3d = type !== 'Top';
   const grid = gridSnap(),
@@ -96,43 +97,6 @@ export function ViewportBar({ context, setOverlay, onFrame, onInfo }: Props) {
 
   return (
     <div class="vp-bar" data-context={context}>
-      <button
-        class="vp-btn"
-        aria-label={type}
-        onClick={(e) =>
-          setOverlay({
-            kind: 'menu',
-            ...at(e),
-            title: 'Viewport Type',
-            items: VIEW_TYPES.map((t) => ({
-              label: t,
-              hint: t === type ? `${TYPE_HINT[t]} · en cours` : TYPE_HINT[t],
-              action: () => {
-                haptic('tap');
-                setType(t);
-              },
-            })),
-          })
-        }
-      >
-        {type} <Icon name="chevron-down" />
-      </button>
-      {in3d && (
-        <button
-          class="vp-btn"
-          aria-label={mode}
-          onClick={(e) =>
-            setOverlay({
-              kind: 'menu',
-              ...at(e),
-              title: 'View Mode',
-              items: VIEW_MODES.map((m) => ({ label: m, hint: m === mode ? `${MODE_HINT[m]} · en cours` : MODE_HINT[m], action: () => setViewMode(m) })),
-            })
-          }
-        >
-          {mode} <Icon name="chevron-down" />
-        </button>
-      )}
       {in3d && (
         <span class="vp-group">
           {TOOLS.map((t) => (
@@ -170,13 +134,50 @@ export function ViewportBar({ context, setOverlay, onFrame, onInfo }: Props) {
           <Icon name="angle" /> {rot ? `${rot}°` : 'Off'}
         </button>
       )}
-      {in3d && context === 'blueprint' && (
+      {in3d && (
         <button
           class={`vp-btn snap${scl ? ' on' : ''}`}
           aria-label="Scale Snap"
-          onClick={(e) => snapMenu(e, 'Scale Snap', SCALE_SNAPS, scl, ' cm', setScaleSnap)}
+          onClick={(e) => snapMenu(e, 'Scale Snap', SCALE_SNAPS, scl, '', setScaleSnap)}
         >
           <Icon name="size" /> {scl || 'Off'}
+        </button>
+      )}
+      <button
+        class="vp-btn"
+        aria-label={type}
+        onClick={(e) =>
+          setOverlay({
+            kind: 'menu',
+            ...at(e),
+            title: 'Viewport Type',
+            items: VIEW_TYPES.map((t) => ({
+              label: t,
+              hint: t === type ? `${TYPE_HINT[t]} · en cours` : TYPE_HINT[t],
+              action: () => {
+                haptic('tap');
+                setType(t);
+              },
+            })),
+          })
+        }
+      >
+        {type} <Icon name="chevron-down" />
+      </button>
+      {in3d && (
+        <button
+          class="vp-btn"
+          aria-label={mode}
+          onClick={(e) =>
+            setOverlay({
+              kind: 'menu',
+              ...at(e),
+              title: 'View Mode',
+              items: VIEW_MODES.map((m) => ({ label: m, hint: m === mode ? `${MODE_HINT[m]} · en cours` : MODE_HINT[m], action: () => setViewMode(m) })),
+            })
+          }
+        >
+          {mode} <Icon name="chevron-down" />
         </button>
       )}
       <button class="vp-btn" {...origin('touch', 'frame')} aria-label="F" title="Cadrer la sélection (F)" onClick={onFrame}>

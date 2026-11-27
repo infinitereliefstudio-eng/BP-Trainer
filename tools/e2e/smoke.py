@@ -2026,7 +2026,7 @@ async def main():
         if await page.locator('.editor3d').count() or not await page.locator('.graph-canvas.world canvas').count():
             errs.append('Viewport : Top ne revient pas à la vue de dessus')
         # 3D-2 (V7.79): the Blueprint's Viewport in Perspective with the gizmo. In BP_Generateur, the Moteur mesh is moved
-        # along X by its red arrow, turned by the blue ring, made longer by the red cube of Scale.
+        # along X by its red arrow, turned by the blue ring, its Scale X raised by the red cube of Scale (V7.83: a factor).
         async def drag_path(points):
             await page.mouse.move(*points[0])
             await page.mouse.down()
@@ -2035,7 +2035,7 @@ async def main():
                 await page.wait_for_timeout(16)
             await page.mouse.up()
             await page.wait_for_timeout(250)
-        MOTEUR = "() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Generateur').components.find(c => c.name === 'Moteur'); return [c.props.x, c.props.y, c.props.yaw, c.props.sizeX, c.props.sizeY]; }"
+        MOTEUR = "() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Generateur').components.find(c => c.name === 'Moteur'); return [c.props.x, c.props.y, c.props.yaw, c.props.scaleX ?? 1, c.props.scaleY ?? 1]; }"
         await page.evaluate(OPEN, 'BP_Generateur')
         await graph(page)
         await page.locator('.graph-tabs .tab', has_text='Viewport').tap()
@@ -2097,7 +2097,7 @@ async def main():
                 await drag_path(pts)
                 scaled = await page.evaluate(MOTEUR)
                 if not scaled[3] > turned[3]:
-                    errs.append(f'Gizmo : le cube rouge de Scale n’allonge pas Moteur ({turned[3]} → {scaled[3]})')
+                    errs.append(f'Gizmo : le cube rouge de Scale ne monte pas le Scale X de Moteur ({turned[3]} → {scaled[3]})')
                 await shot('127_viewport_gizmo_scale')
                 await page.locator('.vp-bar .vp-btn[aria-label="Move"]').tap()
         # UI-6 (V7.80): the level toolbar of UE 5.8 (Settings › World Settings opens its Details), and Eject / Possess in Play.

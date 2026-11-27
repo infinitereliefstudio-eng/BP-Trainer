@@ -15,17 +15,20 @@ const DEG = Math.PI / 180;
 export function componentShape(actor: ActorRT, c: ComponentRT): Shape | undefined {
   const t = componentTransform(actor, c);
   const a = t.yaw * DEG;
+  // Size × world scale (V7.83): what is drawn and what collides, as UE scales a mesh or a box by its Scale.
+  const w = c.props.sizeX * Math.abs(t.sx),
+    d = c.props.sizeY * Math.abs(t.sy);
   if (c.kind === 'BoxCollision') {
-    return { kind: 'obb', cx: t.x, cy: t.y, hx: c.props.sizeX / 2, hy: c.props.sizeY / 2, angle: a };
+    return { kind: 'obb', cx: t.x, cy: t.y, hx: w / 2, hy: d / 2, angle: a };
   }
   if (c.kind === 'StaticMesh') {
-    if (c.props.shape === 'cylinder') return { kind: 'circle', cx: t.x, cy: t.y, r: c.props.sizeX / 2 };
+    if (c.props.shape === 'cylinder') return { kind: 'circle', cx: t.x, cy: t.y, r: Math.max(w, c.props.sizeX * Math.abs(t.sy)) / 2 };
     if (c.props.shape === 'door') {
       // A door pivots on its hinge: the mesh spans 0..sizeX along its local X.
-      const half = c.props.sizeX / 2;
-      return { kind: 'obb', cx: t.x + Math.cos(a) * half, cy: t.y + Math.sin(a) * half, hx: half, hy: c.props.sizeY / 2, angle: a };
+      const half = w / 2;
+      return { kind: 'obb', cx: t.x + Math.cos(a) * half, cy: t.y + Math.sin(a) * half, hx: half, hy: d / 2, angle: a };
     }
-    return { kind: 'obb', cx: t.x, cy: t.y, hx: c.props.sizeX / 2, hy: c.props.sizeY / 2, angle: a };
+    return { kind: 'obb', cx: t.x, cy: t.y, hx: w / 2, hy: d / 2, angle: a };
   }
   return undefined;
 }

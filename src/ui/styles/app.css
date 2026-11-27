@@ -218,11 +218,11 @@ select.field { padding-right: 4px; }
 .vp-btn:active { background: var(--btn-press); }
 .vp-btn[data-origin='touch'] { border: 1px dashed var(--line-2); }
 .world3d-labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.w3-label { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: 12px; color: #9aa3b2; text-shadow: 0 1px 2px #000; }
-.w3-label.selected { color: #cfe2ff; }
+.w3-label { position: absolute; left: 0; top: 0; white-space: nowrap; font-size: calc(12px * var(--ts)); color: var(--muted); text-shadow: 0 1px 2px #000; }
+.w3-label.selected { color: var(--text-strong); }
 .w3-label.start { color: #7fd48f; }
 .w3-label.ref { color: rgba(125, 211, 252, 0.95); }
-.w3-label.frame { display: flex; align-items: center; justify-content: center; font-size: 11px; color: #bde7fb; background: rgba(125, 211, 252, 0.1);
+.w3-label.frame { display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); color: #bde7fb; background: rgba(125, 211, 252, 0.1);
   border: 1.5px dashed rgba(125, 211, 252, 0.85); box-sizing: border-box; overflow: hidden; }
 .w3-label.faded { opacity: 0.4; }
 .graph-canvas.world3d { background: #1b1d21; overflow: hidden; }

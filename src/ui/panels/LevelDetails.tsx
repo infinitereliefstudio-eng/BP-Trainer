@@ -3,7 +3,7 @@ import { inheritedView, isA, rootParent } from '@core/model/inheritance';
 import { findClass, MAIN_START_ID, type PlayerStartSpot, playerStartsOf, type Variable, levelOf } from '@core/model/project';
 import { gameModeOf } from '@core/model/gameMode';
 import { setGameModeOverride } from '@core/operations/gameModeOps';
-import { actorRefValue, findPlayerStart, removeActor, removePlayerStart, setActorOverride, setComponentOverride, setPlayerStart, updateActor } from '@core/operations/levelOps';
+import { actorRefValue, actorScale, findPlayerStart, setActorScale, removeActor, removePlayerStart, setActorOverride, setComponentOverride, setPlayerStart, updateActor } from '@core/operations/levelOps';
 import type { Value } from '@core/types/values';
 import { useStore } from '../hooks';
 import { ValueInput } from '../widgets/ValueInput';
@@ -19,6 +19,7 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
   const editable = cls?.variables.filter((v) => v.instanceEditable) ?? [];
   const patch = (label: string, fn: () => void) => store.applyProject(label, fn);
   const categories = [...new Set(editable.map((v) => v.category || 'Default'))];
+  const scale = actorScale(store.project, a);
   // Its Actor Components: their Instance Editable variables, set for this actor only (UE: Details › the component).
   const logic = (cls?.components ?? []).flatMap((comp) => {
     const own = comp.kind === 'ActorComponent' && comp.classId ? findClass(store.project, comp.classId) : undefined;
@@ -46,6 +47,15 @@ export function ActorDetails({ id, onOpenClass }: { id: string; onOpenClass: (cl
         <Field label="Rotation Yaw">
           <NumberField value={a.yaw} unit="°" onCommit={(yaw) => patch('Tourner l’acteur', () => updateActor(store.project, a.id, { yaw }))} />
         </Field>
+        {/* UE's Scale of a placed actor: its root component's, for this actor only (V7.83). */}
+        {(['x', 'y', 'z'] as const).map((k) => (
+          <Field key={k} label={`Scale ${k.toUpperCase()}`}>
+            <NumberField
+              value={scale[k]}
+              onCommit={(v) => patch('Changer l’échelle de l’acteur', () => setActorScale(store.project, a.id, { ...scale, [k]: v }))}
+            />
+          </Field>
+        ))}
       </Group>
       {categories.map((cat) => (
         <Group key={cat} title={cat}>

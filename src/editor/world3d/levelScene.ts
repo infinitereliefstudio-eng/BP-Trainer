@@ -160,7 +160,9 @@ export class LevelScene {
             this.pickable.push(hit);
           }
           const t = componentTransform(a, c);
-          item.obj.position.set(t.x, ZONE_HEIGHT / 2, t.y);
+          // The box's own size, stretched by its world scale (V7.83).
+          item.obj.scale.set(Math.abs(t.sx), Math.abs(t.sz), Math.abs(t.sy));
+          item.obj.position.set(t.x, (ZONE_HEIGHT * Math.abs(t.sz)) / 2, t.y);
           item.obj.rotation.y = -t.yaw * DEG;
           const hot = [...a.compOverlaps].some((k) => k.startsWith(`${c.id}|`));
           const color = hot ? WORLD.zoneHot : '#d0d0d0';
@@ -204,7 +206,11 @@ export class LevelScene {
         } else if (c.kind === 'TextRender') {
           const item = this.item(key, `${c.props.text}|${c.props.color}`, () => textSprite(c.props.text, c.props.color));
           const t = componentTransform(a, c);
-          (item.obj as Sprite).position.set(t.x, TEXT_HEIGHT, t.y);
+          if (!item.obj.userData.base) item.obj.userData.base = { x: item.obj.scale.x, y: item.obj.scale.y };
+          const base = item.obj.userData.base as { x: number; y: number };
+          const k = Math.abs(t.sz);
+          item.obj.scale.set(base.x * k, base.y * k, 1);
+          (item.obj as Sprite).position.set(t.x, TEXT_HEIGHT * k, t.y);
           ((item.obj as Sprite).material as Material).opacity = c.props.visible ? 1 : 0.35;
           if (this.editor) {
             item.obj.userData = { actorId: a.id, compId: c.id, prio: 0 };
@@ -467,12 +473,12 @@ function placeMesh(item: Item, a: ActorRT, c: ComponentRT, mode: ViewMode, opaci
     x.opacity = opacity;
     x.depthWrite = opacity >= 1;
   }
-  const h = m.userData.h as number;
-  if (shape.kind === 'circle') m.position.set(shape.cx, h / 2, shape.cy);
-  else {
-    m.position.set(shape.cx, h / 2, shape.cy);
-    m.rotation.y = -shape.angle;
-  }
+  // The mesh's own size, stretched by its world scale (V7.83).
+  const t = componentTransform(a, c);
+  m.scale.set(Math.abs(t.sx), Math.abs(t.sz), Math.abs(t.sy));
+  const h = (m.userData.h as number) * Math.abs(t.sz);
+  m.position.set(shape.cx, h / 2, shape.cy);
+  m.rotation.y = shape.kind === 'circle' ? -t.yaw * DEG : -shape.angle;
   if (item.color !== c.props.color) {
     item.color = c.props.color;
     lit.color.set(c.props.color);

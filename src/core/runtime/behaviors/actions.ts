@@ -1,4 +1,5 @@
 /** Impure nodes acting on the world: variables, printing, components, actors. */
+import { writeScale } from '../../model/scale';
 import type { Vec3 } from '../../types/values';
 import { componentTransform, type ActorRT, type ComponentRT } from '../world';
 import { copyValue } from '../values';
@@ -87,6 +88,25 @@ export const actionBehaviors: Record<string, Behavior> = {
         c.props.y = Number(v.y) || 0;
       }
       return ['then'];
+    },
+  },
+
+  'component.setRelativeScale3D': {
+    exec: (cx) => {
+      const c = cx.world.component(cx.in('target'), 'Target');
+      const v = cx.in('scale') as Vec3 | null;
+      if (c && v) writeScale(c.props, { x: Number(v.x), y: Number(v.y), z: Number(v.z) });
+      return ['then'];
+    },
+  },
+
+  'component.getWorldScale': {
+    pure: (cx) => {
+      const c = cx.world.component(cx.in('target'), 'Target');
+      const owner = c && cx.world.ownerOf(c);
+      if (!c || !owner) return { result: { x: 1, y: 1, z: 1 } };
+      const t = componentTransform(owner, c);
+      return { result: { x: t.sx, y: t.sy, z: t.sz } };
     },
   },
 

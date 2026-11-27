@@ -1,6 +1,6 @@
 # Revue de la marche A (le monde en 3D), V7.77 à V7.80 (27 novembre 2026)
 
-Demandée par Tristan le 27 novembre à 9 h 32 (« les essais sont ok pour le moment, la navigation est fluide et naturelle. On peut passer à la revue »), en redonnant l'accès en écriture. Revue de la phase 2 de la [feuille de route](FEUILLE_DE_ROUTE_3D_UI.md) : 3D-0 (V7.77), 3D-1 (V7.78), 3D-2 (V7.79, V7.80, avec UI-6). Tristan a répondu le 27 novembre à 10 h 28 (« 1 : ok pour ta reco ; 2 : on va implémenter comme dans UE maintenant ; 3 : ok pour ta reco ; 4 : ok pour ta reco ») et les corrections sont lancées : **V7.81 faite** (lot 1).
+Demandée par Tristan le 27 novembre à 9 h 32 (« les essais sont ok pour le moment, la navigation est fluide et naturelle. On peut passer à la revue »), en redonnant l'accès en écriture. Revue de la phase 2 de la [feuille de route](FEUILLE_DE_ROUTE_3D_UI.md) : 3D-0 (V7.77), 3D-1 (V7.78), 3D-2 (V7.79, V7.80, avec UI-6). Tristan a répondu le 27 novembre à 10 h 28 (« 1 : ok pour ta reco ; 2 : on va implémenter comme dans UE maintenant ; 3 : ok pour ta reco ; 4 : ok pour ta reco ») et les corrections sont lancées : **V7.81 faite** (lot 1), **V7.82 faite** (lot 2 sans Scale : B1, V2, T1, L1, D1), **V7.83 faite** (S1, Scale comme dans UE) : **revue entièrement corrigée**.
 
 État de départ : lint, types et build sans erreur, 2 025 tests, smoke test sans erreur (`errors []`). Chaque constat a été reproduit par un test jetable (non versionné), se lit dans le code, ou s'appuie sur les sources citées en bas.
 

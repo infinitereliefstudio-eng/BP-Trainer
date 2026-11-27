@@ -97,3 +97,14 @@ describe('labels', () => {
     expect(out.map((l) => l.key).sort()).toEqual(['b', 'c', 'w']);
   });
 });
+
+describe('labels and the text size (V7.82)', () => {
+  it('leaves more room between names when the text is bigger', () => {
+    const two = [
+      { key: 'a', text: 'BP_Lampe', x: 100, y: 100 },
+      { key: 'b', text: 'BP_Lampe2', x: 166, y: 100 },
+    ];
+    expect(declutter(two, 1)).toHaveLength(2);
+    expect(declutter(two, 1.3)).toHaveLength(1);
+  });
+});

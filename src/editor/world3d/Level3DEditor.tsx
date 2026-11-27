@@ -10,7 +10,7 @@
  */
 import { useEffect, useRef } from 'preact/hooks';
 import { isPlayerStartId, levelOf, MAIN_START_ID, playerStartsOf } from '@core/model/project';
-import { findPlayerStart, moveActor, updateActor } from '@core/operations/levelOps';
+import { actorScale, findPlayerStart, moveActor, setActorScale, updateActor } from '@core/operations/levelOps';
 import { Simulation } from '@core/runtime/simulation';
 import { componentShape } from '@core/runtime/physics';
 import { componentTransform, type ActorRT } from '@core/runtime/world';
@@ -22,7 +22,7 @@ import { meshHeight, WIDGET_HEIGHT } from './heights';
 import { Gizmo } from './gizmo';
 import { GIZMO_HEIGHT, GizmoDrag, type Transform } from './gizmoDrag';
 import { type GizmoSettings, type Handle, snap } from './gizmoMath';
-import { declutter, HtmlLabels, type Label } from './htmlLabels';
+import { declutter, HtmlLabels, type Label, textScaleOfPage } from './htmlLabels';
 import { LevelScene, type ViewMode } from './levelScene';
 import { dropRenderer, makeRenderer } from './renderer';
 import { type Bounds, ViewCamera, type ViewKind } from './viewCamera';
@@ -174,7 +174,7 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
       });
       placeGizmo(sel);
       renderer.render(level.scene, cam.three);
-      labels.update(declutter(labelsOf(list, sel)));
+      labels.update(declutter(labelsOf(list, sel), textScaleOfPage()));
     };
     const invalidate = () => {
       if (!raf) raf = requestAnimationFrame(draw);
@@ -183,17 +183,24 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
 
     /** What the gizmo works on: the selected actor or Player Start, as a transform of the level. */
     const transformOf = (id: string): Transform | undefined => {
-      const t = isPlayerStartId(id) ? findPlayerStart(store.project, id) : levelOf(store.project).actors.find((a) => a.id === id);
-      return t && { x: t.x, y: t.y, yaw: t.yaw, sizeX: 0, sizeY: 0 };
+      if (isPlayerStartId(id)) {
+        const ps = findPlayerStart(store.project, id);
+        return ps && { x: ps.x, y: ps.y, yaw: ps.yaw, scaleX: 1, scaleY: 1, scaleZ: 1 };
+      }
+      const a = levelOf(store.project).actors.find((x) => x.id === id);
+      if (!a) return undefined;
+      const s = actorScale(store.project, a);
+      return { x: a.x, y: a.y, yaw: a.yaw, scaleX: s.x, scaleY: s.y, scaleZ: s.z };
     };
 
-    /** The gizmo on the selection; none with Select, and none for Scale (a placed actor has no scale here). */
+    /** The gizmo on the selection; none with Select. Scale works on actors (their root's Scale), not on Player Starts. */
     const placeGizmo = (sel: string | undefined) => {
       const t = sel ? transformOf(sel) : undefined;
       const tool = live.current.settings.tool;
-      const mode = !t || tool === 'Select' || tool === 'Scale' ? undefined : tool;
+      const mode = !t || tool === 'Select' || (tool === 'Scale' && sel && isPlayerStartId(sel)) ? undefined : tool;
       if (!t || !mode) return gizmo.place(undefined, 0, 0, 0, 0, 1);
-      const yaw = mode === 'Move' && live.current.settings.space === 'Local' ? t.yaw : 0;
+      // Scale is always local, as in UE.
+      const yaw = mode === 'Scale' || (mode === 'Move' && live.current.settings.space === 'Local') ? t.yaw : 0;
       gizmo.place(mode, t.x, t.y, GIZMO_HEIGHT, yaw, cam.cmPerPxAt(t.x, t.y, GIZMO_HEIGHT));
     };
 
@@ -202,7 +209,12 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
       if (isPlayerStartId(id)) {
         const ps = findPlayerStart(store.project, id);
         if (ps) Object.assign(ps, { x: t.x, y: t.y, yaw: t.yaw });
-      } else updateActor(store.project, id, { x: t.x, y: t.y, yaw: t.yaw });
+      } else {
+        updateActor(store.project, id, { x: t.x, y: t.y, yaw: t.yaw });
+        const before = transformOf(id);
+        if (before && (before.scaleX !== t.scaleX || before.scaleY !== t.scaleY || before.scaleZ !== t.scaleZ))
+          setActorScale(store.project, id, { x: t.scaleX, y: t.scaleY, z: t.scaleZ });
+      }
       preview = undefined;
       store.touch();
     };
@@ -323,7 +335,7 @@ export function Level3DEditor({ store, requests, kind, mode, center, gizmo: sett
           const view = { toScreen: (x: number, y: number, h?: number) => cam.toScreen(x, y, h), dragPoint: (x: number, y: number) => cam.dragPoint(x, y), verticalLook: () => cam.verticalLook() };
           handleDrag = { drag: new GizmoDrag(handle, t, view, live.current.settings, down), id: sel, at: { ...down } };
           gizmo.setActive(handle);
-          store.begin(handle === 'rot' ? 'Tourner un acteur' : 'Déplacer un acteur', { kind: 'project' });
+          store.begin(handle === 'rot' ? 'Tourner un acteur' : handle.startsWith('s') ? 'Changer l’échelle d’un acteur' : 'Déplacer un acteur', { kind: 'project' });
           return;
         }
         const from = cam.dragPoint(down.x, down.y);

@@ -176,6 +176,13 @@ export interface ComponentProps {
   text: string;
   /** UE's Collision Enabled, an ECollisionEnabled index (3 = Query and Physics). */
   collision: number;
+  /**
+   * UE's Relative Scale 3D (Transform › Scale), relative to the parent; 1 when absent (V7.83, see model/scale.ts).
+   * Size × scale is what is drawn and what collides; `sizeX`, `sizeY` stay the mesh's or the box's own size.
+   */
+  scaleX?: number;
+  scaleY?: number;
+  scaleZ?: number;
 }
 
 /**
@@ -302,6 +309,13 @@ export interface LevelActor {
   x: number;
   y: number;
   yaw: number;
+  /**
+   * UE's Scale of a placed actor (Details › Transform): its root component's Relative Scale 3D for this actor only.
+   * Absent: the Blueprint's own (V7.83).
+   */
+  scaleX?: number;
+  scaleY?: number;
+  scaleZ?: number;
   /** Values of Instance Editable variables, keyed by variable id. */
   overrides: Record<string, Value>;
   /** Values of its Actor Components' Instance Editable variables for this actor: component id → variable id → value. */

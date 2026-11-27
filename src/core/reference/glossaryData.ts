@@ -178,6 +178,13 @@ export const GLOSSARY: GlossaryEntry[] = [
     trap: 'Entre deux Integer, la division est entière : 7 / 2 donne 3. Pour garder la virgule, divise des Float.',
   },
   {
+    title: 'Scale',
+    names: ['Scale', 'Relative Scale 3D', 'Set Actor Scale 3D', 'Set Relative Scale 3D', 'Box Extent'],
+    what: 'Le Scale (Transform › Scale) est un facteur : 1 garde la taille, 2 la double, 0.5 la réduit de moitié. Celui d’un composant est relatif à son parent : ses enfants s’étirent avec lui, leur Location aussi. Celui d’un acteur posé est celui de son composant racine.',
+    when: 'Pour changer la taille d’un objet dans le niveau : l’outil Scale (R dans UE) ou Details › Scale ; le Scale Snap avance de 0.25 par défaut. En jeu : Set Actor Scale 3D, Set Relative Scale 3D. Dans l’appli, Z n’étire que le dessin : le niveau n’a pas encore de hauteur.',
+    trap: 'Taille d’un mesh et Box Extent ne sont pas le Scale : la boîte d’une Box Collision mesure deux fois son Box Extent (c’est une demi-taille), puis le Scale l’étire.',
+  },
+  {
     title: 'Instance Editable',
     names: ['Instance Editable', 'Details d’une instance', 'Variable Object Reference', 'Garder une référence'],
     what: 'Une variable Instance Editable (l’œil ouvert) se règle acteur par acteur dans le niveau. De type Object Reference, elle désigne un autre acteur : cette lampe écoute ce générateur.',

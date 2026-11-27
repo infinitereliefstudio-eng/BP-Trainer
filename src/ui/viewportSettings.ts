@@ -51,13 +51,15 @@ export type Tool = (typeof TOOLS)[number];
 export type Space = 'World' | 'Local';
 export const GRID_SNAPS = [0, 1, 5, 10, 50, 100] as const;
 export const ROTATION_SNAPS = [0, 5, 10, 15, 45, 90] as const;
-export const SCALE_SNAPS = [0, 1, 5, 10, 50] as const;
+/** UE's Scaling Snap: a factor of the Scale (0.25 by default), not a size (V7.83). */
+export const SCALE_SNAPS = [0, 0.0625, 0.125, 0.25, 0.5, 1, 10] as const;
 
 const TOOL_KEY = 'bp-trainer.tool';
 const SPACE_KEY = 'bp-trainer.space';
 const GRID_KEY = 'bp-trainer.gridSnap';
 const ROT_KEY = 'bp-trainer.rotationSnap';
-const SCALE_KEY = 'bp-trainer.scaleSnap';
+// A new key: the old one held centimetres (V7.79 to V7.82).
+const SCALE_KEY = 'bp-trainer.scaleSnapFactor';
 const BP_TYPE_KEY = 'bp-trainer.bpViewport';
 
 function readNumber(key: string, all: readonly number[], fallback: number): number {
@@ -77,7 +79,7 @@ export const gridSnap = (): number => readNumber(GRID_KEY, GRID_SNAPS, 10);
 export const setGridSnap = (v: number): void => write(GRID_KEY, String(v));
 export const rotationSnap = (): number => readNumber(ROT_KEY, ROTATION_SNAPS, 10);
 export const setRotationSnap = (v: number): void => write(ROT_KEY, String(v));
-export const scaleSnap = (): number => readNumber(SCALE_KEY, SCALE_SNAPS, 10);
+export const scaleSnap = (): number => readNumber(SCALE_KEY, SCALE_SNAPS, 0.25);
 export const setScaleSnap = (v: number): void => write(SCALE_KEY, String(v));
 export const bpViewType = (): ViewType => read(BP_TYPE_KEY, VIEW_TYPES, 'Perspective');
 export const setBpViewType = (v: ViewType): void => write(BP_TYPE_KEY, v);

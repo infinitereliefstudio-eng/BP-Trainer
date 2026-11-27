@@ -11,8 +11,8 @@ const flat = {
   dragPoint: (x: number, y: number) => ({ x, y }),
   verticalLook: () => 1,
 };
-const settings = (p: Partial<GizmoSettings> = {}): GizmoSettings => ({ tool: 'Move', space: 'World', grid: 10, rotation: 10, scale: 10, ...p });
-const box: Transform = { x: 100, y: 50, yaw: 0, sizeX: 100, sizeY: 60 };
+const settings = (p: Partial<GizmoSettings> = {}): GizmoSettings => ({ tool: 'Move', space: 'World', grid: 10, rotation: 10, scale: 0.25, ...p });
+const box: Transform = { x: 100, y: 50, yaw: 0, scaleX: 1, scaleY: 1, scaleZ: 1 };
 
 describe('gizmo arithmetic', () => {
   it('snaps as UE, and never gives -0', () => {
@@ -64,12 +64,19 @@ describe('a drag of a handle', () => {
     expect(u.yaw).toBe(-90);
   });
 
-  it('scales a box both ways, a door from its hinge, a cylinder round', () => {
-    expect(new GizmoDrag('sx', box, flat, settings(), { x: 150, y: 50 }).at({ x: 170, y: 50 }).sizeX).toBe(140);
-    expect(new GizmoDrag('sx', { ...box, sizing: 'door' }, flat, settings(), { x: 150, y: 50 }).at({ x: 170, y: 50 }).sizeX).toBe(120);
-    const round = new GizmoDrag('sy', { ...box, sizeX: 60, sizeY: 60, sizing: 'round' }, flat, settings(), { x: 100, y: 80 }).at({ x: 100, y: 100 });
-    expect([round.sizeX, round.sizeY]).toEqual([100, 100]);
-    expect(new GizmoDrag('sx', box, flat, settings(), { x: 150, y: 50 }).at({ x: -500, y: 50 }).sizeX).toBe(1);
+  it('changes the Scale as UE does: by the way the finger goes along the handle, snapped to the Scale Snap factor (V7.83)', () => {
+    // The handle's own length (90 px) adds 1.
+    expect(new GizmoDrag('sx', box, flat, settings(), { x: 150, y: 50 }).at({ x: 240, y: 50 }).scaleX).toBe(2);
+    // 25 px: +0.28, on the 0.25 step.
+    const t = new GizmoDrag('sy', box, flat, settings(), { x: 100, y: 80 }).at({ x: 100, y: 105 });
+    expect([t.scaleX, t.scaleY, t.scaleZ]).toEqual([1, 1.25, 1]);
+    // Never 0 or less.
+    expect(new GizmoDrag('sx', box, flat, settings(), { x: 150, y: 50 }).at({ x: -500, y: 50 }).scaleX).toBe(0.25);
+    // The centre cube: the three together.
+    const u = new GizmoDrag('sxy', { ...box, scaleX: 2 }, flat, settings(), { x: 100, y: 50 }).at({ x: 190, y: 50 });
+    expect([u.scaleX, u.scaleY, u.scaleZ]).toEqual([4, 2, 2]);
+    // Without snap, on the thousandth.
+    expect(new GizmoDrag('sx', box, flat, settings({ scale: 0 }), { x: 150, y: 50 }).at({ x: 160, y: 50 }).scaleX).toBe(1.111);
   });
 
   it('works through a real camera: the red arrow seen in Perspective moves along X', () => {
@@ -77,7 +84,7 @@ describe('a drag of a handle', () => {
     cam.resize(800, 300);
     cam.frame({ x0: -300, y0: -300, x1: 300, y1: 300, h: 100 });
     const view = { toScreen: (x: number, y: number, h?: number) => cam.toScreen(x, y, h), dragPoint: (x: number, y: number) => cam.dragPoint(x, y), verticalLook: () => cam.verticalLook() };
-    const o: Transform = { x: 0, y: 0, yaw: 0, sizeX: 100, sizeY: 100 };
+    const o: Transform = { x: 0, y: 0, yaw: 0, scaleX: 1, scaleY: 1, scaleZ: 1 };
     const a = cam.toScreen(40, 0, 5),
       b = cam.toScreen(140, 0, 5);
     const t = new GizmoDrag('x', o, view, settings({ grid: 0 }), a).at(b);

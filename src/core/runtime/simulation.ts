@@ -16,6 +16,7 @@ import type { Value } from '../types/values';
 import { copyValue } from './values';
 import type { PrintOptions } from './behaviors/types';
 import { playerClassesFor } from '../model/gameMode';
+import { levelActorScale, rootComponent, writeScale } from '../model/scale';
 import { blank, createActor, createController, createGameInstance, createGameMode, createInputSubsystem, createPlayer } from './actorFactory';
 import { Interpreter, type InterpreterHost, type NodeSite, type PauseInfo, type PinWatch } from './interpreter';
 import { EnhancedInput } from './enhancedInput';
@@ -318,6 +319,9 @@ export class Simulation implements InterpreterHost {
       a.x = la.x;
       a.y = la.y;
       a.yaw = la.yaw;
+      // Its Scale in the level is its root component's, for this actor only (V7.83).
+      const root = rootComponent(a.components);
+      if (root && (la.scaleX ?? la.scaleY ?? la.scaleZ) !== undefined) writeScale(root.props, levelActorScale(la, root.props));
       this.actors.push(a);
       this.markClass(cls.id);
       this.attachComponents(a, la.componentOverrides);

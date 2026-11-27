@@ -4,6 +4,7 @@
  * and degrees, X to the right and Y downwards on screen (top view).
  */
 import type { ComponentKind, ComponentProps } from '../model/project';
+import { chainOf, compose, rootComponent } from '../model/scale';
 import type { WidgetProps } from '../model/widgets';
 import type { Value } from '../types/values';
 
@@ -165,31 +166,18 @@ export interface Transform2D {
   x: number;
   y: number;
   yaw: number;
+  /** World scale (UE's GetComponentScale): the chain's Relative Scale 3D multiplied (V7.83). */
+  sx: number;
+  sy: number;
+  sz: number;
 }
-
-const DEG = Math.PI / 180;
 
 /** World transform of a component: actor transform composed with the parent chain. */
 export function componentTransform(actor: ActorRT, comp: ComponentRT): Transform2D {
-  const chain: ComponentRT[] = [];
-  let cur: ComponentRT | undefined = comp;
-  for (let guard = 0; cur && guard < 32; guard++) {
-    chain.unshift(cur);
-    const parentId: string | undefined = cur.parent;
-    cur = parentId ? actor.components.find((c) => c.id === parentId) : undefined;
-  }
-  let t: Transform2D = { x: actor.x, y: actor.y, yaw: actor.yaw };
-  for (const c of chain) {
-    // A Widget Component (Space Screen) stands where its parent is, offset on the screen: its Location never turns
-    // with the actor, as UE's Location Z stays up whatever the yaw (V7.44: Location Y negative = above).
-    const r = c.kind === 'Widget' ? 0 : t.yaw * DEG;
-    t = {
-      x: t.x + c.props.x * Math.cos(r) - c.props.y * Math.sin(r),
-      y: t.y + c.props.x * Math.sin(r) + c.props.y * Math.cos(r),
-      yaw: t.yaw + c.props.yaw,
-    };
-  }
-  return t;
+  // A Widget Component (Space Screen) stands where its parent is, offset on the screen: its Location never turns
+  // with the actor, as UE's Location Z stays up whatever the yaw (V7.44: Location Y negative = above). A parent's
+  // scale stretches its children's Location and size (V7.83, model/scale.ts).
+  return compose(chainOf(actor.components, comp), actor, rootComponent(actor.components));
 }
 
 /** Player capsule radius and speed: UE's default Character values. */

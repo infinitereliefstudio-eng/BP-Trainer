@@ -10,7 +10,8 @@ import { forwardRef } from 'preact/compat';
 import { useEffect, useImperativeHandle, useRef } from 'preact/hooks';
 import { inheritedView } from '@core/model/inheritance';
 import { type Component, findClass } from '@core/model/project';
-import { componentInActor, parentYaw, roundComponentLocation } from '@core/operations/viewportOps';
+import { componentInActor, parentFrame, roundComponentLocation } from '@core/operations/viewportOps';
+import { scaleOf } from '@core/model/scale';
 import { createActor } from '@core/runtime/actorFactory';
 import { componentShape } from '@core/runtime/physics';
 import { componentTransform, type ActorRT } from '@core/runtime/world';
@@ -109,8 +110,9 @@ export const Viewport3DEditor = forwardRef<ViewportHandle, Props>(function Viewp
       const c = all().find((k) => k.id === id);
       if (!c) return undefined;
       const t = componentInActor(all(), id);
-      const sizing = c.props.shape === 'door' ? 'door' : c.props.shape === 'cylinder' ? 'round' : 'box';
-      return { x: t.x, y: t.y, yaw: t.yaw, sizeX: c.props.sizeX, sizeY: c.props.sizeY, sizing: c.kind === 'StaticMesh' ? sizing : 'box' };
+      const s = scaleOf(c.props);
+      // The gizmo's Scale is the component's own Relative Scale 3D, as in UE.
+      return { x: t.x, y: t.y, yaw: t.yaw, scaleX: s.x, scaleY: s.y, scaleZ: s.z };
     };
 
     const placeGizmo = () => {
@@ -119,9 +121,8 @@ export const Viewport3DEditor = forwardRef<ViewportHandle, Props>(function Viewp
       const t = id ? transformOf(id) : undefined;
       const tool = live.current.settings.tool;
       let modeOf: 'Move' | 'Rotate' | 'Scale' | undefined = tool === 'Select' ? undefined : tool;
-      // The root is the actor's origin; only meshes and boxes have a size.
+      // The root is the actor's origin. Every scene component has a Scale, as in UE (V7.83).
       if (modeOf === 'Move' && !c?.parent) modeOf = undefined;
-      if (modeOf === 'Scale' && c?.kind !== 'StaticMesh' && c?.kind !== 'BoxCollision') modeOf = undefined;
       if (!c || !t || !modeOf) return gizmo.place(undefined, 0, 0, 0, 0, 1);
       const yaw = modeOf === 'Scale' || (modeOf === 'Move' && live.current.settings.space === 'Local') ? t.yaw : 0;
       gizmo.place(modeOf, t.x, t.y, GIZMO_HEIGHT, yaw, cam.cmPerPxAt(t.x, t.y, GIZMO_HEIGHT));
@@ -204,16 +205,23 @@ export const Viewport3DEditor = forwardRef<ViewportHandle, Props>(function Viewp
       const c = own(d.id);
       if (!c) return;
       const g = live.current.settings.grid;
-      const r = -parentYaw(all(), d.id) * DEG;
+      // The move, turned back and unstretched into the parent's frame (its yaw and scale: V7.83).
+      const f = parentFrame(all(), d.id);
+      const r = -f.yaw * DEG;
       const dx = t.x - d.orig.x,
         dy = t.y - d.orig.y;
       if (dx || dy) {
-        c.props.x = snap(d.props.x + dx * Math.cos(r) - dy * Math.sin(r), g);
-        c.props.y = snap(d.props.y + dx * Math.sin(r) + dy * Math.cos(r), g);
+        c.props.x = snap(d.props.x + (dx * Math.cos(r) - dy * Math.sin(r)) / (f.sx || 1), g);
+        c.props.y = snap(d.props.y + (dx * Math.sin(r) + dy * Math.cos(r)) / (f.sy || 1), g);
       }
       c.props.yaw = normalizeYaw(d.props.yaw + t.yaw - d.orig.yaw);
-      c.props.sizeX = t.sizeX;
-      c.props.sizeY = t.sizeY;
+      if (d.handle?.handle.startsWith('s')) {
+        // A scale of 1 is not written: projects made before V7.83 stay as they were.
+        for (const [k, v] of [['scaleX', t.scaleX], ['scaleY', t.scaleY], ['scaleZ', t.scaleZ]] as const) {
+          if (v === 1) delete c.props[k];
+          else c.props[k] = v;
+        }
+      }
       store.touch();
     };
 

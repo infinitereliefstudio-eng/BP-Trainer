@@ -1,6 +1,8 @@
 /** Level mutators: placing, moving and configuring actor instances. */
 import { newId } from '../model/ids';
-import { isPlaceableParent, MAIN_START_ID, type LevelActor, type PlacedPlayerStart, type PlayerStartSpot, playerStartsOf, type Project, levelOf } from '../model/project';
+import { inheritedView } from '../model/inheritance';
+import { levelActorScale, rootComponent, type Scale3 } from '../model/scale';
+import { findClass, isPlaceableParent, isSceneComponent, MAIN_START_ID, type LevelActor, type PlacedPlayerStart, type PlayerStartSpot, playerStartsOf, type Project, levelOf } from '../model/project';
 import type { Value } from '../types/values';
 import type { OpResult } from './graphOps';
 
@@ -60,6 +62,32 @@ export function snapActor(p: Project, id: string, grid = 10): void {
 export function updateActor(p: Project, id: string, patch: Partial<Pick<LevelActor, 'x' | 'y' | 'yaw' | 'name'>>): void {
   const a = levelOf(p).actors.find((x) => x.id === id);
   if (a) Object.assign(a, patch);
+}
+
+/** The root component of a placed actor's Blueprint (inherited ones included), whose Scale is the actor's default. */
+function rootOfClass(p: Project, a: LevelActor) {
+  const cls = findClass(p, a.classId);
+  return cls ? rootComponent(inheritedView(cls, p, true).components.filter(isSceneComponent)) : undefined;
+}
+
+/** A placed actor's Scale (Details › Transform): its own, or its Blueprint root's (V7.83). */
+export function actorScale(p: Project, a: LevelActor): Scale3 {
+  return levelActorScale(a, rootOfClass(p, a)?.props);
+}
+
+/** Set a placed actor's Scale; an axis equal to its Blueprint root's is left out, as an unchanged property in UE. */
+export function setActorScale(p: Project, id: string, s: Scale3): void {
+  const a = levelOf(p).actors.find((x) => x.id === id);
+  if (!a) return;
+  const base = levelActorScale({}, rootOfClass(p, a)?.props);
+  for (const [k, v, b] of [
+    ['scaleX', s.x, base.x],
+    ['scaleY', s.y, base.y],
+    ['scaleZ', s.z, base.z],
+  ] as const) {
+    if (v === b) delete a[k];
+    else a[k] = v;
+  }
 }
 
 export function setActorOverride(p: Project, id: string, variableId: string, value: Value | undefined): void {

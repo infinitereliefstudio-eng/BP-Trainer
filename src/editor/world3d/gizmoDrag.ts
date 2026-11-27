@@ -1,19 +1,32 @@
 /**
  * One drag of a gizmo handle (3D-2, V7.79): from where the finger went on the screen, the new transform of what is
- * being moved, turned or scaled, snapped as UE does (grid, rotation, scale snaps of the viewport bar). The view frame is
+ * being moved, turned or scaled, snapped as UE does (grid, rotation, scale snaps of the viewport bar). Scale writes a scale, never a size (V7.83). The view frame is
  * the level's for an actor, the actor's for a component of the Blueprint's Viewport. No three.js, no DOM.
  */
 import type { Point } from '../camera';
-import { alongAxis, axisOf, type GizmoSettings, type Handle, normalizeYaw, type Projector, screenAngle, snap, turn } from './gizmoMath';
+import {
+  alongAxis,
+  alongScreenAxis,
+  axisOf,
+  GIZMO_PX,
+  type GizmoSettings,
+  type Handle,
+  normalizeYaw,
+  type Projector,
+  screenAngle,
+  snap,
+  snapScale,
+  turn,
+} from './gizmoMath';
 
 export interface Transform {
   x: number;
   y: number;
   yaw: number;
-  sizeX: number;
-  sizeY: number;
-  /** How the size grows from the pivot: both ways (a box), one way (a door, hinged), or round (a cylinder). */
-  sizing?: 'box' | 'door' | 'round';
+  /** UE's Scale (Relative Scale 3D of a component, the root's for an actor): a factor, 1 by default (V7.83). */
+  scaleX: number;
+  scaleY: number;
+  scaleZ: number;
 }
 
 export interface DragView extends Projector {
@@ -92,19 +105,19 @@ export class GizmoDrag {
       }
       case 'sx':
       case 'sy': {
-        const d = alongAxis(this.view, o, GIZMO_HEIGHT, axisOf(this.handle, o.yaw), dx, dy);
-        const grow = o.sizing === 'door' && this.handle === 'sx' ? d : 2 * d;
-        if (o.sizing === 'round') {
-          out.sizeX = out.sizeY = Math.max(1, snap(o.sizeX + grow, s.scale));
-        } else if (this.handle === 'sx') out.sizeX = Math.max(1, snap(o.sizeX + grow, s.scale));
-        else out.sizeY = Math.max(1, snap(o.sizeY + grow, s.scale));
+        // As UE's Scale handles: the scale changes by how far the finger goes along the handle (its own length = +1),
+        // whatever the size of the mesh; Scale Snap is a factor (V7.83).
+        const px = alongScreenAxis(this.view, o, GIZMO_HEIGHT, axisOf(this.handle, o.yaw), dx, dy);
+        if (this.handle === 'sx') out.scaleX = snapScale(o.scaleX + px / GIZMO_PX, s.scale);
+        else out.scaleY = snapScale(o.scaleY + px / GIZMO_PX, s.scale);
         break;
       }
       case 'sxy': {
-        // Up and to the right grows, down and to the left shrinks: one size for both, as UE's centre cube.
-        const f = Math.max(0.05, 1 + (dx - dy) / 150);
-        out.sizeX = Math.max(1, snap(o.sizeX * f, s.scale));
-        out.sizeY = Math.max(1, snap(o.sizeY * f, s.scale));
+        // Up and to the right grows, down and to the left shrinks: the three axes together, as UE's centre cube.
+        const f = Math.max(0.01, 1 + (dx - dy) / GIZMO_PX);
+        out.scaleX = snapScale(o.scaleX * f, s.scale);
+        out.scaleY = snapScale(o.scaleY * f, s.scale);
+        out.scaleZ = snapScale(o.scaleZ * f, s.scale);
         break;
       }
     }

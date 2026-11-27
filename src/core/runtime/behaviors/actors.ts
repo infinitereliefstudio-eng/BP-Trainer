@@ -1,5 +1,6 @@
 /** Actor functions: destroy and spawn, find by class, location and rotation. */
 import { spawnPins } from '../../model/project';
+import { rootComponent, scaleOf, writeScale } from '../../model/scale';
 import { copyValue, toVec } from '../values';
 import type { ActorRT, RValue } from '../world';
 import { RESUME, type Behavior, type ValueCx } from './types';
@@ -124,6 +125,24 @@ export const actorBehaviors: Record<string, Behavior> = {
         a.x += d.x;
         a.y += d.y;
       }
+      return ['then'];
+    },
+  },
+
+  // An actor's Scale is its root component's (V7.83).
+  'actor.getScale3D': {
+    pure: (cx) => {
+      const a = cx.world.actor(cx.in('target'), 'Target');
+      const root = a && rootComponent(a.components);
+      return { result: root ? scaleOf(root.props) : { x: 1, y: 1, z: 1 } };
+    },
+  },
+
+  'actor.setScale3D': {
+    exec: (cx) => {
+      const a = cx.world.actor(cx.in('target'), 'Target');
+      const root = a && rootComponent(a.components);
+      if (root) writeScale(root.props, toVec(cx.in('scale')));
       return ['then'];
     },
   },

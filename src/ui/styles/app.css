@@ -248,12 +248,9 @@ select.field { padding-right: 4px; }
 .key.down { background: var(--accent); border-color: var(--accent); }
 .bottom-wrap.playing { z-index: 8; }
 
-/* Home */
-.home { height: 100%; overflow-y: auto; padding-block: 18px 32px; padding-left: max(18px, env(safe-area-inset-left)); padding-right: max(18px, env(safe-area-inset-right)); }
-.home-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; max-width: 980px; margin: 0 auto 18px; }
-.home-head h1 { margin: 0; font-size: calc(26px * var(--ts)); letter-spacing: -0.01em; }
-.home-head p { margin: 4px 0 0; }
-.home-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Home: a rail of spaces and the page (UI-2, V7.84) */
+.home { height: 100%; display: flex; overflow: hidden; }
+.home-main { flex: 1; min-width: 0; overflow-y: auto; padding-block: 14px 32px; padding-left: 18px; padding-right: max(18px, env(safe-area-inset-right)); }
 .btn.big { height: 46px; padding: 0 18px; font-size: var(--fs-lg); font-weight: 600; }
 .home-path { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
 .module h2 { font-size: var(--fs-lg); margin: 0 0 8px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
@@ -429,8 +426,6 @@ select.field { padding-right: 4px; }
 .scratch-bar .btn { flex: none; height: 32px; }
 
 /* Home: chips, review, memo, node index */
-.home-head .home-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
-.chip-stat.link { color: var(--link); }
 .home-tabs { overflow-x: auto; scrollbar-width: none; max-width: 100%; }
 .home-tabs::-webkit-scrollbar { display: none; }
 .home-tabs button { white-space: nowrap; flex: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -543,7 +538,7 @@ select.field { padding-right: 4px; }
 .status-msg .small-btn { padding: 4px 10px; min-height: 0; font-size: var(--fs-sm); }
 .dialog-actions.wrap { flex-wrap: wrap; }
 
-/* Under a path card: duration, missing notions, help used (Home.tsx, StepMeta) */
+/* Under a path card: duration, missing notions, help used (home/StepCard.tsx, StepMeta) */
 .li-text .li-meta { font-size: var(--fs-xs); color: var(--muted); opacity: 0.85; }
 .lesson-item.exercise.transfer .eyebrow, .lesson-item.exercise.autonomy .eyebrow { color: var(--link); }
 
@@ -691,7 +686,7 @@ select.field { padding-right: 4px; }
 .graph-canvas.viewport { background: #1b1d21; }
 
 /* Lot 0 (V7.10): help rule per level, synthesis advice */
-.level-help { flex-basis: 100%; font-weight: 400; }
+.level-help { font-weight: 400; }
 .help-rule { margin: 0 0 8px; }
 .synthesis-advice { display: block; width: 100%; text-align: left; margin: 0 0 8px; padding: 8px 12px; border-radius: var(--radius); border: 1px dashed var(--line-2); color: var(--muted); font-size: var(--fs-sm); }
 .lesson-item.exercise.synthesis { border-left: 3px solid var(--accent); }
@@ -718,13 +713,7 @@ select.field { padding-right: 4px; }
 /* Home in compact landscape (V7.32): title and actions on one line, thinner tabs and banner, so two rows of
    lesson cards show at once (the tagline steps aside). */
 @media (orientation: landscape) and (max-height: 480px) {
-  .home { padding-block: 10px 24px; }
-  .home-head { margin-bottom: 10px; gap: 10px; }
-  .home-head > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; row-gap: 4px; }
-  .home-head h1 { font-size: calc(21px * var(--ts)); }
-  .home-head p { margin: 0; }
-  .home-head > div:first-child > p.muted { display: none; }
-  .home-head .home-chips { margin: 0; }
+  .home-main { padding-block: 8px 24px; }
   .btn.big { height: 38px; font-size: var(--fs-md); padding: 0 14px; }
   .home-bar { margin-bottom: 10px; }
   .home-tabs button { height: 32px; padding: 0 12px; }
@@ -792,10 +781,9 @@ select.field { padding-right: 4px; }
 .umg-screen.disabled { opacity: 0.45; }
 
 /* ------------------------------------------- V7.41: Mes projets (simulation libre) */
-.projects-dialog { width: min(520px, 94vw); }
-.projects-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.projects-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; max-width: 720px; }
 .projects-btn { height: 42px; flex: 1 1 auto; }
-.projects-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.projects-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-width: 720px; }
 .project-item { border: 1px solid var(--line-2); border-radius: var(--r-2); background: rgba(255, 255, 255, 0.02); }
 .project-item.damaged { border-color: var(--err-line); }
 .project-row { display: flex; align-items: stretch; }
@@ -810,3 +798,121 @@ select.field { padding-right: 4px; }
 /* V7.42 — Widget Components: each widget over its actor (Space Screen), under the viewport's widgets. */
 .umg-world { position: absolute; left: 0; top: 0; will-change: transform; }
 .umg-world.disabled { opacity: 0.45; }
+
+/* ------------------------------------------- UI-2 (V7.84): the rail of the home screen, « Aujourd'hui » */
+.rail {
+  flex: none; display: flex; flex-direction: column; align-items: stretch; gap: var(--sp-1); min-width: 76px;
+  padding: var(--sp-2) 6px; padding-left: max(6px, env(safe-area-inset-left)); background: var(--recessed); border-right: 1px solid var(--line); overflow-y: auto;
+}
+.rail-btn {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; padding: 4px 6px;
+  border-radius: var(--r-2); color: var(--muted); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap;
+}
+.rail-btn .icon { width: calc(22px * var(--ts)); height: calc(22px * var(--ts)); }
+.rail-btn:active { background: var(--btn-press); }
+.rail-btn.active { color: var(--text-strong); background: var(--panel-2); }
+.rail-btn.active::before { content: ''; position: absolute; left: -6px; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--accent); }
+.rail-gap { flex: 1; min-height: var(--sp-2); }
+.rail-badge {
+  position: absolute; top: 4px; right: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--orange); color: #111;
+  font-size: var(--fs-xs); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums;
+}
+.rail-version { font-size: calc(10px * var(--ts)); font-weight: 400; color: var(--muted); }
+.home-title { margin: 0; font-size: var(--fs-lg); }
+
+.today { gap: 12px; }
+.today-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; font-size: var(--fs-sm); }
+.today-head .chip-stat { margin-left: 0; }
+.today-intro { margin: 0; }
+.today-cards { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--sp-2); }
+.today-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; min-height: 92px; padding: 10px 14px; text-align: left;
+  border-radius: var(--r-2); background: var(--panel); border: 1px solid transparent;
+}
+.today-card:active { background: var(--panel-2); }
+.today-card strong { font-size: var(--fs-lg); line-height: 1.25; }
+.today-card.continue { background: rgba(0, 112, 224, 0.14); border-color: var(--accent); }
+.today-card .eyebrow.how { color: var(--link); }
+.today-card .eyebrow.quiet { color: var(--muted); }
+.today-sub { color: var(--muted); font-size: var(--fs-sm); line-height: 1.35; }
+.today-meta { margin-top: auto; padding-top: 2px; font-size: var(--fs-sm); font-weight: 600; }
+.today-also { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+.link-btn { color: var(--link); font-weight: 600; text-align: left; min-height: 32px; }
+.today .synthesis-advice { margin: 0; }
+.today-levels { display: flex; flex-direction: column; gap: var(--sp-1); max-width: 640px; }
+.today-levels h3 { margin: 6px 0 2px; font-size: var(--fs-sm); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.level-row {
+  display: grid; grid-template-columns: minmax(110px, auto) 1fr auto; align-items: center; gap: 12px; min-height: 44px; padding: 6px 12px;
+  border-radius: var(--r-2); background: var(--panel); text-align: left;
+}
+.level-row:active { background: var(--panel-2); }
+.level-row-title { font-weight: 600; display: inline-flex; align-items: baseline; gap: 10px; }
+.level-row-count { font-size: var(--fs-sm); color: var(--muted); font-variant-numeric: tabular-nums; }
+.level-row.full .level-row-count { color: var(--ok); }
+.level-row.current { box-shadow: inset 0 0 0 1px var(--accent); }
+@media (max-width: 620px) { .today-cards { grid-template-columns: 1fr; } .today-card { min-height: 0; } }
+@media (orientation: landscape) and (max-height: 480px) {
+  .today { gap: var(--sp-2); }
+  .today-card { min-height: 84px; padding: 8px 12px; }
+}
+/* Portrait: the rail runs along the bottom, like a phone's tab bar. */
+@media (orientation: portrait) {
+  .home { flex-direction: column-reverse; }
+  .rail { flex-direction: row; min-width: 0; padding: 4px; padding-bottom: max(4px, env(safe-area-inset-bottom)); border-right: 0; border-top: 1px solid var(--line); overflow: visible; }
+  .rail-btn { flex: 1; min-height: 52px; }
+  .rail-btn.active::before { left: 25%; right: 25%; top: -4px; bottom: auto; width: auto; height: 3px; }
+  .rail-gap, .rail-version { display: none; }
+  .home-main { padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+}
+
+/* ------------------------------------------- UI-2 (V7.85): the path in folded levels and chapters, search, filters, codes */
+.path { gap: var(--sp-2); }
+.path-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+.path-search-box { flex: 1 1 260px; display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px 0 10px; border-radius: var(--r-1); background: var(--input); border: 1px solid var(--line-2); color: var(--muted); }
+.path-search-box:focus-within { border-color: var(--accent); }
+.path-search { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: 0; color: var(--text); font: inherit; font-size: var(--fs-md); }
+.path-search::-webkit-search-cancel-button { display: none; }
+.path-clear { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--r-1); color: var(--muted); }
+.path-tool { height: 40px; }
+.path-tool.on { background: var(--accent-soft); color: var(--text-strong); }
+.path-filters { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border-radius: var(--r-2); background: var(--panel); }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.filter-label { min-width: 56px; font-size: var(--fs-sm); color: var(--muted); }
+.filter-row .segmented button { height: 32px; padding: 0 10px; font-size: var(--fs-sm); }
+.path-found { margin: 0; font-size: var(--fs-sm); }
+.code-legend { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: var(--r-2); background: var(--panel); }
+.code-legend dl { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px 16px; width: 100%; }
+.legend-row { display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); line-height: 1.35; }
+.legend-row dt { flex: none; }
+.legend-row dd { margin: 0; }
+.legend-num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--panel-2); font-size: var(--fs-sm); font-weight: 700; }
+.legend-num.dashed { background: transparent; border: 1px dashed var(--line-2); }
+.legend-num.ok { background: var(--ok); color: #0b2a12; }
+.legend-num.next { background: transparent; border: 2px solid var(--accent); border-radius: var(--r-1); }
+
+.level-band { display: flex; flex-direction: column; gap: 6px; }
+.level-band h2 { display: block; margin: 0; font-size: var(--fs-lg); }
+.band-head {
+  width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 48px; padding: 6px 12px; text-align: left;
+  border-radius: var(--r-2); background: var(--panel-2);
+}
+.band-head:active { background: var(--btn-press); }
+.band-title { font-weight: 700; }
+.band-meter { flex: 1 1 80px; max-width: 260px; margin-left: auto; background: var(--recessed); }
+.band-about { margin: 0 2px; line-height: 1.45; }
+.chapter { display: flex; flex-direction: column; gap: 6px; }
+.chapter-head {
+  display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 10px 4px 14px; text-align: left; border-radius: var(--r-2);
+  background: var(--recessed); font-weight: 600; font-size: var(--fs-md);
+}
+.chapter-head:active { background: var(--panel-2); }
+.chapter-title { flex: 1 1 auto; min-width: 0; }
+.chapter-count { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-sm); color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.chapter-count.full { color: var(--ok); }
+.chapter .lesson-list { margin-left: 14px; }
+.level-band.open + .level-band { margin-top: 6px; }
+@media (orientation: landscape) and (max-height: 480px) {
+  .path-search-box, .path-tool { height: 36px; }
+  .band-head { min-height: 44px; }
+}
+@media (max-width: 560px) { .chapter .lesson-list { margin-left: 0; } .code-legend dl { grid-template-columns: 1fr; } }

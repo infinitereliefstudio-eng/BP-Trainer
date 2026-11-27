@@ -1,7 +1,7 @@
 /**
- * Home › Simulation libre › Mes projets (V7.41): the free-play projects,
- * each saved apart. Open, create, import, and per project: rename, copy,
- * export, delete (for good, after a confirmation that names it).
+ * Créer › Mes projets: the free-play projects (V7.41), each saved apart. Open, create, import, and per project:
+ * rename, copy, export, delete (for good, after a confirmation that names it). A dialog until V7.83, a page of the
+ * home screen since UI-2 (V7.84).
  */
 import { useEffect, useState } from 'preact/hooks';
 import { checkProjectName, projectFileName } from '@core/projects/list';
@@ -18,14 +18,12 @@ import {
   renameProject,
 } from '@storage/projects';
 import { ConfirmDialog, PromptDialog } from '../overlays/Dialogs';
-import { useOwnTap } from '../widgets/useOwnTap';
 import { Icon } from '../widgets/icons';
 
 interface Props {
   /** The project opened last, shown first. */
   lastId?: string;
   onOpen: (id: string) => void;
-  onClose: () => void;
 }
 
 type Ask = { kind: 'new'; initial: string } | { kind: 'rename'; entry: ProjectEntry } | { kind: 'delete'; entry: ProjectEntry };
@@ -33,8 +31,7 @@ type Ask = { kind: 'new'; initial: string } | { kind: 'rename'; entry: ProjectEn
 const when = (t: number) =>
   t ? new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace(',', ' à') : 'date inconnue';
 
-export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
-  const tap = useOwnTap();
+export function ProjectsPage({ lastId, onOpen }: Props) {
   const [list, setList] = useState<ProjectEntry[] | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
@@ -84,70 +81,60 @@ export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
     );
 
   return (
-    <>
-      <div class="sheet-backdrop" {...tap.root} onClick={tap.guard(onClose)}>
-        <div class="dialog projects-dialog" role="dialog" aria-label="Mes projets" onClick={(e) => e.stopPropagation()}>
-          <h2>Mes projets</h2>
-          <p class="muted small">La simulation libre : tes projets à toi, chacun enregistré à part sur cet appareil.</p>
-          <div class="projects-actions">
-            <button class="btn primary projects-btn" disabled={!list} onClick={() => list && setAsk({ kind: 'new', initial: nextProjectName(list) })}>
-              Nouveau projet
-            </button>
-            <button class="btn projects-btn" disabled={!list} onClick={importOne}>
-              Importer un fichier
-            </button>
-          </div>
-          {failed && <p class="error-text">Liste illisible : {failed}</p>}
-          {list && list.length === 0 && <p class="muted">Aucun projet pour l’instant : crée le premier.</p>}
-          <ul class="projects-list">
-            {ordered.map((entry) => (
-              <li key={entry.id} class={`project-item${entry.damaged ? ' damaged' : ''}`}>
-                <div class="project-row">
-                  <button class="project-open" onClick={() => onOpen(entry.id)}>
-                    <span class="project-name">{entry.name}</span>
-                    <span class="project-meta">
-                      {entry.damaged
-                        ? `Illisible (${entry.damaged})`
-                        : `${entry.blueprints} Blueprint${entry.blueprints > 1 ? 's' : ''} · modifié ${when(entry.updatedAt)}`}
-                      {entry.id === lastId && ' · ouvert en dernier'}
-                    </span>
-                  </button>
-                  <button
-                    class="btn project-more"
-                    aria-label={`Actions sur ${entry.name}`}
-                    aria-expanded={actions === entry.id}
-                    onClick={() => setActions(actions === entry.id ? null : entry.id)}
-                  >
-                    <Icon name="more" />
-                  </button>
-                </div>
-                {actions === entry.id && (
-                  <div class="project-tools">
-                    <button class="btn project-tool" disabled={!!entry.damaged} onClick={() => setAsk({ kind: 'rename', entry })}>
-                      Renommer
-                    </button>
-                    <button class="btn project-tool" disabled={!!entry.damaged} onClick={() => copy(entry)}>
-                      Dupliquer
-                    </button>
-                    <button class="btn project-tool" onClick={() => exportOne(entry)}>
-                      Exporter
-                    </button>
-                    <button class="btn danger project-tool" onClick={() => setAsk({ kind: 'delete', entry })}>
-                      Supprimer
-                    </button>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-          {message && <p class={message.error ? 'error-text' : 'note'}>{message.text}</p>}
-          <div class="dialog-actions">
-            <button class="btn" onClick={onClose}>
-              Fermer
-            </button>
-          </div>
-        </div>
+    <main class="home-path projects-page">
+      <p class="muted small">La simulation libre : tes projets à toi, chacun enregistré à part sur cet appareil.</p>
+      <div class="projects-actions">
+        <button class="btn primary projects-btn" disabled={!list} onClick={() => list && setAsk({ kind: 'new', initial: nextProjectName(list) })}>
+          Nouveau projet
+        </button>
+        <button class="btn projects-btn" disabled={!list} onClick={importOne}>
+          Importer un fichier
+        </button>
       </div>
+      {failed && <p class="error-text">Liste illisible : {failed}</p>}
+      {list && list.length === 0 && <p class="muted">Aucun projet pour l’instant : crée le premier.</p>}
+      <ul class="projects-list">
+        {ordered.map((entry) => (
+          <li key={entry.id} class={`project-item${entry.damaged ? ' damaged' : ''}`}>
+            <div class="project-row">
+              <button class="project-open" onClick={() => onOpen(entry.id)}>
+                <span class="project-name">{entry.name}</span>
+                <span class="project-meta">
+                  {entry.damaged
+                    ? `Illisible (${entry.damaged})`
+                    : `${entry.blueprints} Blueprint${entry.blueprints > 1 ? 's' : ''} · modifié ${when(entry.updatedAt)}`}
+                  {entry.id === lastId && ' · ouvert en dernier'}
+                </span>
+              </button>
+              <button
+                class="btn project-more"
+                aria-label={`Actions sur ${entry.name}`}
+                aria-expanded={actions === entry.id}
+                onClick={() => setActions(actions === entry.id ? null : entry.id)}
+              >
+                <Icon name="more" />
+              </button>
+            </div>
+            {actions === entry.id && (
+              <div class="project-tools">
+                <button class="btn project-tool" disabled={!!entry.damaged} onClick={() => setAsk({ kind: 'rename', entry })}>
+                  Renommer
+                </button>
+                <button class="btn project-tool" disabled={!!entry.damaged} onClick={() => copy(entry)}>
+                  Dupliquer
+                </button>
+                <button class="btn project-tool" onClick={() => exportOne(entry)}>
+                  Exporter
+                </button>
+                <button class="btn danger project-tool" onClick={() => setAsk({ kind: 'delete', entry })}>
+                  Supprimer
+                </button>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+      {message && <p class={message.error ? 'error-text' : 'note'}>{message.text}</p>}
       {ask?.kind === 'new' && list && (
         <PromptDialog
           title="Nouveau projet"
@@ -205,6 +192,6 @@ export function ProjectsDialog({ lastId, onOpen, onClose }: Props) {
           onClose={() => setAsk(null)}
         />
       )}
-    </>
+    </main>
   );
 }

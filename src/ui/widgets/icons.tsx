@@ -44,7 +44,9 @@ export type IconName =
   | 'blueprint'
   | 'film'
   | 'platforms'
-  | 'eject';
+  | 'eject'
+  | 'book'
+  | 'filter';
 
 /** Each icon on a 20 × 20 grid: strokes (`s`) drawn 1.6 wide, and filled shapes (`f`). */
 const PATHS: Record<IconName, { s?: string; f?: string }> = {
@@ -86,6 +88,8 @@ const PATHS: Record<IconName, { s?: string; f?: string }> = {
   film: { s: 'M3 5 H17 V15 H3 Z M6 5 V15 M14 5 V15 M3 8.3 H6 M3 11.7 H6 M14 8.3 H17 M14 11.7 H17' },
   platforms: { s: 'M3 4 H17 V13 H3 Z M7.5 16.5 H12.5 M10 13 V16.5' },
   eject: { f: 'M10 4 L16 11 H4 Z M4 13.5 H16 V16 H4 Z' },
+  book: { s: 'M3 4.5 H8 a2 2 0 0 1 2 2 V16.5 a1.6 1.6 0 0 0 -1.6 -1.6 H3 Z M17 4.5 H12 a2 2 0 0 0 -2 2 V16.5 a1.6 1.6 0 0 1 1.6 -1.6 H17 Z' },
+  filter: { s: 'M3 4.5 H17 L11.6 10.6 V16 L8.4 14.4 V10.6 Z' },
   cap: { s: 'M2 8 L10 4.5 L18 8 L10 11.5 Z M5.5 9.6 V13.2 C7.5 15.2 12.5 15.2 14.5 13.2 V9.6 M18 8 V12.5' },
   settings: {
     s: 'M10 7.2 a2.8 2.8 0 1 0 0.01 0 Z M10 2.5 V4.6 M10 15.4 V17.5 M2.5 10 H4.6 M15.4 10 H17.5 M4.7 4.7 L6.2 6.2 M13.8 13.8 L15.3 15.3 M4.7 15.3 L6.2 13.8 M13.8 6.2 L15.3 4.7',

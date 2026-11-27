@@ -11,6 +11,7 @@ import { DAY, dueDate, dueQuestions, knownCount, shuffled, unlocked } from '@cor
 import { haptic } from '@editor/haptics';
 import { withAnswer, type Progress } from '../workspace';
 import { ReworkQueue } from './ReworkQueue';
+import { REVIEW_SESSION as SESSION } from './todayPlan';
 
 interface Props {
   progress: Progress;
@@ -19,10 +20,12 @@ interface Props {
   /** Redo a passed step from scratch (« À retravailler en Blueprint »). */
   onPractice: (lessonId: string) => void;
   onOpenMemo: (memoId: string) => void;
+  /**
+   * From « Aujourd'hui » (UI-2, V7.84): `start` opens the session of the questions due at once, `rework` brings
+   * « À retravailler en Blueprint » into view.
+   */
+  intent?: 'start' | 'rework';
 }
-
-/** Questions per session: short enough to finish on a phone. */
-const SESSION = 8;
 
 interface Session {
   queue: QuizQuestion[];
@@ -47,18 +50,24 @@ function inDays(t: number, now: number): string {
   return d === 1 ? 'demain' : `dans ${d} jours`;
 }
 
-export function Review({ progress, onProgress, onOpenLesson, onPractice, onOpenMemo }: Props) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [choice, setChoice] = useState<string | null>(null);
+export function Review({ progress, onProgress, onOpenLesson, onPractice, onOpenMemo, intent }: Props) {
   const now = Date.now();
+  const due = useMemo(() => dueQuestions(QUIZ, progress, now), [progress]);
+  const [session, setSession] = useState<Session | null>(() =>
+    intent === 'start' && due.length ? { queue: due.slice(0, SESSION), scheduled: true, index: 0, right: 0, missed: [], seed: Math.floor(Math.random() * 1e9) } : null,
+  );
+  const [choice, setChoice] = useState<string | null>(null);
   // On a phone in landscape the header fills half the screen: bring each question into view.
   const top = useRef<HTMLElement>(null);
   useEffect(() => {
     if (session) top.current?.scrollIntoView({ block: 'start' });
   }, [session?.index, !!session]);
+  const page = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (intent === 'rework' && !session) page.current?.querySelector('.rework')?.scrollIntoView({ block: 'start' });
+  }, []);
 
   const open = useMemo(() => QUIZ.filter((q) => unlocked(q, progress)), [progress.done, progress.read]);
-  const due = useMemo(() => dueQuestions(QUIZ, progress, now), [progress]);
   const known = knownCount(QUIZ, progress);
   const nextDue = open.map((q) => dueDate(q, progress)).filter((t) => t > now).sort((a, b) => a - b)[0];
 
@@ -69,7 +78,7 @@ export function Review({ progress, onProgress, onOpenLesson, onPractice, onOpenM
 
   if (!session) {
     return (
-      <main class="home-path review">
+      <main class="home-path review" ref={page}>
         <section class="review-intro">
           <h2>Révision</h2>
           <p class="muted">

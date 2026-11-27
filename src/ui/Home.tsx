@@ -1,27 +1,26 @@
 /**
- * Start screen: the learning path with its progress, the spaced review, the
- * notebook of what has been learnt, the node index, the UE memo, and free play.
+ * The home screen (UI-2, V7.84): a rail of spaces on the side (Apprendre, Consulter, Créer, then Réglages), the
+ * pages of the space in tabs at the top, and the page itself. Root keeps the page open, so that leaving a lesson
+ * comes back to where it was opened from.
  */
-import { useMemo, useState } from 'preact/hooks';
-import { getLesson, LESSONS } from '@core/lessons';
-import { LEVELS } from '@core/lessons/levels';
-import { availability } from '@core/lessons/chain';
-import { durationLabel, estimatedMinutes, milestoneMinutes } from '@core/lessons/duration';
-import { isChainExercise, type Lesson, type LessonKind } from '@core/lessons/types';
-import { acquiredNotions, missingNotions } from '@core/notions';
-import type { HelpLevel } from '@core/progress/progress';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { LESSONS } from '@core/lessons';
+import type { Level } from '@core/lessons/levels';
+import type { Lesson } from '@core/lessons/types';
 import { QUIZ } from '@core/review';
-import { dueQuestions, streak } from '@core/review/schedule';
+import { dueQuestions } from '@core/review/schedule';
 import { reworkCards } from '@core/rework/suggest';
 import { MAIN_ID } from '@storage/projects';
-import { APP_VERSION } from '../version';
-import { SettingsDialog } from './home/SettingsDialog';
-import { Icon } from './widgets/icons';
 import { Memo } from './home/Memo';
 import { NodeIndex } from './home/NodeIndex';
 import { Notebook } from './home/Notebook';
-import { ProjectsDialog } from './home/ProjectsDialog';
+import { type Page, SPACES, spaceOf, type SpaceId } from './home/pages';
+import { PathPage } from './home/PathPage';
+import { ProjectsPage } from './home/ProjectsPage';
+import { Rail } from './home/Rail';
 import { Review } from './home/Review';
+import { SettingsDialog } from './home/SettingsDialog';
+import { Today } from './home/Today';
 import { withoutLog, withRead, type Progress, type WorkspaceRef } from './workspace';
 
 interface Props {
@@ -30,248 +29,120 @@ interface Props {
   onProgress: (change: (p: Progress) => Progress) => void;
   /** Reload the progress from storage (after a backup was restored). */
   onReload: () => void;
-  /** The tab shown first (Révision when coming back from a practice). */
-  initialTab?: Tab;
-  /** « Mes projets » is open (Simulation libre, or « Mes projets » in the editor's menu). */
-  projects: boolean;
-  onProjects: (open: boolean) => void;
+  page: Page;
+  onPage: (page: Page) => void;
 }
 
-const KIND_LABEL: Record<Exclude<LessonKind, 'build'>, string> = {
-  predict: 'Prédis le résultat',
-  debug: 'Débogue',
-  complete: 'Complète le graphe',
-  refactor: 'Refactor : réécris-le mieux',
-  synthesis: 'Synthèse du niveau : cahier des charges',
-};
-
-/** The eyebrow of an exercise card: its format, or its step in a chain. */
-function eyebrowOf(l: Lesson): string | undefined {
-  if (l.chain?.step === 'transfer') return 'Transfert : sans plan';
-  if (l.chain?.step === 'autonomy') return 'En autonomie : cahier des charges';
-  if (l.code?.startsWith('M')) return 'Entraînement : à toi de choisir les outils';
-  if (l.code?.startsWith('X')) return 'Projet Expert : plusieurs séances';
-  return l.kind && l.kind !== 'build' ? KIND_LABEL[l.kind] : undefined;
+/** What a page does on arrival, when another page sends there (« Aujourd'hui » → Révision). */
+interface Arrival {
+  review?: 'start' | 'rework';
+  level?: Level;
+  memo?: string;
 }
 
-const HELP_LABEL: Record<HelpLevel, string> = { alone: 'réussie seul', hints: 'avec indices', solution: 'solution vue' };
+/** The page last seen in each space, while the app runs: tapping a space comes back to it. */
+const lastIn: Partial<Record<SpaceId, Page>> = {};
 
-/** « 3 questions à revoir et 2 Blueprints à refaire ». */
-function dueLabel(questions: number, graphs: number): string {
-  const q = questions ? `${questions} question${questions > 1 ? 's' : ''}` : '';
-  const g = graphs ? `${graphs} Blueprint${graphs > 1 ? 's' : ''} à refaire` : '';
-  if (q && g) return `${q} à revoir et ${g}`;
-  return g || `${q} à revoir`;
-}
-
-const dateLabel = (t: number) => new Date(t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-
-export type Tab = 'path' | 'review' | 'notebook' | 'nodes' | 'memo';
-
-export function Home({ progress, onOpen, onProgress, onReload, initialTab = 'path', projects, onProjects }: Props) {
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const [memoId, setMemoId] = useState<string | undefined>(undefined);
+export function Home({ progress, onOpen, onProgress, onReload, page, onPage }: Props) {
+  const [arrival, setArrival] = useState<Arrival>({});
+  // A new arrival remounts its page, so that it acts again even on the page already open.
+  const [visit, setVisit] = useState(0);
   const [settings, setSettings] = useState(false);
-  const done = new Set(progress.done);
-  const ready = (l: Lesson) => availability(l, progress.done, progress.doneAt).ready;
-  const nextLesson = LESSONS.find((l) => !done.has(l.id) && ready(l));
-  const acquired = useMemo(() => acquiredNotions(progress.done), [progress.done]);
+  const done = useMemo(() => new Set(progress.done), [progress.done]);
   const passed = LESSONS.filter((l) => done.has(l.id)).length;
-  const open = (l: Lesson) => onOpen({ kind: 'lesson', lessonId: l.id });
-  const openLesson = (id: string) => onOpen({ kind: 'lesson', lessonId: id });
   const questions = useMemo(() => dueQuestions(QUIZ, progress, Date.now()).length, [progress]);
   const graphs = useMemo(() => reworkCards(progress, Date.now()).length, [progress]);
   const due = questions + graphs;
-  const days = streak(progress.days ?? [], Date.now());
+  const space = spaceOf(page);
+  lastIn[space.id] = page;
 
-  // "Reprendre" : the last workspace, when it is not what "Continuer" already offers.
-  const last = progress.last;
-  const lastLesson = last?.kind === 'lesson' ? getLesson(last.lessonId) : undefined;
-  const resume = lastLesson && lastLesson !== nextLesson && !done.has(lastLesson.id) ? lastLesson : undefined;
+  const main = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!arrival.level && !arrival.review) main.current?.scrollTo({ top: 0 });
+  }, [page, visit]);
 
-  const go = (t: Tab) => {
-    setMemoId(undefined);
-    setTab(t);
+  const go = (p: Page, a: Arrival = {}) => {
+    setArrival(a);
+    setVisit((v) => v + 1);
+    onPage(p);
   };
+  const open = (l: Lesson) => onOpen({ kind: 'lesson', lessonId: l.id });
+  const openLesson = (id: string) => onOpen({ kind: 'lesson', lessonId: id });
+  const last = progress.last;
 
   return (
     <div class="home">
-      <header class="home-head">
-        <div>
-          <h1>BP Trainer</h1>
-          <p class="muted">Les Blueprints d’Unreal Engine 5, au doigt.</p>
-          <p class="home-chips">
-            {days > 0 && (
-              <span class="chip-stat" title="Jours d’affilée avec une leçon, une révision ou une fiche lue">
-                {days} jour{days > 1 ? 's' : ''} d’affilée
-              </span>
-            )}
-            <button class="chip-stat link" onClick={() => setSettings(true)}>
-              <Icon name="settings" /> Réglages · v{APP_VERSION}
-            </button>
-          </p>
-        </div>
-        <div class="home-actions">
-          {nextLesson && (
-            <button class="btn primary big" onClick={() => open(nextLesson)}>
-              {done.size ? 'Continuer' : 'Commencer'} : {nextLesson.title}
-            </button>
+      <Rail
+        page={page}
+        due={due}
+        onSpace={(id) => go(lastIn[id] ?? SPACES.find((s) => s.id === id)!.pages[0].id)}
+        onSettings={() => setSettings(true)}
+      />
+      <div class="home-main" ref={main}>
+        <div class="home-bar">
+          {space.pages.length > 1 ? (
+            <div class="home-tabs" role="tablist" aria-label={space.label}>
+              {space.pages.map((p) => (
+                <button key={p.id} role="tab" data-page={p.id} aria-selected={p.id === page} class={p.id === page ? 'active' : ''} onClick={() => go(p.id)}>
+                  {p.label}
+                  {p.id === 'review' && due > 0 && <span class="count-badge">{due}</span>}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <h1 class="home-title">{space.pages[0].label}</h1>
           )}
-          {resume && (
-            <button class="btn big" onClick={() => open(resume)}>
-              Reprendre : {resume.title}
-            </button>
-          )}
-          <button class="btn big" onClick={() => onProjects(true)}>
-            Simulation libre
-          </button>
-        </div>
-      </header>
-
-      <div class="home-bar">
-        <div class="home-tabs" role="tablist">
-          <button role="tab" class={tab === 'path' ? 'active' : ''} onClick={() => go('path')}>
-            Parcours
-          </button>
-          <button role="tab" class={tab === 'review' ? 'active' : ''} onClick={() => go('review')}>
-            Révision{due > 0 && <span class="count-badge">{due}</span>}
-          </button>
-          <button role="tab" class={tab === 'notebook' ? 'active' : ''} onClick={() => go('notebook')}>
-            Carnet
-          </button>
-          <button role="tab" class={tab === 'nodes' ? 'active' : ''} onClick={() => go('nodes')}>
-            Nœuds
-          </button>
-          <button role="tab" class={tab === 'memo' ? 'active' : ''} onClick={() => go('memo')}>
-            Mémo UE
-          </button>
-        </div>
-        <div class="home-progress" title={`${passed} étapes réussies sur ${LESSONS.length}`}>
-          <div class="meter">
-            <span style={{ width: `${(passed / LESSONS.length) * 100}%` }} />
+          <div class="home-progress" title={`${passed} étapes réussies sur ${LESSONS.length}`}>
+            <div class="meter">
+              <span style={{ width: `${(passed / LESSONS.length) * 100}%` }} />
+            </div>
+            <span class="muted small">
+              {passed} / {LESSONS.length}
+            </span>
           </div>
-          <span class="muted small">
-            {passed} / {LESSONS.length}
-          </span>
         </div>
+
+        {page === 'today' && (
+          <Today
+            key={visit}
+            progress={progress}
+            onOpen={open}
+            onReview={(intent) => go('review', { review: intent })}
+            onPath={(level) => go('path', { level })}
+          />
+        )}
+        {page === 'path' && <PathPage key={visit} progress={progress} onOpen={open} focusLevel={arrival.level} />}
+        {page === 'review' && (
+          <Review
+            key={visit}
+            progress={progress}
+            onProgress={onProgress}
+            onOpenLesson={openLesson}
+            onPractice={(id) => onOpen({ kind: 'practice', lessonId: id })}
+            onOpenMemo={(id) => go('memo', { memo: id })}
+            intent={arrival.review}
+          />
+        )}
+        {page === 'notebook' && <Notebook done={done} onOpen={open} log={progress.log} onClearLog={() => onProgress(withoutLog)} />}
+        {page === 'nodes' && <NodeIndex onOpenLesson={openLesson} />}
+        {page === 'memo' && (
+          <Memo
+            key={`${visit}:${arrival.memo ?? 'list'}`}
+            read={progress.read ?? []}
+            initial={arrival.memo}
+            onRead={(id) => onProgress((p) => withRead(p, id))}
+            onOpenLesson={openLesson}
+          />
+        )}
+        {page === 'projects' && (
+          <ProjectsPage
+            lastId={last?.kind === 'sandbox' ? (last.projectId ?? MAIN_ID) : undefined}
+            onOpen={(id) => onOpen({ kind: 'sandbox', projectId: id === MAIN_ID ? undefined : id })}
+          />
+        )}
       </div>
 
-      {tab === 'path' && (
-        <main class="home-path">
-          {due > 0 && (
-            <button class="review-banner" onClick={() => go('review')}>
-              <span>
-                <strong>{dueLabel(questions, graphs)}</strong>
-                <span class="muted"> · {graphs > 0 ? 'un graphe à refaire de zéro, pour le savoir encore dans une semaine' : 'deux minutes pour ne pas oublier ce que tu as appris'}</span>
-              </span>
-              <span class="review-go">Réviser ›</span>
-            </button>
-          )}
-          {LEVELS.map((lv, li) => {
-            const list = LESSONS.filter((l) => l.level === lv.id);
-            // A level with no step yet (Expert, until its projects come) is not shown.
-            if (!list.length) return null;
-            const count = list.filter((l) => done.has(l.id)).length;
-            // The synthesis of the level before is advised first, never required.
-            const before = li > 0 ? LESSONS.find((l) => l.level === LEVELS[li - 1].id && l.kind === 'synthesis') : undefined;
-            const advise = before && !done.has(before.id) && count === 0 ? before : undefined;
-            return (
-              <section key={lv.id} class="module">
-                <h2>
-                  {lv.title}
-                  <span class={`level-count${count === list.length ? ' full' : ''}`}>
-                    {count} / {list.length}
-                  </span>
-                  <span class="muted small">{lv.summary}</span>
-                  <span class="muted small level-help">{lv.help}</span>
-                </h2>
-                {advise && (
-                  <button class="synthesis-advice" onClick={() => open(advise)}>
-                    Conseillé avant ce niveau : <strong>Synthèse {advise.code} · {advise.title}</strong>. Elle reprend tout le niveau {LEVELS[li - 1].title}, sans aide.
-                  </button>
-                )}
-                <div class="lesson-list">
-                  {list.map((l) => (
-                    <button
-                      key={l.id}
-                      class={`lesson-item${done.has(l.id) ? ' done' : ''}${l === nextLesson ? ' next' : ''}${(l.kind && l.kind !== 'build') || isChainExercise(l) ? ` exercise ${l.chain?.step ?? l.kind}` : ''}`}
-                      onClick={() => open(l)}
-                    >
-                      <span class="li-num">{done.has(l.id) ? '✓' : (l.code ?? l.number)}</span>
-                      <span class="li-text">
-                        {eyebrowOf(l) && <span class="eyebrow">{eyebrowOf(l)}</span>}
-                        {l === nextLesson && <span class="eyebrow next-tag">À suivre</span>}
-                        <strong>{l.title}</strong>
-                        <span>{l.situation}</span>
-                        <StepMeta lesson={l} done={done.has(l.id)} acquired={acquired} progress={progress} />
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-          <p class="muted small">Tous les niveaux sont ouverts : suis l’ordre, ou commence où tu veux.</p>
-        </main>
-      )}
-      {tab === 'review' && (
-        <Review
-          progress={progress}
-          onProgress={onProgress}
-          onOpenLesson={openLesson}
-          onPractice={(id) => onOpen({ kind: 'practice', lessonId: id })}
-          onOpenMemo={(id) => {
-            setMemoId(id);
-            setTab('memo');
-          }}
-        />
-      )}
-      {tab === 'notebook' && <Notebook done={done} onOpen={open} log={progress.log} onClearLog={() => onProgress(withoutLog)} />}
-      {tab === 'nodes' && <NodeIndex onOpenLesson={openLesson} />}
-      {tab === 'memo' && (
-        <Memo key={memoId ?? 'list'} read={progress.read ?? []} initial={memoId} onRead={(id) => onProgress((p) => withRead(p, id))} onOpenLesson={openLesson} />
-      )}
-
       {settings && <SettingsDialog onClose={() => setSettings(false)} onRestored={onReload} />}
-      {projects && (
-        <ProjectsDialog
-          lastId={last?.kind === 'sandbox' ? (last.projectId ?? MAIN_ID) : undefined}
-          onOpen={(id) => {
-            onProjects(false);
-            onOpen({ kind: 'sandbox', projectId: id === MAIN_ID ? undefined : id });
-          }}
-          onClose={() => onProjects(false)}
-        />
-      )}
     </div>
   );
-}
-
-/**
- * A step's duration. A project in milestones (V7.74) says the milestone in
- * progress and the whole: « jalon 2/6 ≈ 1 h 45 · ≈ 10 h 30 en tout ».
- */
-function stepDuration(lesson: Lesson, done: boolean, passed: number | undefined): string {
-  const each = milestoneMinutes(lesson);
-  const total = durationLabel(estimatedMinutes(lesson));
-  if (each.length < 2) return total;
-  if (done && (passed ?? each.length) >= each.length) return `${each.length} jalons · ${total}`;
-  const at = Math.min(passed ?? 0, each.length - 1);
-  return `jalon ${at + 1}/${each.length} ${durationLabel(each[at])} · ${total} en tout`;
-}
-
-/** Under a card: duration, notions still missing, how it was passed, when a delayed step is offered. */
-function StepMeta({ lesson, done, acquired, progress }: { lesson: Lesson; done: boolean; acquired: ReadonlySet<string>; progress: Progress }) {
-  const parts: string[] = [stepDuration(lesson, done, progress.milestones?.[lesson.id])];
-  if (done) {
-    const how = progress.passedWith?.[lesson.id];
-    if (how) parts.push(HELP_LABEL[how]);
-  } else {
-    const wait = availability(lesson, progress.done, progress.doneAt);
-    if (wait.after) parts.push(`après ${getLesson(wait.after)?.code ?? ''} ${getLesson(wait.after)?.title ?? ''}`.replace('  ', ' '));
-    else if (wait.from) parts.push(`conseillé à partir du ${dateLabel(wait.from)}`);
-    const missing = missingNotions(lesson.id, acquired);
-    if (missing.length) parts.push(`demande : ${missing.map((n) => n.title).join(', ')}`);
-  }
-  return <span class="li-meta">{parts.join(' · ')}</span>;
 }

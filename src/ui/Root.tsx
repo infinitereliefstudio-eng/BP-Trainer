@@ -5,7 +5,8 @@ import { lastMilestone, milestoneView, openedMilestone } from '@core/lessons/mil
 import { flushSaves, startAutosave } from '@storage/persistence';
 import { watchForUpdates } from '../updates';
 import { App } from './App';
-import { Home, type Tab as HomeTab } from './Home';
+import { Home } from './Home';
+import type { Page as HomePage } from './home/pages';
 import { NoticeDialog } from './status/NoticeDialog';
 import { RecoveryDialog } from './status/RecoveryDialog';
 import { StatusBar, type StatusMessage } from './status/StatusBar';
@@ -40,8 +41,8 @@ export function Root() {
   const [problem, setProblem] = useState<LoadedProgress['problem']>(undefined);
   const [saveFailed, setSaveFailed] = useState(false);
   const [ws, setWs] = useState<OpenedWorkspace | null>(null);
-  const [homeTab, setHomeTab] = useState<HomeTab>('path');
-  const [projects, setProjects] = useState(false);
+  // The page of the home screen (UI-2): leaving a workspace comes back to it.
+  const [homePage, setHomePage] = useState<HomePage>('today');
   const [blocked, setBlocked] = useState<BlockedWorkspace | null>(null);
   const [notices, setNotices] = useState<string[]>([]);
   const [newer, setNewer] = useState<string | null>(null);
@@ -167,9 +168,8 @@ export function Root() {
           onOpen={open}
           onProgress={changeProgress}
           onReload={reload}
-          initialTab={homeTab}
-          projects={projects}
-          onProjects={setProjects}
+          page={homePage}
+          onPage={setHomePage}
         />
         {overlays}
       </>
@@ -200,8 +200,8 @@ export function Root() {
         lessonDone={lessonDone}
         practice={!!practiceId}
         onHome={() => {
-          // Back from a practice: to the queue it came from.
-          setHomeTab(ws.ref.kind === 'practice' ? 'review' : 'path');
+          // Back from a practice: to the queue it came from; otherwise to the page the workspace was opened from.
+          if (ws.ref.kind === 'practice') setHomePage('review');
           setWs(null);
         }}
         onLessonPassed={() => {
@@ -226,8 +226,7 @@ export function Root() {
         }}
         onOpen={open}
         onProjects={() => {
-          setHomeTab('path');
-          setProjects(true);
+          setHomePage('projects');
           setWs(null);
         }}
       />

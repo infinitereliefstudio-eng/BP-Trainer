@@ -51,8 +51,8 @@ async def graph(page):
 
 
 async def free_play(page):
-    """Simulation libre › Mes projets (V7.41): opens the first project of the list, or creates one when there is none."""
-    await page.locator('.btn.big', has_text='Simulation libre').tap()
+    """Créer › Mes projets (V7.41, a page since V7.84): opens the first project of the list, or creates one when there is none."""
+    await go_page(page, 'create', 'projects')
     await page.wait_for_timeout(400)
     if await page.locator('.project-open').count():
         await page.locator('.project-open').first.tap()
@@ -60,6 +60,40 @@ async def free_play(page):
         await page.locator('.projects-btn', has_text='Nouveau projet').tap()
         await page.wait_for_timeout(200)
         await page.locator('.dialog .btn.primary', has_text='Créer').tap()
+
+
+async def go_page(page, space, name=None):
+    """UI-2 (V7.84): a page of the home screen, by its space on the rail, then its tab."""
+    await page.locator(f'.rail [data-space="{space}"]').tap()
+    await page.wait_for_timeout(200)
+    if name and await page.locator(f'.home-tabs [data-page="{name}"]').count():
+        await page.locator(f'.home-tabs [data-page="{name}"]').tap()
+        await page.wait_for_timeout(250)
+
+
+async def show_level(page, title):
+    """Apprendre › Parcours, the band of a level brought into view (the search emptied first, V7.85)."""
+    await go_page(page, 'learn', 'path')
+    if await page.locator('.path-search').count():
+        await page.locator('.path-search').fill('')
+        await page.wait_for_timeout(200)
+    await page.locator('.module h2', has_text=title).first.scroll_into_view_if_needed()
+
+
+async def show_step(page, text, search=None, sel='.lesson-item'):
+    """Apprendre › Parcours, the card of a step brought into view (V7.85: found with the search of the path)."""
+    await go_page(page, 'learn', 'path')
+    if await page.locator('.path-search').count():
+        await page.locator('.path-search').fill(search or text)
+        await page.wait_for_timeout(250)
+    await page.locator(sel, has_text=text).first.scroll_into_view_if_needed()
+
+
+async def open_step(page, text, first=False, search=None, sel='.lesson-item'):
+    """Opens a step of the path from its card."""
+    await show_step(page, text, search, sel)
+    loc = page.locator(sel, has_text=text)
+    await (loc.first if first else loc).tap()
 
 
 async def main():
@@ -81,7 +115,7 @@ async def main():
         await shot('01_home')
 
         # V7.75 (UI-1): Réglages › Taille du texte, « Très grande » then back to « Normale »; the choice is kept.
-        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.locator('.rail [data-space="settings"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.segmented button', has_text='Très grande').tap()
         await page.wait_for_timeout(300)
@@ -91,14 +125,14 @@ async def main():
         await page.locator('.dialog .btn', has_text='Fermer').tap()
         await page.wait_for_timeout(300)
         await shot('01c_home_text_large')
-        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.locator('.rail [data-space="settings"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.segmented button', has_text='Normale').tap()
         await page.locator('.dialog .btn', has_text='Fermer').tap()
         await page.wait_for_timeout(300)
 
         # Lesson 10: dispatcher, details, breakpoint, debugger
-        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await open_step(page, 'Le générateur prévient')
         await page.wait_for_timeout(500)
         await page.evaluate(OPEN, 'BP_Lampe')
         await graph(page)
@@ -176,7 +210,7 @@ async def main():
         # Exercise P1
         await page.locator('button[aria-label="Accueil"]').tap()
         await page.wait_for_timeout(300)
-        await page.locator('.lesson-item', has_text='Sequence et Delay').tap()
+        await open_step(page, 'Sequence et Delay')
         await page.wait_for_timeout(500)
         await page.locator('.lesson-tabs button', has_text='Prédis').tap()
         await page.locator('.option').nth(1).tap()
@@ -187,7 +221,7 @@ async def main():
         # Lesson 11: interfaces, functions, palette
         await page.locator('button[aria-label="Accueil"]').tap()
         await page.wait_for_timeout(300)
-        await page.locator('.lesson-item', has_text='Interagir avec tout').tap()
+        await open_step(page, 'Interagir avec tout')
         await page.wait_for_timeout(500)
         await page.evaluate(OPEN, 'BP_Lampe')
         await page.locator('button[aria-label="Ouvrir Details"]').tap()
@@ -281,7 +315,7 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l12-station', (HERE / 'out' / 'l12-station.json').read_text()])
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Remettre la station').tap()
+        await open_step(page, 'Remettre la station')
         await page.wait_for_timeout(500)
         await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
@@ -311,7 +345,7 @@ async def main():
 
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Accessed None').first.tap()
+        await open_step(page, 'Accessed None', first=True)
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -356,9 +390,9 @@ async def main():
         # Step C of V2: the home by level, and a "Complète" exercise with its gaps
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.module h2', has_text='Intermédiaire').scroll_into_view_if_needed()
+        await show_level(page, 'Intermédiaire')
         await shot('17_home_levels')
-        await page.locator('.lesson-item', has_text='La lampe torche').tap()
+        await open_step(page, 'La lampe torche')
         await page.wait_for_timeout(500)
         await shot('18_complete_sheet')
         if await page.locator('.sheet .btn', has_text='Fermer').count():
@@ -370,19 +404,47 @@ async def main():
         # Step D of V2: the Confirmé and Avancé levels
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.module h2', has_text='Avancé').scroll_into_view_if_needed()
+        await show_level(page, 'Avancé')
         await shot('20_home_advanced')
+        # UI-2 (V7.85): levels and chapters are folded but the step to do next; « Tout déplier » shows the 155 steps.
+        folded = await page.locator('.lesson-item').count()
+        if folded >= 60:
+            errs.append(f'Parcours : {folded} étapes visibles, les niveaux et chapitres ne sont pas repliés')
+        await page.locator('.path-tool', has_text='Tout déplier').tap()
+        await page.wait_for_timeout(300)
         if await page.locator('.lesson-item').count() != 155:
-            errs.append(f"Accueil : {await page.locator('.lesson-item').count()} étapes au lieu de 155")
+            errs.append(f"Parcours : {await page.locator('.lesson-item').count()} étapes au lieu de 155 une fois tout déplié")
+        await page.locator('.path-tool', has_text='Tout replier').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.path-tool', has_text='Codes').tap()
+        await page.wait_for_timeout(200)
+        if await page.locator('.code-legend .legend-row').count() < 10:
+            errs.append('Parcours : la légende des codes ne s’ouvre pas')
+        await shot('20b_path_legend')
+        await page.locator('.code-legend .btn', has_text='Fermer').tap()
+        await page.locator('.path-tool', has_text='Filtres').tap()
+        await page.wait_for_timeout(200)
+        await page.locator('.filter-row .segmented button', has_text='Projets X').tap()
+        await page.wait_for_timeout(300)
+        await shot('20c_path_filter_projects')
+        if await page.locator('.lesson-item').count() != 5:
+            errs.append(f"Parcours : le filtre Projets montre {await page.locator('.lesson-item').count()} étapes au lieu de 5")
+        await page.locator('.path-found .link-btn', has_text='Tout afficher').tap()
+        await page.locator('.path-tool', has_text='Filtres').tap()
+        await page.locator('.path-search').fill('cast')
+        await page.wait_for_timeout(300)
+        await shot('20d_path_search_cast')
+        if await page.locator('.lesson-item', has_text='Ramasser un objet').count() != 1:
+            errs.append('Parcours : la recherche « cast » ne trouve pas Ramasser un objet (notion Cast To)')
         # « la salle de contrôle » is also in X6’s situation: the step itself comes first.
-        await page.locator('.lesson-item', has_text='La salle de contrôle').first.tap()
+        await open_step(page, 'La salle de contrôle', first=True)
         await page.wait_for_timeout(500)
         await shot('21_control_room_sheet')
 
         # Step E of V2: a child Blueprint, its inherited members, and Parent: BeginPlay
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='L’héritage').tap()
+        await open_step(page, 'L’héritage')
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -403,7 +465,7 @@ async def main():
             await page.evaluate(PUT, [f'project:lesson:{lid}', (HERE / 'out' / f'{lid}.json').read_text()])
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le ticket de caisse').tap()
+        await open_step(page, 'Le ticket de caisse')
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -426,7 +488,7 @@ async def main():
             errs.append('Details : la variable locale ne s’affiche pas')
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text=re.compile(r'Le terminal(?! muet| à badge| de la station)')).tap()
+        await open_step(page, re.compile(r'Le terminal(?! muet| à badge| de la station)'), search='Le terminal')
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -452,7 +514,7 @@ async def main():
             await page.evaluate(PUT, [f'project:lesson:{lid}', (HERE / 'out' / f'{lid}.json').read_text()])
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Les codes des portes').tap()
+        await open_step(page, 'Les codes des portes')
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -467,7 +529,7 @@ async def main():
             errs.append('Details : les deux paires de la Map Codes ne sont pas affichées')
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La fiche de l’objet').tap()
+        await open_step(page, 'La fiche de l’objet')
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -487,7 +549,7 @@ async def main():
             errs.append('Details : Set Members in n’affiche pas les membres à changer')
         await page.goto((ROOT / 'dist' / 'index.html').as_uri() + '?e2e')
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Les badges').tap()
+        await open_step(page, 'Les badges')
         await page.wait_for_timeout(500)
         if await page.locator('.sheet .btn', has_text='Fermer').count():
             await page.locator('.sheet .btn', has_text='Fermer').first.tap()
@@ -513,7 +575,7 @@ async def main():
 
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La porte qui glisse').tap()
+        await open_step(page, 'La porte qui glisse')
         await page.wait_for_timeout(500)
         await close_sheet()
         await graph(page)
@@ -578,7 +640,7 @@ async def main():
 
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La rangée de lampes').tap()
+        await open_step(page, 'La rangée de lampes')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.locator('.doc-tab.level').tap()
@@ -604,7 +666,7 @@ async def main():
         # Step D of V3: a Line Trace drawn during Play, Event Hit pushing a crate
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Regarder et interagir').tap()
+        await open_step(page, 'Regarder et interagir')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.evaluate(OPEN, 'BP_Joueur')
@@ -623,7 +685,7 @@ async def main():
 
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Détruire proprement').tap()
+        await open_step(page, 'Détruire proprement')
         await page.wait_for_timeout(500)
         await close_sheet()
         await graph(page)
@@ -633,7 +695,7 @@ async def main():
         # Step E of V3: advice on the whole project (menu), the notebook on the home screen
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Générateur et lampe').tap()
+        await open_step(page, 'Générateur et lampe')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.evaluate("""() => { const s = window.bpStore; const c = s.project.classes.find(c => c.name === 'BP_Lampe'); s.openClass(c.id); s.apply('test', (cl, g) => { const id = (k) => 'smoke_' + k; g.nodes[id('t')] = { id: id('t'), def: 'event.tick', x: 64, y: 96, config: {}, defaults: {} }; g.nodes[id('p')] = { id: id('p'), def: 'debug.printString', x: 400, y: 96, config: {}, defaults: {} }; g.links[id('l')] = { id: id('l'), from: { node: id('t'), pin: 'then' }, to: { node: id('p'), pin: 'exec' } }; }); }""")
@@ -657,9 +719,27 @@ async def main():
         await page.goto(home)
         await page.wait_for_timeout(500)
         await shot('51_home_progress')
+        # UI-2 (V7.84): « Aujourd'hui » opens first; its Révision card starts the session at once.
+        if await page.locator('.today-card.continue', has_text='Continuer').count() != 1:
+            errs.append('Aujourd’hui : la carte Continuer manque')
+        if await page.locator('.rail .rail-btn').count() != 4:
+            errs.append(f"Rail : {await page.locator('.rail .rail-btn').count()} boutons au lieu de 4")
+        await page.locator('.today-card', has_text='Révision').tap()
+        await page.wait_for_timeout(300)
+        if await page.locator('.quiz .option').count() != 4:
+            errs.append('Aujourd’hui : la carte Révision ne lance pas la séance')
+        await shot('51a_today_review_started')
+        await page.locator('.quiz-quit').tap()
+        await page.set_viewport_size({'width': 390, 'height': 800})
+        await go_page(page, 'learn', 'today')
+        await page.wait_for_timeout(300)
+        await shot('51p_today_portrait')
+        await page.set_viewport_size({'width': 800, 'height': 370})
+        await page.wait_for_timeout(200)
+        await go_page(page, 'learn', 'path')
         if await page.locator('.lesson-item.next').count() != 1:
             errs.append('Accueil : la prochaine étape n’est pas mise en avant')
-        await page.locator('.home-tabs button', has_text='Carnet').tap()
+        await go_page(page, 'consult', 'notebook')
         await page.wait_for_timeout(200)
         # V7.27: the attempt log, filled by the Vérifier pressed above
         if await page.locator('.attempt-log').count() != 1:
@@ -680,7 +760,7 @@ async def main():
             errs.append(f'Carnet : recherche « timeline » : {found} fiches, la leçon réussie doit montrer sa phrase à retenir')
 
         # V4: spaced review, node index, UE memo, objectives visible while building
-        await page.locator('.home-tabs button', has_text='Révision').tap()
+        await go_page(page, 'learn', 'review')
         await page.wait_for_timeout(300)
         if await page.locator('.count-badge').count() != 1:
             errs.append('Révision : pas de compteur de questions à revoir sur l’onglet')
@@ -717,7 +797,7 @@ async def main():
         await shot('54_review_answer')
         if await page.locator('.quiz .option.answer').count() != 1:
             errs.append('Révision : la bonne réponse n’est pas montrée après le choix')
-        await page.locator('.home-tabs button', has_text='Nœuds').tap()
+        await go_page(page, 'consult', 'nodes')
         await page.wait_for_timeout(300)
         await page.locator('.notebook .search').fill('delay')
         await page.wait_for_timeout(300)
@@ -728,7 +808,7 @@ async def main():
         await shot('55_node_index')
         if await page.locator('.node-body').count() != 1:
             errs.append('Index des nœuds : la fiche du nœud ne s’ouvre pas')
-        await page.locator('.home-tabs button', has_text='Mémo UE').tap()
+        await go_page(page, 'consult', 'memo')
         await page.wait_for_timeout(300)
         await page.locator('.note-item', has_text='Enhanced Input').tap()
         await page.wait_for_timeout(300)
@@ -737,7 +817,7 @@ async def main():
             errs.append('Mémo : la fiche Enhanced Input ne s’ouvre pas')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Interrupteur à touche').first.tap()
+        await open_step(page, 'Interrupteur à touche', first=True)
         await page.wait_for_timeout(500)
         await close_sheet()
         if await page.locator('.goal-strip').count() != 1:
@@ -752,7 +832,7 @@ async def main():
             await page.evaluate(PUT, [f'project:lesson:{lid}', (HERE / 'out' / f'{lid}.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le rayon et les miroirs').tap()
+        await open_step(page, 'Le rayon et les miroirs')
         await page.wait_for_timeout(500)
         await shot('58_mirrors_sheet')
         await close_sheet()
@@ -769,7 +849,7 @@ async def main():
         await page.wait_for_timeout(300)
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le réseau en boucle').tap()
+        await open_step(page, 'Le réseau en boucle')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.locator('.doc-tab.level').tap()
@@ -777,7 +857,7 @@ async def main():
         await shot('61_grid_level')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Les meubles sur une grille tournée').tap()
+        await open_step(page, 'Les meubles sur une grille tournée')
         await page.wait_for_timeout(500)
         await close_sheet()
         await graph(page)
@@ -785,7 +865,7 @@ async def main():
         await shot('62_floor_graph')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La même donne').tap()
+        await open_step(page, 'La même donne')
         await page.wait_for_timeout(500)
         await close_sheet()
         await graph(page)
@@ -800,7 +880,7 @@ async def main():
         # V7: a Data Table in the Content Browser and its Details; a Save Game slot written by Play
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le catalogue').tap()
+        await open_step(page, 'Le catalogue')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.locator('.content-drawer-btn').tap()
@@ -816,7 +896,7 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l-tirelire', (HERE / 'out' / 'l-tirelire.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item:not(.exercise)', has_text='La tirelire').tap()
+        await open_step(page, 'La tirelire', sel='.lesson-item:not(.exercise)')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.locator('.tb.play').tap()
@@ -837,7 +917,7 @@ async def main():
         # V7.1: Consume Input in the Details of a key event (D19)
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Seule la dernière porte').tap()
+        await open_step(page, 'Seule la dernière porte')
         await page.wait_for_timeout(500)
         await close_sheet()
         await graph(page)
@@ -852,7 +932,7 @@ async def main():
         # Lot 0: help by level, locked from Confirmé (hint after a try, no node list)
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Qui modifie quoi').tap()
+        await open_step(page, 'Qui modifie quoi')
         await page.wait_for_timeout(500)
         await page.locator('.lesson-tabs button', has_text='Aide').tap()
         await page.wait_for_timeout(200)
@@ -863,13 +943,13 @@ async def main():
             errs.append('Aide Confirmé : pas de liste de nœuds à ce niveau')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.module h2', has_text='Confirmé').scroll_into_view_if_needed()
+        await show_level(page, 'Confirmé')
         await shot('68_home_help_rule')
         # Lot 3a: the pause menu. Trigger when Paused in the Input Action's Details, PAUSED in Play, and back.
         await page.evaluate(PUT, ['project:lesson:l-menu-pause', (HERE / 'out' / 'l-menu-pause.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le menu pause').first.tap()
+        await open_step(page, 'Le menu pause', first=True)
         await page.wait_for_timeout(500)
         await page.evaluate("""() => { const s = window.bpStore; s.setFocus({ kind: 'inputAction', id: s.project.inputActions.find(a => a.name === 'IA_Pause').id }); }""")
         await page.locator('button[aria-label="Ouvrir Details"]').tap()
@@ -896,7 +976,7 @@ async def main():
         # Lot 4a: an Avancé step is a brief, its step-by-step card waits for success
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Détruire proprement').tap()
+        await open_step(page, 'Détruire proprement')
         await page.wait_for_timeout(500)
         if await page.locator('.lesson-tabs').count() == 0:
             await page.locator('.tb.lesson').tap()
@@ -912,10 +992,11 @@ async def main():
         # Lot 4b: the Expert level on the home screen, a project with no hint
         await page.goto(home)
         await page.wait_for_timeout(500)
+        await go_page(page, 'learn', 'path')
         if await page.locator('.module h2', has_text='Expert').count() != 1:
             errs.append('Accueil : le niveau Expert n’apparaît pas')
-        await page.locator('.lesson-item', has_text='L’atelier des machines').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='L’atelier des machines').tap()
+        await show_step(page, 'L’atelier des machines')
+        await open_step(page, 'L’atelier des machines')
         await page.wait_for_timeout(500)
         if await page.locator('.lesson-tabs').count() == 0:
             await page.locator('.tb.lesson').tap()
@@ -997,14 +1078,14 @@ async def main():
         # V7.20: the Actor Components steps after « L’héritage »: a Prédis, the refactor's brief, the badge lock.
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Qui commence ?').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Qui commence ?').tap()
+        await show_step(page, 'Qui commence ?')
+        await open_step(page, 'Qui commence ?')
         await page.wait_for_timeout(500)
         await shot('76_predict_component_order')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La santé est partout').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='La santé est partout').tap()
+        await show_step(page, 'La santé est partout')
+        await open_step(page, 'La santé est partout')
         await page.wait_for_timeout(500)
         await shot('77_refactor_health')
         # V7.25: R5 is the guided rung of Actor Components, its method stays in view (helpPolicy, first rung).
@@ -1019,14 +1100,14 @@ async def main():
         # V7.21: the usage steps: interaction by component, the battery that does not compile, the chest's inventory.
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Interagir par composant').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Interagir par composant').tap()
+        await show_step(page, 'Interagir par composant')
+        await open_step(page, 'Interagir par composant')
         await page.wait_for_timeout(500)
         await shot('79_interaction_component')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La batterie qui ne sait pas').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='La batterie qui ne sait pas').tap()
+        await show_step(page, 'La batterie qui ne sait pas')
+        await open_step(page, 'La batterie qui ne sait pas')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.evaluate(OPEN, 'BP_Batterie')
@@ -1038,8 +1119,8 @@ async def main():
             errs.append('D23 : BP_Batterie compile sans erreur au départ')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le sac et le coffre').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Le sac et le coffre').tap()
+        await show_step(page, 'Le sac et le coffre')
+        await open_step(page, 'Le sac et le coffre')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.evaluate(OPEN, 'BP_Coffre')
@@ -1062,8 +1143,8 @@ async def main():
         # V7.22: the advice « Chaîne copiée entre Blueprints » on R5's starting project (the health copied three times).
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La santé est partout').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='La santé est partout').tap()
+        await show_step(page, 'La santé est partout')
+        await open_step(page, 'La santé est partout')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.locator('button[aria-label^="Plus d"]').tap()
@@ -1316,8 +1397,8 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l-vrai-menu-pause', (HERE / 'out' / 'l-vrai-menu-pause.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le vrai menu pause').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Le vrai menu pause').tap()
+        await show_step(page, 'Le vrai menu pause')
+        await open_step(page, 'Le vrai menu pause')
         await page.wait_for_timeout(500)
         await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
@@ -1342,8 +1423,8 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:c7-playlist', (HERE / 'out' / 'c7-playlist.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='La playlist').scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='La playlist').tap()
+        await show_step(page, 'La playlist')
+        await open_step(page, 'La playlist')
         await page.wait_for_timeout(500)
         await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
@@ -1374,8 +1455,8 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:x2-atelier', (HERE / 'out' / 'x2-atelier.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='L’atelier des machines').first.scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='L’atelier des machines').first.tap()
+        await show_step(page, 'L’atelier des machines')
+        await open_step(page, 'L’atelier des machines', first=True)
         await page.wait_for_timeout(500)
         await page.locator('.doc-tab.level').tap()
         await page.locator('.tb.play').tap()
@@ -1422,8 +1503,8 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:x3-arene', (HERE / 'out' / 'x3-arene.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='L’arène de maintenance').first.scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='L’arène de maintenance').first.tap()
+        await show_step(page, 'L’arène de maintenance')
+        await open_step(page, 'L’arène de maintenance', first=True)
         await page.wait_for_timeout(600)
         await page.locator('button', has_text='Vérifier').first.tap()
         await page.wait_for_timeout(2500)
@@ -1449,6 +1530,7 @@ async def main():
         await page.goto(home)
         await page.wait_for_timeout(500)
         # « ronde » is also in another step's text: the item whose title is « La ronde ».
+        await show_step(page, 'La ronde')
         x4 = page.locator('.lesson-item').filter(has=page.locator('strong', has_text=re.compile(r'^La ronde$')))
         await x4.first.scroll_into_view_if_needed()
         await x4.first.tap()
@@ -1480,6 +1562,7 @@ async def main():
         await page.goto(home)
         await page.wait_for_timeout(500)
         # « Le réseau en boucle » also starts so: the item whose title is exactly « Le réseau ».
+        await show_step(page, 'Le réseau')
         x5 = page.locator('.lesson-item').filter(has=page.locator('strong', has_text=re.compile(r'^Le réseau$')))
         await x5.first.scroll_into_view_if_needed()
         await x5.first.tap()
@@ -1521,6 +1604,7 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:x6-reveil', (HERE / 'out' / 'x6-reveil.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
+        await show_step(page, 'Le réveil')
         x6 = page.locator('.lesson-item').filter(has=page.locator('strong', has_text=re.compile(r'^Le réveil$')))
         await x6.first.scroll_into_view_if_needed()
         await x6.first.tap()
@@ -1570,8 +1654,8 @@ async def main():
         await page.goto(home)
         await page.wait_for_timeout(500)
         # « après Le sac qui suit » is also on A4's card: the step itself comes first.
-        await page.locator('.lesson-item', has_text='Le sac qui suit').first.scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Le sac qui suit').first.tap()
+        await show_step(page, 'Le sac qui suit')
+        await open_step(page, 'Le sac qui suit', first=True)
         await page.wait_for_timeout(600)
         await shot('119_lesson_bag_level')
         await page.locator('button', has_text='Vérifier').first.tap()
@@ -1583,8 +1667,8 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l-bonne-porte', (HERE / 'out' / 'l-bonne-porte.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Arriver par la bonne porte').first.scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Arriver par la bonne porte').first.tap()
+        await show_step(page, 'Arriver par la bonne porte')
+        await open_step(page, 'Arriver par la bonne porte', first=True)
         await page.wait_for_timeout(600)
         await page.locator('button', has_text='Vérifier').first.tap()
         await page.wait_for_timeout(1500)
@@ -1620,8 +1704,8 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:c8-personnage', (HERE / 'out' / 'c8-personnage.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Le personnage choisi').first.scroll_into_view_if_needed()
-        await page.locator('.lesson-item', has_text='Le personnage choisi').first.tap()
+        await show_step(page, 'Le personnage choisi')
+        await open_step(page, 'Le personnage choisi', first=True)
         await page.wait_for_timeout(600)
         await page.locator('button', has_text='Vérifier').first.tap()
         await page.wait_for_timeout(1500)
@@ -1634,7 +1718,7 @@ async def main():
         # V7.41: Mes projets. The list, a second project from the editor's menu, rename, copy, delete.
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await go_page(page, 'create', 'projects')
         await page.wait_for_timeout(400)
         first = await page.locator('.project-open').count()
         await shot('100_projects_list')
@@ -1698,7 +1782,7 @@ async def main():
         await page.evaluate(PUT, ['project:sandbox:sb_e2e_widget', (HERE / 'out' / 'widget-component.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await go_page(page, 'create', 'projects')
         await page.wait_for_timeout(400)
         await page.locator('.project-open', has_text='Barres au-dessus').tap()
         await page.wait_for_timeout(700)
@@ -1719,7 +1803,7 @@ async def main():
         await shot('106_widget_component_details')
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await go_page(page, 'create', 'projects')
         await page.wait_for_timeout(400)
         await page.locator('.project-open', has_text='Barres au-dessus').tap()
         await page.wait_for_timeout(700)
@@ -1737,10 +1821,10 @@ async def main():
         await page.evaluate(PUT, ['project:lesson:l-barre-par-ennemi', (HERE / 'out' / 'l-barre-par-ennemi.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.lesson-item', has_text='Une barre par ennemi').scroll_into_view_if_needed()
+        await show_step(page, 'Une barre par ennemi')
         await page.wait_for_timeout(200)
         await shot('108_home_widget_component_steps')
-        await page.locator('.lesson-item', has_text='Une barre par ennemi').tap()
+        await open_step(page, 'Une barre par ennemi')
         await page.wait_for_timeout(500)
         await close_sheet()
         await page.locator('.doc-tab.level').tap()
@@ -1813,7 +1897,7 @@ async def main():
         await page.evaluate(PUT, ['project:sandbox:sb_e2e_levels', (HERE / 'out' / 'open-level.json').read_text()])
         await page.goto(home)
         await page.wait_for_timeout(500)
-        await page.locator('.btn.big', has_text='Simulation libre').tap()
+        await go_page(page, 'create', 'projects')
         await page.wait_for_timeout(400)
         await page.locator('.project-open', has_text='Deux niveaux').tap()
         await page.wait_for_timeout(700)
@@ -1881,13 +1965,13 @@ async def main():
         # to the top view and « 3D » again; a tap on an actor still picks it; the setting is put back after.
         await page.locator('button[aria-label="Accueil"]').tap()
         await page.wait_for_timeout(300)
-        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.locator('.rail [data-space="settings"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.segmented button', has_text='Vue 3D (essai)').tap()
         await shot('119_settings_3d')
         await page.locator('.dialog .btn', has_text='Fermer').tap()
         await page.wait_for_timeout(300)
-        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await open_step(page, 'Le générateur prévient')
         await page.wait_for_timeout(500)
         if await page.locator('.doc-tab.level').count():
             await page.locator('.doc-tab.level').tap()
@@ -1935,7 +2019,7 @@ async def main():
             errs.append('Vue 3D : le niveau reste en 3D hors de Play')
         await page.locator('button[aria-label="Accueil"]').tap()
         await page.wait_for_timeout(300)
-        await page.locator('button.chip-stat', has_text='Réglages').tap()
+        await page.locator('.rail [data-space="settings"]').tap()
         await page.wait_for_timeout(300)
         await page.locator('.segmented button', has_text='Vue de dessus').tap()
         await page.locator('.dialog .btn', has_text='Fermer').tap()
@@ -1943,7 +2027,7 @@ async def main():
         # 3D-1 (V7.78): the level viewport in 3D. Viewport Type › Perspective; tap the generator (Details' focus), drag it
         # on the floor, F, a long press on the floor (Place Actors there), Front and Wireframe, Play from Perspective in
         # 3D, then back to Top (the 2D canvas).
-        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await open_step(page, 'Le générateur prévient')
         await page.wait_for_timeout(500)
         if await page.locator('.doc-tab.level').count():
             await page.locator('.doc-tab.level').tap()
@@ -2103,7 +2187,7 @@ async def main():
         # UI-6 (V7.80): the level toolbar of UE 5.8 (Settings › World Settings opens its Details), and Eject / Possess in Play.
         await page.locator('button[aria-label="Accueil"]').tap()
         await page.wait_for_timeout(300)
-        await page.locator('.lesson-item', has_text='Le générateur prévient').tap()
+        await open_step(page, 'Le générateur prévient')
         await page.wait_for_timeout(500)
         if await page.locator('.doc-tab.level').count():
             await page.locator('.doc-tab.level').tap()

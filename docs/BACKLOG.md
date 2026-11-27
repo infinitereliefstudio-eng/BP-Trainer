@@ -7,7 +7,9 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 **Pertinence** : ★★★ change vraiment l'apprentissage ou l'usage quotidien ; ★★ utile ; ★ confort ou cas rare.
 **Difficulté** : S, une passe courte ; M, une étape comme celles de la V3 ; L, plusieurs étapes ; XL, un chantier (une nouvelle version).
 
-## Reprise par un autre agent (à jour le 27 novembre 2026, après la V7.83)
+## Reprise par un autre agent (à jour le 27 novembre 2026, après la V7.85)
+
+**27 novembre, 14 h 09 : UI-2 lancée et faite** (« On peux passer a UI-2 si tout est ok »), en deux versions, tout est poussé et déployé (7.85.0) : **V7.84** (le rail Apprendre / Consulter / Créer / Réglages, l'accueil « Aujourd'hui » avec ses cartes Continuer, Révision et À retravailler, Mes projets en page) et **V7.85** (le parcours en niveaux et chapitres repliables, `core/lessons/chapters.ts` ; recherche, filtres État / Format / Durée, légende des codes). Sur les projets Expert, Tristan ne peut pas encore donner de retour (« il faudrait que je sois capable de les faire »), « visuellement a priori tout va bien ». **À la reprise** : ses essais des V7.81 à V7.85, puis **UI-3** (fiche de leçon en tiroir, écran de fin d'étape), puis UI-5, puis la revue de la phase 3, sur son feu vert à chaque fois.
 
 **Pause demandée par Tristan le 27 novembre à 11 h 27 (« met à jour le backlog on arrête ici ») : rien n'est en cours, tout est poussé et déployé (7.83.0).** La revue de la marche A ([REVUE_MARCHE_A.md](REVUE_MARCHE_A.md)) est entièrement corrigée : V7.81 (vues Front / Back / Left / Right comme UE 5, poignées du gizmo à 45 px, Eject, caméras), V7.82 (Box Extent en demi-taille, ordre de la barre du viewport, textes, noms en 3D), V7.83 (Scale comme dans UE : Relative Scale 3D des composants, Scale des acteurs posés, gizmo et Scale Snap en facteur, nœuds). **À la reprise** : ses essais des V7.81 à V7.83, puis la phase 3 de la [feuille de route](FEUILLE_DE_ROUTE_3D_UI.md) (UI-2, UI-3, UI-5), puis sa revue, puis la marche B (la hauteur : Z dans le modèle, gravité, saut), sur son feu vert à chaque fois. Noté, rien de lancé : le Scale d'un Spawn Actor, le cadenas des proportions dans Details, le sens exact de la vue Bottom, et les idées de la marche A (caméra de Play qu'on tourne au doigt, ombres, murs transparents, ampoule des lampes en jeu, gizmo en vue Top).
 
@@ -34,6 +36,8 @@ Deux numérotations se croisent : les **lots du backlog** (1 à 8, ci-dessous) e
 | Lot 2 : durée de chaque jalon et du projet (plus de « ≈ 120 min »), L'atelier en deux jalons, solutions en fonctions (Recalculer à variables locales, Passe, Appliquer ; PrendreFusibles, Remplissage), fusibles du Réveil qui ne reviennent plus, GameMode des niveaux de menu, projets renumérotés X1 à X5, docs | V7.74 | **fait** |
 | [Feuille de route interface et 3D](FEUILLE_DE_ROUTE_3D_UI.md), UI-1 : jetons (palette Starship d'UE5, tailles de texte, espacements, rayons), aspect plat comme UE, un seul jeu d'icônes SVG, Réglages › Taille du texte, `panels.css` enfin chargé | V7.75 | **fait** |
 | UI-4 : les trois familles de l'éditeur (comme UE / ajout de l'appli en ambre / geste tactile en pointillé, appui long = l'équivalent dans UE), avertissements au jaune d'UE, « Vue UE pure », [INTERFACE_FAMILLES.md](INTERFACE_FAMILLES.md) | V7.76 | **fait** |
+| UI-2, seconde partie : le parcours en niveaux et **chapitres** repliables (`core/lessons/chapters.ts`, 34 chapitres), Tout déplier, recherche (titre, situation, code, notions, chapitre ; sans accents), filtres État (dont À reprendre), Format, Durée, légende des codes | V7.85 | **fait** |
+| UI-2, première partie : le **rail** (Apprendre : Aujourd'hui, Parcours, Révision ; Consulter : Nœuds, Mémo UE, Carnet ; Créer : Mes projets ; Réglages), l'accueil **« Aujourd'hui »** (Continuer / Reprendre avec jalon et temps restant, Révision qui lance la séance, À retravailler, les niveaux), Mes projets en page, retour à la page d'origine | V7.84 | **fait** |
 | Revue de la marche A, Scale comme dans UE : Relative Scale 3D des composants (étire taille et Location des enfants), Scale des acteurs posés (celui de leur racine), Details › Scale, gizmo Scale qui écrit le Scale, Scale Snap en facteur (0.25), nœuds Get / Set Actor Scale 3D, Set Relative Scale 3D, Get World Scale | V7.83 | **fait** |
 | Revue de la marche A, lot 2 sans Scale : Box Extent en demi-taille comme dans UE, la barre du viewport dans l'ordre d'UE 5.6+, descriptions des nœuds sans « vue de dessus », noms de la 3D à la taille du texte choisie | V7.82 | **fait** |
 | Revue de la marche A ([REVUE_MARCHE_A.md](REVUE_MARCHE_A.md)), lot 1 : Front / Back / Left / Right comme dans UE 5, poignées du gizmo à 45 px, Eject qui choisit sans cliquer, tourne sur un acteur et lâche les touches tenues, la caméra saute après Open Level, une caméra par niveau dans l'éditeur 3D | V7.81 | **fait** |
@@ -76,7 +80,7 @@ Historique des états successifs : la section « Reprise par un autre agent » c
 | 1 | ~~Fiabilité~~ **fait en V7.2** (sauf H4) | Ne jamais perdre un projet ni une progression ; versionner formats, règles de simulation et leçons ; mises à jour annoncées | ★★★ | M à L |
 | 2 | ~~Autonomie et transfert vers UE~~ **fait** : pilote en V7.3, puis plan du parcours (V7.10 à V7.18) | Guidé → transfert → autonomie différée ; prérequis et « Montre-moi ». La passerelle vers Unreal est passée dans « Prochains chantiers », plus tard | ★★★ | M à L |
 | 3 | **Entrées et interaction** (Enhanced Input fait) | Regard indépendant du déplacement, interaction plus complète, Tick maîtrisé ; le reste d'Enhanced Input (Axis2D, modificateurs, Tap…) | ★★★ | M |
-| 4 | Navigation et prise en main | Recherche et filtres dans les 152 étapes, gestes guidés | ★★★ | M |
+| 4 | Navigation et prise en main | ~~Recherche et filtres dans les 152 étapes~~ (fait en V7.85, UI-2), gestes guidés | ★★★ | M |
 | 5 | ~~Composition~~ **fait en V7.19 à V7.22** | Actor Components : santé, inventaire, interaction, énergie (chantier n° 1) | ★★★ | L |
 | 6 | ~~Cycle de vie et niveaux~~ **fait** | Plusieurs niveaux, Open Level, GameInstance, vrai GameMode, plusieurs Player Start, pion choisi par le GameMode. **Chantier n° 4** (V7.46 à V7.51), revu et corrigé (V7.52 à V7.54), E40 (V7.55, V7.56) : voir « Reprise par un autre agent » | ★★★ | L |
 | 7 | Interface de jeu | **Chantier n° 3, fait** : Designer réduit fidèle à UE, widgets à l'écran, Bindings, boutons et modes d'entrée faits (V7.33 à V7.35), douze étapes (V7.36, V7.37) : **fait** | ★★★ | L |
@@ -392,7 +396,7 @@ Ce que le chantier laisse de côté, du plus utile au moins utile pour un jeu so
 
 | Amélioration | Pourquoi | Pertinence | Difficulté |
 |---|---|---|---|
-| Recherche et filtres du parcours (lot 4) | Par notion, format, durée, déjà réussi, à reprendre : cinq niveaux ne suffisent plus pour 124 étapes | ★★★ | M |
+| ~~Recherche et filtres du parcours (lot 4)~~ **fait en V7.85** (UI-2 : recherche, filtres État, Format, Durée, chapitres) | Par notion, format, durée, déjà réussi, à reprendre : cinq niveaux ne suffisent plus pour 124 étapes | ★★★ | M |
 | Prise en main des gestes (lot 4) | Deux minutes qui font faire chaque geste (appui long, tirer un fil, deux doigts) avant la leçon 1 | ★★ | M |
 | Plusieurs projets en Simulation libre | Créer, nommer, dupliquer, supprimer | ★★ | M |
 | Modèles pour la Simulation libre | Partir d'une porte, d'un inventaire, d'un système d'interaction | ★★ | S à M |
